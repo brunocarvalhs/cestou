@@ -21,6 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "How Much"
 include(":app")
-include(":wear")
 include(":domain")
 include(":data")
