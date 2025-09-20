@@ -125,11 +125,7 @@ jobs:
           fi
 
       - name: Build AAB
-        run: ./gradlew bundleRelease \
-          -Pandroid.injected.signing.store.file=app/release.keystore \
-          -Pandroid.injected.signing.store.password=${{ env.KEYSTORE_PASSWORD }} \
-          -Pandroid.injected.signing.key.alias=${{ env.KEYSTORE_ALIAS }} \
-          -Pandroid.injected.signing.key.password=${{ env.KEY_PASSWORD }}
+        run: ./gradlew bundleRelease -Pandroid.injected.signing.store.file=app/release.keystore -Pandroid.injected.signing.store.password=${{ env.KEYSTORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ env.KEYSTORE_ALIAS }} -Pandroid.injected.signing.key.password=${{ env.KEY_PASSWORD }}
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
