@@ -105,7 +105,11 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     name: Build
-    needs: [unit-tests, lint-check]
+    needs: [ unit-tests, lint-check ]
+    env:
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
@@ -118,20 +122,20 @@ jobs:
       - name: Check if keystore exists
         run: |
           if [ -f "app/release.keystore" ]; then
-            echo "Keystore generated successfully"
+            echo "Keystore exists"
           else
-            echo "::error::Keystore was not created!"
+            echo "::error::Keystore file 'app/release.keystore' does not exist. Please ensure it is in the correct location."
             exit 1
           fi
 
       - name: Build AAB
-        run: ./gradlew bundleRelease -Pandroid.injected.signing.store.file=app/release.keystore -Pandroid.injected.signing.store.password=${{ env.KEYSTORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ env.KEYSTORE_ALIAS }} -Pandroid.injected.signing.key.password=${{ env.KEY_PASSWORD }}
+        run: ./gradlew bundleRelease
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-aab
-          path: ${{ env.AAB_RELEASE_PATH }}
+          path: app/build/outputs/bundle/release/*.aab
 
   release:
     runs-on: ubuntu-24.04
