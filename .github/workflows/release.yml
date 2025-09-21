@@ -105,7 +105,6 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     name: Build
-    needs: [unit-tests, lint-check]
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
@@ -114,19 +113,6 @@ jobs:
 
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
-
-      - name: Generate release.keystore
-        run: |
-          keytool -genkeypair \
-            -v \
-            -keystore app/release.keystore \
-            -storepass "${{ env.KEYSTORE_PASSWORD }}" \
-            -keypass "${{ env.KEY_PASSWORD }}" \
-            -alias "${{ env.KEYSTORE_ALIAS }}" \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -dname "CN=HowMuch, OU=Dev, O=HowMuch, L=São Paulo, S=SP, C=BR"
 
       - name: Check if keystore exists
         run: |
@@ -149,7 +135,7 @@ jobs:
   release:
     runs-on: ubuntu-24.04
     name: Create and Upload Release
-    needs: [build]
+    needs: [build, unit-tests, lint-check]
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
