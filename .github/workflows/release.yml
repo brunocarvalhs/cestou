@@ -200,6 +200,7 @@ jobs:
           releaseFiles: ${{ env.AAB_RELEASE_PATH }}
           track: beta
           status: completed
+          changesNotSentForReview: true
   
       - name: Upload to Google Play (Internal)
         if: steps.deploy_beta.outcome == 'failure'
@@ -210,3 +211,5 @@ jobs:
           releaseFiles: ${{ env.AAB_RELEASE_PATH }}
           track: internal
           status: completed
+          changesNotSentForReview: true
+
