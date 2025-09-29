@@ -176,13 +176,37 @@ jobs:
         with:
           name: ${{ env.APP_NAME }}-aab
           path: app/build/outputs/bundle/release/
-
-      - name: Upload to Google Play
+  
+      - name: Upload to Google Play (Production)
+        id: deploy_prod
+        continue-on-error: true
         uses: r0adkll/upload-google-play@v1
         with:
-          serviceAccountJsonPlainText: ${{ env.DEPLOY_SERVICE_ACCOUNT_JSON }}
+          serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ env.PACKAGE_NAME }}
           releaseFiles: ${{ env.AAB_RELEASE_PATH }}
-          track: production
-          status: inProgress
+          track: production 
+          status: inProgress 
           userFraction: 0.5
+  
+      - name: Upload to Google Play (Beta)
+        if: steps.deploy_prod.outcome == 'failure'
+        id: deploy_beta
+        continue-on-error: true
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ env.PACKAGE_NAME }}
+          releaseFiles: ${{ env.AAB_RELEASE_PATH }}
+          track: beta
+          status: completed
+  
+      - name: Upload to Google Play (Internal)
+        if: steps.deploy_beta.outcome == 'failure'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ env.PACKAGE_NAME }}
+          releaseFiles: ${{ env.AAB_RELEASE_PATH }}
+          track: internal
+          status: completed
