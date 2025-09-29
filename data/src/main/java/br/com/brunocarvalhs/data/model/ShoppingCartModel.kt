@@ -10,7 +10,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import androidx.annotation.Keep
 
+@Keep
 data class ShoppingCartModel(
     override val id: String = UUID.randomUUID().toString(),
     override val token: String = randomToken(),
