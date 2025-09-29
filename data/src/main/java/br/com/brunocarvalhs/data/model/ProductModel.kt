@@ -5,7 +5,9 @@ import br.com.brunocarvalhs.data.constants.EMPTY_STRING
 import br.com.brunocarvalhs.data.constants.ONE_INT
 import br.com.brunocarvalhs.domain.entities.Product
 import java.util.UUID
+import androidx.annotation.Keep
 
+@Keep
 data class ProductModel(
     override val id: String = UUID.randomUUID().toString(),
     override val name: String = EMPTY_STRING,
