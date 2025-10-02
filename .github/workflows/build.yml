@@ -97,10 +97,28 @@ jobs:
       - name: Run Lint
         run: ./gradlew lintDebug
 
+  detekt-check:
+    runs-on: ubuntu-24.04
+    name: Run Detekt Check
+    needs: checkout-and-setup
+    steps:
+      - name: Download Workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: workspace
+
+      - name: Give execution permissions to gradlew
+        run: chmod +x gradlew
+
+      - name: Run Detekt
+        run: ./gradlew detekt
+        env:
+          GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
+
   build:
     runs-on: ubuntu-24.04
     name: Build
-    needs: [unit-tests, lint-check]
+    needs: [unit-tests, lint-check, detekt-check]
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
