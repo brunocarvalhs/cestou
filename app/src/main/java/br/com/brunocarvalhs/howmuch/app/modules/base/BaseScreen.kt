@@ -58,8 +58,11 @@ fun BaseScreen(
                             Icon(
                                 painter = painterResource(item.icon),
                                 contentDescription = stringResource(item.label),
-                                tint = if (item == selectedTab) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = if (item == selectedTab) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
                             )
                         }
                     )

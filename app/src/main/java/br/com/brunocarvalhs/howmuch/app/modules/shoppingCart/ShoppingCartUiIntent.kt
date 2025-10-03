@@ -5,7 +5,8 @@ sealed interface ShoppingCartUiIntent {
     data class SearchByToken(val token: String) : ShoppingCartUiIntent
     data class RemoveItem(val productId: String) : ShoppingCartUiIntent
     data class UpdateQuantity(val productId: String, val quantity: Int) : ShoppingCartUiIntent
-    data class SharedCart(val token: String?) : ShoppingCartUiIntent
+    object ShareCart : ShoppingCartUiIntent
+    object ShareCartToken : ShoppingCartUiIntent
     object Retry : ShoppingCartUiIntent
     data class FinalizePurchase(val market: String, val totalPrice: Long) : ShoppingCartUiIntent
 }

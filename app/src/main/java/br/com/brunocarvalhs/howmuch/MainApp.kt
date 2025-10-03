@@ -33,13 +33,11 @@ fun MainApp(
                 tabs = linkedMapOf(
                     NavBarItem.HOME to {
                         ShoppingCartScreen(
-                            navController = navController,
                             viewModel = hiltViewModel()
                         )
                     },
                     NavBarItem.HISTORY to {
                         HistoryScreen(
-                            navController = navController,
                             viewModel = hiltViewModel()
                         )
                     },

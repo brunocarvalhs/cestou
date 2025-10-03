@@ -1,9 +1,20 @@
 package br.com.brunocarvalhs.howmuch.app.modules.history.components
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material3.*
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -35,16 +46,19 @@ fun HistoryItem(
             it.monthValue == LocalDate.now().monthValue && it.year == LocalDate.now().year
         } ?: false
     }
-
     Card(
         modifier = Modifier
             .padding(8.dp)
-            .fillMaxWidth(), onClick = {
+            .fillMaxWidth(),
+        onClick = {
             onClick?.invoke()
             trackClick(
-                viewId = "history_item", viewName = "History Item", screenName = "HistoryScreen"
+                viewId = "history_item",
+                viewName = "History Item",
+                screenName = "HistoryScreen"
             )
-        }) {
+        }
+    ) {
         Row(
             modifier = Modifier
                 .padding(16.dp)
@@ -54,29 +68,31 @@ fun HistoryItem(
         ) {
             if (isSelectionMode) {
                 Checkbox(
-                    checked = isSelected, onCheckedChange = { checked ->
+                    checked = isSelected,
+                    onCheckedChange = { checked ->
                         onCheckedChange?.invoke(checked)
                         trackClick(
                             viewId = "history_item_checkbox",
                             viewName = "Checkbox",
                             screenName = "HistoryScreen"
                         )
-                    }, modifier = Modifier.padding(end = 8.dp), colors = CheckboxDefaults.colors(
+                    },
+                    modifier = Modifier.padding(end = 8.dp),
+                    colors = CheckboxDefaults.colors(
                         checkedColor = MaterialTheme.colorScheme.primary
                     )
                 )
             }
-
             Column {
                 Text(
-                    text = item.market, style = MaterialTheme.typography.titleMedium
+                    text = item.market,
+                    style = MaterialTheme.typography.titleMedium
                 )
                 Text(
                     text = stringResource(R.string.currency, item.totalPrice.toCurrencyString()),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
-
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -88,18 +104,27 @@ fun HistoryItem(
                             viewName = "AssistChip Date",
                             screenName = "HistoryScreen"
                         )
-                    }, colors = AssistChipDefaults.assistChipColors(
-                        containerColor = if (isCurrentMonth) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                        labelColor = if (isCurrentMonth) MaterialTheme.colorScheme.onPrimary
-                        else MaterialTheme.colorScheme.onSurface
-                    ), label = {
+                    },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = if (isCurrentMonth) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        },
+                        labelColor = if (isCurrentMonth) {
+                            MaterialTheme.colorScheme.onPrimary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        }
+                    ),
+                    label = {
                         Text(
                             text = item.purchaseDate.toFormatDate(
                                 outputFormat = DateFormat.MONTH_NAME_YEAR
                             )
                         )
-                    })
+                    }
+                )
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = null

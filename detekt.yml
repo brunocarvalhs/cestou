@@ -6,6 +6,18 @@ style:
     maxLineLength: 120
     excludeCommentStatements: true
 
+  UnusedPrivateMember:
+    active: true
+    ignoreAnnotated:
+      - "Preview"
+      - "Composable"
+
+  MagicNumber:
+    active: true
+    ignoreAnnotated:
+      - "Composable"
+      - "Preview"
+
 # ===========================
 # COMPLEXITY RULES
 # ===========================
@@ -16,12 +28,14 @@ complexity:
       - "Composable"
       - "Provides"
       - "Binds"
+
   LargeClass:
     threshold: 600
     ignoreAnnotated:
       - "Composable"
       - "Module"
       - "InstallIn"
+
   LongParameterList:
     functionThreshold: 6
     constructorThreshold: 6
@@ -30,6 +44,8 @@ complexity:
       - "Preview"
       - "Provides"
       - "Binds"
+      - "Inject"
+
   TooManyFunctions:
     thresholdInClasses: 12
     ignoreAnnotated:
@@ -37,6 +53,12 @@ complexity:
       - "Module"
       - "InstallIn"
       - "Provides"
+
+  LongMethod:
+    active: true
+    ignoreAnnotated:
+      - "Composable"
+      - "Preview"
 
 # ===========================
 # PERFORMANCE RULES

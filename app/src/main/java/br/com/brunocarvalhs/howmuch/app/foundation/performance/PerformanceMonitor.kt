@@ -3,23 +3,32 @@ package br.com.brunocarvalhs.howmuch.app.foundation.performance
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
-import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.util.SparseIntArray
 import androidx.core.app.FrameMetricsAggregator
+import androidx.core.util.size
 import androidx.metrics.performance.JankStats
 import br.com.brunocarvalhs.howmuch.BuildConfig
+import br.com.brunocarvalhs.howmuch.app.foundation.constants.FIVE_INT
+import br.com.brunocarvalhs.howmuch.app.foundation.constants.FOUR_INT
+import br.com.brunocarvalhs.howmuch.app.foundation.constants.ONE_INT
+import br.com.brunocarvalhs.howmuch.app.foundation.constants.SIX_INT
+import br.com.brunocarvalhs.howmuch.app.foundation.constants.THREE_INT
+import br.com.brunocarvalhs.howmuch.app.foundation.constants.TWO_INT
+import br.com.brunocarvalhs.howmuch.app.foundation.constants.ZERO_INT
 import com.google.firebase.perf.FirebasePerformance
 import com.google.firebase.perf.metrics.Trace
 import java.util.concurrent.ConcurrentLinkedQueue
-import androidx.core.util.size
 
 object PerformanceMonitor : Application.ActivityLifecycleCallbacks {
 
     private val firebasePerformance = FirebasePerformance.getInstance()
     private val monitors = mutableMapOf<Activity, ActivityPerformance>()
 
-    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+        // No implementation needed
+    }
 
     override fun onActivityStarted(activity: Activity) {
         val perf = ActivityPerformance(activity)
@@ -27,15 +36,21 @@ object PerformanceMonitor : Application.ActivityLifecycleCallbacks {
         perf.startMonitoring()
     }
 
-    override fun onActivityResumed(activity: Activity) {}
+    override fun onActivityResumed(activity: Activity) {
+        // No implementation needed
+    }
 
-    override fun onActivityPaused(activity: Activity) {}
+    override fun onActivityPaused(activity: Activity) {
+        // No implementation needed
+    }
 
     override fun onActivityStopped(activity: Activity) {
         monitors.remove(activity)?.stopMonitoring()
     }
 
-    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
+        // No implementation needed
+    }
 
     override fun onActivityDestroyed(activity: Activity) {
         monitors.remove(activity)
@@ -48,22 +63,34 @@ object PerformanceMonitor : Application.ActivityLifecycleCallbacks {
         private var trace: Trace? = null
 
         private val frameQueue = ConcurrentLinkedQueue<Double>()
-        private val handler = Handler(Looper.getMainLooper())
-        private val reportIntervalMs = 1000L
-        private val jankThresholdMs = 16.0
+        private val handler = android.os.Handler(Looper.getMainLooper())
 
         private val periodicReporter = object : Runnable {
             override fun run() {
                 reportFrameSummary()
-                handler.postDelayed(this, reportIntervalMs)
+                handler.postDelayed(this, REPORT_INTERVAL_MS)
             }
         }
 
         fun startMonitoring() {
             startFirebaseTrace()
-            startFrameMetricsAggregator()
-            startJankStats()
-            handler.postDelayed(periodicReporter, reportIntervalMs)
+            frameMetricsAggregator = FrameMetricsAggregator(
+                FrameMetricsAggregator.TOTAL_DURATION or
+                    FrameMetricsAggregator.DRAW_DURATION or
+                    FrameMetricsAggregator.INPUT_DURATION or
+                    FrameMetricsAggregator.SYNC_DURATION or
+                    FrameMetricsAggregator.SWAP_DURATION or
+                    FrameMetricsAggregator.ANIMATION_DURATION or
+                    FrameMetricsAggregator.LAYOUT_MEASURE_DURATION
+            ).apply { add(activity) }
+            jankStats = JankStats.createAndTrack(activity.window) { frameData ->
+                val frameTimeMs = frameData.frameDurationUiNanos / FRAME
+                frameQueue.add(frameTimeMs)
+                if (frameTimeMs > JANK_THRESHOLD_MS && BuildConfig.DEBUG) {
+                    Log.d("PerformanceMonitor", "JANK detected: $frameTimeMs ms")
+                }
+            }
+            handler.postDelayed(periodicReporter, REPORT_INTERVAL_MS)
         }
 
         fun stopMonitoring() {
@@ -74,30 +101,9 @@ object PerformanceMonitor : Application.ActivityLifecycleCallbacks {
         }
 
         private fun startFirebaseTrace() {
-            trace = firebasePerformance.newTrace("activity_performance_${activity.localClassName}")
-                .apply { start() }
-        }
-
-        private fun startFrameMetricsAggregator() {
-            frameMetricsAggregator = FrameMetricsAggregator(
-                FrameMetricsAggregator.TOTAL_DURATION or
-                        FrameMetricsAggregator.DRAW_DURATION or
-                        FrameMetricsAggregator.INPUT_DURATION or
-                        FrameMetricsAggregator.SYNC_DURATION or
-                        FrameMetricsAggregator.SWAP_DURATION or
-                        FrameMetricsAggregator.ANIMATION_DURATION or
-                        FrameMetricsAggregator.LAYOUT_MEASURE_DURATION
-            ).apply { add(activity) }
-        }
-
-        private fun startJankStats() {
-            jankStats = JankStats.createAndTrack(activity.window) { frameData ->
-                val frameTimeMs = frameData.frameDurationUiNanos / 1_000_000.0
-                frameQueue.add(frameTimeMs)
-                if (frameTimeMs > jankThresholdMs && BuildConfig.DEBUG) {
-                    Log.d("PerformanceMonitor", "JANK detected: $frameTimeMs ms")
-                }
-            }
+            trace = firebasePerformance.newTrace(
+                "activity_performance_${activity.localClassName}"
+            ).apply { start() }
         }
 
         private fun stopJankStats() {
@@ -141,13 +147,13 @@ object PerformanceMonitor : Application.ActivityLifecycleCallbacks {
             val frames = frameQueue.toList()
             frameQueue.clear()
 
-            val average = frames.average()
-            val max = frames.maxOrNull() ?: 0.0
-            val p95 = frames.sorted().let { sorted ->
-                sorted[(sorted.size * 0.95).toInt().coerceAtMost(sorted.size - 1)]
+            val average: Double = frames.average()
+            val max: Double = frames.maxOrNull() ?: ZERO_FLOAT
+            val p95: Double = frames.sorted().let { sorted ->
+                sorted[(sorted.size * P95).toInt().coerceAtMost(sorted.size - ONE_INT)]
             }
 
-            val metricsMap = mapOf(
+            val metricsMap: Map<String, Any> = mapOf(
                 "average_frame_ms" to average,
                 "max_frame_ms" to max,
                 "p95_frame_ms" to p95,
@@ -158,19 +164,19 @@ object PerformanceMonitor : Application.ActivityLifecycleCallbacks {
         }
 
         private fun metricNameForIndex(index: Int): String = when (index) {
-            0 -> "TOTAL_DURATION"
-            1 -> "DRAW_DURATION"
-            2 -> "INPUT_DURATION"
-            3 -> "SYNC_DURATION"
-            4 -> "SWAP_DURATION"
-            5 -> "ANIMATION_DURATION"
-            6 -> "LAYOUT_MEASURE_DURATION"
+            ZERO_INT -> "TOTAL_DURATION"
+            ONE_INT -> "DRAW_DURATION"
+            TWO_INT -> "INPUT_DURATION"
+            THREE_INT -> "SYNC_DURATION"
+            FOUR_INT -> "SWAP_DURATION"
+            FIVE_INT -> "ANIMATION_DURATION"
+            SIX_INT -> "LAYOUT_MEASURE_DURATION"
             else -> "UNKNOWN"
         }
 
-        private fun arrayToReadableMap(array: android.util.SparseIntArray): Map<String, String> {
+        private fun arrayToReadableMap(array: SparseIntArray): Map<String, String> {
             val map = mutableMapOf<String, String>()
-            for (i in 0 until array.size) {
+            for (i in ZERO_INT until array.size) {
                 val timeMs = array.keyAt(i)
                 val count = array.valueAt(i)
                 map["${timeMs}ms"] = "$count frames"
@@ -187,6 +193,14 @@ object PerformanceMonitor : Application.ActivityLifecycleCallbacks {
             if (BuildConfig.DEBUG) {
                 Log.d("PerformanceMonitor", "Event: $eventName, Params: $params")
             }
+        }
+
+        companion object {
+            private const val ZERO_FLOAT = 0.0
+            private const val P95 = 0.95
+            private const val FRAME = 1_000_000.0
+            private const val REPORT_INTERVAL_MS = 1000L
+            private const val JANK_THRESHOLD_MS = 16.0
         }
     }
 }

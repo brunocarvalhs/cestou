@@ -7,7 +7,7 @@ import com.google.firebase.analytics.analytics
 
 object AnalyticsEvents : AnalyticsManager {
 
-    private val analytics: FirebaseAnalytics by lazy {
+    internal val analytics: FirebaseAnalytics by lazy {
         Firebase.analytics
     }
 

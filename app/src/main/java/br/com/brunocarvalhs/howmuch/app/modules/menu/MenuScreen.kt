@@ -1,6 +1,5 @@
 package br.com.brunocarvalhs.howmuch.app.modules.menu
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
@@ -32,12 +31,6 @@ import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsParam
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackClick
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.getAppVersion
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.openPlayStore
-
-data class ServiceItem(
-    @param:StringRes val title: Int,
-    val onClick: () -> Unit
-)
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

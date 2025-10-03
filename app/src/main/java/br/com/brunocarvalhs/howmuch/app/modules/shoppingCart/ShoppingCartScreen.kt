@@ -32,12 +32,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvent
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvents.trackEvent
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsParam
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackClick
+import br.com.brunocarvalhs.howmuch.app.foundation.constants.ZERO_INT
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.shareText
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
 import br.com.brunocarvalhs.howmuch.app.modules.products.ProductFormBottomSheet
@@ -50,7 +50,6 @@ import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.TokenBot
 
 @Composable
 fun ShoppingCartScreen(
-    navController: NavController,
     viewModel: ShoppingCartViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -132,7 +131,8 @@ fun ShoppingCartContent(
     showFinalizeDialog: Boolean,
     setShowProductSheet: (Boolean) -> Unit,
     setShowShareSheet: (Boolean) -> Unit,
-    setShowFinalizeDialog: (Boolean) -> Unit
+    setShowFinalizeDialog: (Boolean) -> Unit,
+    numberCardLoading: Int = 3
 ) {
     var showTokenSheet by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
@@ -141,17 +141,21 @@ fun ShoppingCartContent(
         derivedStateOf {
             val firstVisibleItem = listState.firstVisibleItemIndex
             val offset = listState.firstVisibleItemScrollOffset
-            firstVisibleItem > 0 || offset > 100
+            firstVisibleItem > ZERO_INT || offset > 100
         }
     }
 
     Scaffold(
         topBar = {
             HeaderComponent(
-                title = if (showTitle) stringResource(
-                    R.string.currency,
-                    uiState.totalPrice.toCurrencyString()
-                ) else null,
+                title = if (showTitle) {
+                    stringResource(
+                        R.string.currency,
+                        uiState.totalPrice.toCurrencyString()
+                    )
+                } else {
+                    null
+                },
                 onShared = {
                     showTokenSheet = true
                     trackClick(
@@ -211,7 +215,7 @@ fun ShoppingCartContent(
                 Spacer(modifier = Modifier.height(16.dp))
             }
             if (uiState.isLoading) {
-                items(3) {
+                items(count = numberCardLoading) {
                     ShoppingCartItem(isLoading = true)
                 }
             } else {

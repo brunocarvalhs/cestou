@@ -79,7 +79,6 @@ fun ProductFormScreen(
     }
 
     ProductContent(
-        uiState = uiState,
         onIntent = viewModel::onIntent
     )
 }
@@ -140,7 +139,6 @@ fun ProductFormBottomSheet(
         },
     ) {
         ProductContent(
-            uiState = uiState,
             onIntent = viewModel::onIntent
         )
     }
@@ -149,7 +147,6 @@ fun ProductFormBottomSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProductContent(
-    uiState: ProductUiState,
     onIntent: (ProductUiIntent) -> Unit
 ) {
     val nameFocusRequester = remember { FocusRequester() }
@@ -203,7 +200,6 @@ private fun ProductContent(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-
             ProductNameInput(
                 name = name,
                 onNameChange = { newName ->
@@ -254,7 +250,6 @@ private fun ProductContent(
 @Preview
 fun ProductContentPreview() {
     ProductContent(
-        uiState = ProductUiState(),
         onIntent = {}
     )
 }

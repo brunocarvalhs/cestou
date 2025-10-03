@@ -1,21 +1,10 @@
 package br.com.brunocarvalhs.howmuch.app.foundation.constants
 
-data class Tips(
-    val title: String,
-    val link: String,
-    val image: String,
-)
-
 val TIPS = listOf(
     Tips(
         title = "Como economizar nas compras do supermercado",
         link = "https://blog.itau.com.br/artigos/6-dicas-para-economizar-no-supermercado",
         image = "https://blog.itau.com.br/wp-content/uploads/2022/10/supermercado-economia.jpg"
-    ),
-    Tips(
-        title = "Alimentos saudáveis: o que incluir no carrinho",
-        link = "https://www.uol.com.br/vivabem/noticias/redacao/2024/04/01/compra-de-mercado-sem-erro-nem-desperdicio-veja-dicas.htm",
-        image = "https://conteudo.imguol.com.br/c/entretenimento/36/2024/03/28/frutas-legumes-vegetais-alimentacao-saudavel-1.jpg"
     ),
     Tips(
         title = "Dicas de planejamento de compras semanais",

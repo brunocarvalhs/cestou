@@ -38,7 +38,6 @@ class HistoryViewModel @Inject constructor(
             HistoryUiIntent.Retry -> loadHistory()
             HistoryUiIntent.ClearHistory -> clearHistory()
             is HistoryUiIntent.DeleteSelected -> deleteSelected(intent.list)
-
         }
     }
 
@@ -84,7 +83,9 @@ class HistoryViewModel @Inject constructor(
             append("Total: R$ ${cart.totalPrice.toCurrencyString()}\n")
             append("\nItems:\n")
             cart.products.forEach { item ->
-                append("- ${item.name}: ${item.quantity} x R$ ${item.price.toCurrencyString()} = R$ ${(item.quantity * item.price).toCurrencyString()}\n")
+                append("- ${item.name}: ${item.quantity}")
+                append(" x R$ ${item.price.toCurrencyString()} ")
+                append("= R$ ${(item.quantity * item.price).toCurrencyString()}\n")
             }
         }.toString()
         context.shareText(shareText, "Shopping Cart from ${cart.market}")

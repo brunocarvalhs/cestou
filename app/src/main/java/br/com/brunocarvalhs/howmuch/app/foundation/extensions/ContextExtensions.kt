@@ -3,10 +3,10 @@ package br.com.brunocarvalhs.howmuch.app.foundation.extensions
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.provider.Settings.Secure
+import android.provider.Settings
+import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import androidx.core.content.edit
 
 suspend fun Context.isFirstAppOpen(): Boolean = withContext(Dispatchers.IO) {
     val prefs = getSharedPreferences(packageName, Context.MODE_PRIVATE)
@@ -19,7 +19,7 @@ suspend fun Context.isFirstAppOpen(): Boolean = withContext(Dispatchers.IO) {
 
 @SuppressLint("HardwareIds")
 fun Context.getId(): String {
-    return Secure.getString(this.contentResolver, Secure.ANDROID_ID)
+    return Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID)
 }
 
 internal fun Context.shareText(subject: String, text: String) {
@@ -42,7 +42,7 @@ internal fun Context.getAppVersion(): String {
     return try {
         val packageInfo = this.packageManager.getPackageInfo(this.packageName, 0)
         packageInfo.versionName ?: "1.0"
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         "1.0"
     }
 }
