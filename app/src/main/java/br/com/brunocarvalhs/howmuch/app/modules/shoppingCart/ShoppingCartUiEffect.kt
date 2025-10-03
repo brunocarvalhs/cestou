@@ -4,5 +4,4 @@ sealed interface ShoppingCartUiEffect {
     data class ShowError(val message: String) : ShoppingCartUiEffect
     data class NavigateToAddProduct(val cartId: String?) : ShoppingCartUiEffect
     data class ShareCart(val shareText: String) : ShoppingCartUiEffect
-    data class ShareCartToken(val shareText: String) : ShoppingCartUiEffect
 }

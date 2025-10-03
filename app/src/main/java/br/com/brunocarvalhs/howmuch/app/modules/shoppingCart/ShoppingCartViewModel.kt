@@ -12,8 +12,6 @@ import br.com.brunocarvalhs.domain.useCases.FinalizePurchaseUseCase
 import br.com.brunocarvalhs.domain.useCases.ObserveShoppingCartUseCase
 import br.com.brunocarvalhs.domain.useCases.UpdateShoppingCartUseCase
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.ShoppingCartUiEffect.NavigateToAddProduct
-import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.generateShareableCart
-import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.generateShareableToken
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,17 +61,6 @@ class ShoppingCartViewModel @Inject constructor(
                 market = intent.market,
                 totalPrice = intent.totalPrice
             )
-
-            is ShoppingCartUiIntent.ShareCart -> viewModelScope.launch {
-                val currentCart = _uiState.value
-                val shareText = generateShareableCart(currentCart.products, currentCart.totalPrice)
-                _uiEffect.emit(ShoppingCartUiEffect.ShareCart(shareText))
-            }
-
-            is ShoppingCartUiIntent.ShareCartToken -> viewModelScope.launch {
-                val shareText = generateShareableToken(uiState.value.token)
-                _uiEffect.emit(ShoppingCartUiEffect.ShareCartToken(shareText))
-            }
         }
     }
 

@@ -47,6 +47,8 @@ import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShareCar
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartCardsPager
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartItem
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.TokenBottomSheet
+import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.generateShareableCart
+import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.generateShareableToken
 
 @Composable
 fun ShoppingCartScreen(
@@ -96,14 +98,14 @@ fun ShoppingCartScreen(
         onShareList = {
             context.shareText(
                 subject = context.getString(R.string.share_shopping_cart),
-                text = viewModel.shareCart()
+                text = generateShareableCart(uiState.products, uiState.totalPrice)
             )
             showShareSheet = false
         },
         onShareToken = {
             context.shareText(
                 subject = context.getString(R.string.share_cart_token),
-                text = viewModel.shareCartToken()
+                text = generateShareableToken(uiState.token)
             )
             showShareSheet = false
         },
