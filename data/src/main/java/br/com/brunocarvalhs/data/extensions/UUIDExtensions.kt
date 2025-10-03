@@ -4,7 +4,10 @@ import java.security.SecureRandom
 
 val secureRandom = SecureRandom()
 
+private const val NEXT_INT = 900_000
+private const val NUMBER_VALUE = 100_000
+
 fun randomToken(): String {
-    val number = secureRandom.nextInt(900_000) + 100_000 // Garante 6 dígitos
+    val number = secureRandom.nextInt(NEXT_INT) + NUMBER_VALUE
     return number.toString()
 }

@@ -1,0 +1,88 @@
+# ===========================
+# STYLE RULES
+# ===========================
+style:
+  MaxLineLength:
+    maxLineLength: 120
+    excludeCommentStatements: true
+
+# ===========================
+# COMPLEXITY RULES
+# ===========================
+complexity:
+  CyclomaticComplexMethod:
+    threshold: 15
+    ignoreAnnotated:
+      - "Composable"
+      - "Provides"
+      - "Binds"
+  LargeClass:
+    threshold: 600
+    ignoreAnnotated:
+      - "Composable"
+      - "Module"
+      - "InstallIn"
+  LongParameterList:
+    functionThreshold: 6
+    constructorThreshold: 6
+    ignoreAnnotated:
+      - "Composable"
+      - "Preview"
+      - "Provides"
+      - "Binds"
+  TooManyFunctions:
+    thresholdInClasses: 12
+    ignoreAnnotated:
+      - "Composable"
+      - "Module"
+      - "InstallIn"
+      - "Provides"
+
+# ===========================
+# PERFORMANCE RULES
+# ===========================
+performance:
+  active: true
+
+# ===========================
+# COMMENTS RULES
+# ===========================
+comments:
+  active: true
+
+# ===========================
+# COROUTINES RULES
+# ===========================
+coroutines:
+  active: true
+
+# ===========================
+# EMPTY BLOCKS RULES
+# ===========================
+empty-blocks:
+  active: true
+
+# ===========================
+# EXCEPTIONS RULES
+# ===========================
+exceptions:
+  active: true
+
+# ===========================
+# NAMING RULES
+# ===========================
+naming:
+  active: true
+  FunctionNaming:
+    active: true
+    ignoreAnnotated:
+      - "Composable"
+      - "Preview"
+      - "Provides"
+      - "Binds"
+  VariableNaming:
+    active: true
+  ClassNaming:
+    active: true
+  PackageNaming:
+    active: true

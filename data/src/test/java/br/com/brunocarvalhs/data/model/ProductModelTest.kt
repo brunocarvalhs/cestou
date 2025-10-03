@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.data.model
 
 import br.com.brunocarvalhs.domain.entities.Product
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ProductModelTest {

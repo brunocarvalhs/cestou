@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.google.firebase.firebase.perf)
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
+    id("io.gitlab.arturbosch.detekt")
     kotlin("plugin.serialization") version "2.1.20"
 }
 
@@ -64,6 +65,11 @@ android {
     }
 }
 
+detekt {
+    config.setFrom(files("$rootDir/detekt.yml"))
+    buildUponDefaultConfig = true
+}
+
 dependencies {
     implementation(project(":data"))
     implementation(project(":domain"))
@@ -118,4 +124,6 @@ dependencies {
 
     // Robolectric
     testImplementation(libs.robolectric)
+
+    detektPlugins(libs.detekt.formatting)
 }
