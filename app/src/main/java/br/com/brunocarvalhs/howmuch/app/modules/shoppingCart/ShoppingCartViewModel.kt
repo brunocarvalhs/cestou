@@ -61,6 +61,11 @@ class ShoppingCartViewModel @Inject constructor(
                 market = intent.market,
                 totalPrice = intent.totalPrice
             )
+
+            is ShoppingCartUiIntent.UpdateChecked -> checkProduct(
+                product = intent.product,
+                isChecked = intent.isChecked
+            )
         }
     }
 
@@ -132,7 +137,7 @@ class ShoppingCartViewModel @Inject constructor(
         }
     }
 
-    fun updateProductQuantity(productId: String, newQuantity: Int) = viewModelScope.launch {
+    private fun updateProductQuantity(productId: String, newQuantity: Int) = viewModelScope.launch {
         if (newQuantity < 1) return@launch
 
         val currentProducts = _uiState.value.products.toMutableList()
@@ -165,7 +170,7 @@ class ShoppingCartViewModel @Inject constructor(
     ) {
         val updatedProducts = products ?: _uiState.value.products
         val updatedTotalPrice = totalPrice ?: run {
-            updatedProducts.sumOf { it.price * it.quantity }
+            updatedProducts.sumOf { (it.price ?: 0) * it.quantity }
         }
 
         _uiState.value = _uiState.value.copy(
@@ -177,7 +182,7 @@ class ShoppingCartViewModel @Inject constructor(
         )
     }
 
-    fun finalizePurchase(
+    private fun finalizePurchase(
         market: String,
         totalPrice: Long
     ) = viewModelScope.launch {
@@ -200,5 +205,9 @@ class ShoppingCartViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = false)
             _uiEffect.emit(ShoppingCartUiEffect.ShowError("Carrinho não encontrado"))
         }
+    }
+
+    fun checkProduct(product: Product, isChecked: Boolean) = viewModelScope.launch {
+
     }
 }

@@ -84,8 +84,8 @@ class HistoryViewModel @Inject constructor(
             append("\nItems:\n")
             cart.products.forEach { item ->
                 append("- ${item.name}: ${item.quantity}")
-                append(" x R$ ${item.price.toCurrencyString()} ")
-                append("= R$ ${(item.quantity * item.price).toCurrencyString()}\n")
+                append(" x R$ ${item.price?.toCurrencyString()} ")
+                append("= R$ ${(item.quantity * (item.price ?: 0)).toCurrencyString()}\n")
             }
         }.toString()
         context.shareText(shareText, "Shopping Cart from ${cart.market}")

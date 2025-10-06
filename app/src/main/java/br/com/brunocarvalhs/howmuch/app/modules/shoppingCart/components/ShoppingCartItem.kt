@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.placeholder
@@ -51,7 +53,8 @@ fun ShoppingCartItem(
     titleFillMaxWidth: Float = 0.6f,
     priceFillMaxWidth: Float = 0.4f,
     quantityFillMaxWidth: Float = 0.3f,
-    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
+    onCheckedChange: ((Boolean) -> Unit)? = null
 ) {
     var expanded by remember { mutableStateOf(isExpanded) }
     val placeholderState = rememberPlaceholderState(isVisible = isLoading)
@@ -108,40 +111,66 @@ fun ShoppingCartItem(
                                 )
                         )
                     } else {
-                        if (product?.name.isNullOrBlank().not()) {
-                            Text(
-                                product.name,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                        }
-                        Text(
-                            text = stringResource(R.string.price) + " " + stringResource(
-                                R.string.currency,
-                                product?.price?.toCurrencyString().orEmpty()
-                            ),
-                            style = if (product?.name.isNullOrBlank()) {
-                                MaterialTheme.typography.titleMedium
-                            } else {
-                                MaterialTheme.typography.bodyMedium
+                        Row {
+                            onCheckedChange?.let {
+                                Checkbox(
+                                    product?.isChecked ?: false,
+                                    onCheckedChange = { onCheckedChange.invoke(it) })
                             }
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        if (onRemove == null || onQuantityChange == null) {
-                            Text(
-                                stringResource(R.string.quantity, product?.quantity ?: ONE_INT),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        } else {
-                            AnimatedVisibility(
-                                expanded.not()
-                            ) {
-                                Text(
-                                    stringResource(R.string.quantity, product?.quantity ?: ONE_INT),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                            Column {
+                                if (product?.name.isNullOrBlank().not()) {
+                                    Text(
+                                        product.name,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                }
+                                product?.price?.let {
+                                    Text(
+                                        text = stringResource(R.string.price) + " " + stringResource(
+                                            R.string.currency,
+                                            product.price?.toCurrencyString().orEmpty()
+                                        ),
+                                        style = if (product.name.isBlank()) {
+                                            MaterialTheme.typography.titleMedium
+                                        } else {
+                                            MaterialTheme.typography.bodyMedium
+                                        },
+                                        textDecoration = if (product.isChecked && onCheckedChange == null)
+                                            TextDecoration.LineThrough
+                                        else TextDecoration.None
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                }
+                                if (onRemove == null || onQuantityChange == null) {
+                                    Text(
+                                        stringResource(
+                                            R.string.quantity,
+                                            product?.quantity ?: ONE_INT
+                                        ),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textDecoration = if (product?.isChecked == true && onCheckedChange == null)
+                                            TextDecoration.LineThrough
+                                        else TextDecoration.None
+                                    )
+                                } else {
+                                    AnimatedVisibility(
+                                        expanded.not()
+                                    ) {
+                                        Text(
+                                            stringResource(
+                                                R.string.quantity,
+                                                product?.quantity ?: ONE_INT
+                                            ),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            textDecoration = if (product?.isChecked == true && onCheckedChange == null)
+                                                TextDecoration.LineThrough
+                                            else TextDecoration.None
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -309,5 +338,20 @@ private fun ShoppingCartItemWithoutProductIsExpandedPreview() {
             price = 1000
         ),
         isExpanded = true
+    )
+}
+
+@Composable
+@Preview(showBackground = true)
+private fun ShoppingCartItemWithoutProductCheckedPreview() {
+    ShoppingCartItem(
+        product = ProductModel(
+            name = "Produto de Teste",
+            quantity = 1,
+        ),
+        isExpanded = true,
+        onCheckedChange = {
+
+        }
     )
 }

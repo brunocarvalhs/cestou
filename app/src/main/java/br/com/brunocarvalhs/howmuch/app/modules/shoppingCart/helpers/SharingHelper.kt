@@ -7,7 +7,7 @@ fun generateShareableCart(products: List<Product>, totalPrice: Long): String {
     return buildString {
         append("Meu carrinho de compras:\n\n")
         products.forEach { product ->
-            append("${product.name} x${product.quantity} - R$ ${product.price.toCurrencyString()}\n")
+            append("${product.name} x${product.quantity} - R$ ${product.price?.toCurrencyString()}\n")
         }
         append("\n\nTotal: R$ ${totalPrice.toCurrencyString()}")
     }

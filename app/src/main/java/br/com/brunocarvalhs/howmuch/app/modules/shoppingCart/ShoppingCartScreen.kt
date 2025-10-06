@@ -270,8 +270,15 @@ fun ShoppingCartContent(
                                         viewName = "Change Quantity",
                                         screenName = "ShoppingCartScreen"
                                     )
+                                },
+                                onCheckedChange = {
+                                    onIntent(ShoppingCartUiIntent.UpdateChecked(item, it))
+                                    trackClick(
+                                        viewId = "product_checked_${item.id}",
+                                        viewName = "Change Checked",
+                                        screenName = "ShoppingCartScreen"
+                                    )
                                 }
-
                             )
                         }
                     }
@@ -407,13 +414,13 @@ private class ShoppingCartStateProvider : PreviewParameterProvider<ShoppingCartU
             ShoppingCartUiState(
                 isLoading = false,
                 products = getProducts(),
-                totalPrice = getProducts().sumOf { if (it.isChecked) it.price * it.quantity else 0 },
+                totalPrice = getProducts().sumOf { if (it.isChecked) (it.price ?: 0) * it.quantity else 0 },
                 token = null
             ),
             ShoppingCartUiState(
                 isLoading = false,
                 products = getProducts(),
-                totalPrice = getProducts().sumOf { if (it.isChecked) it.price * it.quantity else 0 },
+                totalPrice = getProducts().sumOf { if (it.isChecked) (it.price ?: 0) * it.quantity else 0 },
                 token = null,
                 type = TypeShopping.LIST,
                 list = getListProducts()

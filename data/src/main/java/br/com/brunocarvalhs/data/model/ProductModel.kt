@@ -5,20 +5,19 @@ import br.com.brunocarvalhs.data.constants.ONE_INT
 import br.com.brunocarvalhs.domain.entities.Product
 import java.util.UUID
 import androidx.annotation.Keep
-import br.com.brunocarvalhs.data.constants.EMPTY_LONG
 
 @Keep
 data class ProductModel(
     override val id: String = UUID.randomUUID().toString(),
     override val name: String = EMPTY_STRING,
-    override val price: Long = EMPTY_LONG,
+    override val price: Long? = null,
     override var quantity: Int = ONE_INT,
     override var isChecked: Boolean = false
 ) : Product {
     override fun toCopy(
         id: String,
         name: String,
-        price: Long,
+        price: Long?,
         quantity: Int,
         isChecked: Boolean
     ): Product = copy(
