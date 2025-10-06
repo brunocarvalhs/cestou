@@ -58,4 +58,6 @@
     <string name="save">Salvar</string>
     <string name="set_cart_limit">Definir limite do carrinho</string>
     <string name="limit_text">Limite</string>
+    <string name="cart">Cart</string>
+    <string name="list">List</string>
 </resources>

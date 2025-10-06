@@ -170,7 +170,7 @@ class ShoppingCartViewModel @Inject constructor(
 
         _uiState.value = _uiState.value.copy(
             isLoading = isLoading,
-            id = cartId,
+            cartId = cartId,
             products = updatedProducts,
             totalPrice = updatedTotalPrice,
             token = token ?: _uiState.value.token,

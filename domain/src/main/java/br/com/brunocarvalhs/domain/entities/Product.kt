@@ -5,11 +5,13 @@ interface Product {
     val name: String
     val price: Long
     var quantity: Int
+    var isChecked: Boolean
 
     fun toCopy(
         id: String = this.id,
         name: String = this.name,
         price: Long = this.price,
-        quantity: Int = this.quantity
+        quantity: Int = this.quantity,
+        isChecked: Boolean = this.isChecked
     ): Product
 }

@@ -15,12 +15,16 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -28,10 +32,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import br.com.brunocarvalhs.data.model.ProductModel
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvent
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvents.trackEvent
@@ -47,8 +55,10 @@ import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShareCar
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartCardsPager
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartItem
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.TokenBottomSheet
+import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.TypeShopping
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.generateShareableCart
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.generateShareableToken
+import kotlin.random.Random
 
 @Composable
 fun ShoppingCartScreen(
@@ -138,6 +148,7 @@ fun ShoppingCartContent(
 ) {
     var showTokenSheet by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+    var selectedDestination by rememberSaveable { mutableIntStateOf(uiState.type.ordinal) }
 
     val showTitle by remember {
         derivedStateOf {
@@ -214,33 +225,80 @@ fun ShoppingCartContent(
                         )
                     }
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+            }
+            item {
+                PrimaryTabRow(selectedTabIndex = selectedDestination) {
+                    TypeShopping.entries.forEachIndexed { index, destination ->
+                        Tab(
+                            selected = selectedDestination == index,
+                            onClick = {
+                                selectedDestination = index
+                            },
+                            text = {
+                                Text(
+                                    text = stringResource(destination.label),
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        )
+                    }
+                }
             }
             if (uiState.isLoading) {
                 items(count = numberCardLoading) {
                     ShoppingCartItem(isLoading = true)
                 }
             } else {
-                items(uiState.products) { product ->
-                    ShoppingCartItem(
-                        product = product,
-                        onRemove = {
-                            onIntent(ShoppingCartUiIntent.RemoveItem(product.id))
-                            trackClick(
-                                viewId = "product_remove_${product.id}",
-                                viewName = "Remove Product",
-                                screenName = "ShoppingCartScreen"
-                            )
-                        },
-                        onQuantityChange = {
-                            onIntent(ShoppingCartUiIntent.UpdateQuantity(product.id, it))
-                            trackClick(
-                                viewId = "product_quantity_${product.id}",
-                                viewName = "Change Quantity",
-                                screenName = "ShoppingCartScreen"
+                when (selectedDestination) {
+                    TypeShopping.LIST.ordinal -> {
+                        items(uiState.list) { item ->
+                            ShoppingCartItem(
+                                product = item,
+                                onRemove = {
+                                    onIntent(ShoppingCartUiIntent.RemoveItem(item.id))
+                                    trackClick(
+                                        viewId = "product_remove_${item.id}",
+                                        viewName = "Remove Product",
+                                        screenName = "ShoppingCartScreen"
+                                    )
+                                },
+                                onQuantityChange = {
+                                    onIntent(ShoppingCartUiIntent.UpdateQuantity(item.id, it))
+                                    trackClick(
+                                        viewId = "product_quantity_${item.id}",
+                                        viewName = "Change Quantity",
+                                        screenName = "ShoppingCartScreen"
+                                    )
+                                }
+
                             )
                         }
-                    )
+                    }
+
+                    else -> {
+                        items(uiState.products) { product ->
+                            ShoppingCartItem(
+                                product = product,
+                                onRemove = {
+                                    onIntent(ShoppingCartUiIntent.RemoveItem(product.id))
+                                    trackClick(
+                                        viewId = "product_remove_${product.id}",
+                                        viewName = "Remove Product",
+                                        screenName = "ShoppingCartScreen"
+                                    )
+                                },
+                                onQuantityChange = {
+                                    onIntent(ShoppingCartUiIntent.UpdateQuantity(product.id, it))
+                                    trackClick(
+                                        viewId = "product_quantity_${product.id}",
+                                        viewName = "Change Quantity",
+                                        screenName = "ShoppingCartScreen"
+                                    )
+                                }
+                            )
+                        }
+                    }
                 }
             }
             item {
@@ -269,9 +327,9 @@ fun ShoppingCartContent(
         }
     )
 
-    if (showProductSheet && uiState.id != null) {
+    if (showProductSheet && uiState.cartId != null) {
         ProductFormBottomSheet(
-            shoppingCartId = uiState.id,
+            shoppingCartId = uiState.cartId,
             onDismiss = {
                 setShowProductSheet(false)
                 trackClick(
@@ -340,11 +398,56 @@ fun ShoppingCartContent(
     }
 }
 
+private class ShoppingCartStateProvider : PreviewParameterProvider<ShoppingCartUiState> {
+    override val values: Sequence<ShoppingCartUiState>
+        get() = sequenceOf(
+            ShoppingCartUiState(
+                isLoading = true,
+            ),
+            ShoppingCartUiState(
+                isLoading = false,
+                products = getProducts(),
+                totalPrice = getProducts().sumOf { if (it.isChecked) it.price * it.quantity else 0 },
+                token = null
+            ),
+            ShoppingCartUiState(
+                isLoading = false,
+                products = getProducts(),
+                totalPrice = getProducts().sumOf { if (it.isChecked) it.price * it.quantity else 0 },
+                token = null,
+                type = TypeShopping.LIST,
+                list = getListProducts()
+            ),
+        )
+
+    private fun getProducts(): List<ProductModel> {
+        return (1..100).map {
+            ProductModel(
+                name = "Product $it",
+                price = Random.nextLong(2000),
+                quantity = Random.nextInt(6)
+            )
+        }
+    }
+
+    private fun getListProducts(): List<ProductModel> {
+        return (1..100).map {
+            ProductModel(
+                name = "Product $it",
+                quantity = Random.nextInt(6),
+                isChecked = false
+            )
+        }
+    }
+}
+
 @Composable
 @Preview(showBackground = true)
-private fun ShoppingCartContentPreview() {
+private fun ShoppingCartContentPreview(
+    @PreviewParameter(ShoppingCartStateProvider::class) uiState: ShoppingCartUiState
+) {
     ShoppingCartContent(
-        uiState = ShoppingCartUiState(),
+        uiState = uiState,
         onIntent = {},
         onAddToCart = {},
         onShared = {},
