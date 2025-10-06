@@ -111,7 +111,7 @@ class ShoppingCartViewModel @Inject constructor(
             updateUiState(
                 products = cart.products,
                 totalPrice = cart.recalculateTotal(),
-                token = cart.token
+                token = cart.token,
             )
         }
     }
@@ -168,7 +168,9 @@ class ShoppingCartViewModel @Inject constructor(
         token: String? = null,
         isLoading: Boolean = false
     ) {
-        val updatedProducts = products ?: _uiState.value.products
+        val updatedProducts = products?.filter { it.isChecked }
+            ?: _uiState.value.products.filter { it.isChecked }
+
         val updatedTotalPrice = totalPrice ?: run {
             updatedProducts.sumOf { (it.price ?: 0) * it.quantity }
         }
@@ -179,6 +181,7 @@ class ShoppingCartViewModel @Inject constructor(
             products = updatedProducts,
             totalPrice = updatedTotalPrice,
             token = token ?: _uiState.value.token,
+            list = products?.filter { !it.isChecked }.orEmpty()
         )
     }
 
@@ -208,6 +211,25 @@ class ShoppingCartViewModel @Inject constructor(
     }
 
     fun checkProduct(product: Product, isChecked: Boolean) = viewModelScope.launch {
+        val currentProducts = _uiState.value.products.toMutableList()
+        val productIndex = currentProducts.indexOfFirst { it.id == product.id }
 
+        if (productIndex != -1) {
+            val oldProduct = currentProducts[productIndex]
+            val updatedProduct = oldProduct.toCopy(isChecked = isChecked)
+            currentProducts[productIndex] = updatedProduct
+
+            cartLocalStorage.getCartNow()?.let { cart ->
+                val updatedCart = cart.toCopy(products = currentProducts)
+                try {
+                    updateShoppingCartUseCase(updatedCart)
+                    updateUiState(products = currentProducts)
+                } catch (_: Exception) {
+                    _uiEffect.emit(ShoppingCartUiEffect.ShowError("Failed to update product"))
+                }
+            }
+        } else {
+            _uiEffect.emit(ShoppingCartUiEffect.ShowError("Product not found"))
+        }
     }
 }

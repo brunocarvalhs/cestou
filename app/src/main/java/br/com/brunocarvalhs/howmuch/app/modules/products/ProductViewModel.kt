@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.data.model.ProductModel
 import br.com.brunocarvalhs.domain.useCases.AddProductUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -29,13 +30,18 @@ class ProductViewModel @Inject constructor(
 
     fun onIntent(intent: ProductUiIntent) {
         when (intent) {
-            is ProductUiIntent.AddProduct -> addProduct(
+            is ProductUiIntent.AddProductToCart -> addProduct(
                 name = intent.name,
                 price = intent.price,
                 quantity = intent.quantity
             )
 
             is ProductUiIntent.LoadShoppingCart -> intent.cartId?.let { setCartId(it) }
+
+            is ProductUiIntent.AddProductToList -> addProduct(
+                name = intent.name,
+                quantity = intent.quantity,
+            )
         }
     }
 
@@ -43,12 +49,13 @@ class ProductViewModel @Inject constructor(
         cartId = id
     }
 
-    private fun addProduct(name: String, price: Long, quantity: Int) = viewModelScope.launch {
+    private fun addProduct(name: String, price: Long? = null, quantity: Int) = viewModelScope.launch {
         cartId?.let { cartId ->
             val product = ProductModel(
                 name = name,
                 price = price,
-                quantity = quantity
+                quantity = quantity,
+                isChecked = price != null
             )
             addProductUseCase(cartId, product)
                 .onSuccess {

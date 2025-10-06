@@ -136,9 +136,6 @@ fun ShoppingCartItem(
                                         } else {
                                             MaterialTheme.typography.bodyMedium
                                         },
-                                        textDecoration = if (product.isChecked && onCheckedChange == null)
-                                            TextDecoration.LineThrough
-                                        else TextDecoration.None
                                     )
                                     Spacer(modifier = Modifier.height(6.dp))
                                 }
@@ -150,9 +147,6 @@ fun ShoppingCartItem(
                                         ),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        textDecoration = if (product?.isChecked == true && onCheckedChange == null)
-                                            TextDecoration.LineThrough
-                                        else TextDecoration.None
                                     )
                                 } else {
                                     AnimatedVisibility(
@@ -165,9 +159,6 @@ fun ShoppingCartItem(
                                             ),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            textDecoration = if (product?.isChecked == true && onCheckedChange == null)
-                                                TextDecoration.LineThrough
-                                            else TextDecoration.None
                                         )
                                     }
                                 }

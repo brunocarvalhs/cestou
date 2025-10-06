@@ -202,7 +202,6 @@ fun ShoppingCartContent(
         LazyColumn(
             state = listState,
             contentPadding = paddingValues,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxSize()
         ) {
             item {
@@ -337,6 +336,7 @@ fun ShoppingCartContent(
     if (showProductSheet && uiState.cartId != null) {
         ProductFormBottomSheet(
             shoppingCartId = uiState.cartId,
+            isProductListed = selectedDestination == TypeShopping.LIST.ordinal,
             onDismiss = {
                 setShowProductSheet(false)
                 trackClick(
