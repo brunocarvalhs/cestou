@@ -21,7 +21,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.BuildConfig
 import br.com.brunocarvalhs.howmuch.R
@@ -29,6 +28,7 @@ import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvent
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvents.trackEvent
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsParam
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackClick
+import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.getAppVersion
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.openPlayStore
 
@@ -126,7 +126,7 @@ fun MenuContent(
 }
 
 @Composable
-@Preview
+@DevicesPreview
 private fun MenuContentPreview() {
     val services = listOf(
         ServiceItem(R.string.rate_on_google_play) {},

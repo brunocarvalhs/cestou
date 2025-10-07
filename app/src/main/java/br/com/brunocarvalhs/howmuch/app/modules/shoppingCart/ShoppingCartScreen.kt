@@ -1,12 +1,12 @@
 package br.com.brunocarvalhs.howmuch.app.modules.shoppingCart
 
+import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -35,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
@@ -47,7 +46,9 @@ import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvent
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvents.trackEvent
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsParam
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackClick
+import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.ZERO_INT
+import br.com.brunocarvalhs.howmuch.app.foundation.extensions.setStatusBarIconColor
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.shareText
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
 import br.com.brunocarvalhs.howmuch.app.modules.products.ProductFormBottomSheet
@@ -76,6 +77,7 @@ fun ShoppingCartScreen(
     var showFinalizeDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
+        (context as Activity).window.setStatusBarIconColor(false)
         trackEvent(
             event = AnalyticsEvent.SCREEN_VIEW,
             params = mapOf(
@@ -254,7 +256,6 @@ fun ShoppingCartContent(
                                         overflow = TextOverflow.Ellipsis
                                     )
                                 }
-
                             }
                         )
                     }
@@ -451,7 +452,7 @@ private class ShoppingCartStateProvider : PreviewParameterProvider<ShoppingCartU
             ),
             ShoppingCartUiState(
                 isLoading = false,
-                products = getProducts(),
+                products = getProducts().map { it.toCopy(isChecked = false) },
                 totalPrice = getTotalPrice(),
                 token = null,
                 type = TypeShopping.LIST,
@@ -489,7 +490,7 @@ private class ShoppingCartStateProvider : PreviewParameterProvider<ShoppingCartU
 }
 
 @Composable
-@Preview(showBackground = true)
+@DevicesPreview
 private fun ShoppingCartContentPreview(
     @PreviewParameter(ShoppingCartStateProvider::class) uiState: ShoppingCartUiState
 ) {

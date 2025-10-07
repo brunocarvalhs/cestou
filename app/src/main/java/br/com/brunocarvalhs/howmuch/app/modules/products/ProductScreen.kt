@@ -31,7 +31,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,6 +40,7 @@ import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvent
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvents.trackEvent
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsParam
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackClick
+import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.EMPTY_LONG
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.EMPTY_STRING
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.ONE_INT
@@ -256,7 +256,7 @@ private fun ProductContent(
 }
 
 @Composable
-@Preview
+@DevicesPreview
 fun ProductContentPreview() {
     ProductContent(
         onIntent = {}

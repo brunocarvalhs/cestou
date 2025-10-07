@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.NavBarItem
 
 @Composable
@@ -82,4 +83,16 @@ fun BaseScreen(
             }
         }
     }
+}
+
+@Composable
+@DevicesPreview
+private fun BaseScreenPreview() {
+    BaseScreen(
+        tabs = linkedMapOf(
+            NavBarItem.HOME to { },
+            NavBarItem.HISTORY to { },
+            NavBarItem.MENU to { }
+        )
+    )
 }

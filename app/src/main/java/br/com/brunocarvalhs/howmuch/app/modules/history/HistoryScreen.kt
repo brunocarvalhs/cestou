@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.app.modules.history
 
+import android.app.Activity
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
@@ -22,15 +23,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import br.com.brunocarvalhs.domain.entities.ShoppingCart
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackClick
+import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.TIPS
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.DateFormat
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.isWithinLastDays
+import br.com.brunocarvalhs.howmuch.app.foundation.extensions.setStatusBarIconColor
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toFormatDate
 import br.com.brunocarvalhs.howmuch.app.modules.history.components.HistoryFilter
 import br.com.brunocarvalhs.howmuch.app.modules.history.components.HistoryFilterType
@@ -50,6 +52,7 @@ fun HistoryScreen(
     val uiEffect by viewModel.uiEffect.collectAsState(initial = null)
 
     LaunchedEffect(Unit) {
+        (context as Activity).window.setStatusBarIconColor(false)
         viewModel.onIntent(HistoryUiIntent.Retry)
     }
 
@@ -190,7 +193,7 @@ fun getTodayDate(): String {
 }
 
 @Composable
-@Preview(showBackground = true)
+@DevicesPreview
 private fun HistoryPreview() {
     HistoryContent()
 }
