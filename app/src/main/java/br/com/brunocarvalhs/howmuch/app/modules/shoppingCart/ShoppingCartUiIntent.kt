@@ -9,5 +9,9 @@ sealed interface ShoppingCartUiIntent {
     data class UpdateQuantity(val productId: String, val quantity: Int) : ShoppingCartUiIntent
     object Retry : ShoppingCartUiIntent
     data class FinalizePurchase(val market: String, val totalPrice: Long) : ShoppingCartUiIntent
-    data class UpdateChecked(val product: Product, val isChecked: Boolean) : ShoppingCartUiIntent
+    data class UpdateChecked(
+        val product: Product,
+        val price: Long,
+        val isChecked: Boolean
+    ) : ShoppingCartUiIntent
 }

@@ -64,6 +64,7 @@ class ShoppingCartViewModel @Inject constructor(
 
             is ShoppingCartUiIntent.UpdateChecked -> checkProduct(
                 product = intent.product,
+                price = intent.price,
                 isChecked = intent.isChecked
             )
         }
@@ -168,9 +169,7 @@ class ShoppingCartViewModel @Inject constructor(
         token: String? = null,
         isLoading: Boolean = false
     ) {
-        val updatedProducts = products?.filter { it.isChecked }
-            ?: _uiState.value.products.filter { it.isChecked }
-
+        val updatedProducts = products ?: _uiState.value.products
         val updatedTotalPrice = totalPrice ?: run {
             updatedProducts.sumOf { (it.price ?: 0) * it.quantity }
         }
@@ -181,7 +180,6 @@ class ShoppingCartViewModel @Inject constructor(
             products = updatedProducts,
             totalPrice = updatedTotalPrice,
             token = token ?: _uiState.value.token,
-            list = products?.filter { !it.isChecked }.orEmpty()
         )
     }
 
@@ -210,13 +208,20 @@ class ShoppingCartViewModel @Inject constructor(
         }
     }
 
-    fun checkProduct(product: Product, isChecked: Boolean) = viewModelScope.launch {
+    fun checkProduct(
+        product: Product,
+        price: Long,
+        isChecked: Boolean
+    ) = viewModelScope.launch {
         val currentProducts = _uiState.value.products.toMutableList()
         val productIndex = currentProducts.indexOfFirst { it.id == product.id }
 
         if (productIndex != -1) {
             val oldProduct = currentProducts[productIndex]
-            val updatedProduct = oldProduct.toCopy(isChecked = isChecked)
+            val updatedProduct = oldProduct.toCopy(
+                price = price,
+                isChecked = isChecked
+            )
             currentProducts[productIndex] = updatedProduct
 
             cartLocalStorage.getCartNow()?.let { cart ->

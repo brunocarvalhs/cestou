@@ -60,4 +60,5 @@
     <string name="limit_text">Limite</string>
     <string name="cart">Cart</string>
     <string name="list">List</string>
+    <string name="action_cancel">cancel</string>
 </resources>

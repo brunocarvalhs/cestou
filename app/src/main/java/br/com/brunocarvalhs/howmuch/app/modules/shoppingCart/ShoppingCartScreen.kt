@@ -51,6 +51,7 @@ import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
 import br.com.brunocarvalhs.howmuch.app.modules.products.ProductFormBottomSheet
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.FinalizePurchaseDialog
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.HeaderComponent
+import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.PriceFieldBottomSheet
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShareCartBottomSheet
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartCardsPager
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartItem
@@ -146,8 +147,11 @@ fun ShoppingCartContent(
     setShowFinalizeDialog: (Boolean) -> Unit,
     numberCardLoading: Int = 3
 ) {
-    var showTokenSheet by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+
+    var showTokenSheet by remember { mutableStateOf(false) }
+    var showPriceBottomSheet by remember { mutableStateOf(false) }
+
     var selectedDestination by rememberSaveable { mutableIntStateOf(uiState.type.ordinal) }
 
     val showTitle by remember {
@@ -251,7 +255,7 @@ fun ShoppingCartContent(
             } else {
                 when (selectedDestination) {
                     TypeShopping.LIST.ordinal -> {
-                        items(uiState.list) { item ->
+                        items(uiState.products.filter { !it.isChecked }) { item ->
                             ShoppingCartItem(
                                 product = item,
                                 onRemove = {
@@ -271,7 +275,7 @@ fun ShoppingCartContent(
                                     )
                                 },
                                 onCheckedChange = {
-                                    onIntent(ShoppingCartUiIntent.UpdateChecked(item, it))
+                                    showPriceBottomSheet = it
                                     trackClick(
                                         viewId = "product_checked_${item.id}",
                                         viewName = "Change Checked",
@@ -279,11 +283,24 @@ fun ShoppingCartContent(
                                     )
                                 }
                             )
+                            if (showPriceBottomSheet) {
+                                PriceFieldBottomSheet(
+                                    onDismissRequest = { showPriceBottomSheet = false },
+                                    onConfirmation = { price ->
+                                        showPriceBottomSheet = false
+                                        onIntent(ShoppingCartUiIntent.UpdateChecked(
+                                            product = item,
+                                            price = price,
+                                            isChecked = !showPriceBottomSheet
+                                        ))
+                                    }
+                                )
+                            }
                         }
                     }
 
                     else -> {
-                        items(uiState.products) { product ->
+                        items(uiState.products.filter { it.isChecked }) { product ->
                             ShoppingCartItem(
                                 product = product,
                                 onRemove = {
@@ -415,7 +432,8 @@ private class ShoppingCartStateProvider : PreviewParameterProvider<ShoppingCartU
                 isLoading = false,
                 products = getProducts(),
                 totalPrice = getProducts().sumOf { if (it.isChecked) (it.price ?: 0) * it.quantity else 0 },
-                token = null
+                token = null,
+                type = TypeShopping.CART,
             ),
             ShoppingCartUiState(
                 isLoading = false,
@@ -423,26 +441,17 @@ private class ShoppingCartStateProvider : PreviewParameterProvider<ShoppingCartU
                 totalPrice = getProducts().sumOf { if (it.isChecked) (it.price ?: 0) * it.quantity else 0 },
                 token = null,
                 type = TypeShopping.LIST,
-                list = getListProducts()
             ),
         )
 
     private fun getProducts(): List<ProductModel> {
+        val isChecked = Random.nextBoolean()
         return (1..100).map {
             ProductModel(
                 name = "Product $it",
-                price = Random.nextLong(2000),
-                quantity = Random.nextInt(6)
-            )
-        }
-    }
-
-    private fun getListProducts(): List<ProductModel> {
-        return (1..100).map {
-            ProductModel(
-                name = "Product $it",
+                price = if (isChecked) Random.nextLong(2000) else null,
                 quantity = Random.nextInt(6),
-                isChecked = false
+                isChecked = isChecked
             )
         }
     }
