@@ -73,7 +73,7 @@ fun BaseScreen(
         NavHost(
             navController = tabsNavController,
             startDestination = tabs.entries.first().key.route,
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(bottom = padding.calculateBottomPadding())
         ) {
             tabs.forEach { (item, content) ->
                 composable(item.route) {
