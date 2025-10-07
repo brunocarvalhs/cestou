@@ -1,7 +1,15 @@
 package br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -11,8 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.ONE_INT
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.TWO_INT
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.ZERO_INT
@@ -65,8 +71,11 @@ fun ShoppingCartCardsPager(
         ) {
             repeat(pagerState.pageCount) { index ->
                 val color =
-                    if (pagerState.currentPage == index) MaterialTheme.colorScheme.onPrimary
-                    else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.4f)
+                    if (pagerState.currentPage == index) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.4f)
+                    }
 
                 Box(
                     modifier = Modifier

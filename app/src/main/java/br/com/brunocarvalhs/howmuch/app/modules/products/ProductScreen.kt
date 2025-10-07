@@ -175,8 +175,7 @@ private fun ProductContent(
                                 name = name,
                                 quantity = quantity
                             )
-                        }
-                        else {
+                        } else {
                             ProductUiIntent.AddProductToCart(
                                 name = name,
                                 price = price,

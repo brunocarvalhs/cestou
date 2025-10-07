@@ -32,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.placeholder
@@ -115,7 +114,8 @@ fun ShoppingCartItem(
                             onCheckedChange?.let {
                                 Checkbox(
                                     product?.isChecked ?: false,
-                                    onCheckedChange = { onCheckedChange.invoke(it) })
+                                    onCheckedChange = { onCheckedChange.invoke(it) }
+                                )
                             }
                             Column {
                                 if (product?.name.isNullOrBlank().not()) {
@@ -341,8 +341,6 @@ private fun ShoppingCartItemWithoutProductCheckedPreview() {
             quantity = 1,
         ),
         isExpanded = true,
-        onCheckedChange = {
-
-        }
+        onCheckedChange = { }
     )
 }

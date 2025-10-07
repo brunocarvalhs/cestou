@@ -1,7 +1,6 @@
 package br.com.brunocarvalhs.howmuch.app.modules.shoppingCart
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -288,11 +287,13 @@ fun ShoppingCartContent(
                                     onDismissRequest = { showPriceBottomSheet = false },
                                     onConfirmation = { price ->
                                         showPriceBottomSheet = false
-                                        onIntent(ShoppingCartUiIntent.UpdateChecked(
-                                            product = item,
-                                            price = price,
-                                            isChecked = !showPriceBottomSheet
-                                        ))
+                                        onIntent(
+                                            ShoppingCartUiIntent.UpdateChecked(
+                                                product = item,
+                                                price = price,
+                                                isChecked = !showPriceBottomSheet
+                                            )
+                                        )
                                     }
                                 )
                             }
@@ -431,29 +432,46 @@ private class ShoppingCartStateProvider : PreviewParameterProvider<ShoppingCartU
             ShoppingCartUiState(
                 isLoading = false,
                 products = getProducts(),
-                totalPrice = getProducts().sumOf { if (it.isChecked) (it.price ?: 0) * it.quantity else 0 },
+                totalPrice = getTotalPrice(),
                 token = null,
                 type = TypeShopping.CART,
             ),
             ShoppingCartUiState(
                 isLoading = false,
                 products = getProducts(),
-                totalPrice = getProducts().sumOf { if (it.isChecked) (it.price ?: 0) * it.quantity else 0 },
+                totalPrice = getTotalPrice(),
                 token = null,
                 type = TypeShopping.LIST,
             ),
         )
 
+    private fun getTotalPrice(): Long = getProducts().sumOf {
+        if (it.isChecked) {
+            (it.price ?: ZERO_NUMBER) * it.quantity
+        } else {
+            ZERO_NUMBER
+        }
+    }
+
     private fun getProducts(): List<ProductModel> {
         val isChecked = Random.nextBoolean()
-        return (1..100).map {
+        return LIST_NUMBER.map {
             ProductModel(
                 name = "Product $it",
-                price = if (isChecked) Random.nextLong(2000) else null,
-                quantity = Random.nextInt(6),
+                price = if (isChecked) Random.nextLong(PRICE_NUMBER) else null,
+                quantity = Random.nextInt(SIX_NUMBER),
                 isChecked = isChecked
             )
         }
+    }
+
+    companion object {
+        const val SIX_NUMBER = 6
+        const val PRICE_NUMBER = 2000L
+
+        const val ZERO_NUMBER = 0L
+
+        val LIST_NUMBER = (1..100)
     }
 }
 

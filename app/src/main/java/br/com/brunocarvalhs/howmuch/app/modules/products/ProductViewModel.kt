@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.data.model.ProductModel
 import br.com.brunocarvalhs.domain.useCases.AddProductUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
