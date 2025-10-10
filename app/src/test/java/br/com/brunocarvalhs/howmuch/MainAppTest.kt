@@ -17,7 +17,6 @@ class MainAppTest : ComposeTest() {
     fun mainApp_rendersWithoutCrash() {
         composeTestRule.setContent {
             MainApp(
-                activity = activity.get(),
                 navController = rememberNavController()
             )
         }

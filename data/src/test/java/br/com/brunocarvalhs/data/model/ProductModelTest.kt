@@ -14,7 +14,7 @@ class ProductModelTest {
         // Assert
         assertEquals(36, product.id.length) // UUID length
         assertEquals("", product.name)
-        assertEquals(0L, product.price)
+        assertEquals(null, product.price)
         assertEquals(1, product.quantity)
     }
 
