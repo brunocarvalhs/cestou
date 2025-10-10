@@ -35,7 +35,7 @@
     <string name="spending_limit">Limite de dépenses</string>
     <string name="total_money_spent">Total dépensé :</string>
     <string name="limit">Limite :</string>
-    <string name="savings_icon">Icône d'économies</string>
+    <string name="savings_icon">Icône d\'économies</string>
     <string name="you_economized">Vous avez économisé</string>
     <string name="enter_the_digit_code">Saisissez le code à %1$d chiffres</string>
     <string name="send">Envoyer</string>
@@ -45,7 +45,7 @@
     <string name="delete_selected">Supprimer la sélection</string>
     <string name="select_items">Sélectionner les articles</string>
     <string name="all">Tous</string>
-    <string name="today">Aujourd'hui</string>
+    <string name="today">Aujourd\'hui</string>
     <string name="last_7_days">Les 7 derniers jours</string>
     <string name="last_30_days">Les 30 derniers jours</string>
     <string name="current_month">Mois en cours</string>
