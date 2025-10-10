@@ -75,7 +75,9 @@ object DataModuleDI {
     }
 
     @Provides
-    fun provideEnterShoppingCartWithTokenUseCase(repository: ShoppingCartRepository): EnterShoppingCartWithTokenUseCase {
+    fun provideEnterShoppingCartWithTokenUseCase(
+        repository: ShoppingCartRepository
+    ): EnterShoppingCartWithTokenUseCase {
         return EnterShoppingCartWithTokenUseCase(repository = repository)
     }
 

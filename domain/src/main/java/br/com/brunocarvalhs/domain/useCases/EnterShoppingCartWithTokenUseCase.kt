@@ -7,13 +7,8 @@ import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
 class EnterShoppingCartWithTokenUseCase(
     private val repository: ShoppingCartRepository
 ) {
-    suspend operator fun invoke(token: String): Result<ShoppingCart> {
-        return try {
-            val cart = repository.findByToken(token)
-                ?: throw InvalidTokenException(token)
-            Result.success(cart)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    suspend operator fun invoke(token: String): Result<ShoppingCart> = runCatching {
+        repository.findByToken(token)
+            ?: throw InvalidTokenException(token)
     }
 }

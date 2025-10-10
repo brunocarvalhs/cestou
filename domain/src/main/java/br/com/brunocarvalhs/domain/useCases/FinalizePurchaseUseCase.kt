@@ -10,7 +10,7 @@ class FinalizePurchaseUseCase(
     suspend operator fun invoke(id: String, market: String, price: Long): Result<Unit> =
         runCatching {
             val cart = shoppingCartRepository.findById(id)
-                ?: throw IllegalStateException("Shopping cart not found")
+                ?: error("Shopping cart not found")
             val finalizedCart = cart.finalizePurchase(market = market, price = price)
             localStorage.saveCart(finalizedCart)
             shoppingCartRepository.delete(cart.id)

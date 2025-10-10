@@ -37,7 +37,8 @@ fun TipsComponent(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.primary)
-            .padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(shuffledTips) {
             TipItem(tip = it, onClick = {

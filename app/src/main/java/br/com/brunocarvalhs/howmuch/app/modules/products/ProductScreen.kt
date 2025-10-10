@@ -31,7 +31,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,6 +40,7 @@ import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvent
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvents.trackEvent
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsParam
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackClick
+import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.EMPTY_LONG
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.EMPTY_STRING
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.ONE_INT
@@ -79,7 +79,6 @@ fun ProductFormScreen(
     }
 
     ProductContent(
-        uiState = uiState,
         onIntent = viewModel::onIntent
     )
 }
@@ -88,11 +87,11 @@ fun ProductFormScreen(
 @Composable
 fun ProductFormBottomSheet(
     shoppingCartId: String?,
+    isProductListed: Boolean = false,
     onDismiss: () -> Unit,
     viewModel: ProductViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val uiEffect by viewModel.uiEffect.collectAsState(initial = null)
 
     val scope = rememberCoroutineScope()
@@ -140,7 +139,7 @@ fun ProductFormBottomSheet(
         },
     ) {
         ProductContent(
-            uiState = uiState,
+            isProductListed = isProductListed,
             onIntent = viewModel::onIntent
         )
     }
@@ -149,7 +148,7 @@ fun ProductFormBottomSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProductContent(
-    uiState: ProductUiState,
+    isProductListed: Boolean = false,
     onIntent: (ProductUiIntent) -> Unit
 ) {
     val nameFocusRequester = remember { FocusRequester() }
@@ -171,11 +170,18 @@ private fun ProductContent(
             Button(
                 onClick = {
                     onIntent(
-                        ProductUiIntent.AddProduct(
-                            name = name,
-                            price = price,
-                            quantity = quantity
-                        )
+                        if (isProductListed) {
+                            ProductUiIntent.AddProductToList(
+                                name = name,
+                                quantity = quantity
+                            )
+                        } else {
+                            ProductUiIntent.AddProductToCart(
+                                name = name,
+                                price = price,
+                                quantity = quantity
+                            )
+                        }
                     )
                     name = EMPTY_STRING
                     price = EMPTY_LONG
@@ -203,7 +209,6 @@ private fun ProductContent(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-
             ProductNameInput(
                 name = name,
                 onNameChange = { newName ->
@@ -218,22 +223,22 @@ private fun ProductContent(
                     .fillMaxWidth()
                     .focusRequester(nameFocusRequester)
             )
-
-            PriceInput(
-                price = price,
-                onPriceChange = { newPrice ->
-                    price = newPrice
-                    trackClick(
-                        viewId = "input_product_price",
-                        viewName = "Product Price Changed",
-                        screenName = "ProductFormBottomSheet"
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(priceFocusRequester)
-            )
-
+            if (!isProductListed) {
+                PriceInput(
+                    price = price,
+                    onPriceChange = { newPrice ->
+                        price = newPrice
+                        trackClick(
+                            viewId = "input_product_price",
+                            viewName = "Product Price Changed",
+                            screenName = "ProductFormBottomSheet"
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(priceFocusRequester)
+                )
+            }
             QuantitySelector(
                 quantity = quantity,
                 modifier = Modifier.fillMaxWidth(),
@@ -251,10 +256,9 @@ private fun ProductContent(
 }
 
 @Composable
-@Preview
+@DevicesPreview
 fun ProductContentPreview() {
     ProductContent(
-        uiState = ProductUiState(),
         onIntent = {}
     )
 }

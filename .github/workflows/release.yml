@@ -102,10 +102,28 @@ jobs:
       - name: Run Lint
         run: ./gradlew lintDebug
 
+  detekt-check:
+    runs-on: ubuntu-24.04
+    name: Run Detekt Check
+    needs: checkout-and-setup
+    steps:
+      - name: Download Workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: workspace
+
+      - name: Give execution permissions to gradlew
+        run: chmod +x gradlew
+
+      - name: Run Detekt
+        run: ./gradlew detekt
+        env:
+          GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
+
   build:
     runs-on: ubuntu-24.04
     name: Build
-    needs: [ unit-tests, lint-check ]
+    needs: [unit-tests, lint-check, detekt-check]
     env:
       KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
       KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
@@ -176,13 +194,40 @@ jobs:
         with:
           name: ${{ env.APP_NAME }}-aab
           path: app/build/outputs/bundle/release/
-
-      - name: Upload to Google Play
+  
+      - name: Upload to Google Play (Production)
+        id: deploy_prod
+        continue-on-error: true
         uses: r0adkll/upload-google-play@v1
         with:
-          serviceAccountJsonPlainText: ${{ env.DEPLOY_SERVICE_ACCOUNT_JSON }}
+          serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ env.PACKAGE_NAME }}
           releaseFiles: ${{ env.AAB_RELEASE_PATH }}
-          track: production
-          status: inProgress
+          track: production 
+          status: inProgress 
           userFraction: 0.5
+  
+      - name: Upload to Google Play (Beta)
+        if: steps.deploy_prod.outcome == 'failure'
+        id: deploy_beta
+        continue-on-error: true
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ env.PACKAGE_NAME }}
+          releaseFiles: ${{ env.AAB_RELEASE_PATH }}
+          track: beta
+          status: completed
+          changesNotSentForReview: true
+  
+      - name: Upload to Google Play (Internal)
+        if: steps.deploy_beta.outcome == 'failure'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ env.PACKAGE_NAME }}
+          releaseFiles: ${{ env.AAB_RELEASE_PATH }}
+          track: internal
+          status: completed
+          changesNotSentForReview: true
+

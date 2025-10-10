@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.google.firebase.firebase.perf)
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
+    id("io.gitlab.arturbosch.detekt")
     kotlin("plugin.serialization") version "2.1.20"
 }
 
@@ -18,8 +19,8 @@ android {
         applicationId = "br.com.brunocarvalhs.howmuch"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -62,6 +63,17 @@ android {
         compose = true
         buildConfig = true
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+}
+
+detekt {
+    config.setFrom(files("$rootDir/detekt.yml"))
+    buildUponDefaultConfig = true
 }
 
 dependencies {
@@ -118,4 +130,6 @@ dependencies {
 
     // Robolectric
     testImplementation(libs.robolectric)
+
+    detektPlugins(libs.detekt.formatting)
 }

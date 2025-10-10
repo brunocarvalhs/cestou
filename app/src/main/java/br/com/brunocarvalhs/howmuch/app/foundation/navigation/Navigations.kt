@@ -10,4 +10,3 @@ data class ProductGraphRoute(val cartId: String?)
 
 @Serializable
 data object HomeGraphRoute
-

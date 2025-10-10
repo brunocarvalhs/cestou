@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.NavBarItem
 
 @Composable
@@ -58,8 +59,11 @@ fun BaseScreen(
                             Icon(
                                 painter = painterResource(item.icon),
                                 contentDescription = stringResource(item.label),
-                                tint = if (item == selectedTab) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = if (item == selectedTab) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
                             )
                         }
                     )
@@ -70,7 +74,7 @@ fun BaseScreen(
         NavHost(
             navController = tabsNavController,
             startDestination = tabs.entries.first().key.route,
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(bottom = padding.calculateBottomPadding())
         ) {
             tabs.forEach { (item, content) ->
                 composable(item.route) {
@@ -79,4 +83,16 @@ fun BaseScreen(
             }
         }
     }
+}
+
+@Composable
+@DevicesPreview
+private fun BaseScreenPreview() {
+    BaseScreen(
+        tabs = linkedMapOf(
+            NavBarItem.HOME to { },
+            NavBarItem.HISTORY to { },
+            NavBarItem.MENU to { }
+        )
+    )
 }

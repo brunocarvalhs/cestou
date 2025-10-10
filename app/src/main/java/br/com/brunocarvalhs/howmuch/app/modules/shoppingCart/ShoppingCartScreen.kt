@@ -1,7 +1,9 @@
 package br.com.brunocarvalhs.howmuch.app.modules.shoppingCart
 
+import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -15,12 +17,16 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -28,29 +34,38 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
+import br.com.brunocarvalhs.data.model.ProductModel
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvent
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvents.trackEvent
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsParam
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackClick
+import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
+import br.com.brunocarvalhs.howmuch.app.foundation.constants.ZERO_INT
+import br.com.brunocarvalhs.howmuch.app.foundation.extensions.setStatusBarIconColor
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.shareText
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
 import br.com.brunocarvalhs.howmuch.app.modules.products.ProductFormBottomSheet
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.FinalizePurchaseDialog
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.HeaderComponent
+import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.PriceFieldBottomSheet
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShareCartBottomSheet
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartCardsPager
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartItem
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.TokenBottomSheet
+import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.TypeShopping
+import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.generateShareableCart
+import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.generateShareableToken
+import kotlin.random.Random
 
 @Composable
 fun ShoppingCartScreen(
-    navController: NavController,
     viewModel: ShoppingCartViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -62,6 +77,7 @@ fun ShoppingCartScreen(
     var showFinalizeDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
+        (context as Activity).window.setStatusBarIconColor(false)
         trackEvent(
             event = AnalyticsEvent.SCREEN_VIEW,
             params = mapOf(
@@ -97,14 +113,14 @@ fun ShoppingCartScreen(
         onShareList = {
             context.shareText(
                 subject = context.getString(R.string.share_shopping_cart),
-                text = viewModel.shareCart()
+                text = generateShareableCart(uiState.products, uiState.totalPrice)
             )
             showShareSheet = false
         },
         onShareToken = {
             context.shareText(
                 subject = context.getString(R.string.share_cart_token),
-                text = viewModel.shareCartToken()
+                text = generateShareableToken(uiState.token)
             )
             showShareSheet = false
         },
@@ -132,26 +148,35 @@ fun ShoppingCartContent(
     showFinalizeDialog: Boolean,
     setShowProductSheet: (Boolean) -> Unit,
     setShowShareSheet: (Boolean) -> Unit,
-    setShowFinalizeDialog: (Boolean) -> Unit
+    setShowFinalizeDialog: (Boolean) -> Unit,
+    numberCardLoading: Int = 3
 ) {
-    var showTokenSheet by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+
+    var showTokenSheet by remember { mutableStateOf(false) }
+    var showPriceBottomSheet by remember { mutableStateOf(false) }
+
+    var selectedDestination by rememberSaveable { mutableIntStateOf(uiState.type.ordinal) }
 
     val showTitle by remember {
         derivedStateOf {
             val firstVisibleItem = listState.firstVisibleItemIndex
             val offset = listState.firstVisibleItemScrollOffset
-            firstVisibleItem > 0 || offset > 100
+            firstVisibleItem > ZERO_INT || offset > 100
         }
     }
 
     Scaffold(
         topBar = {
             HeaderComponent(
-                title = if (showTitle) stringResource(
-                    R.string.currency,
-                    uiState.totalPrice.toCurrencyString()
-                ) else null,
+                title = if (showTitle) {
+                    stringResource(
+                        R.string.currency,
+                        uiState.totalPrice.toCurrencyString()
+                    )
+                } else {
+                    null
+                },
                 onShared = {
                     showTokenSheet = true
                     trackClick(
@@ -185,7 +210,6 @@ fun ShoppingCartContent(
         LazyColumn(
             state = listState,
             contentPadding = paddingValues,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxSize()
         ) {
             item {
@@ -208,33 +232,111 @@ fun ShoppingCartContent(
                         )
                     }
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+            }
+            item {
+                PrimaryTabRow(selectedTabIndex = selectedDestination) {
+                    TypeShopping.entries.forEachIndexed { index, destination ->
+                        Tab(
+                            selected = selectedDestination == index,
+                            onClick = {
+                                selectedDestination = index
+                            },
+                            text = {
+                                Row(
+                                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = destination.icon,
+                                        contentDescription = stringResource(destination.label)
+                                    )
+                                    Text(
+                                        text = stringResource(destination.label),
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        )
+                    }
+                }
             }
             if (uiState.isLoading) {
-                items(3) {
+                items(count = numberCardLoading) {
                     ShoppingCartItem(isLoading = true)
                 }
             } else {
-                items(uiState.products) { product ->
-                    ShoppingCartItem(
-                        product = product,
-                        onRemove = {
-                            onIntent(ShoppingCartUiIntent.RemoveItem(product.id))
-                            trackClick(
-                                viewId = "product_remove_${product.id}",
-                                viewName = "Remove Product",
-                                screenName = "ShoppingCartScreen"
+                when (selectedDestination) {
+                    TypeShopping.LIST.ordinal -> {
+                        items(uiState.products.filter { !it.isChecked }) { item ->
+                            ShoppingCartItem(
+                                product = item,
+                                onRemove = {
+                                    onIntent(ShoppingCartUiIntent.RemoveItem(item.id))
+                                    trackClick(
+                                        viewId = "product_remove_${item.id}",
+                                        viewName = "Remove Product",
+                                        screenName = "ShoppingCartScreen"
+                                    )
+                                },
+                                onQuantityChange = {
+                                    onIntent(ShoppingCartUiIntent.UpdateQuantity(item.id, it))
+                                    trackClick(
+                                        viewId = "product_quantity_${item.id}",
+                                        viewName = "Change Quantity",
+                                        screenName = "ShoppingCartScreen"
+                                    )
+                                },
+                                onCheckedChange = {
+                                    showPriceBottomSheet = it
+                                    trackClick(
+                                        viewId = "product_checked_${item.id}",
+                                        viewName = "Change Checked",
+                                        screenName = "ShoppingCartScreen"
+                                    )
+                                }
                             )
-                        },
-                        onQuantityChange = {
-                            onIntent(ShoppingCartUiIntent.UpdateQuantity(product.id, it))
-                            trackClick(
-                                viewId = "product_quantity_${product.id}",
-                                viewName = "Change Quantity",
-                                screenName = "ShoppingCartScreen"
+                            if (showPriceBottomSheet) {
+                                PriceFieldBottomSheet(
+                                    onDismissRequest = { showPriceBottomSheet = false },
+                                    onConfirmation = { price ->
+                                        showPriceBottomSheet = false
+                                        onIntent(
+                                            ShoppingCartUiIntent.UpdateChecked(
+                                                product = item,
+                                                price = price,
+                                                isChecked = !showPriceBottomSheet
+                                            )
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    else -> {
+                        items(uiState.products.filter { it.isChecked }) { product ->
+                            ShoppingCartItem(
+                                product = product,
+                                onRemove = {
+                                    onIntent(ShoppingCartUiIntent.RemoveItem(product.id))
+                                    trackClick(
+                                        viewId = "product_remove_${product.id}",
+                                        viewName = "Remove Product",
+                                        screenName = "ShoppingCartScreen"
+                                    )
+                                },
+                                onQuantityChange = {
+                                    onIntent(ShoppingCartUiIntent.UpdateQuantity(product.id, it))
+                                    trackClick(
+                                        viewId = "product_quantity_${product.id}",
+                                        viewName = "Change Quantity",
+                                        screenName = "ShoppingCartScreen"
+                                    )
+                                }
                             )
                         }
-                    )
+                    }
                 }
             }
             item {
@@ -263,9 +365,10 @@ fun ShoppingCartContent(
         }
     )
 
-    if (showProductSheet && uiState.id != null) {
+    if (showProductSheet && uiState.cartId != null) {
         ProductFormBottomSheet(
-            shoppingCartId = uiState.id,
+            shoppingCartId = uiState.cartId,
+            isProductListed = selectedDestination == TypeShopping.LIST.ordinal,
             onDismiss = {
                 setShowProductSheet(false)
                 trackClick(
@@ -334,11 +437,65 @@ fun ShoppingCartContent(
     }
 }
 
+private class ShoppingCartStateProvider : PreviewParameterProvider<ShoppingCartUiState> {
+    override val values: Sequence<ShoppingCartUiState>
+        get() = sequenceOf(
+            ShoppingCartUiState(
+                isLoading = true,
+            ),
+            ShoppingCartUiState(
+                isLoading = false,
+                products = getProducts(),
+                totalPrice = getTotalPrice(),
+                token = null,
+                type = TypeShopping.CART,
+            ),
+            ShoppingCartUiState(
+                isLoading = false,
+                products = getProducts().map { it.toCopy(isChecked = false) },
+                totalPrice = getTotalPrice(),
+                token = null,
+                type = TypeShopping.LIST,
+            ),
+        )
+
+    private fun getTotalPrice(): Long = getProducts().sumOf {
+        if (it.isChecked) {
+            (it.price ?: ZERO_NUMBER) * it.quantity
+        } else {
+            ZERO_NUMBER
+        }
+    }
+
+    private fun getProducts(): List<ProductModel> {
+        val isChecked = Random.nextBoolean()
+        return LIST_NUMBER.map {
+            ProductModel(
+                name = "Product $it",
+                price = if (isChecked) Random.nextLong(PRICE_NUMBER) else null,
+                quantity = Random.nextInt(SIX_NUMBER),
+                isChecked = isChecked
+            )
+        }
+    }
+
+    companion object {
+        const val SIX_NUMBER = 6
+        const val PRICE_NUMBER = 2000L
+
+        const val ZERO_NUMBER = 0L
+
+        val LIST_NUMBER = (1..100)
+    }
+}
+
 @Composable
-@Preview(showBackground = true)
-private fun ShoppingCartContentPreview() {
+@DevicesPreview
+private fun ShoppingCartContentPreview(
+    @PreviewParameter(ShoppingCartStateProvider::class) uiState: ShoppingCartUiState
+) {
     ShoppingCartContent(
-        uiState = ShoppingCartUiState(),
+        uiState = uiState,
         onIntent = {},
         onAddToCart = {},
         onShared = {},

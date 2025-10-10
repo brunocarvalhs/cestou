@@ -7,7 +7,7 @@ import br.com.brunocarvalhs.howmuch.app.foundation.extensions.getId
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.perf.metrics.AddTrace
 
-class AnalyticsInitializer: Initializer<Unit> {
+class AnalyticsInitializer : Initializer<Unit> {
 
     @AddTrace(name = "SDK-Firebase-Analytics")
     override fun create(context: Context) {
