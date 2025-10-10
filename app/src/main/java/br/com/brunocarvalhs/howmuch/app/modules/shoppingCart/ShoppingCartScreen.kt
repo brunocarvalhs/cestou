@@ -412,6 +412,7 @@ fun ShoppingCartContent(
 
     if (showFinalizeDialog) {
         FinalizePurchaseDialog(
+            totalPrice = uiState.totalPrice,
             onDismiss = {
                 setShowFinalizeDialog(false)
                 trackClick(
