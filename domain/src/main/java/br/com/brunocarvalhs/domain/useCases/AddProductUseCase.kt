@@ -8,13 +8,9 @@ import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
 class AddProductUseCase(
     private val repository: ShoppingCartRepository
 ) {
-    suspend operator fun invoke(cartId: String, product: Product): Result<ShoppingCart> {
-        return try {
-            val updatedCart = repository.addProduct(cartId, product)
+    suspend operator fun invoke(cartId: String, product: Product): Result<ShoppingCart> =
+        runCatching {
+            repository.addProduct(cartId, product)
                 ?: throw ShoppingCartNotFoundException(cartId)
-            Result.success(updatedCart)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
-    }
 }

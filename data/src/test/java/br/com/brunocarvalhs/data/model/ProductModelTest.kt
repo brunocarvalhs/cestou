@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.data.model
 
 import br.com.brunocarvalhs.domain.entities.Product
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ProductModelTest {
@@ -14,7 +14,7 @@ class ProductModelTest {
         // Assert
         assertEquals(36, product.id.length) // UUID length
         assertEquals("", product.name)
-        assertEquals(0L, product.price)
+        assertEquals(null, product.price)
         assertEquals(1, product.quantity)
     }
 

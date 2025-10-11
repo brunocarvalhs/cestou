@@ -7,7 +7,7 @@ import br.com.brunocarvalhs.howmuch.app.foundation.extensions.getId
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.perf.metrics.AddTrace
 
-class CrashlyticsInitializer: Initializer<Unit> {
+class CrashlyticsInitializer : Initializer<Unit> {
 
     @AddTrace(name = "SDK-Firebase-Crashlytics")
     override fun create(context: Context) {

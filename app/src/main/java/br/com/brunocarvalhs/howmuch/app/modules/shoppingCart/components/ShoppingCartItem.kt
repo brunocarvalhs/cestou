@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,13 +48,18 @@ fun ShoppingCartItem(
     onRemove: (() -> Unit)? = null,
     onQuantityChange: ((Int) -> Unit)? = null,
     isLoading: Boolean = false,
-    isExpanded: Boolean = false
+    isExpanded: Boolean = false,
+    titleFillMaxWidth: Float = 0.6f,
+    priceFillMaxWidth: Float = 0.4f,
+    quantityFillMaxWidth: Float = 0.3f,
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
+    onCheckedChange: ((Boolean) -> Unit)? = null
 ) {
     var expanded by remember { mutableStateOf(isExpanded) }
     val placeholderState = rememberPlaceholderState(isVisible = isLoading)
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
         elevation = CardDefaults.cardElevation(2.dp),
@@ -75,7 +82,7 @@ fun ShoppingCartItem(
                     if (isLoading) {
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth(0.6f)
+                                .fillMaxWidth(titleFillMaxWidth)
                                 .height(20.dp)
                                 .placeholder(
                                     placeholderState = placeholderState,
@@ -85,7 +92,7 @@ fun ShoppingCartItem(
                         Spacer(modifier = Modifier.height(6.dp))
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth(0.4f)
+                                .fillMaxWidth(priceFillMaxWidth)
                                 .height(16.dp)
                                 .placeholder(
                                     placeholderState = placeholderState,
@@ -95,7 +102,7 @@ fun ShoppingCartItem(
                         Spacer(modifier = Modifier.height(6.dp))
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth(0.3f)
+                                .fillMaxWidth(quantityFillMaxWidth)
                                 .height(14.dp)
                                 .placeholder(
                                     placeholderState = placeholderState,
@@ -103,37 +110,58 @@ fun ShoppingCartItem(
                                 )
                         )
                     } else {
-                        if (product?.name.isNullOrBlank().not()) {
-                            Text(
-                                product.name,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                        }
-                        Text(
-                            text = stringResource(R.string.price) + " " + stringResource(
-                                R.string.currency,
-                                product?.price?.toCurrencyString().orEmpty()
-                            ),
-                            style = if (product?.name.isNullOrBlank()) MaterialTheme.typography.titleMedium
-                            else MaterialTheme.typography.bodyMedium
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        if (onRemove == null || onQuantityChange == null) {
-                            Text(
-                                stringResource(R.string.quantity, product?.quantity ?: ONE_INT),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        } else {
-                            AnimatedVisibility(
-                                expanded.not()
-                            ) {
-                                Text(
-                                    stringResource(R.string.quantity, product?.quantity ?: ONE_INT),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                        Row {
+                            onCheckedChange?.let {
+                                Checkbox(
+                                    product?.isChecked ?: false,
+                                    onCheckedChange = { onCheckedChange.invoke(it) }
                                 )
+                            }
+                            Column {
+                                if (product?.name.isNullOrBlank().not()) {
+                                    Text(
+                                        product.name,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                }
+                                product?.price?.let {
+                                    Text(
+                                        text = stringResource(R.string.price) + " " + stringResource(
+                                            R.string.currency,
+                                            product.price?.toCurrencyString().orEmpty()
+                                        ),
+                                        style = if (product.name.isBlank()) {
+                                            MaterialTheme.typography.titleMedium
+                                        } else {
+                                            MaterialTheme.typography.bodyMedium
+                                        },
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                }
+                                if (onRemove == null || onQuantityChange == null) {
+                                    Text(
+                                        stringResource(
+                                            R.string.quantity,
+                                            product?.quantity ?: ONE_INT
+                                        ),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                } else {
+                                    AnimatedVisibility(
+                                        expanded.not()
+                                    ) {
+                                        Text(
+                                            stringResource(
+                                                R.string.quantity,
+                                                product?.quantity ?: ONE_INT
+                                            ),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -143,10 +171,18 @@ fun ShoppingCartItem(
                     if (onRemove != null || onQuantityChange != null) {
                         IconButton(onClick = { expanded = !expanded }) {
                             Icon(
-                                imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                contentDescription = if (expanded) stringResource(R.string.close_quantity_controls) else stringResource(
-                                    R.string.open_quantity_controls
-                                )
+                                imageVector = if (expanded) {
+                                    Icons.Filled.KeyboardArrowUp
+                                } else {
+                                    Icons.Filled.KeyboardArrowDown
+                                },
+                                contentDescription = if (expanded) {
+                                    stringResource(R.string.close_quantity_controls)
+                                } else {
+                                    stringResource(
+                                        R.string.open_quantity_controls
+                                    )
+                                }
                             )
                         }
                     }
@@ -234,8 +270,8 @@ private fun QuantityControls(
     }
 }
 
-@Preview(showBackground = true)
 @Composable
+@Preview(showBackground = true)
 private fun ShoppingCartItemPreview() {
     ShoppingCartItem(
         product = ProductModel(
@@ -249,8 +285,8 @@ private fun ShoppingCartItemPreview() {
     )
 }
 
-@Preview(showBackground = true)
 @Composable
+@Preview(showBackground = true)
 private fun ShoppingCartItemWithoutProductPreview() {
     ShoppingCartItem(
         product = ProductModel(
@@ -260,16 +296,16 @@ private fun ShoppingCartItemWithoutProductPreview() {
     )
 }
 
-@Preview(showBackground = true)
 @Composable
+@Preview(showBackground = true)
 private fun ShoppingCartItemLoadingPreview() {
     ShoppingCartItem(
         isLoading = true
     )
 }
 
-@Preview(showBackground = true)
 @Composable
+@Preview(showBackground = true)
 private fun ShoppingCartItemWithIsExpandedPreview() {
     ShoppingCartItem(
         product = ProductModel(
@@ -284,8 +320,8 @@ private fun ShoppingCartItemWithIsExpandedPreview() {
     )
 }
 
-@Preview(showBackground = true)
 @Composable
+@Preview(showBackground = true)
 private fun ShoppingCartItemWithoutProductIsExpandedPreview() {
     ShoppingCartItem(
         product = ProductModel(
@@ -293,5 +329,18 @@ private fun ShoppingCartItemWithoutProductIsExpandedPreview() {
             price = 1000
         ),
         isExpanded = true
+    )
+}
+
+@Composable
+@Preview(showBackground = true)
+private fun ShoppingCartItemWithoutProductCheckedPreview() {
+    ShoppingCartItem(
+        product = ProductModel(
+            name = "Produto de Teste",
+            quantity = 1,
+        ),
+        isExpanded = true,
+        onCheckedChange = { }
     )
 }

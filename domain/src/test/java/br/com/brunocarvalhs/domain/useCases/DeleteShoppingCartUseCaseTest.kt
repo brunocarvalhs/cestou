@@ -5,7 +5,8 @@ import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DeleteShoppingCartUseCaseTest {

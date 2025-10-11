@@ -8,22 +8,27 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.R
-import br.com.brunocarvalhs.howmuch.app.foundation.constants.EMPTY_LONG
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.EMPTY_STRING
 
 @Composable
 fun FinalizePurchaseDialog(
+    totalPrice: Long,
     onDismiss: () -> Unit,
     onSubmit: (name: String, price: Long) -> Unit
 ) {
     var name by remember { mutableStateOf(EMPTY_STRING) }
-    var price by remember { mutableLongStateOf(EMPTY_LONG) }
+    var price by remember { mutableLongStateOf(totalPrice) }
     var error by remember { mutableStateOf(false) }
 
     AlertDialog(
@@ -76,4 +81,3 @@ fun FinalizePurchaseDialog(
         }
     )
 }
-

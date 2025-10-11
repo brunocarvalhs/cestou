@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -7,7 +8,6 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,7 +30,7 @@ fun PriceInput(
     price: Long,
     onPriceChange: (Long) -> Unit,
     label: @Composable (() -> Unit)? = null,
-    modifier: Modifier = Modifier,
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
     focusRequester: FocusRequester? = null,
     onNext: (() -> Unit)? = null,
     isError: Boolean = false

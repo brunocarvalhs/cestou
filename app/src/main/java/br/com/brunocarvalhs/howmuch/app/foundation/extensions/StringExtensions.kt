@@ -14,32 +14,27 @@ fun String?.toFormatDate(
         val date = parser.parse(this)
         val formatter = SimpleDateFormat(outputFormat.pattern, Locale.getDefault())
         formatter.format(date!!)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         ""
     }
 }
 
 enum class DateFormat(val pattern: String) {
-    DAY_MONTH_YEAR("dd/MM/yyyy"),          // 07/09/2025
-    YEAR_MONTH_DAY("yyyy-MM-dd"),          // 2025-09-07
-    MONTH_YEAR("MM/yyyy"),                 // 09/2025
-    MONTH_NAME_YEAR("MMMM/yyyy"),          // Setembro/2025
-    DAY_MONTH_YEAR_DASH("dd-MM-yyyy"),     // 07-09-2025
-    YEAR_MONTH_DAY_SLASH("yyyy/MM/dd"),    // 2025/09/07
-    DAY_MONTH_NAME_YEAR("dd MMMM yyyy"),   // 07 Setembro 2025
-    MONTH_DAY_YEAR_US("MM/dd/yyyy"),       // 09/07/2025
-    DAY_MONTH_YEAR_EU("dd.MM.yyyy")        // 07.09.2025
+    DAY_MONTH_YEAR("dd/MM/yyyy"),
+    YEAR_MONTH_DAY("yyyy-MM-dd"),
+    MONTH_YEAR("MM/yyyy"),
+    MONTH_NAME_YEAR("MMMM/yyyy"),
 }
 
 fun String?.isWithinLastDays(days: Int): Boolean {
     if (this.isNullOrEmpty()) return false
     return try {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val date = sdf.parse(this) ?: return false
+        val date = sdf.parse(this) ?: error("Invalid date format")
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_YEAR, -days)
         date.after(calendar.time)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         false
     }
 }
@@ -47,8 +42,7 @@ fun String?.isWithinLastDays(days: Int): Boolean {
 fun String?.toLocalDate(): LocalDate? {
     return try {
         this?.let { LocalDate.parse(it) }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null
     }
 }
-

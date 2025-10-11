@@ -1,6 +1,5 @@
 package br.com.brunocarvalhs.howmuch
 
-import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -18,7 +17,6 @@ import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.ShoppingCartScreen
 
 @Composable
 fun MainApp(
-    activity: ComponentActivity,
     navController: NavHostController,
 ) {
     NavHost(navController = navController, startDestination = ShoppingCartGraphRoute) {
@@ -35,13 +33,11 @@ fun MainApp(
                 tabs = linkedMapOf(
                     NavBarItem.HOME to {
                         ShoppingCartScreen(
-                            navController = navController,
                             viewModel = hiltViewModel()
                         )
                     },
                     NavBarItem.HISTORY to {
                         HistoryScreen(
-                            navController = navController,
                             viewModel = hiltViewModel()
                         )
                     },
