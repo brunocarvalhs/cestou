@@ -9,4 +9,10 @@ data object ShoppingCartGraphRoute
 data class ProductGraphRoute(val cartId: String?)
 
 @Serializable
-data object HomeGraphRoute
+data class TokenBottomSheetRoute(val token: String?)
+
+@Serializable
+data class SharedCartBottomSheetRoute(
+    val cartId: String?,
+    val token: String?,
+)

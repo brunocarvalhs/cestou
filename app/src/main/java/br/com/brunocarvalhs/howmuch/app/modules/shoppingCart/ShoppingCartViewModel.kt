@@ -11,7 +11,6 @@ import br.com.brunocarvalhs.domain.useCases.EnterShoppingCartWithTokenUseCase
 import br.com.brunocarvalhs.domain.useCases.FinalizePurchaseUseCase
 import br.com.brunocarvalhs.domain.useCases.ObserveShoppingCartUseCase
 import br.com.brunocarvalhs.domain.useCases.UpdateShoppingCartUseCase
-import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.ShoppingCartUiEffect.NavigateToAddProduct
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,10 +44,6 @@ class ShoppingCartViewModel @Inject constructor(
 
     fun onIntent(intent: ShoppingCartUiIntent) {
         when (intent) {
-            is ShoppingCartUiIntent.AddProduct -> viewModelScope.launch {
-                _uiEffect.emit(NavigateToAddProduct(cartId))
-            }
-
             is ShoppingCartUiIntent.RemoveItem -> removeProduct(productId = intent.productId)
             ShoppingCartUiIntent.Retry -> initializeCart()
             is ShoppingCartUiIntent.SearchByToken -> searchByToken(token = intent.token)

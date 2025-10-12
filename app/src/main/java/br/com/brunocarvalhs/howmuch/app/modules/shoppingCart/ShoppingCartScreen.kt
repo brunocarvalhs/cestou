@@ -40,6 +40,8 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import br.com.brunocarvalhs.data.model.ProductModel
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvent
@@ -49,31 +51,27 @@ import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackClick
 import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.ZERO_INT
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.setStatusBarIconColor
-import br.com.brunocarvalhs.howmuch.app.foundation.extensions.shareText
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
-import br.com.brunocarvalhs.howmuch.app.modules.products.ProductFormBottomSheet
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.ProductGraphRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.SharedCartBottomSheetRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.TokenBottomSheetRoute
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.FinalizePurchaseDialog
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.HeaderComponent
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.PriceFieldBottomSheet
-import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShareCartBottomSheet
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartCardsPager
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartItem
-import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.TokenBottomSheet
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.TypeShopping
-import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.generateShareableCart
-import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.generateShareableToken
 import kotlin.random.Random
 
 @Composable
 fun ShoppingCartScreen(
+    navController: NavController,
     viewModel: ShoppingCartViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val uiEffect by viewModel.uiEffect.collectAsState(initial = null)
 
-    var showProductSheet by rememberSaveable { mutableStateOf(false) }
-    var showShareSheet by rememberSaveable { mutableStateOf(false) }
     var showFinalizeDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -92,43 +90,19 @@ fun ShoppingCartScreen(
                 is ShoppingCartUiEffect.ShowError -> {
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
-
-                is ShoppingCartUiEffect.NavigateToAddProduct -> {
-                    showProductSheet = true
-                }
-
-                is ShoppingCartUiEffect.ShareCart -> {
-                    showShareSheet = true
-                }
             }
         }
     }
 
     ShoppingCartContent(
+        navController = navController,
         uiState = uiState,
         onIntent = viewModel::onIntent,
-        onAddToCart = { showProductSheet = true },
-        onShared = { showShareSheet = true },
+        onAddToCart = { cartId ->
+            navController.navigate(ProductGraphRoute(cartId))
+        },
         onCheckout = { showFinalizeDialog = true },
-        onShareList = {
-            context.shareText(
-                subject = context.getString(R.string.share_shopping_cart),
-                text = generateShareableCart(uiState.products, uiState.totalPrice)
-            )
-            showShareSheet = false
-        },
-        onShareToken = {
-            context.shareText(
-                subject = context.getString(R.string.share_cart_token),
-                text = generateShareableToken(uiState.token)
-            )
-            showShareSheet = false
-        },
-        showProductSheet = showProductSheet,
-        showShareSheet = showShareSheet,
         showFinalizeDialog = showFinalizeDialog,
-        setShowProductSheet = { showProductSheet = it },
-        setShowShareSheet = { showShareSheet = it },
         setShowFinalizeDialog = { showFinalizeDialog = it }
     )
 }
@@ -136,24 +110,17 @@ fun ShoppingCartScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShoppingCartContent(
+    navController: NavController,
     uiState: ShoppingCartUiState,
     onIntent: (ShoppingCartUiIntent) -> Unit,
-    onAddToCart: () -> Unit = {},
-    onShared: () -> Unit = {},
+    onAddToCart: (String?) -> Unit = {},
     onCheckout: () -> Unit = {},
-    onShareList: () -> Unit,
-    onShareToken: () -> Unit,
-    showProductSheet: Boolean,
-    showShareSheet: Boolean,
     showFinalizeDialog: Boolean,
-    setShowProductSheet: (Boolean) -> Unit,
-    setShowShareSheet: (Boolean) -> Unit,
     setShowFinalizeDialog: (Boolean) -> Unit,
     numberCardLoading: Int = 3
 ) {
     val listState = rememberLazyListState()
 
-    var showTokenSheet by remember { mutableStateOf(false) }
     var showPriceBottomSheet by remember { mutableStateOf(false) }
 
     var selectedDestination by rememberSaveable { mutableIntStateOf(uiState.type.ordinal) }
@@ -178,7 +145,7 @@ fun ShoppingCartContent(
                     null
                 },
                 onShared = {
-                    showTokenSheet = true
+                    navController.navigate(TokenBottomSheetRoute(uiState.token))
                     trackClick(
                         viewId = "header_share_cart",
                         viewName = "Header Share Cart",
@@ -191,7 +158,7 @@ fun ShoppingCartContent(
             FloatingActionButton(
                 elevation = FloatingActionButtonDefaults.elevation(0.dp),
                 onClick = {
-                    onAddToCart()
+                    onAddToCart(uiState.cartId)
                     trackClick(
                         viewId = "btn_add_product",
                         viewName = "Add Product FAB",
@@ -224,7 +191,12 @@ fun ShoppingCartContent(
                         )
                     },
                     onShared = {
-                        onShared()
+                        navController.navigate(
+                            SharedCartBottomSheetRoute(
+                                cartId = uiState.cartId,
+                                token = uiState.token,
+                            )
+                        )
                         trackClick(
                             viewId = "pager_share",
                             viewName = "Share Pager",
@@ -345,71 +317,6 @@ fun ShoppingCartContent(
         }
     }
 
-    TokenBottomSheet(
-        showSheet = showTokenSheet,
-        onDismiss = {
-            showTokenSheet = false
-            trackClick(
-                viewId = "token_sheet_dismiss",
-                viewName = "Dismiss Token Sheet",
-                screenName = "ShoppingCartScreen"
-            )
-        },
-        onSubmit = { code ->
-            onIntent(ShoppingCartUiIntent.SearchByToken(token = code))
-            trackClick(
-                viewId = "token_sheet_submit",
-                viewName = "Submit Token",
-                screenName = "ShoppingCartScreen"
-            )
-        }
-    )
-
-    if (showProductSheet && uiState.cartId != null) {
-        ProductFormBottomSheet(
-            shoppingCartId = uiState.cartId,
-            isProductListed = selectedDestination == TypeShopping.LIST.ordinal,
-            onDismiss = {
-                setShowProductSheet(false)
-                trackClick(
-                    viewId = "product_sheet_dismiss",
-                    viewName = "Dismiss Product Sheet",
-                    screenName = "ShoppingCartScreen"
-                )
-            }
-        )
-    }
-
-    if (showShareSheet) {
-        ShareCartBottomSheet(
-            token = uiState.token,
-            onShareList = {
-                onShareList()
-                trackClick(
-                    viewId = "share_list",
-                    viewName = "Share List",
-                    screenName = "ShoppingCartScreen"
-                )
-            },
-            onShareToken = {
-                onShareToken()
-                trackClick(
-                    viewId = "share_token",
-                    viewName = "Share Token",
-                    screenName = "ShoppingCartScreen"
-                )
-            },
-            onDismiss = {
-                setShowShareSheet(false)
-                trackClick(
-                    viewId = "share_sheet_dismiss",
-                    viewName = "Dismiss Share Sheet",
-                    screenName = "ShoppingCartScreen"
-                )
-            }
-        )
-    }
-
     if (showFinalizeDialog) {
         FinalizePurchaseDialog(
             totalPrice = uiState.totalPrice,
@@ -496,18 +403,12 @@ private fun ShoppingCartContentPreview(
     @PreviewParameter(ShoppingCartStateProvider::class) uiState: ShoppingCartUiState
 ) {
     ShoppingCartContent(
+        navController = NavController(LocalContext.current),
         uiState = uiState,
         onIntent = {},
         onAddToCart = {},
-        onShared = {},
         onCheckout = {},
-        onShareList = {},
-        onShareToken = {},
-        showProductSheet = false,
-        showShareSheet = false,
         showFinalizeDialog = false,
-        setShowProductSheet = {},
-        setShowShareSheet = {},
         setShowFinalizeDialog = {}
     )
 }

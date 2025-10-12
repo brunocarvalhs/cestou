@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components
+package br.com.brunocarvalhs.howmuch.app.modules.shared
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,16 +14,53 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import br.com.brunocarvalhs.data.model.ShoppingCartModel
+import br.com.brunocarvalhs.domain.entities.ShoppingCart
 import br.com.brunocarvalhs.howmuch.R
+import br.com.brunocarvalhs.howmuch.app.foundation.extensions.shareText
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.SharedCartBottomSheetRoute
+import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.generateShareableCart
+import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.generateShareableToken
+
+@Composable
+fun SharedCartScreen(
+    arg: SharedCartBottomSheetRoute,
+    navController: NavController,
+    viewModel: SharedCartViewModel = hiltViewModel()
+) {
+    val context = LocalContext.current
+
+    ShareCartContent(
+        token = arg.token,
+        onShareList = { cart ->
+            context.shareText(
+                subject = context.getString(R.string.share_shopping_cart),
+                text = generateShareableCart(cart.products, cart.totalPrice)
+            )
+        },
+        onShareToken = {
+            context.shareText(
+                subject = context.getString(R.string.share_cart_token),
+                text = generateShareableToken(arg.token)
+            )
+        },
+        onDismiss = {
+            navController.popBackStack()
+        }
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShareCartBottomSheet(
+private fun ShareCartContent(
     token: String?,
-    onShareList: () -> Unit,
+    onShareList: (ShoppingCart) -> Unit,
     onShareToken: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -55,7 +92,7 @@ fun ShareCartBottomSheet(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onShareList() }
+                    .clickable { onShareList(ShoppingCartModel()) }
             )
 
             ListItem(

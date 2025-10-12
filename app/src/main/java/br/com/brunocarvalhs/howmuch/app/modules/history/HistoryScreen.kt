@@ -25,6 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import br.com.brunocarvalhs.domain.entities.ShoppingCart
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackClick
@@ -45,6 +47,7 @@ import java.util.Locale
 
 @Composable
 fun HistoryScreen(
+    navController: NavController,
     viewModel: HistoryViewModel
 ) {
     val context = LocalContext.current
