@@ -29,16 +29,19 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackClick
+import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.EMPTY_STRING
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.FIVE_INT
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.ONE_INT
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.SIX_INT
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.ZERO_INT
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.ShoppingCartUiIntent
+import br.com.brunocarvalhs.howmuch.app.modules.token.components.InputCode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,6 +50,8 @@ fun TokenScreen(
     navController: NavController,
     viewModel: TokenViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     ModalBottomSheet(
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
@@ -100,31 +105,11 @@ fun TokenContent(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            digits.forEachIndexed { index, value ->
-                TextField(
-                    value = value,
-                    onValueChange = { newValue ->
-                        if (newValue.length <= ONE_INT && newValue.all { it.isDigit() }) {
-                            digits = digits.toMutableList().also { it[index] = newValue }
-                            if (newValue.isNotEmpty() && index < FIVE_INT) {
-                                focusRequesters[index + ONE_INT].requestFocus()
-                            }
-                        } else if (newValue.isEmpty() && index > ZERO_INT) {
-                            digits = digits.toMutableList().also { it[index] = EMPTY_STRING }
-                            focusRequesters[index - ONE_INT].requestFocus()
-                        }
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp)
-                        .focusRequester(focusRequesters[index]),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = if (index == FIVE_INT) ImeAction.Done else ImeAction.Next
-                    )
-                )
-            }
+            InputCode(
+                digits = digits,
+                onDigitsChange = { newDigits -> digits = newDigits },
+                focusRequesters = focusRequesters
+            )
         }
 
         Button(
@@ -144,7 +129,7 @@ fun TokenContent(
 }
 
 @Composable
-@Preview
+@DevicesPreview
 fun TokenBottomSheetPreview() {
     TokenContent(
         onDismiss = {},
