@@ -1,7 +1,8 @@
 package br.com.brunocarvalhs.howmuch.app.modules.token
 
-data class TokenUiState(
-    val isLoading: Boolean = false,
-    val token: String? = null,
-    val cartId: String? = null,
-)
+sealed class TokenUiState {
+    data object Idle : TokenUiState()
+    data class Success(val cartId: String) : TokenUiState()
+    data class Error(val message: String) : TokenUiState()
+    data object Loading : TokenUiState()
+}

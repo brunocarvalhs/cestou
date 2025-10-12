@@ -1,15 +1,19 @@
 package br.com.brunocarvalhs.howmuch.app.modules.token.components
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -23,7 +27,8 @@ import br.com.brunocarvalhs.howmuch.app.foundation.constants.ZERO_INT
 fun InputCode(
     digits: List<String>,
     onDigitsChange: (List<String>) -> Unit,
-    focusRequesters: List<FocusRequester>
+    focusRequesters: List<FocusRequester>,
+    borderColor: Color = MaterialTheme.colorScheme.outline,
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -46,7 +51,8 @@ fun InputCode(
                 modifier = Modifier
                     .weight(1f)
                     .height(56.dp)
-                    .focusRequester(focusRequesters[index]),
+                    .focusRequester(focusRequesters[index])
+                    .border(1.dp, borderColor, RoundedCornerShape(8.dp)),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,

@@ -1,12 +1,9 @@
 package br.com.brunocarvalhs.howmuch.app.modules.token
 
-import android.content.Context
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.domain.useCases.EnterShoppingCartWithTokenUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,11 +12,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TokenViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val enterTokenWithTokenUseCase: EnterShoppingCartWithTokenUseCase
 ): ViewModel() {
 
-    private val _uiState = MutableStateFlow(TokenUiState())
+    private val _uiState = MutableStateFlow<TokenUiState>(TokenUiState.Idle)
     val uiState: StateFlow<TokenUiState> = _uiState.asStateFlow()
 
     fun onIntent(intent: TokenUiIntent) {
@@ -29,16 +25,11 @@ class TokenViewModel @Inject constructor(
     }
 
     private fun searchByToken(token: String) = viewModelScope.launch {
-        _uiState.value = _uiState.value.copy(isLoading = true)
+        _uiState.emit(TokenUiState.Loading)
         enterTokenWithTokenUseCase(token).onSuccess { result ->
-            _uiState.value = _uiState.value.copy(
-                isLoading = false,
-                cartId = result.id,
-                token = result.token
-            )
+            _uiState.emit(TokenUiState.Success(cartId = result.id))
         }.onFailure {
-            _uiState.value = _uiState.value.copy(isLoading = false)
-            Toast.makeText(context, "Invalid token", Toast.LENGTH_SHORT).show()
+            _uiState.emit(TokenUiState.Error(message = "Error"))
         }
     }
 }

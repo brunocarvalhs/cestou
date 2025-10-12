@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -27,6 +28,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,6 +44,7 @@ import br.com.brunocarvalhs.howmuch.app.foundation.constants.ONE_INT
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.SIX_INT
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.ZERO_INT
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.ShoppingCartUiIntent
+import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.ShoppingCartUiState
 import br.com.brunocarvalhs.howmuch.app.modules.token.components.InputCode
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,6 +62,7 @@ fun TokenScreen(
         onDismissRequest = { navController.popBackStack() },
     ) {
         TokenContent(
+            uiState = uiState,
             onDismiss = {
                 navController.popBackStack()
                 trackClick(
@@ -80,6 +85,7 @@ fun TokenScreen(
 
 @Composable
 fun TokenContent(
+    uiState: TokenUiState,
     onDismiss: () -> Unit,
     onSubmit: (String) -> Unit
 ) {
@@ -91,7 +97,6 @@ fun TokenContent(
     LaunchedEffect(Unit) {
         focusRequesters[ZERO_INT].requestFocus()
     }
-
 
     Column(
         modifier = Modifier
@@ -121,18 +126,36 @@ fun TokenContent(
                     keyboardController?.hide()
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = digits.all { it.isNotEmpty() } && uiState !is TokenUiState.Loading
         ) {
-            Text(stringResource(R.string.access))
+            if (uiState is TokenUiState.Loading) {
+                CircularProgressIndicator()
+            } else {
+                Text(stringResource(R.string.access))
+            }
         }
     }
 }
 
+private class TokenStateProvider : PreviewParameterProvider<TokenUiState> {
+    override val values: Sequence<TokenUiState>
+        get() = sequenceOf(
+            TokenUiState.Idle,
+            TokenUiState.Loading,
+            TokenUiState.Success(cartId = "123456"),
+            TokenUiState.Error(message = "Error"),
+        )
+}
+
 @Composable
 @DevicesPreview
-fun TokenBottomSheetPreview() {
+fun TokenBottomSheetPreview(
+    @PreviewParameter(TokenStateProvider::class) uiState: TokenUiState
+) {
     TokenContent(
+        uiState = uiState,
         onDismiss = {},
-        onSubmit = {}
+        onSubmit = {},
     )
 }
