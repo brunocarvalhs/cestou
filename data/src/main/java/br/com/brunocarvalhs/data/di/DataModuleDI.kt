@@ -124,7 +124,10 @@ object DataModuleDI {
     }
 
     @Provides
-    fun provideGetCartUseCase(repository: ShoppingCartRepository): GetCartUseCase {
-        return GetCartUseCase(repository)
+    fun provideGetCartUseCase(
+        repository: ShoppingCartRepository,
+        cartLocalStorage: ICartLocalStorage
+    ): GetCartUseCase {
+        return GetCartUseCase(repository = repository, cartLocalStorage = cartLocalStorage)
     }
 }

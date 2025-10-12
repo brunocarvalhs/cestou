@@ -52,21 +52,10 @@ fun HistoryScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val uiEffect by viewModel.uiEffect.collectAsState(initial = null)
 
     LaunchedEffect(Unit) {
         (context as Activity).window.setStatusBarIconColor(false)
         viewModel.onIntent(HistoryUiIntent.Retry)
-    }
-
-    LaunchedEffect(uiEffect) {
-        uiEffect?.let { effect ->
-            when (effect) {
-                is HistoryUiEffect.ShowError -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
     }
 
     HistoryContent(
