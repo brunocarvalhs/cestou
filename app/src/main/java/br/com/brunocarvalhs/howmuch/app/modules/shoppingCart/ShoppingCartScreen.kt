@@ -69,7 +69,6 @@ fun ShoppingCartScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val uiEffect by viewModel.uiEffect.collectAsState(initial = null)
 
     LaunchedEffect(Unit) {
         (context as Activity).window.setStatusBarIconColor(false)
@@ -79,16 +78,6 @@ fun ShoppingCartScreen(
                 AnalyticsParam.SCREEN_NAME to "ShoppingCartScreen",
             )
         )
-    }
-
-    LaunchedEffect(uiEffect) {
-        uiEffect?.let { effect ->
-            when (effect) {
-                is ShoppingCartUiEffect.ShowError -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
     }
 
     ShoppingCartContent(

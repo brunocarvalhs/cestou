@@ -1,6 +1,8 @@
 package br.com.brunocarvalhs.howmuch.app.modules.shoppingCart
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.data.model.ShoppingCartModel
@@ -12,17 +14,16 @@ import br.com.brunocarvalhs.domain.useCases.FinalizePurchaseUseCase
 import br.com.brunocarvalhs.domain.useCases.ObserveShoppingCartUseCase
 import br.com.brunocarvalhs.domain.useCases.UpdateShoppingCartUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ShoppingCartViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val createShoppingCartUseCase: CreateShoppingCartUseCase,
     private val observeShoppingCartUseCase: ObserveShoppingCartUseCase,
     private val enterShoppingCartWithTokenUseCase: EnterShoppingCartWithTokenUseCase,
@@ -34,9 +35,6 @@ class ShoppingCartViewModel @Inject constructor(
     private var cartId: String? = null
     private val _uiState = MutableStateFlow(ShoppingCartUiState())
     val uiState: StateFlow<ShoppingCartUiState> = _uiState.asStateFlow()
-
-    private val _uiEffect = MutableSharedFlow<ShoppingCartUiEffect>()
-    val uiEffect: SharedFlow<ShoppingCartUiEffect> = _uiEffect.asSharedFlow()
 
     init {
         initializeCart()
@@ -85,7 +83,7 @@ class ShoppingCartViewModel @Inject constructor(
             cartLocalStorage.saveCartNow(result)
             observeCart(result.id)
         } else {
-            _uiEffect.emit(ShoppingCartUiEffect.ShowError("Invalid token"))
+            Toast.makeText(context, "Invalid token", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -97,7 +95,7 @@ class ShoppingCartViewModel @Inject constructor(
             cartLocalStorage.saveCartNow(cart)
             _uiState.value = _uiState.value.copy(isLoading = false)
         }.onFailure {
-            _uiEffect.emit(ShoppingCartUiEffect.ShowError("Failed to create shopping cart"))
+            Toast.makeText(context, "Failed to create shopping cart", Toast.LENGTH_SHORT).show()
             _uiState.value = _uiState.value.copy(isLoading = false)
         }
     }
@@ -125,11 +123,11 @@ class ShoppingCartViewModel @Inject constructor(
                     updateShoppingCartUseCase(updatedCart)
                     updateUiState(products = currentProducts)
                 } catch (_: Exception) {
-                    _uiEffect.emit(ShoppingCartUiEffect.ShowError("Failed to remove product"))
+                    Toast.makeText(context, "Failed to remove product", Toast.LENGTH_SHORT).show()
                 }
             }
         } else {
-            _uiEffect.emit(ShoppingCartUiEffect.ShowError("Product not found"))
+            Toast.makeText(context, "Product not found", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -150,11 +148,11 @@ class ShoppingCartViewModel @Inject constructor(
                     updateShoppingCartUseCase(updatedCart)
                     updateUiState(products = currentProducts)
                 } catch (_: Exception) {
-                    _uiEffect.emit(ShoppingCartUiEffect.ShowError("Failed to update product quantity"))
+                    Toast.makeText(context, "Failed to update product quantity", Toast.LENGTH_SHORT).show()
                 }
             }
         } else {
-            _uiEffect.emit(ShoppingCartUiEffect.ShowError("Product not found"))
+            Toast.makeText(context, "Failed to update product quantity", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -186,7 +184,7 @@ class ShoppingCartViewModel @Inject constructor(
         cartId?.let { id ->
             finalizePurchaseUseCase(id, market = market, price = totalPrice).onSuccess {
                 initializeCart()
-                _uiEffect.emit(ShoppingCartUiEffect.ShowError("Compra finalizada com sucesso!"))
+                Toast.makeText(context, "Compra finalizada com sucesso!", Toast.LENGTH_SHORT).show()
                 _uiState.value = _uiState.value.copy(isLoading = false)
             }.onFailure {
                 Log.e(
@@ -194,12 +192,12 @@ class ShoppingCartViewModel @Inject constructor(
                     "Failed to finalize purchase",
                     it
                 )
-                _uiEffect.emit(ShoppingCartUiEffect.ShowError("Falha ao finalizar a compra"))
+                Toast.makeText(context, "Falha ao finalizar a compra", Toast.LENGTH_SHORT).show()
                 _uiState.value = _uiState.value.copy(isLoading = false)
             }
         } ?: run {
             _uiState.value = _uiState.value.copy(isLoading = false)
-            _uiEffect.emit(ShoppingCartUiEffect.ShowError("Carrinho não encontrado"))
+            Toast.makeText(context, "Carrinho não encontrado", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -225,11 +223,11 @@ class ShoppingCartViewModel @Inject constructor(
                     updateShoppingCartUseCase(updatedCart)
                     updateUiState(products = currentProducts)
                 } catch (_: Exception) {
-                    _uiEffect.emit(ShoppingCartUiEffect.ShowError("Failed to update product"))
+                    Toast.makeText(context, "Failed to update product", Toast.LENGTH_SHORT).show()
                 }
             }
         } else {
-            _uiEffect.emit(ShoppingCartUiEffect.ShowError("Product not found"))
+            Toast.makeText(context, "Product not found", Toast.LENGTH_SHORT).show()
         }
     }
 }

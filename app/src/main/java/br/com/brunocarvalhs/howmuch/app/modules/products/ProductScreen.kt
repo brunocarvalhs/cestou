@@ -146,95 +146,86 @@ private fun ProductContent(
         nameFocusRequester.requestFocus()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.register_product)) })
-        },
-        bottomBar = {
-            Button(
-                onClick = {
-                    onIntent(
-                        if (isProductListed) {
-                            ProductUiIntent.AddProductToList(
-                                name = name,
-                                quantity = quantity
-                            )
-                        } else {
-                            ProductUiIntent.AddProductToCart(
-                                name = name,
-                                price = price,
-                                quantity = quantity
-                            )
-                        }
-                    )
-                    name = EMPTY_STRING
-                    price = EMPTY_LONG
-                    quantity = ONE_INT
-                    nameFocusRequester.requestFocus()
-                    trackClick(
-                        viewId = "btn_add_product",
-                        viewName = "Submit Product",
-                        screenName = "ProductFormBottomSheet"
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text(stringResource(R.string.add_product))
-            }
-        }
-    ) { padding ->
-        Column(
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 20.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        ProductNameInput(
+            name = name,
+            onNameChange = { newName ->
+                name = newName
+                trackClick(
+                    viewId = "input_product_name",
+                    viewName = "Product Name Changed",
+                    screenName = "ProductFormBottomSheet"
+                )
+            },
             modifier = Modifier
-                .padding(padding)
-                .padding(horizontal = 16.dp, vertical = 20.dp)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            ProductNameInput(
-                name = name,
-                onNameChange = { newName ->
-                    name = newName
+                .fillMaxWidth()
+                .focusRequester(nameFocusRequester)
+        )
+        if (!isProductListed) {
+            PriceInput(
+                price = price,
+                onPriceChange = { newPrice ->
+                    price = newPrice
                     trackClick(
-                        viewId = "input_product_name",
-                        viewName = "Product Name Changed",
+                        viewId = "input_product_price",
+                        viewName = "Product Price Changed",
                         screenName = "ProductFormBottomSheet"
                     )
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .focusRequester(nameFocusRequester)
+                    .focusRequester(priceFocusRequester)
             )
-            if (!isProductListed) {
-                PriceInput(
-                    price = price,
-                    onPriceChange = { newPrice ->
-                        price = newPrice
-                        trackClick(
-                            viewId = "input_product_price",
-                            viewName = "Product Price Changed",
-                            screenName = "ProductFormBottomSheet"
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(priceFocusRequester)
+        }
+        QuantitySelector(
+            quantity = quantity,
+            modifier = Modifier.fillMaxWidth(),
+            onQuantityChange = { newQuantity ->
+                quantity = newQuantity
+                trackClick(
+                    viewId = "input_product_quantity",
+                    viewName = "Product Quantity Changed",
+                    screenName = "ProductFormBottomSheet"
                 )
             }
-            QuantitySelector(
-                quantity = quantity,
-                modifier = Modifier.fillMaxWidth(),
-                onQuantityChange = { newQuantity ->
-                    quantity = newQuantity
-                    trackClick(
-                        viewId = "input_product_quantity",
-                        viewName = "Product Quantity Changed",
-                        screenName = "ProductFormBottomSheet"
-                    )
-                }
-            )
+        )
+
+        Button(
+            onClick = {
+                onIntent(
+                    if (isProductListed) {
+                        ProductUiIntent.AddProductToList(
+                            name = name,
+                            quantity = quantity
+                        )
+                    } else {
+                        ProductUiIntent.AddProductToCart(
+                            name = name,
+                            price = price,
+                            quantity = quantity
+                        )
+                    }
+                )
+                name = EMPTY_STRING
+                price = EMPTY_LONG
+                quantity = ONE_INT
+                nameFocusRequester.requestFocus()
+                trackClick(
+                    viewId = "btn_add_product",
+                    viewName = "Submit Product",
+                    screenName = "ProductFormBottomSheet"
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(stringResource(R.string.add_product))
         }
     }
 }
