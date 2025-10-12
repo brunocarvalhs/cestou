@@ -1,9 +1,9 @@
+//noinspection UsingMaterialAndMaterial3Libraries
 package br.com.brunocarvalhs.howmuch
 
 import androidx.compose.material.navigation.BottomSheetNavigator
 import androidx.compose.material.navigation.ModalBottomSheetLayout
 import androidx.compose.material.navigation.bottomSheet
-import androidx.compose.material.navigation.rememberBottomSheetNavigator
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -19,7 +19,6 @@ import br.com.brunocarvalhs.howmuch.app.foundation.navigation.ShoppingCartGraphR
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.TokenBottomSheetRoute
 import br.com.brunocarvalhs.howmuch.app.modules.base.BaseScreen
 import br.com.brunocarvalhs.howmuch.app.modules.finalizePurchase.FinalizePurchaseScreen
-import br.com.brunocarvalhs.howmuch.app.modules.finalizePurchase.FinalizePurchaseUiIntent
 import br.com.brunocarvalhs.howmuch.app.modules.history.HistoryScreen
 import br.com.brunocarvalhs.howmuch.app.modules.menu.MenuScreen
 import br.com.brunocarvalhs.howmuch.app.modules.products.ProductFormScreen

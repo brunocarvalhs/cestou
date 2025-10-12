@@ -53,11 +53,11 @@ import kotlinx.coroutines.launch
 @Composable
 fun ProductFormScreen(
     shoppingCartId: String?,
+    isProductListed: Boolean = false,
     navController: NavController,
     viewModel: ProductViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val uiEffect by viewModel.uiEffect.collectAsState(initial = null)
 
     LaunchedEffect(shoppingCartId) {
@@ -77,22 +77,6 @@ fun ProductFormScreen(
             }
         }
     }
-
-    ProductContent(
-        onIntent = viewModel::onIntent
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ProductFormBottomSheet(
-    shoppingCartId: String?,
-    isProductListed: Boolean = false,
-    onDismiss: () -> Unit,
-    viewModel: ProductViewModel = hiltViewModel()
-) {
-    val context = LocalContext.current
-    val uiEffect by viewModel.uiEffect.collectAsState(initial = null)
 
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -118,7 +102,7 @@ fun ProductFormBottomSheet(
                 is ProductUiEffect.ProductAdded -> {
                     scope.launch {
                         sheetState.hide()
-                        onDismiss()
+                        navController.popBackStack()
                     }
                 }
             }
@@ -130,7 +114,7 @@ fun ProductFormBottomSheet(
         contentColor = MaterialTheme.colorScheme.onSurface,
         sheetState = sheetState,
         onDismissRequest = {
-            onDismiss()
+            navController.popBackStack()
             trackClick(
                 viewId = "product_sheet_dismiss",
                 viewName = "Dismiss Product Sheet",
