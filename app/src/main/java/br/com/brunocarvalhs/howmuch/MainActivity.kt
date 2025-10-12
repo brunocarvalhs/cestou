@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.material.navigation.rememberBottomSheetNavigator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
@@ -30,7 +31,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         trackLifecycleEvent("onCreate")
         setContent {
-            val navController = rememberNavController()
+            val bottomSheetNavigator = rememberBottomSheetNavigator()
+            val navController = rememberNavController(bottomSheetNavigator)
             navController.trackNavigation()
             HowMuchTheme {
                 Surface(
@@ -39,7 +41,10 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
                 ) {
-                    MainApp(navController = navController)
+                    MainApp(
+                        navController = navController,
+                        bottomSheetNavigator = bottomSheetNavigator
+                    )
                 }
             }
         }
