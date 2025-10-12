@@ -1,7 +1,6 @@
 package br.com.brunocarvalhs.howmuch.app.modules.shoppingCart
 
 import android.app.Activity
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,7 +22,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -84,8 +82,13 @@ fun ShoppingCartScreen(
         navController = navController,
         uiState = uiState,
         onIntent = viewModel::onIntent,
-        onAddToCart = { cartId ->
-            navController.navigate(ProductGraphRoute(cartId))
+        onAddToCart = { cartId, isProductListed ->
+            navController.navigate(
+                route = ProductGraphRoute(
+                    cartId = cartId,
+                    isProductListed = isProductListed
+                )
+            )
         },
         onCheckout = {
             navController.navigate(
@@ -104,7 +107,7 @@ fun ShoppingCartContent(
     navController: NavController,
     uiState: ShoppingCartUiState,
     onIntent: (ShoppingCartUiIntent) -> Unit,
-    onAddToCart: (String?) -> Unit = {},
+    onAddToCart: (String?, Boolean) -> Unit = { _, _ -> },
     onCheckout: () -> Unit = {},
     numberCardLoading: Int = 3
 ) {
@@ -147,7 +150,7 @@ fun ShoppingCartContent(
             FloatingActionButton(
                 elevation = FloatingActionButtonDefaults.elevation(0.dp),
                 onClick = {
-                    onAddToCart(uiState.cartId)
+                    onAddToCart(uiState.cartId, selectedDestination == TypeShopping.LIST.ordinal)
                     trackClick(
                         viewId = "btn_add_product",
                         viewName = "Add Product FAB",
@@ -368,7 +371,7 @@ private fun ShoppingCartContentPreview(
         navController = NavController(LocalContext.current),
         uiState = uiState,
         onIntent = {},
-        onAddToCart = {},
+        onAddToCart = { _, _ -> },
         onCheckout = {},
     )
 }

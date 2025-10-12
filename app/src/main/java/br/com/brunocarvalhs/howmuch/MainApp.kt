@@ -60,6 +60,7 @@ fun MainApp(
                 val route: ProductGraphRoute = backStackEntry.toRoute()
                 ProductFormScreen(
                     shoppingCartId = route.cartId,
+                    isProductListed = route.isProductListed,
                     navController = navController,
                     viewModel = hiltViewModel()
                 )

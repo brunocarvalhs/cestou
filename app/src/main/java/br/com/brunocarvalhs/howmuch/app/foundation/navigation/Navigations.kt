@@ -6,7 +6,10 @@ import kotlinx.serialization.Serializable
 data object ShoppingCartGraphRoute
 
 @Serializable
-data class ProductGraphRoute(val cartId: String?)
+data class ProductGraphRoute(
+    val cartId: String?,
+    val isProductListed: Boolean = false
+)
 
 @Serializable
 data class TokenBottomSheetRoute(val token: String?)
