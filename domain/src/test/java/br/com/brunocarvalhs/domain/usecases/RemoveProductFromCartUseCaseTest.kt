@@ -1,8 +1,9 @@
-package br.com.brunocarvalhs.domain.useCases
+package br.com.brunocarvalhs.domain.usecases
 
 import br.com.brunocarvalhs.domain.entities.ShoppingCart
 import br.com.brunocarvalhs.domain.exceptions.ProductNotFoundException
 import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
+import br.com.brunocarvalhs.domain.usecases.product.RemoveProductFromCartUseCase
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk

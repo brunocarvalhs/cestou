@@ -1,9 +1,10 @@
-package br.com.brunocarvalhs.domain.useCases
+package br.com.brunocarvalhs.domain.usecases
 
 import br.com.brunocarvalhs.domain.entities.Product
 import br.com.brunocarvalhs.domain.entities.ShoppingCart
-import br.com.brunocarvalhs.domain.exceptions.ProductNotFoundException
+import br.com.brunocarvalhs.domain.exceptions.ShoppingCartNotFoundException
 import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
+import br.com.brunocarvalhs.domain.usecases.product.AddProductUseCase
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -12,27 +13,27 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class EditProductUseCaseTest {
+class AddProductUseCaseTest {
 
     private val repository: ShoppingCartRepository = mockk()
-    private val useCase = EditProductUseCase(repository)
+    private val useCase = AddProductUseCase(repository)
 
     @Test
-    fun `invoke should return updated shopping cart when product is edited successfully`() =
+    fun `invoke should return updated shopping cart when product is added successfully`() =
         runBlocking {
             // Arrange
             val cartId = "cart123"
             val product: Product = mockk {
                 every { id } returns "product123"
-                every { name } returns "Updated Product"
-                every { price } returns 15L
+                every { name } returns "Test Product"
+                every { price } returns 10L
             }
             val updatedCart: ShoppingCart = mockk {
                 every { id } returns cartId
                 every { products } returns mutableListOf(product)
             }
 
-            coEvery { repository.updateProduct(cartId, product) } returns updatedCart
+            coEvery { repository.addProduct(cartId, product) } returns updatedCart
 
             // Act
             val result = useCase(cartId, product)
@@ -43,23 +44,23 @@ class EditProductUseCaseTest {
         }
 
     @Test
-    fun `invoke should return failure when product is not found`() = runBlocking {
+    fun `invoke should return failure when shopping cart is not found`() = runBlocking {
         // Arrange
         val cartId = "cart123"
         val product: Product = mockk {
             every { id } returns "product123"
-            every { name } returns "Updated Product"
-            every { price } returns 15L
+            every { name } returns "Test Product"
+            every { price } returns 10L
         }
 
-        coEvery { repository.updateProduct(cartId, product) } returns null
+        coEvery { repository.addProduct(cartId, product) } returns null
 
         // Act
         val result = useCase(cartId, product)
 
         // Assert
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is ProductNotFoundException)
+        assertTrue(result.exceptionOrNull() is ShoppingCartNotFoundException)
     }
 
     @Test
@@ -68,12 +69,12 @@ class EditProductUseCaseTest {
         val cartId = "cart123"
         val product: Product = mockk {
             every { id } returns "product123"
-            every { name } returns "Updated Product"
-            every { price } returns 15L
+            every { name } returns "Test Product"
+            every { price } returns 10L
         }
         val exception = RuntimeException("Repository error")
 
-        coEvery { repository.updateProduct(cartId, product) } throws exception
+        coEvery { repository.addProduct(cartId, product) } throws exception
 
         // Act
         val result = useCase(cartId, product)

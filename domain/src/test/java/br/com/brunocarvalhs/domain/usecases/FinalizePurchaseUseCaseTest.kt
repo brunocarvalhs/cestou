@@ -1,8 +1,8 @@
-package br.com.brunocarvalhs.domain.useCases
+package br.com.brunocarvalhs.domain.usecases
 
-import br.com.brunocarvalhs.domain.entities.ShoppingCart
 import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
 import br.com.brunocarvalhs.domain.services.ICartLocalStorage
+import br.com.brunocarvalhs.domain.usecases.cart.FinalizePurchaseUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking

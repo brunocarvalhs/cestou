@@ -8,11 +8,11 @@ import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.data.model.ShoppingCartModel
 import br.com.brunocarvalhs.domain.entities.Product
 import br.com.brunocarvalhs.domain.services.ICartLocalStorage
-import br.com.brunocarvalhs.domain.useCases.CreateShoppingCartUseCase
-import br.com.brunocarvalhs.domain.useCases.EnterShoppingCartWithTokenUseCase
-import br.com.brunocarvalhs.domain.useCases.FinalizePurchaseUseCase
-import br.com.brunocarvalhs.domain.useCases.ObserveShoppingCartUseCase
-import br.com.brunocarvalhs.domain.useCases.UpdateShoppingCartUseCase
+import br.com.brunocarvalhs.domain.usecases.cart.CreateShoppingCartUseCase
+import br.com.brunocarvalhs.domain.usecases.cart.EnterShoppingCartWithTokenUseCase
+import br.com.brunocarvalhs.domain.usecases.cart.FinalizePurchaseUseCase
+import br.com.brunocarvalhs.domain.usecases.cart.ObserveShoppingCartUseCase
+import br.com.brunocarvalhs.domain.usecases.cart.UpdateShoppingCartUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow

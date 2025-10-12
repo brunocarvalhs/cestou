@@ -1,9 +1,10 @@
-package br.com.brunocarvalhs.domain.useCases
+package br.com.brunocarvalhs.domain.usecases.cart
 
 import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
 import br.com.brunocarvalhs.domain.services.ICartLocalStorage
+import javax.inject.Inject
 
-class FinalizePurchaseUseCase(
+class FinalizePurchaseUseCase @Inject constructor(
     private val shoppingCartRepository: ShoppingCartRepository,
     private val localStorage: ICartLocalStorage
 ) {

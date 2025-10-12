@@ -3,7 +3,7 @@ package br.com.brunocarvalhs.howmuch.app.modules.shared
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.brunocarvalhs.domain.useCases.GetCartUseCase
+import br.com.brunocarvalhs.domain.usecases.cart.GetCartUseCase
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.shareText
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString

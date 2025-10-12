@@ -1,10 +1,11 @@
-package br.com.brunocarvalhs.domain.useCases
+package br.com.brunocarvalhs.domain.usecases.cart
 
 import br.com.brunocarvalhs.domain.entities.ShoppingCart
 import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
 import br.com.brunocarvalhs.domain.services.ICartLocalStorage
+import javax.inject.Inject
 
-class GetCartUseCase(
+class GetCartUseCase @Inject constructor(
     private val repository: ShoppingCartRepository,
     private val cartLocalStorage: ICartLocalStorage,
 ) {

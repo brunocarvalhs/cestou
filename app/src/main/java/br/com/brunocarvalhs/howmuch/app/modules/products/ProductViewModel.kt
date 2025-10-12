@@ -3,7 +3,7 @@ package br.com.brunocarvalhs.howmuch.app.modules.products
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.data.model.ProductModel
-import br.com.brunocarvalhs.domain.useCases.AddProductUseCase
+import br.com.brunocarvalhs.domain.usecases.product.AddProductUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -1,7 +1,8 @@
-package br.com.brunocarvalhs.domain.useCases
+package br.com.brunocarvalhs.domain.usecases
 
 import br.com.brunocarvalhs.domain.entities.ShoppingCart
 import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
+import br.com.brunocarvalhs.domain.usecases.cart.ObserveShoppingCartUseCase
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.Flow

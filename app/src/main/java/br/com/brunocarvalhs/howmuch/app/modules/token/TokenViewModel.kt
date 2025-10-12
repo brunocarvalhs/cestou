@@ -2,7 +2,7 @@ package br.com.brunocarvalhs.howmuch.app.modules.token
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.brunocarvalhs.domain.useCases.EnterShoppingCartWithTokenUseCase
+import br.com.brunocarvalhs.domain.usecases.cart.EnterShoppingCartWithTokenUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

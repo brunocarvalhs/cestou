@@ -5,8 +5,8 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.domain.entities.ShoppingCart
-import br.com.brunocarvalhs.domain.useCases.DeleteCartOfHistoryUseCase
-import br.com.brunocarvalhs.domain.useCases.GetHistoryCartUseCase
+import br.com.brunocarvalhs.domain.usecases.history.DeleteCartOfHistoryUseCase
+import br.com.brunocarvalhs.domain.usecases.history.GetHistoryCartUseCase
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.DateFormat
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.shareText
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
@@ -14,11 +14,8 @@ import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toFormatDate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject

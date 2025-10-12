@@ -1,9 +1,10 @@
-package br.com.brunocarvalhs.domain.useCases
+package br.com.brunocarvalhs.domain.usecases.cart
 
 import br.com.brunocarvalhs.domain.exceptions.ShoppingCartNotFoundException
 import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
+import javax.inject.Inject
 
-class DeleteShoppingCartUseCase(
+class DeleteShoppingCartUseCase @Inject constructor(
     private val repository: ShoppingCartRepository
 ) {
     suspend operator fun invoke(cartId: String): Result<Unit> = runCatching {
