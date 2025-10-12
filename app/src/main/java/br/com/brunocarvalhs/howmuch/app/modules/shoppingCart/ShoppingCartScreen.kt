@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import br.com.brunocarvalhs.data.model.ProductModel
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvent
@@ -52,10 +51,10 @@ import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.ZERO_INT
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.setStatusBarIconColor
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.FinalizePurchaseRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.ProductGraphRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.SharedCartBottomSheetRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.TokenBottomSheetRoute
-import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.FinalizePurchaseDialog
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.HeaderComponent
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.PriceFieldBottomSheet
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartCardsPager
@@ -71,8 +70,6 @@ fun ShoppingCartScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val uiEffect by viewModel.uiEffect.collectAsState(initial = null)
-
-    var showFinalizeDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         (context as Activity).window.setStatusBarIconColor(false)
@@ -101,9 +98,14 @@ fun ShoppingCartScreen(
         onAddToCart = { cartId ->
             navController.navigate(ProductGraphRoute(cartId))
         },
-        onCheckout = { showFinalizeDialog = true },
-        showFinalizeDialog = showFinalizeDialog,
-        setShowFinalizeDialog = { showFinalizeDialog = it }
+        onCheckout = {
+            navController.navigate(
+                route = FinalizePurchaseRoute(
+                    cartId = uiState.cartId,
+                    price = uiState.totalPrice
+                )
+            )
+        },
     )
 }
 
@@ -115,8 +117,6 @@ fun ShoppingCartContent(
     onIntent: (ShoppingCartUiIntent) -> Unit,
     onAddToCart: (String?) -> Unit = {},
     onCheckout: () -> Unit = {},
-    showFinalizeDialog: Boolean,
-    setShowFinalizeDialog: (Boolean) -> Unit,
     numberCardLoading: Int = 3
 ) {
     val listState = rememberLazyListState()
@@ -316,33 +316,6 @@ fun ShoppingCartContent(
             }
         }
     }
-
-    if (showFinalizeDialog) {
-        FinalizePurchaseDialog(
-            totalPrice = uiState.totalPrice,
-            onDismiss = {
-                setShowFinalizeDialog(false)
-                trackClick(
-                    viewId = "finalize_dialog_dismiss",
-                    viewName = "Dismiss Finalize Dialog",
-                    screenName = "ShoppingCartScreen"
-                )
-            },
-            onSubmit = { name, price ->
-                onIntent(
-                    ShoppingCartUiIntent.FinalizePurchase(
-                        market = name,
-                        totalPrice = price
-                    )
-                )
-                trackClick(
-                    viewId = "finalize_dialog_submit",
-                    viewName = "Submit Finalize Dialog",
-                    screenName = "ShoppingCartScreen"
-                )
-            }
-        )
-    }
 }
 
 private class ShoppingCartStateProvider : PreviewParameterProvider<ShoppingCartUiState> {
@@ -408,7 +381,5 @@ private fun ShoppingCartContentPreview(
         onIntent = {},
         onAddToCart = {},
         onCheckout = {},
-        showFinalizeDialog = false,
-        setShowFinalizeDialog = {}
     )
 }

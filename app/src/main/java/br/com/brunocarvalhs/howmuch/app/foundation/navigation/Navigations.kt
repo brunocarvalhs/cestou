@@ -16,3 +16,9 @@ data class SharedCartBottomSheetRoute(
     val cartId: String?,
     val token: String?,
 )
+
+@Serializable
+data class FinalizePurchaseRoute(
+    val cartId: String?,
+    val price: Long,
+)

@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components
+package br.com.brunocarvalhs.howmuch.app.modules.finalizePurchase
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -18,17 +18,41 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import br.com.brunocarvalhs.howmuch.R
+import br.com.brunocarvalhs.howmuch.app.foundation.constants.EMPTY_LONG
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.EMPTY_STRING
+import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.PriceInput
+
 
 @Composable
-fun FinalizePurchaseDialog(
-    totalPrice: Long,
+fun FinalizePurchaseScreen(
+    cartId: String?,
+    navController: NavController,
+    viewModel: FinalizePurchaseViewModel = hiltViewModel()
+) {
+    FinalizePurchaseContent(
+        onDismiss = { navController.popBackStack() },
+        onSubmit = { name, price ->
+            viewModel.onIntent(
+                intent = FinalizePurchaseUiIntent.FinalizePurchase(
+                    cartId = cartId,
+                    name = name,
+                    price = price
+                )
+            )
+        }
+    )
+}
+
+@Composable
+fun FinalizePurchaseContent(
     onDismiss: () -> Unit,
     onSubmit: (name: String, price: Long) -> Unit
 ) {
     var name by remember { mutableStateOf(EMPTY_STRING) }
-    var price by remember { mutableLongStateOf(totalPrice) }
+    var price by remember { mutableLongStateOf(EMPTY_LONG) }
     var error by remember { mutableStateOf(false) }
 
     AlertDialog(
