@@ -20,13 +20,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import br.com.brunocarvalhs.data.model.ShoppingCartModel
-import br.com.brunocarvalhs.domain.entities.ShoppingCart
 import br.com.brunocarvalhs.howmuch.R
-import br.com.brunocarvalhs.howmuch.app.foundation.extensions.shareText
+import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.SharedCartBottomSheetRoute
-import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.generateShareableCart
-import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.generateShareableToken
 
 @Composable
 fun SharedCartScreen(
@@ -34,35 +30,23 @@ fun SharedCartScreen(
     navController: NavController,
     viewModel: SharedCartViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-
     ShareCartContent(
+        cartId = arg.cartId,
         token = arg.token,
-        onShareList = { cart ->
-            context.shareText(
-                subject = context.getString(R.string.share_shopping_cart),
-                text = generateShareableCart(cart.products, cart.totalPrice)
-            )
-        },
-        onShareToken = {
-            context.shareText(
-                subject = context.getString(R.string.share_cart_token),
-                text = generateShareableToken(arg.token)
-            )
-        },
+        onIntent = viewModel::onIntent,
         onDismiss = {
             navController.popBackStack()
-        }
+        },
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ShareCartContent(
+    cartId: String?,
     token: String?,
-    onShareList: (ShoppingCart) -> Unit,
-    onShareToken: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onIntent: (SharedCartUiIntent) -> Unit = {},
 ) {
     ModalBottomSheet(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -92,7 +76,9 @@ private fun ShareCartContent(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onShareList(ShoppingCartModel()) }
+                    .clickable {
+                        onIntent(SharedCartUiIntent.SharedList(cartId.orEmpty()))
+                    }
             )
 
             ListItem(
@@ -105,9 +91,24 @@ private fun ShareCartContent(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onShareToken() },
-                supportingContent = { Text(text = stringResource(R.string.token, token.orEmpty())) }
+                    .clickable {
+                        onIntent(SharedCartUiIntent.SharedToken(cartId.orEmpty()))
+                    },
+                supportingContent = {
+                    Text(text = stringResource(R.string.token, token.orEmpty()))
+                }
             )
         }
     }
+}
+
+@Composable
+@DevicesPreview
+private fun SharedContentPreview() {
+    ShareCartContent(
+        cartId = "123",
+        token = "123",
+        onDismiss = {},
+        onIntent = {}
+    )
 }

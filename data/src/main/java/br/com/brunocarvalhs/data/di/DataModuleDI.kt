@@ -15,6 +15,7 @@ import br.com.brunocarvalhs.domain.useCases.DeleteShoppingCartUseCase
 import br.com.brunocarvalhs.domain.useCases.EditProductUseCase
 import br.com.brunocarvalhs.domain.useCases.EnterShoppingCartWithTokenUseCase
 import br.com.brunocarvalhs.domain.useCases.FinalizePurchaseUseCase
+import br.com.brunocarvalhs.domain.useCases.GetCartUseCase
 import br.com.brunocarvalhs.domain.useCases.GetHistoryCartUseCase
 import br.com.brunocarvalhs.domain.useCases.ObserveShoppingCartUseCase
 import br.com.brunocarvalhs.domain.useCases.RemoveProductFromCartUseCase
@@ -120,5 +121,10 @@ object DataModuleDI {
     @Provides
     fun provideDeleteCartOfHistoryUseCase(cartLocalStorage: ICartLocalStorage): DeleteCartOfHistoryUseCase {
         return DeleteCartOfHistoryUseCase(cartLocalStorage)
+    }
+
+    @Provides
+    fun provideGetCartUseCase(repository: ShoppingCartRepository): GetCartUseCase {
+        return GetCartUseCase(repository)
     }
 }

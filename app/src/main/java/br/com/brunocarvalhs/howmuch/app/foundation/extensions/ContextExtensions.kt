@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.app.foundation.extensions
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
@@ -24,17 +25,23 @@ fun Context.getId(): String {
 
 internal fun Context.shareText(subject: String, text: String) {
     val intent = Intent().shareText(subject = subject, text = text)
-    val chooser = Intent.createChooser(intent, null)
+    val chooser = Intent.createChooser(intent, null).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
     this.startActivity(chooser)
 }
 
 internal fun Context.openUrl(url: String) {
-    val intent = Intent().openUrl(url = url)
+    val intent = Intent().openUrl(url = url).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
     this.startActivity(intent)
 }
 
 internal fun Context.openPlayStore() {
-    val intent = Intent().openPlayStore(packageName = this.packageName)
+    val intent = Intent().openPlayStore(packageName = this.packageName).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
     this.startActivity(intent)
 }
 
