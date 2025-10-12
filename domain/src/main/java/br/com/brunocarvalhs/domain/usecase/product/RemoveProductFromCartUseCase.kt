@@ -1,15 +1,17 @@
-package br.com.brunocarvalhs.domain.useCases
+package br.com.brunocarvalhs.domain.usecase.product
 
 import br.com.brunocarvalhs.domain.entities.ShoppingCart
-import br.com.brunocarvalhs.domain.exceptions.ProductNotFoundException
+import br.com.brunocarvalhs.domain.exceptions.ShoppingCartNotFoundException
 import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
+import javax.inject.Inject
 
-class RemoveProductFromCartUseCase(
+class RemoveProductFromCartUseCase @Inject constructor(
     private val repository: ShoppingCartRepository
 ) {
     suspend operator fun invoke(cartId: String, productId: String): Result<ShoppingCart> =
         runCatching {
             repository.removeProduct(cartId, productId)
-                ?: throw ProductNotFoundException(productId)
+            repository.findById(cartId)
+                ?: throw ShoppingCartNotFoundException(cartId)
         }
 }
