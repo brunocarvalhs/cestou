@@ -30,9 +30,11 @@ class SharedCartViewModel @Inject constructor(
                 text = buildString {
                     append("Meu carrinho de compras:\n\n")
                     cart.products.forEach { product ->
-                        append("${product.name} x${product.quantity} - R$ ${product.price?.toCurrencyString()}\n")
+                        append("${product.name} x${product.quantity}")
+                        product.price?.let { append(" - R$ ${product.price?.toCurrencyString()}") }
+                        append("\n")
                     }
-                    append("\n\nTotal: R$ ${cart.totalPrice.toCurrencyString()}")
+                    append("\n\nTotal: R$ ${cart.recalculateTotal().toCurrencyString()}")
                 }
             )
         }.onFailure {
