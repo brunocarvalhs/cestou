@@ -1,10 +1,9 @@
-package br.com.brunocarvalhs.domain.usecase.cart
+package br.com.brunocarvalhs.domain.useCases
 
 import br.com.brunocarvalhs.domain.exceptions.ShoppingCartNotFoundException
 import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
-import javax.inject.Inject
 
-class ShareShoppingCartUseCase @Inject constructor(
+class ShareShoppingCartUseCase(
     private val repository: ShoppingCartRepository
 ) {
     suspend operator fun invoke(cartId: String): Result<String> = runCatching {

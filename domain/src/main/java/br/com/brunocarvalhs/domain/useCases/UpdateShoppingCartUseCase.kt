@@ -1,14 +1,14 @@
-package br.com.brunocarvalhs.domain.usecase.cart
+package br.com.brunocarvalhs.domain.useCases
 
 import br.com.brunocarvalhs.domain.entities.ShoppingCart
+import br.com.brunocarvalhs.domain.exceptions.ShoppingCartNotFoundException
 import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
-import javax.inject.Inject
 
-class CreateShoppingCartUseCase @Inject constructor(
+class UpdateShoppingCartUseCase(
     private val repository: ShoppingCartRepository
 ) {
     suspend operator fun invoke(cart: ShoppingCart): Result<ShoppingCart> = runCatching {
-        repository.create(cart)
-        repository.findById(cart.id) ?: throw Exception("Shopping cart not found")
+        repository.update(cart)
+            ?: throw ShoppingCartNotFoundException(cart.id)
     }
 }
