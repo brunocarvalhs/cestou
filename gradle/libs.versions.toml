@@ -19,6 +19,7 @@ playServicesWearable = "19.0.0"
 composeMaterial = "1.5.0"
 composeFoundation = "1.5.0"
 robolectric = "4.16"
+roomRuntime = "2.8.2"
 wearToolingPreview = "1.0.0"
 coreSplashscreen = "1.0.1"
 appcompat = "1.7.1"
@@ -43,6 +44,9 @@ accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-
 androidx-compose-material-navigation = { module = "androidx.compose.material:material-navigation", version.ref = "materialNavigation" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-database-ktx = { module = "com.google.firebase:firebase-database" }
