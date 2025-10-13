@@ -5,10 +5,7 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.domain.entities.Product
-import br.com.brunocarvalhs.domain.services.ICartLocalStorage
-import br.com.brunocarvalhs.domain.usecases.cart.EnterShoppingCartWithTokenUseCase
 import br.com.brunocarvalhs.domain.usecases.cart.ObserveShoppingCartUseCase
-import br.com.brunocarvalhs.domain.usecases.cart.UpdateShoppingCartUseCase
 import br.com.brunocarvalhs.domain.usecases.product.CheckProductUseCase
 import br.com.brunocarvalhs.domain.usecases.product.RemoveProductUseCase
 import br.com.brunocarvalhs.domain.usecases.product.UpdateProductQuantityUseCase
