@@ -54,7 +54,6 @@ fun HistoryScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        (context as Activity).window.setStatusBarIconColor(false)
         viewModel.onIntent(HistoryUiIntent.Retry)
     }
 

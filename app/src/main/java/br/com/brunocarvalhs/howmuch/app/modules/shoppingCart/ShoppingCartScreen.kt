@@ -70,11 +70,9 @@ fun ShoppingCartScreen(
     navController: NavController,
     viewModel: ShoppingCartViewModel = hiltViewModel(),
 ) {
-    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        (context as Activity).window.setStatusBarIconColor(false)
         trackEvent(
             event = AnalyticsEvent.SCREEN_VIEW,
             params = mapOf(

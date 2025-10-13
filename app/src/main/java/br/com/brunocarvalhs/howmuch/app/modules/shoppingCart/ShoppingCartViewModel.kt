@@ -52,7 +52,6 @@ class ShoppingCartViewModel @Inject constructor(
     private fun initializeCart() = viewModelScope.launch {
         _uiState.value = ShoppingCartUiState(isLoading = true)
         observeCart()
-        _uiState.value = _uiState.value.copy(isLoading = false)
     }
 
     private fun observeCart() = viewModelScope.launch {
@@ -63,6 +62,8 @@ class ShoppingCartViewModel @Inject constructor(
                 totalPrice = cart.recalculateTotal(),
                 token = cart.token,
             )
+        }.run {
+            _uiState.value = _uiState.value.copy(isLoading = false)
         }
     }
 
