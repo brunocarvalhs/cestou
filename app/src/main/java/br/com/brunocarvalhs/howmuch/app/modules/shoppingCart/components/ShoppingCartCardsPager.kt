@@ -38,7 +38,8 @@ fun ShoppingCartCardsPager(
     enabledCheckout: Boolean = true,
     enabledShared: Boolean = true,
     onCheckout: () -> Unit = {},
-    onShared: (() -> Unit)? = null
+    onShared: (() -> Unit)? = null,
+    onLimit: (Long) -> Unit = {}
 ) {
     BoxWithConstraints(
         modifier = Modifier
@@ -65,6 +66,8 @@ fun ShoppingCartCardsPager(
                 )
                 ShoppingCartLimitCard(
                     totalSpent = uiState.totalPrice,
+                    limit = uiState.limitPrice,
+                    onLimit = onLimit,
                     modifier = Modifier.weight(1f).fillMaxHeight()
                 )
             }
@@ -97,6 +100,8 @@ fun ShoppingCartCardsPager(
 
                         ONE_INT -> ShoppingCartLimitCard(
                             totalSpent = uiState.totalPrice,
+                            limit = uiState.limitPrice,
+                            onLimit = onLimit,
                             modifier = Modifier.fillMaxSize()
                         )
                     }

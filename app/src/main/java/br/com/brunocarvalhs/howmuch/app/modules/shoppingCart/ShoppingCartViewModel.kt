@@ -5,7 +5,9 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.domain.entities.Product
+import br.com.brunocarvalhs.domain.usecases.cart.GetLimitCardUseCase
 import br.com.brunocarvalhs.domain.usecases.cart.ObserveShoppingCartUseCase
+import br.com.brunocarvalhs.domain.usecases.cart.SetLimitCardUseCase
 import br.com.brunocarvalhs.domain.usecases.product.CheckProductUseCase
 import br.com.brunocarvalhs.domain.usecases.product.RemoveProductUseCase
 import br.com.brunocarvalhs.domain.usecases.product.UpdateProductQuantityUseCase
@@ -23,6 +25,8 @@ class ShoppingCartViewModel @Inject constructor(
     private val observeShoppingCartUseCase: ObserveShoppingCartUseCase,
     private val updateProductQuantityUseCase: UpdateProductQuantityUseCase,
     private val removeProductUseCase: RemoveProductUseCase,
+    private val getLimitCardUseCase: GetLimitCardUseCase,
+    private val setLimitCardUseCase: SetLimitCardUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ShoppingCartUiState())
@@ -30,6 +34,7 @@ class ShoppingCartViewModel @Inject constructor(
 
     init {
         initializeCart()
+        getLimitCard()
     }
 
     fun onIntent(intent: ShoppingCartUiIntent) {
@@ -40,6 +45,7 @@ class ShoppingCartViewModel @Inject constructor(
                 productId = intent.productId,
                 newQuantity = intent.quantity
             )
+            is ShoppingCartUiIntent.SetLimitCard -> setLimitCard(intent.limit)
         }
     }
 
@@ -103,5 +109,21 @@ class ShoppingCartViewModel @Inject constructor(
             totalPrice = updatedTotalPrice,
             token = token ?: _uiState.value.token,
         )
+    }
+
+    private fun getLimitCard() = viewModelScope.launch {
+        getLimitCardUseCase
+            .invoke()
+            .onSuccess { limit ->
+                _uiState.value = _uiState.value.copy(limitPrice = limit)
+            }
+    }
+
+    private fun setLimitCard(limit: Long) = viewModelScope.launch {
+        setLimitCardUseCase
+            .invoke(limit)
+            .onSuccess {
+                _uiState.value = _uiState.value.copy(limitPrice = limit)
+            }
     }
 }

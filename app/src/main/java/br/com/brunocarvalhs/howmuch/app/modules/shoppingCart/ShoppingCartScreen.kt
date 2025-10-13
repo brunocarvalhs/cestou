@@ -218,6 +218,9 @@ fun ShoppingCartContent(
                                     screenName = "ShoppingCartScreen"
                                 )
                             }
+                        },
+                        onLimit = { limit ->
+                            onIntent(ShoppingCartUiIntent.SetLimitCard(limit))
                         }
                     )
                 }
