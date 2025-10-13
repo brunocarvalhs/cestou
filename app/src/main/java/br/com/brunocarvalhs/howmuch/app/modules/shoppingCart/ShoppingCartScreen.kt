@@ -11,15 +11,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,6 +36,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -55,7 +60,6 @@ import br.com.brunocarvalhs.howmuch.app.foundation.navigation.FinalizePurchaseRo
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.ProductGraphRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.SharedCartBottomSheetRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.TokenBottomSheetRoute
-import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.HeaderComponent
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartCardsPager
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartItem
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.TypeShopping
@@ -95,9 +99,6 @@ fun ShoppingCartContent(
     numberCardLoading: Int = 3
 ) {
     val listState = rememberLazyListState()
-
-    var showPriceBottomSheet by remember { mutableStateOf(false) }
-
     var selectedDestination by rememberSaveable { mutableIntStateOf(uiState.type.ordinal) }
 
     val showTitle by remember {
@@ -110,24 +111,57 @@ fun ShoppingCartContent(
 
     Scaffold(
         topBar = {
-            HeaderComponent(
-                title = if (showTitle) {
-                    stringResource(
-                        R.string.currency,
-                        uiState.totalPrice.toCurrencyString()
-                    )
-                } else {
-                    null
+            CenterAlignedTopAppBar(
+                title = {
+                    if (showTitle) {
+                        Text(
+                            text = stringResource(
+                                R.string.currency,
+                                uiState.totalPrice.toCurrencyString()
+                            ),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
                 },
-                enabledShared = uiState.token != null,
-                onShared = {
-                    navController.navigate(TokenBottomSheetRoute(uiState.token.orEmpty()))
-                    trackClick(
-                        viewId = "header_share_cart",
-                        viewName = "Header Share Cart",
-                        screenName = "ShoppingCartScreen"
-                    )
-                }
+                actions = {
+                    IconButton(
+                        enabled = uiState.token != null,
+                        onClick = {
+                            navController.navigate(TokenBottomSheetRoute(uiState.token.orEmpty()))
+                            trackClick(
+                                viewId = "header_share_cart",
+                                viewName = "Header Share Cart",
+                                screenName = "ShoppingCartScreen"
+                            )
+                        },
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.ic_add_shopping_cart),
+                            contentDescription = "Share"
+                        )
+                    }
+                    IconButton(
+                        enabled = uiState.cartId != null,
+                        onClick = {
+                            navController.navigate(SharedCartBottomSheetRoute(uiState.cartId.orEmpty()))
+                            trackClick(
+                                viewId = "header_share_cart",
+                                viewName = "Header Share Cart",
+                                screenName = "ShoppingCartScreen"
+                            )
+                        },
+                    ) {
+                        Icon(
+                            Icons.Default.Share,
+                            contentDescription = "Share"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
             )
         },
         floatingActionButton = {
