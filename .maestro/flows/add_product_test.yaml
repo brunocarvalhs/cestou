@@ -1,0 +1,16 @@
+appId: br.com.brunocarvalhs.howmuch
+---
+- launchApp
+- tapOn: "Add product"
+- tapOn: "Product name"
+- inputText: "Maestro Test Product"
+- tapOn: "Price"
+- inputText: "1234"
+- tapOn:
+    id: "increase_quantity"
+    repeat: 4
+- tapOn:
+    id: "decrease_quantity"
+    repeat: 2
+- tapOn: "Add product"
+- assertVisible: "Maestro Test Product"

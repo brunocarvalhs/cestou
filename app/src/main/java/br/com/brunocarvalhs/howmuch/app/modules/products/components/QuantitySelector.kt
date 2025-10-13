@@ -13,8 +13,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -54,6 +57,7 @@ fun QuantitySelector(
         ),
         prefix = {
             IconButton(
+                modifier = Modifier.semantics { testTagsAsResourceId = true }.testTag("decrease_quantity"),
                 onClick = {
                     if (quantity > ONE_INT) {
                         onQuantityChange(quantity - ONE_INT)
@@ -70,6 +74,7 @@ fun QuantitySelector(
         },
         suffix = {
             IconButton(
+                modifier = Modifier.semantics { testTagsAsResourceId = true }.testTag("increase_quantity"),
                 enabled = enabled,
                 onClick = {
                     onQuantityChange(quantity + ONE_INT)

@@ -11,8 +11,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.wear.compose.material3.Icon
 import br.com.brunocarvalhs.howmuch.R
@@ -47,14 +51,19 @@ fun HistoryTopBar(
         },
         navigationIcon = {
             if (selectionMode) {
-                IconButton(onClick = {
-                    onCancelSelection()
-                    trackClick(
-                        viewId = "btn_cancel_selection",
-                        viewName = "Cancel Selection",
-                        screenName = "HistoryScreen"
-                    )
-                }) {
+                IconButton(
+                    modifier = Modifier
+                        .semantics { testTagsAsResourceId = true }
+                        .testTag("cancel_selection"),
+                    onClick = {
+                        onCancelSelection()
+                        trackClick(
+                            viewId = "btn_cancel_selection",
+                            viewName = "Cancel Selection",
+                            screenName = "HistoryScreen"
+                        )
+                    }
+                ) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = stringResource(R.string.cancel_select_it),
@@ -65,23 +74,25 @@ fun HistoryTopBar(
         },
         actions = {
             if (selectionMode) {
-                IconButton(onClick = {
-                    if (selectedCount == totalItems) {
-                        onNotSelectAll()
-                        trackClick(
-                            viewId = "btn_deselect_all",
-                            viewName = "Deselect All",
-                            screenName = "HistoryScreen"
-                        )
-                    } else {
-                        onSelectAll()
-                        trackClick(
-                            viewId = "btn_select_all",
-                            viewName = "Select All",
-                            screenName = "HistoryScreen"
-                        )
-                    }
-                }) {
+                IconButton(
+                    modifier = Modifier.semantics { testTagsAsResourceId = true }.testTag("select_all"),
+                    onClick = {
+                        if (selectedCount == totalItems) {
+                            onNotSelectAll()
+                            trackClick(
+                                viewId = "btn_deselect_all",
+                                viewName = "Deselect All",
+                                screenName = "HistoryScreen"
+                            )
+                        } else {
+                            onSelectAll()
+                            trackClick(
+                                viewId = "btn_select_all",
+                                viewName = "Select All",
+                                screenName = "HistoryScreen"
+                            )
+                        }
+                    }) {
                     Icon(
                         painter = painterResource(R.drawable.ic_select_all),
                         contentDescription = stringResource(R.string.select_all),
@@ -89,14 +100,19 @@ fun HistoryTopBar(
                 }
 
                 // Delete Selected
-                IconButton(onClick = {
-                    onDeleteSelected()
-                    trackClick(
-                        viewId = "btn_delete_selected",
-                        viewName = "Delete Selected",
-                        screenName = "HistoryScreen"
-                    )
-                }, enabled = selectedCount > 0) {
+                IconButton(
+                    modifier = Modifier
+                        .semantics { testTagsAsResourceId = true }
+                        .testTag("delete_selected"),
+                    onClick = {
+                        onDeleteSelected()
+                        trackClick(
+                            viewId = "btn_delete_selected",
+                            viewName = "Delete Selected",
+                            screenName = "HistoryScreen"
+                        )
+                    }, enabled = selectedCount > 0
+                ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = stringResource(R.string.delete_selected),
@@ -104,14 +120,18 @@ fun HistoryTopBar(
                 }
             } else {
                 // Enter Selection Mode
-                IconButton(onClick = {
-                    onEnterSelectionMode()
-                    trackClick(
-                        viewId = "btn_enter_selection_mode",
-                        viewName = "Enter Selection Mode",
-                        screenName = "HistoryScreen"
-                    )()
-                }) {
+                IconButton(
+                    modifier = Modifier
+                        .semantics { testTagsAsResourceId = true }
+                        .testTag("select_history"),
+                    onClick = {
+                        onEnterSelectionMode()
+                        trackClick(
+                            viewId = "btn_enter_selection_mode",
+                            viewName = "Enter Selection Mode",
+                            screenName = "HistoryScreen"
+                        )()
+                    }) {
                     Icon(
                         painter = painterResource(R.drawable.ic_check_box),
                         contentDescription = stringResource(R.string.select_items),

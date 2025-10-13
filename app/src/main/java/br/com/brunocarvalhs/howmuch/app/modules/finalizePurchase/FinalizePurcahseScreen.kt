@@ -50,7 +50,9 @@ fun FinalizePurchaseScreen(
                         name = name,
                         price = price
                     )
-                )
+                ).run {
+                    navController.popBackStack()
+                }
             }
         )
     }

@@ -1,0 +1,16 @@
+appId: br.com.brunocarvalhs.howmuch
+---
+- launchApp
+- tapOn: "History"
+- tapOn:
+    text: "All"
+    delay: 500
+- tapOn:
+    text: "Today"
+    delay: 500
+- tapOn:
+    text: "Last 7 days"
+    delay: 500
+- tapOn:
+    text: "Last 30 days"
+    delay: 500

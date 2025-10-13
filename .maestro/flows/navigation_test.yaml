@@ -1,0 +1,10 @@
+appId: br.com.brunocarvalhs.howmuch
+---
+- launchApp
+- assertVisible: "Cart summary"
+- tapOn: "History"
+- assertVisible: "History"
+- tapOn: "Menu"
+- assertVisible: "Menu"
+- tapOn: "Home"
+- assertVisible: "Cart summary"
