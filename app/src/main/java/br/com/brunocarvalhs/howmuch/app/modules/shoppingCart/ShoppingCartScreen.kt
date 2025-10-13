@@ -204,7 +204,6 @@ fun ShoppingCartContent(
                     ShoppingCartCardsPager(
                         uiState = uiState,
                         enabledCheckout = uiState.cartId != null,
-                        enabledShared = uiState.token != null,
                         onCheckout = {
                             uiState.cartId?.let {
                                 navController.navigate(
@@ -216,20 +215,6 @@ fun ShoppingCartContent(
                                 trackClick(
                                     viewId = "pager_checkout",
                                     viewName = "Checkout Pager",
-                                    screenName = "ShoppingCartScreen"
-                                )
-                            }
-                        },
-                        onShared = {
-                            uiState.cartId?.let {
-                                navController.navigate(
-                                    SharedCartBottomSheetRoute(
-                                        cartId = uiState.cartId,
-                                    )
-                                )
-                                trackClick(
-                                    viewId = "pager_share",
-                                    viewName = "Share Pager",
                                     screenName = "ShoppingCartScreen"
                                 )
                             }
