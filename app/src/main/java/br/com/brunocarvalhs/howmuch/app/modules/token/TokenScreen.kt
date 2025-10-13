@@ -50,7 +50,6 @@ import br.com.brunocarvalhs.howmuch.app.modules.token.components.InputCode
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TokenScreen(
-    token: String? = null,
     navController: NavController,
     viewModel: TokenViewModel = hiltViewModel()
 ) {
@@ -72,7 +71,7 @@ fun TokenScreen(
                 )
             },
             onSubmit = { code ->
-                viewModel.onIntent(TokenUiIntent.SearchByToken(token = code))
+                viewModel.onIntent(TokenUiIntent.SearchByToken)
                 trackClick(
                     viewId = "token_sheet_submit",
                     viewName = "Submit Token",

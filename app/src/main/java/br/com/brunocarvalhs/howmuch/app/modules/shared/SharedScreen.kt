@@ -26,12 +26,10 @@ import br.com.brunocarvalhs.howmuch.app.foundation.navigation.SharedCartBottomSh
 
 @Composable
 fun SharedCartScreen(
-    arg: SharedCartBottomSheetRoute,
     navController: NavController,
     viewModel: SharedCartViewModel = hiltViewModel()
 ) {
     ShareCartContent(
-        cartId = arg.cartId,
         onIntent = viewModel::onIntent,
         onDismiss = {
             navController.popBackStack()
@@ -42,7 +40,6 @@ fun SharedCartScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ShareCartContent(
-    cartId: String,
     onDismiss: () -> Unit,
     onIntent: (SharedCartUiIntent) -> Unit = {},
 ) {
@@ -75,7 +72,7 @@ private fun ShareCartContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        onIntent(SharedCartUiIntent.SharedList(cartId.orEmpty()))
+                        onIntent(SharedCartUiIntent.SharedList)
                     }
             )
 
@@ -90,7 +87,7 @@ private fun ShareCartContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        onIntent(SharedCartUiIntent.SharedToken(cartId))
+                        onIntent(SharedCartUiIntent.SharedToken)
                     },
                 supportingContent = {
                     Text(text = stringResource(R.string.token, ""))
@@ -104,7 +101,6 @@ private fun ShareCartContent(
 @DevicesPreview
 private fun SharedContentPreview() {
     ShareCartContent(
-        cartId = "123",
         onDismiss = {},
         onIntent = {}
     )

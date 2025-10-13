@@ -9,7 +9,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.dialog
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.FinalizePurchaseRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.NavBarItem
@@ -19,6 +18,7 @@ import br.com.brunocarvalhs.howmuch.app.foundation.navigation.ShoppingCartGraphR
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.TokenBottomSheetRoute
 import br.com.brunocarvalhs.howmuch.app.modules.base.BaseScreen
 import br.com.brunocarvalhs.howmuch.app.modules.finalizePurchase.FinalizePurchaseScreen
+import br.com.brunocarvalhs.howmuch.app.modules.finalizePurchase.FinalizePurchaseViewModel
 import br.com.brunocarvalhs.howmuch.app.modules.history.HistoryScreen
 import br.com.brunocarvalhs.howmuch.app.modules.menu.MenuScreen
 import br.com.brunocarvalhs.howmuch.app.modules.products.ProductFormScreen
@@ -66,27 +66,21 @@ fun MainApp(
                 )
             }
             bottomSheet<TokenBottomSheetRoute> {
-                val route: TokenBottomSheetRoute = it.toRoute()
                 TokenScreen(
-                    token = route.token,
                     navController = navController,
                     viewModel = hiltViewModel()
                 )
             }
             bottomSheet<SharedCartBottomSheetRoute> {
-                val route: SharedCartBottomSheetRoute = it.toRoute()
                 SharedCartScreen(
-                    arg = route,
                     navController = navController,
                     viewModel = hiltViewModel()
                 )
             }
             bottomSheet<FinalizePurchaseRoute> {
-                val route: FinalizePurchaseRoute = it.toRoute()
                 FinalizePurchaseScreen(
-                    cartId = route.cartId,
                     navController = navController,
-                    viewModel = hiltViewModel()
+                    viewModel = hiltViewModel<FinalizePurchaseViewModel>()
                 )
             }
         }

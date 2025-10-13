@@ -1,12 +1,15 @@
 package br.com.brunocarvalhs.howmuch.app.modules.shared
 
 import android.content.Context
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import br.com.brunocarvalhs.domain.usecases.cart.GetCartUseCase
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.shareText
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.SharedCartBottomSheetRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
@@ -15,12 +18,15 @@ import javax.inject.Inject
 @HiltViewModel
 class SharedCartViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
+    savedStateHandle: SavedStateHandle,
     private val getCartUseCase: GetCartUseCase,
 ) : ViewModel() {
 
+    private val args = savedStateHandle.toRoute<SharedCartBottomSheetRoute>()
+
     fun onIntent(intent: SharedCartUiIntent) = when (intent) {
-        is SharedCartUiIntent.SharedList -> sharedList(intent.id)
-        is SharedCartUiIntent.SharedToken -> sharedToken(intent.id)
+        is SharedCartUiIntent.SharedList -> sharedList(args.cartId)
+        is SharedCartUiIntent.SharedToken -> sharedToken(args.cartId)
     }
 
     private fun sharedList(id: String) = viewModelScope.launch {

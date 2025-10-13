@@ -29,14 +29,11 @@ import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.EMPTY_LONG
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.EMPTY_STRING
-import br.com.brunocarvalhs.howmuch.app.foundation.constants.SIX_INT
-import br.com.brunocarvalhs.howmuch.app.foundation.constants.ZERO_INT
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.PriceInput
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FinalizePurchaseScreen(
-    cartId: String?,
     navController: NavController,
     viewModel: FinalizePurchaseViewModel = hiltViewModel()
 ) {
@@ -50,7 +47,6 @@ fun FinalizePurchaseScreen(
             onSubmit = { name, price ->
                 viewModel.onIntent(
                     intent = FinalizePurchaseUiIntent.FinalizePurchase(
-                        cartId = cartId,
                         name = name,
                         price = price
                     )

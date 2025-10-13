@@ -60,15 +60,10 @@ fun ProductFormScreen(
     val context = LocalContext.current
     val uiEffect by viewModel.uiEffect.collectAsState(initial = null)
 
-    LaunchedEffect(shoppingCartId) {
-        viewModel.onIntent(ProductUiIntent.LoadShoppingCart(shoppingCartId))
-    }
-
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    LaunchedEffect(shoppingCartId) {
-        viewModel.onIntent(ProductUiIntent.LoadShoppingCart(shoppingCartId))
+    LaunchedEffect(Unit) {
         trackEvent(
             AnalyticsEvent.SCREEN_VIEW,
             mapOf(

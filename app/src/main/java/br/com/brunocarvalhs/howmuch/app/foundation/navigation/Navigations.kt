@@ -8,7 +8,8 @@ data object ShoppingCartGraphRoute
 @Serializable
 data class ProductGraphRoute(
     val cartId: String,
-    val isProductListed: Boolean = false
+    val isProductListed: Boolean = false,
+    val productId: String? = null
 )
 
 @Serializable

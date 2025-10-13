@@ -1,8 +1,12 @@
 package br.com.brunocarvalhs.howmuch.app.modules.token
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import br.com.brunocarvalhs.domain.usecases.cart.EnterShoppingCartWithTokenUseCase
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.SharedCartBottomSheetRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.TokenBottomSheetRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,15 +16,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TokenViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val enterTokenWithTokenUseCase: EnterShoppingCartWithTokenUseCase
 ): ViewModel() {
+
+    private val args = savedStateHandle.toRoute<TokenBottomSheetRoute>()
 
     private val _uiState = MutableStateFlow<TokenUiState>(TokenUiState.Idle)
     val uiState: StateFlow<TokenUiState> = _uiState.asStateFlow()
 
     fun onIntent(intent: TokenUiIntent) {
         when (intent) {
-            is TokenUiIntent.SearchByToken -> searchByToken(token = intent.token)
+            is TokenUiIntent.SearchByToken -> searchByToken(token = args.token)
         }
     }
 
