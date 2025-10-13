@@ -26,7 +26,6 @@ class ShoppingCartViewModel @Inject constructor(
     private val removeProductUseCase: RemoveProductUseCase,
 ) : ViewModel() {
 
-    private var cartId: String? = null
     private val _uiState = MutableStateFlow(ShoppingCartUiState())
     val uiState: StateFlow<ShoppingCartUiState> = _uiState.asStateFlow()
 
@@ -60,6 +59,7 @@ class ShoppingCartViewModel @Inject constructor(
     private fun observeCart() = viewModelScope.launch {
         observeShoppingCartUseCase.invoke().getOrNull()?.collect { cart ->
             updateUiState(
+                cartId = cart.id,
                 products = cart.products,
                 totalPrice = cart.recalculateTotal(),
                 token = cart.token,
@@ -92,6 +92,7 @@ class ShoppingCartViewModel @Inject constructor(
     }
 
     private fun updateUiState(
+        cartId: String,
         products: List<Product>? = null,
         totalPrice: Long? = null,
         token: String? = null,

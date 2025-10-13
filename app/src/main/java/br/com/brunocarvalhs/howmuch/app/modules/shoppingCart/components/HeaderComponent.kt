@@ -16,6 +16,7 @@ import br.com.brunocarvalhs.howmuch.R
 @Composable
 fun HeaderComponent(
     title: String? = null,
+    enabledShared: Boolean = false,
     onShared: (() -> Unit)? = null,
 ) {
     CenterAlignedTopAppBar(
@@ -29,7 +30,7 @@ fun HeaderComponent(
         },
         actions = {
             onShared?.let {
-                IconButton(onClick = it) {
+                IconButton(onClick = it, enabled = enabledShared) {
                     Icon(
                         painterResource(R.drawable.ic_add_shopping_cart),
                         contentDescription = "Share"

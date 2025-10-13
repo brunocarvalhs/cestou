@@ -64,20 +64,6 @@ fun ProductFormScreen(
         viewModel.onIntent(ProductUiIntent.LoadShoppingCart(shoppingCartId))
     }
 
-    LaunchedEffect(uiEffect) {
-        uiEffect?.let { effect ->
-            when (effect) {
-                is ProductUiEffect.ShowError -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                }
-
-                is ProductUiEffect.ProductAdded -> {
-                    navController.popBackStack()
-                }
-            }
-        }
-    }
-
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 

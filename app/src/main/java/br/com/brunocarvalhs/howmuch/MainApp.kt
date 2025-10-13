@@ -81,7 +81,7 @@ fun MainApp(
                     viewModel = hiltViewModel()
                 )
             }
-            dialog<FinalizePurchaseRoute> {
+            bottomSheet<FinalizePurchaseRoute> {
                 val route: FinalizePurchaseRoute = it.toRoute()
                 FinalizePurchaseScreen(
                     cartId = route.cartId,

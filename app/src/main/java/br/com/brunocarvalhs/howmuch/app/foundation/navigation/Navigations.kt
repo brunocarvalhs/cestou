@@ -7,21 +7,20 @@ data object ShoppingCartGraphRoute
 
 @Serializable
 data class ProductGraphRoute(
-    val cartId: String?,
+    val cartId: String,
     val isProductListed: Boolean = false
 )
 
 @Serializable
-data class TokenBottomSheetRoute(val token: String?)
+data class TokenBottomSheetRoute(val token: String)
 
 @Serializable
 data class SharedCartBottomSheetRoute(
-    val cartId: String?,
-    val token: String?
+    val cartId: String,
 )
 
 @Serializable
 data class FinalizePurchaseRoute(
-    val cartId: String?,
+    val cartId: String,
     val price: Long,
 )

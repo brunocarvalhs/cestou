@@ -28,6 +28,8 @@ import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.ShoppingCartUiState
 @Composable
 fun ShoppingCartCardsPager(
     uiState: ShoppingCartUiState,
+    enabledCheckout: Boolean = true,
+    enabledShared: Boolean = true,
     onCheckout: () -> Unit = {},
     onShared: () -> Unit = {}
 ) {
@@ -53,6 +55,8 @@ fun ShoppingCartCardsPager(
                     totalPrice = uiState.totalPrice,
                     productsCount = uiState.products.size,
                     isLoading = uiState.isLoading,
+                    enabledCheckout = enabledCheckout,
+                    enabledShared = enabledShared,
                     onCheckout = onCheckout,
                     onShared = onShared,
                     modifier = Modifier.fillMaxWidth()

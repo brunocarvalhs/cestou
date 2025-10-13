@@ -20,6 +20,7 @@ import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -82,22 +83,6 @@ fun ShoppingCartScreen(
         navController = navController,
         uiState = uiState,
         onIntent = viewModel::onIntent,
-        onAddToCart = { cartId, isProductListed ->
-            navController.navigate(
-                route = ProductGraphRoute(
-                    cartId = cartId,
-                    isProductListed = isProductListed
-                )
-            )
-        },
-        onCheckout = {
-            navController.navigate(
-                route = FinalizePurchaseRoute(
-                    cartId = uiState.cartId,
-                    price = uiState.totalPrice
-                )
-            )
-        },
     )
 }
 
@@ -107,8 +92,6 @@ fun ShoppingCartContent(
     navController: NavController,
     uiState: ShoppingCartUiState,
     onIntent: (ShoppingCartUiIntent) -> Unit,
-    onAddToCart: (String?, Boolean) -> Unit = { _, _ -> },
-    onCheckout: () -> Unit = {},
     numberCardLoading: Int = 3
 ) {
     val listState = rememberLazyListState()
@@ -136,8 +119,9 @@ fun ShoppingCartContent(
                 } else {
                     null
                 },
+                enabledShared = uiState.token != null,
                 onShared = {
-                    navController.navigate(TokenBottomSheetRoute(uiState.token))
+                    navController.navigate(TokenBottomSheetRoute(uiState.token.orEmpty()))
                     trackClick(
                         viewId = "header_share_cart",
                         viewName = "Header Share Cart",
@@ -147,164 +131,191 @@ fun ShoppingCartContent(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                elevation = FloatingActionButtonDefaults.elevation(0.dp),
-                onClick = {
-                    onAddToCart(uiState.cartId, selectedDestination == TypeShopping.LIST.ordinal)
-                    trackClick(
-                        viewId = "btn_add_product",
-                        viewName = "Add Product FAB",
-                        screenName = "ShoppingCartScreen"
+            uiState.cartId?.let {
+                FloatingActionButton(
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                    onClick = {
+                        navController.navigate(
+                            route = ProductGraphRoute(
+                                cartId = uiState.cartId,
+                                isProductListed = selectedDestination == TypeShopping.LIST.ordinal
+                            )
+                        )
+                        trackClick(
+                            viewId = "btn_add_product",
+                            viewName = "Add Product FAB",
+                            screenName = "ShoppingCartScreen"
+                        )
+                    }
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = stringResource(R.string.add_product),
+                        tint = MaterialTheme.colorScheme.onSecondary
                     )
                 }
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = stringResource(R.string.add_product),
-                    tint = MaterialTheme.colorScheme.onSecondary
-                )
             }
         }
     ) { paddingValues ->
-        LazyColumn(
-            state = listState,
-            contentPadding = paddingValues,
-            modifier = Modifier.fillMaxSize()
+        PullToRefreshBox(
+            isRefreshing = uiState.isLoading,
+            onRefresh = { onIntent(ShoppingCartUiIntent.Retry) },
         ) {
-            item {
-                ShoppingCartCardsPager(
-                    uiState = uiState,
-                    onCheckout = {
-                        onCheckout()
-                        trackClick(
-                            viewId = "pager_checkout",
-                            viewName = "Checkout Pager",
-                            screenName = "ShoppingCartScreen"
-                        )
-                    },
-                    onShared = {
-                        navController.navigate(
-                            SharedCartBottomSheetRoute(
-                                cartId = uiState.cartId,
-                                token = uiState.token,
-                            )
-                        )
-                        trackClick(
-                            viewId = "pager_share",
-                            viewName = "Share Pager",
-                            screenName = "ShoppingCartScreen"
-                        )
-                    }
-                )
-            }
-            item {
-                PrimaryTabRow(selectedTabIndex = selectedDestination) {
-                    TypeShopping.entries.forEachIndexed { index, destination ->
-                        Tab(
-                            selected = selectedDestination == index,
-                            onClick = {
-                                selectedDestination = index
-                            },
-                            text = {
-                                Row(
-                                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = destination.icon,
-                                        contentDescription = stringResource(destination.label)
+            LazyColumn(
+                state = listState,
+                contentPadding = paddingValues,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                item {
+                    ShoppingCartCardsPager(
+                        uiState = uiState,
+                        enabledCheckout = uiState.cartId != null,
+                        enabledShared = uiState.token != null,
+                        onCheckout = {
+                            uiState.cartId?.let {
+                                navController.navigate(
+                                    route = FinalizePurchaseRoute(
+                                        cartId = uiState.cartId,
+                                        price = uiState.totalPrice
                                     )
-                                    Text(
-                                        text = stringResource(destination.label),
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis
+                                )
+                                trackClick(
+                                    viewId = "pager_checkout",
+                                    viewName = "Checkout Pager",
+                                    screenName = "ShoppingCartScreen"
+                                )
+                            }
+                        },
+                        onShared = {
+                            uiState.cartId?.let {
+                                navController.navigate(
+                                    SharedCartBottomSheetRoute(
+                                        cartId = uiState.cartId,
+                                    )
+                                )
+                                trackClick(
+                                    viewId = "pager_share",
+                                    viewName = "Share Pager",
+                                    screenName = "ShoppingCartScreen"
+                                )
+                            }
+                        }
+                    )
+                }
+                item {
+                    PrimaryTabRow(selectedTabIndex = selectedDestination) {
+                        TypeShopping.entries.forEachIndexed { index, destination ->
+                            Tab(
+                                selected = selectedDestination == index,
+                                onClick = {
+                                    selectedDestination = index
+                                },
+                                text = {
+                                    Row(
+                                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = destination.icon,
+                                            contentDescription = stringResource(destination.label)
+                                        )
+                                        Text(
+                                            text = stringResource(destination.label),
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+                if (uiState.isLoading) {
+                    items(count = numberCardLoading) {
+                        ShoppingCartItem(isLoading = true)
+                    }
+                } else {
+                    when (selectedDestination) {
+                        TypeShopping.LIST.ordinal -> {
+                            items(uiState.products.filter { !it.isChecked }) { item ->
+                                ShoppingCartItem(
+                                    product = item,
+                                    onRemove = {
+                                        onIntent(ShoppingCartUiIntent.RemoveItem(item.id))
+                                        trackClick(
+                                            viewId = "product_remove_${item.id}",
+                                            viewName = "Remove Product",
+                                            screenName = "ShoppingCartScreen"
+                                        )
+                                    },
+                                    onQuantityChange = {
+                                        onIntent(ShoppingCartUiIntent.UpdateQuantity(item.id, it))
+                                        trackClick(
+                                            viewId = "product_quantity_${item.id}",
+                                            viewName = "Change Quantity",
+                                            screenName = "ShoppingCartScreen"
+                                        )
+                                    },
+                                    onCheckedChange = {
+                                        showPriceBottomSheet = it
+                                        trackClick(
+                                            viewId = "product_checked_${item.id}",
+                                            viewName = "Change Checked",
+                                            screenName = "ShoppingCartScreen"
+                                        )
+                                    }
+                                )
+                                if (showPriceBottomSheet) {
+                                    PriceFieldBottomSheet(
+                                        onDismissRequest = { showPriceBottomSheet = false },
+                                        onConfirmation = { price ->
+                                            showPriceBottomSheet = false
+                                            onIntent(
+                                                ShoppingCartUiIntent.UpdateChecked(
+                                                    product = item,
+                                                    price = price,
+                                                    isChecked = !showPriceBottomSheet
+                                                )
+                                            )
+                                        }
                                     )
                                 }
                             }
-                        )
-                    }
-                }
-            }
-            if (uiState.isLoading) {
-                items(count = numberCardLoading) {
-                    ShoppingCartItem(isLoading = true)
-                }
-            } else {
-                when (selectedDestination) {
-                    TypeShopping.LIST.ordinal -> {
-                        items(uiState.products.filter { !it.isChecked }) { item ->
-                            ShoppingCartItem(
-                                product = item,
-                                onRemove = {
-                                    onIntent(ShoppingCartUiIntent.RemoveItem(item.id))
-                                    trackClick(
-                                        viewId = "product_remove_${item.id}",
-                                        viewName = "Remove Product",
-                                        screenName = "ShoppingCartScreen"
-                                    )
-                                },
-                                onQuantityChange = {
-                                    onIntent(ShoppingCartUiIntent.UpdateQuantity(item.id, it))
-                                    trackClick(
-                                        viewId = "product_quantity_${item.id}",
-                                        viewName = "Change Quantity",
-                                        screenName = "ShoppingCartScreen"
-                                    )
-                                },
-                                onCheckedChange = {
-                                    showPriceBottomSheet = it
-                                    trackClick(
-                                        viewId = "product_checked_${item.id}",
-                                        viewName = "Change Checked",
-                                        screenName = "ShoppingCartScreen"
-                                    )
-                                }
-                            )
-                            if (showPriceBottomSheet) {
-                                PriceFieldBottomSheet(
-                                    onDismissRequest = { showPriceBottomSheet = false },
-                                    onConfirmation = { price ->
-                                        showPriceBottomSheet = false
+                        }
+
+                        else -> {
+                            items(uiState.products.filter { it.isChecked }) { product ->
+                                ShoppingCartItem(
+                                    product = product,
+                                    onRemove = {
+                                        onIntent(ShoppingCartUiIntent.RemoveItem(product.id))
+                                        trackClick(
+                                            viewId = "product_remove_${product.id}",
+                                            viewName = "Remove Product",
+                                            screenName = "ShoppingCartScreen"
+                                        )
+                                    },
+                                    onQuantityChange = {
                                         onIntent(
-                                            ShoppingCartUiIntent.UpdateChecked(
-                                                product = item,
-                                                price = price,
-                                                isChecked = !showPriceBottomSheet
+                                            ShoppingCartUiIntent.UpdateQuantity(
+                                                product.id,
+                                                it
                                             )
+                                        )
+                                        trackClick(
+                                            viewId = "product_quantity_${product.id}",
+                                            viewName = "Change Quantity",
+                                            screenName = "ShoppingCartScreen"
                                         )
                                     }
                                 )
                             }
                         }
                     }
-
-                    else -> {
-                        items(uiState.products.filter { it.isChecked }) { product ->
-                            ShoppingCartItem(
-                                product = product,
-                                onRemove = {
-                                    onIntent(ShoppingCartUiIntent.RemoveItem(product.id))
-                                    trackClick(
-                                        viewId = "product_remove_${product.id}",
-                                        viewName = "Remove Product",
-                                        screenName = "ShoppingCartScreen"
-                                    )
-                                },
-                                onQuantityChange = {
-                                    onIntent(ShoppingCartUiIntent.UpdateQuantity(product.id, it))
-                                    trackClick(
-                                        viewId = "product_quantity_${product.id}",
-                                        viewName = "Change Quantity",
-                                        screenName = "ShoppingCartScreen"
-                                    )
-                                }
-                            )
-                        }
-                    }
                 }
-            }
-            item {
-                Spacer(modifier = Modifier.height(80.dp))
+                item {
+                    Spacer(modifier = Modifier.height(80.dp))
+                }
             }
         }
     }
@@ -371,7 +382,5 @@ private fun ShoppingCartContentPreview(
         navController = NavController(LocalContext.current),
         uiState = uiState,
         onIntent = {},
-        onAddToCart = { _, _ -> },
-        onCheckout = {},
     )
 }

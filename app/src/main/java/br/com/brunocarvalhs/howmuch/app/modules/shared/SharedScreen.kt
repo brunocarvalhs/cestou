@@ -32,7 +32,6 @@ fun SharedCartScreen(
 ) {
     ShareCartContent(
         cartId = arg.cartId,
-        token = arg.token,
         onIntent = viewModel::onIntent,
         onDismiss = {
             navController.popBackStack()
@@ -43,8 +42,7 @@ fun SharedCartScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ShareCartContent(
-    cartId: String?,
-    token: String?,
+    cartId: String,
     onDismiss: () -> Unit,
     onIntent: (SharedCartUiIntent) -> Unit = {},
 ) {
@@ -92,10 +90,10 @@ private fun ShareCartContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        onIntent(SharedCartUiIntent.SharedToken(cartId.orEmpty()))
+                        onIntent(SharedCartUiIntent.SharedToken(cartId))
                     },
                 supportingContent = {
-                    Text(text = stringResource(R.string.token, token.orEmpty()))
+                    Text(text = stringResource(R.string.token, ""))
                 }
             )
         }
@@ -107,7 +105,6 @@ private fun ShareCartContent(
 private fun SharedContentPreview() {
     ShareCartContent(
         cartId = "123",
-        token = "123",
         onDismiss = {},
         onIntent = {}
     )
