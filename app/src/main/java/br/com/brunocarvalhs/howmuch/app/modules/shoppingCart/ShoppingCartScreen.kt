@@ -237,7 +237,7 @@ fun ShoppingCartContent(
                 } else {
                     when (selectedDestination) {
                         TypeShopping.LIST.ordinal -> {
-                            items(uiState.products.filter { !it.isChecked }) { item ->
+                            items(uiState.products.filter { !it.isChecked }.reversed()) { item ->
                                 ShoppingCartItem(
                                     product = item,
                                     onRemove = {
@@ -281,7 +281,7 @@ fun ShoppingCartContent(
                         }
 
                         else -> {
-                            items(uiState.products.filter { it.isChecked }) { product ->
+                            items(uiState.products.filter { it.isChecked }.reversed()) { product ->
                                 ShoppingCartItem(
                                     product = product,
                                     onRemove = {
