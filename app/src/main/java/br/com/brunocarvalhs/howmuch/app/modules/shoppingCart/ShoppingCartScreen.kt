@@ -50,12 +50,12 @@ import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.ZERO_INT
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.setStatusBarIconColor
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.EditProductRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.FinalizePurchaseRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.ProductGraphRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.SharedCartBottomSheetRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.TokenBottomSheetRoute
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.HeaderComponent
-import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.PriceFieldBottomSheet
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartCardsPager
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartItem
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.TypeShopping
@@ -256,30 +256,27 @@ fun ShoppingCartContent(
                                             screenName = "ShoppingCartScreen"
                                         )
                                     },
-                                    onCheckedChange = {
-                                        showPriceBottomSheet = it
-                                        trackClick(
-                                            viewId = "product_checked_${item.id}",
-                                            viewName = "Change Checked",
-                                            screenName = "ShoppingCartScreen"
-                                        )
-                                    }
-                                )
-                                if (showPriceBottomSheet) {
-                                    PriceFieldBottomSheet(
-                                        onDismissRequest = { showPriceBottomSheet = false },
-                                        onConfirmation = { price ->
-                                            showPriceBottomSheet = false
-                                            onIntent(
-                                                ShoppingCartUiIntent.UpdateChecked(
-                                                    product = item,
-                                                    price = price,
-                                                    isChecked = !showPriceBottomSheet
+                                    onCheckedChange = { checked ->
+                                        uiState.cartId?.let {
+                                            navController.navigate(
+                                                EditProductRoute(
+                                                    cartId = uiState.cartId,
+                                                    productId = item.id,
+                                                    isEditPrice = true,
+                                                    name = item.name,
+                                                    price = item.price,
+                                                    quantity = item.quantity,
+                                                    isChecked = checked
                                                 )
                                             )
+                                            trackClick(
+                                                viewId = "product_checked_${item.id}",
+                                                viewName = "Change Checked",
+                                                screenName = "ShoppingCartScreen"
+                                            )
                                         }
-                                    )
-                                }
+                                    }
+                                )
                             }
                         }
 

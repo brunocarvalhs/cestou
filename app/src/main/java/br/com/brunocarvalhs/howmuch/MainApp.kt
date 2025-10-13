@@ -10,6 +10,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.EditProductRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.FinalizePurchaseRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.NavBarItem
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.ProductGraphRoute
@@ -17,6 +18,9 @@ import br.com.brunocarvalhs.howmuch.app.foundation.navigation.SharedCartBottomSh
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.ShoppingCartGraphRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.TokenBottomSheetRoute
 import br.com.brunocarvalhs.howmuch.app.modules.base.BaseScreen
+import br.com.brunocarvalhs.howmuch.app.modules.editProduct.EditProductScreen
+import br.com.brunocarvalhs.howmuch.app.modules.editProduct.EditProductUiState
+import br.com.brunocarvalhs.howmuch.app.modules.editProduct.EditProductViewModel
 import br.com.brunocarvalhs.howmuch.app.modules.finalizePurchase.FinalizePurchaseScreen
 import br.com.brunocarvalhs.howmuch.app.modules.finalizePurchase.FinalizePurchaseViewModel
 import br.com.brunocarvalhs.howmuch.app.modules.history.HistoryScreen
@@ -81,6 +85,12 @@ fun MainApp(
                 FinalizePurchaseScreen(
                     navController = navController,
                     viewModel = hiltViewModel<FinalizePurchaseViewModel>()
+                )
+            }
+            bottomSheet<EditProductRoute> {
+                EditProductScreen(
+                    navController = navController,
+                    viewModel = hiltViewModel<EditProductViewModel>()
                 )
             }
         }

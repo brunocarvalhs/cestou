@@ -25,15 +25,17 @@ import br.com.brunocarvalhs.howmuch.app.foundation.constants.marketItems
 fun ProductNameInput(
     name: String,
     onNameChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     OutlinedTextField(
+        enabled = enabled,
         value = name,
         onValueChange = { onNameChange(it) },
         label = { Text(stringResource(R.string.product_name)) },
         singleLine = true,
         trailingIcon = {
-            if (name.isNotEmpty()) {
+            if (name.isNotEmpty() && enabled) {
                 IconButton(onClick = { onNameChange(EMPTY_STRING) }) {
                     Icon(
                         imageVector = Icons.Default.Clear,

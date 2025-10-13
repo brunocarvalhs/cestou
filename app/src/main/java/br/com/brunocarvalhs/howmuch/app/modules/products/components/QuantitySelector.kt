@@ -26,11 +26,13 @@ import br.com.brunocarvalhs.howmuch.app.foundation.constants.ONE_INT
 fun QuantitySelector(
     quantity: Int,
     onQuantityChange: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     var textValue by remember { mutableStateOf(quantity.toString()) }
 
     OutlinedTextField(
+        enabled = enabled,
         value = textValue,
         onValueChange = { newValue ->
             val num = newValue.toIntOrNull()
@@ -58,7 +60,7 @@ fun QuantitySelector(
                         textValue = (quantity - ONE_INT).toString()
                     }
                 },
-                enabled = quantity > ONE_INT
+                enabled = quantity > ONE_INT && enabled
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_remove),
@@ -68,6 +70,7 @@ fun QuantitySelector(
         },
         suffix = {
             IconButton(
+                enabled = enabled,
                 onClick = {
                     onQuantityChange(quantity + ONE_INT)
                     textValue = (quantity + ONE_INT).toString()

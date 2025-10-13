@@ -19,9 +19,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ShoppingCartViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val observeShoppingCartUseCase: ObserveShoppingCartUseCase,
-    private val checkProductUseCase: CheckProductUseCase,
     private val updateProductQuantityUseCase: UpdateProductQuantityUseCase,
     private val removeProductUseCase: RemoveProductUseCase,
 ) : ViewModel() {
@@ -40,12 +39,6 @@ class ShoppingCartViewModel @Inject constructor(
             is ShoppingCartUiIntent.UpdateQuantity -> updateProductQuantity(
                 productId = intent.productId,
                 newQuantity = intent.quantity
-            )
-
-            is ShoppingCartUiIntent.UpdateChecked -> checkProduct(
-                product = intent.product,
-                price = intent.price,
-                isChecked = intent.isChecked
             )
         }
     }
@@ -110,23 +103,5 @@ class ShoppingCartViewModel @Inject constructor(
             totalPrice = updatedTotalPrice,
             token = token ?: _uiState.value.token,
         )
-    }
-
-    fun checkProduct(
-        product: Product,
-        price: Long,
-        isChecked: Boolean
-    ) = viewModelScope.launch {
-        checkProductUseCase(
-            product = product,
-            price = price,
-            isChecked = isChecked
-        ).onFailure { error ->
-            Toast.makeText(
-                context,
-                error.message ?: "Falha ao atualizar o produto",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
     }
 }

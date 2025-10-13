@@ -31,7 +31,8 @@ fun PriceInput(
     onPriceChange: (Long) -> Unit,
     modifier: Modifier = Modifier,
     focusRequester: FocusRequester? = null,
-    onNext: (() -> Unit)? = null
+    onNext: (() -> Unit)? = null,
+    enabled: Boolean = true
 ) {
     var textValue by remember { mutableStateOf(price.toString()) }
 
@@ -40,6 +41,7 @@ fun PriceInput(
     }
 
     OutlinedTextField(
+        enabled = enabled,
         value = textValue,
         onValueChange = { newValue ->
             val clean = newValue.replace("[^0-9]".toRegex(), EMPTY_STRING)
