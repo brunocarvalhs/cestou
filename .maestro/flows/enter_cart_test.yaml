@@ -1,0 +1,16 @@
+appId: br.com.brunocarvalhs.howmuch
+---
+- launchApp
+- assertVisible: "Cart summary"
+- tapOn:
+    id: "enter_cart"
+    delay: 500
+- inputText: "123456"
+- assertVisible: "Access"
+- eraseText: 6
+- assertNotVisible:
+      text: "1"
+      delay: 500
+- inputText: "789102"
+- eraseText: 6
+- back

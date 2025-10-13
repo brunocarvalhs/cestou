@@ -2,73 +2,96 @@ package br.com.brunocarvalhs.howmuch.app.modules.token.components
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.TextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
-import br.com.brunocarvalhs.howmuch.app.foundation.constants.EMPTY_STRING
-import br.com.brunocarvalhs.howmuch.app.foundation.constants.FIVE_INT
-import br.com.brunocarvalhs.howmuch.app.foundation.constants.ONE_INT
-import br.com.brunocarvalhs.howmuch.app.foundation.constants.ZERO_INT
 
 @Composable
 fun InputCode(
-    digits: List<String>,
-    onDigitsChange: (List<String>) -> Unit,
-    focusRequesters: List<FocusRequester>,
-    borderColor: Color = MaterialTheme.colorScheme.outline,
+    modifier: Modifier = Modifier,
+    value: String,
+    count: Int = 6,
+    onValueChange: (String) -> Unit
 ) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        digits.forEachIndexed { index, value ->
-            TextField(
-                value = value,
-                onValueChange = { newValue ->
-                    if (newValue.length <= ONE_INT && newValue.all { it.isDigit() }) {
-                        onDigitsChange(digits.toMutableList().also { it[index] = newValue })
-                        if (newValue.isNotEmpty() && index < FIVE_INT) {
-                            focusRequesters[index + ONE_INT].requestFocus()
-                        }
-                    } else if (newValue.isEmpty() && index > ZERO_INT) {
-                        onDigitsChange(digits.toMutableList().also { it[index] = EMPTY_STRING })
-                        focusRequesters[index - ONE_INT].requestFocus()
-                    }
-                },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp)
-                    .focusRequester(focusRequesters[index])
-                    .border(1.dp, borderColor, RoundedCornerShape(8.dp)),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = if (index == FIVE_INT) ImeAction.Done else ImeAction.Next
-                )
-            )
+    LaunchedEffect(Unit) {
+        if (value.length > count) {
+            throw IllegalArgumentException("Otp text value must not have more than otpCount: $count characters")
         }
     }
+
+    BasicTextField(
+        modifier = modifier.fillMaxWidth(),
+        value = TextFieldValue(value, selection = TextRange(value.length)),
+        onValueChange = {
+            if (it.text.length <= count && it.text.all { c -> c.isDigit() }) {
+                onValueChange.invoke(it.text)
+            }
+        },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+        decorationBox = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+            ) {
+                repeat(count) { index ->
+                    CharView(
+                        index = index,
+                        text = value
+                    )
+                }
+            }
+        }
+    )
 }
 
 @Composable
-@DevicesPreview
-fun InputCodePreview() {
-    InputCode(
-        digits = List(FIVE_INT) { EMPTY_STRING },
-        onDigitsChange = {},
-        focusRequesters = List(FIVE_INT) { FocusRequester() }
-    )
+private fun CharView(
+    index: Int,
+    text: String,
+) {
+    val isFocused = text.length == index
+    val char = when {
+        index == text.length -> ""
+        index > text.length -> ""
+        else -> text[index].toString()
+    }
+    Box(
+        modifier = Modifier
+            .width(40.dp)
+            .height(60.dp)
+            .border(
+                1.dp, when {
+                    isFocused -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.colorScheme.onBackground
+                }, RoundedCornerShape(8.dp)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = char,
+            style = MaterialTheme. typography.headlineMedium,
+            color = if (isFocused) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onBackground
+            },
+            textAlign = TextAlign.Center
+        )
+    }
 }

@@ -18,17 +18,15 @@ import javax.inject.Inject
 class TokenViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val enterTokenWithTokenUseCase: EnterShoppingCartWithTokenUseCase
-): ViewModel() {
+) : ViewModel() {
 
     private val args = savedStateHandle.toRoute<TokenBottomSheetRoute>()
 
     private val _uiState = MutableStateFlow<TokenUiState>(TokenUiState.Idle)
     val uiState: StateFlow<TokenUiState> = _uiState.asStateFlow()
 
-    fun onIntent(intent: TokenUiIntent) {
-        when (intent) {
-            is TokenUiIntent.SearchByToken -> searchByToken(token = args.token)
-        }
+    fun onIntent(intent: TokenUiIntent) = when (intent) {
+        is TokenUiIntent.SearchByToken -> searchByToken(token = args.token)
     }
 
     private fun searchByToken(token: String) = viewModelScope.launch {
