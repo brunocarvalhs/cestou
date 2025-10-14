@@ -1,0 +1,63 @@
+name: Regressivo Android
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+  pull_request:
+    types: [ reopened, synchronize ]
+    branches:
+      - develop
+      - master
+
+jobs:
+  maestro-tests:
+    name: Run Maestro tests on Android emulator
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Create and start Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_4
+          script: |
+            # Instala Maestro
+            curl -Ls "https://get.maestro.mobile.dev" | bash
+            echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+            export PATH="$PATH:$HOME/.maestro/bin"
+
+            # Confirma instalação
+            maestro --version
+
+            # Lista o APK para confirmar o caminho
+            ls app/build/outputs/apk/debug/
+
+            # Executa o test suite principal
+            maestro test .maestro/test_suite.yaml --format junit --output .maestro/results
+
+      - name: Upload Maestro results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-report
+          path: .maestro/results
