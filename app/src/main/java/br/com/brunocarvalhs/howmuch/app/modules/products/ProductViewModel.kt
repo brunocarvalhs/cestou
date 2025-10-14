@@ -3,7 +3,6 @@ package br.com.brunocarvalhs.howmuch.app.modules.products
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.navArgs
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.data.model.ProductModel
 import br.com.brunocarvalhs.domain.usecases.product.AddProductUseCase

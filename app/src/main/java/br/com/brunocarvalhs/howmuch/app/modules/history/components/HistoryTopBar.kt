@@ -92,7 +92,8 @@ fun HistoryTopBar(
                                 screenName = "HistoryScreen"
                             )
                         }
-                    }) {
+                    }
+                ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_select_all),
                         contentDescription = stringResource(R.string.select_all),
@@ -111,7 +112,8 @@ fun HistoryTopBar(
                             viewName = "Delete Selected",
                             screenName = "HistoryScreen"
                         )
-                    }, enabled = selectedCount > 0
+                    },
+                    enabled = selectedCount > 0
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
@@ -130,8 +132,9 @@ fun HistoryTopBar(
                             viewId = "btn_enter_selection_mode",
                             viewName = "Enter Selection Mode",
                             screenName = "HistoryScreen"
-                        )()
-                    }) {
+                        )
+                    }
+                ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_check_box),
                         contentDescription = stringResource(R.string.select_items),

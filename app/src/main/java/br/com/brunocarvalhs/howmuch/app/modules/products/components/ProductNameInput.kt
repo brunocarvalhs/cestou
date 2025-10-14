@@ -43,7 +43,10 @@ fun ProductNameInput(
                     modifier = Modifier
                         .semantics { testTagsAsResourceId = true }
                         .testTag("clean_product_name"),
-                    onClick = { onNameChange(EMPTY_STRING) }) {
+                    onClick = {
+                        onNameChange(EMPTY_STRING)
+                    }
+                ) {
                     Icon(
                         imageVector = Icons.Default.Clear,
                         contentDescription = stringResource(R.string.clean)

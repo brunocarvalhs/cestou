@@ -1,13 +1,11 @@
 package br.com.brunocarvalhs.howmuch.app.modules.finalizePurchase
 
 import android.content.Context
-import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import br.com.brunocarvalhs.domain.services.ICartLocalStorage
 import br.com.brunocarvalhs.domain.usecases.cart.FinalizePurchaseUseCase
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.FinalizePurchaseRoute
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -8,7 +8,6 @@ import br.com.brunocarvalhs.domain.entities.Product
 import br.com.brunocarvalhs.domain.usecases.cart.GetLimitCardUseCase
 import br.com.brunocarvalhs.domain.usecases.cart.ObserveShoppingCartUseCase
 import br.com.brunocarvalhs.domain.usecases.cart.SetLimitCardUseCase
-import br.com.brunocarvalhs.domain.usecases.product.CheckProductUseCase
 import br.com.brunocarvalhs.domain.usecases.product.RemoveProductUseCase
 import br.com.brunocarvalhs.domain.usecases.product.UpdateProductQuantityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -133,7 +133,6 @@ fun ShoppingCartCardsPager(
     }
 }
 
-
 @Composable
 @DevicesPreview
 private fun ShoppingCartCardsPagerPreview() {

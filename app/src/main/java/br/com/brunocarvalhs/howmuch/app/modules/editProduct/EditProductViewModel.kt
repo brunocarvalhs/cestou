@@ -22,20 +22,22 @@ class EditProductViewModel @Inject constructor(
 
     private val args = savedStateHandle.toRoute<EditProductRoute>()
 
-    private val _uiState = MutableStateFlow(EditProductUiState(
-        cartId = args.cartId,
-        productId = args.productId,
-        isEditName = args.isEditName,
-        isEditPrice = args.isEditPrice,
-        isEditQuantity = args.isEditQuantity,
-        name = args.name ?: "",
-        price = args.price ?: 0L,
-        quantity = args.quantity,
-        isChecked = args.isChecked
-    ))
+    private val _uiState = MutableStateFlow(
+        EditProductUiState(
+            cartId = args.cartId,
+            productId = args.productId,
+            isEditName = args.isEditName,
+            isEditPrice = args.isEditPrice,
+            isEditQuantity = args.isEditQuantity,
+            name = args.name ?: "",
+            price = args.price ?: 0L,
+            quantity = args.quantity,
+            isChecked = args.isChecked
+        )
+    )
     val uiState: StateFlow<EditProductUiState> = _uiState.asStateFlow()
 
-    fun onIntent(intent: EditProductUiIntent) = when(intent) {
+    fun onIntent(intent: EditProductUiIntent) = when (intent) {
         is EditProductUiIntent.Save -> update(
             name = intent.name,
             quantity = intent.quantity,

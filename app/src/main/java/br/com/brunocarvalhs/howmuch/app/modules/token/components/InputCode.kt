@@ -30,8 +30,8 @@ fun InputCode(
     onValueChange: (String) -> Unit
 ) {
     LaunchedEffect(Unit) {
-        if (value.length > count) {
-            throw IllegalArgumentException("Otp text value must not have more than otpCount: $count characters")
+        require(value.length > count) {
+            "Otp text value must not have less than otpCount: $count characters"
         }
     }
 
@@ -76,16 +76,18 @@ private fun CharView(
             .width(40.dp)
             .height(60.dp)
             .border(
-                1.dp, when {
+                width = 1.dp,
+                color = when {
                     isFocused -> MaterialTheme.colorScheme.primary
                     else -> MaterialTheme.colorScheme.onBackground
-                }, RoundedCornerShape(8.dp)
+                },
+                shape = RoundedCornerShape(8.dp)
             ),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = char,
-            style = MaterialTheme. typography.headlineMedium,
+            style = MaterialTheme.typography.headlineMedium,
             color = if (isFocused) {
                 MaterialTheme.colorScheme.primary
             } else {

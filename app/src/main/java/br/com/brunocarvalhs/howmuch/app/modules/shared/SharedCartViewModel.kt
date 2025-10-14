@@ -43,8 +43,6 @@ class SharedCartViewModel @Inject constructor(
                     append("\n\nTotal: R$ ${cart.recalculateTotal().toCurrencyString()}")
                 }
             )
-        }.onFailure {
-
         }
     }
 
@@ -58,8 +56,6 @@ class SharedCartViewModel @Inject constructor(
                     append("\n\nBasta inserir o token no app para ver todos os produtos e até adicionar os seus! 🛒")
                 }
             )
-        }.onFailure {
-
         }
     }
 }

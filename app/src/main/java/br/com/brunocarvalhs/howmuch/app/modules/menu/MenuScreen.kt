@@ -22,8 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import br.com.brunocarvalhs.howmuch.BuildConfig
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvent
@@ -36,9 +34,7 @@ import br.com.brunocarvalhs.howmuch.app.foundation.extensions.openPlayStore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MenuScreen(
-    navController: NavController,
-) {
+fun MenuScreen() {
     val context = LocalContext.current
     val version = context.getAppVersion()
     val isDebug = BuildConfig.DEBUG

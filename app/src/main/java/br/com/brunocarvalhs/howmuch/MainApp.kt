@@ -19,7 +19,6 @@ import br.com.brunocarvalhs.howmuch.app.foundation.navigation.ShoppingCartGraphR
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.TokenBottomSheetRoute
 import br.com.brunocarvalhs.howmuch.app.modules.base.BaseScreen
 import br.com.brunocarvalhs.howmuch.app.modules.editProduct.EditProductScreen
-import br.com.brunocarvalhs.howmuch.app.modules.editProduct.EditProductUiState
 import br.com.brunocarvalhs.howmuch.app.modules.editProduct.EditProductViewModel
 import br.com.brunocarvalhs.howmuch.app.modules.finalizePurchase.FinalizePurchaseScreen
 import br.com.brunocarvalhs.howmuch.app.modules.finalizePurchase.FinalizePurchaseViewModel
