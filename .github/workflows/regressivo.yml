@@ -11,26 +11,75 @@ on:
       - develop
       - master
 
+env:
+  # Configurações Gerais
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+  JDK_VERSION: 17
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
+
+  # Android
+  BUILD_TOOLS_VERSION: "34.0.0"
+  ANDROID_LOCAL_PROPERTIES: local.properties
+
+  # Projeto
+  APP_NAME: "HowMuch"
+
+  # 🔑 Secrets (configurados no repo)
+  GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
+
 jobs:
-  maestro-tests:
-    name: Run Maestro tests on Android emulator
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-
+  checkout-and-setup:
+    runs-on: ubuntu-24.04
+    name: Checkout and Setup Environment
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: ${{ env.JDK_VERSION }}
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
 
-      - name: Build debug APK
+      - name: Create local.properties
+        run: |
+          echo "sdk.dir=${{ env.ANDROID_HOME }}" > ${{ env.ANDROID_LOCAL_PROPERTIES }}
+
+      - name: Create google-services.json
+        run: |
+          echo ${{ env.GOOGLE_SERVICE_JSON }} | base64 --decode > app/google-services.json
+
+      - name: Cache Gradle
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Upload Workspace
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace
+          path: ./
+
+  regressivo:
+    runs-on: ubuntu-24.04
+    name: Regressivo
+    timeout-minutes: 30
+    steps:
+      - name: Download Workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: workspace
+
+      - name: Give execution permissions to gradlew
+        run: chmod +x gradlew
+
+      - name: Build APK Debug
         run: ./gradlew assembleDebug
 
       - name: Start Android Emulator and Run Maestro
@@ -47,7 +96,7 @@ jobs:
             curl -Ls "https://get.maestro.mobile.dev" | bash
             echo "$HOME/.maestro/bin" >> $GITHUB_PATH
             export PATH="$PATH:$HOME/.maestro/bin"
-            
+
             # Executar teste
             maestro test .maestro/test_suite.yaml --format junit --output .maestro/results
             echo "MAESTRO_EXIT_CODE=$?" >> $GITHUB_ENV
