@@ -9,7 +9,7 @@ interface ShoppingCartRepository {
     /**
      * Cria um novo carrinho de compras.
      */
-    suspend fun create(cart: ShoppingCart): ShoppingCart
+    suspend fun create(cart: ShoppingCart? = null): ShoppingCart
 
     /**
      * Busca um carrinho pelo ID.

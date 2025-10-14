@@ -7,6 +7,7 @@ data class ShoppingCartUiState(
     val isLoading: Boolean = false,
     val products: List<Product> = emptyList(),
     val totalPrice: Long = 0L,
+    val limitPrice: Long = 53000L,
     val token: String? = null,
     val cartId: String? = null,
     val type: TypeShopping = TypeShopping.CART,

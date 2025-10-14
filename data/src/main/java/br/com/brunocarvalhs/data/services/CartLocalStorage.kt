@@ -12,20 +12,14 @@ class CartLocalStorage @Inject constructor(
 ) : ICartLocalStorage {
 
     override suspend fun saveCart(cart: ShoppingCart) {
-        val existingHistory: MutableList<ShoppingCartModel> =
-            dataStorageService.getValue(CART_HISTORY_KEY, Array<ShoppingCartModel>::class.java)
-                ?.toMutableList() ?: mutableListOf()
-
-        val cartModel = cart.toShoppingCartModel()
-
-        existingHistory.add(cartModel)
-        dataStorageService.saveValue(CART_HISTORY_KEY, existingHistory, List::class.java)
+        val history = getMutableCartHistory()
+        history.add(cart.toShoppingCartModel())
+        saveCartHistory(history)
         dataStorageService.removeValue(CART_LOCAL_STORAGE_KEY)
     }
 
     override suspend fun getCartHistory(): List<ShoppingCartModel> {
-        return dataStorageService.getValue(CART_HISTORY_KEY, Array<ShoppingCartModel>::class.java)
-            ?.toList() ?: emptyList()
+        return getMutableCartHistory().toList()
     }
 
     override suspend fun clearCartHistory() {
@@ -39,25 +33,47 @@ class CartLocalStorage @Inject constructor(
     override suspend fun saveCartNow(cart: ShoppingCart) {
         dataStorageService.saveValue(
             CART_LOCAL_STORAGE_KEY,
-            cart as ShoppingCartModel,
+            cart.toShoppingCartModel(),
             ShoppingCartModel::class.java
         )
     }
 
     override suspend fun removeCartHistory(cart: ShoppingCart) {
-        val existingHistory: MutableList<ShoppingCartModel> =
-            dataStorageService.getValue(CART_HISTORY_KEY, Array<ShoppingCartModel>::class.java)
-                ?.toMutableList() ?: mutableListOf()
-
+        val history = getMutableCartHistory()
         val cartModel = cart.toShoppingCartModel()
 
-        existingHistory.remove(cartModel)
-        dataStorageService.saveValue(CART_HISTORY_KEY, existingHistory, List::class.java)
+        // Reutiliza a lógica centralizada de leitura e escrita.
+        if (history.remove(cartModel)) {
+            saveCartHistory(history)
+        }
+    }
+
+    override suspend fun getCartLimit(): Long {
+        val limit = dataStorageService.getValue(CARD_LIMIT_KEY, Long::class.java)
+        return limit ?: MINIMAL_LIMIT
+    }
+
+    override suspend fun saveCartLimit(limit: Long) {
+        dataStorageService.saveValue(CARD_LIMIT_KEY, limit, Long::class.java)
+    }
+
+    private suspend fun getMutableCartHistory(): MutableList<ShoppingCartModel> {
+        return dataStorageService.getValue(CART_HISTORY_KEY, Array<ShoppingCartModel>::class.java)
+            ?.toMutableList() ?: mutableListOf()
+    }
+
+    private suspend fun saveCartHistory(history: List<ShoppingCartModel>) {
+        dataStorageService.saveValue(
+            CART_HISTORY_KEY,
+            history.toTypedArray(),
+            Array<ShoppingCartModel>::class.java
+        )
     }
 
     companion object {
         const val CART_HISTORY_KEY = "cart_history"
-
         const val CART_LOCAL_STORAGE_KEY = "shopping_cart"
+        const val CARD_LIMIT_KEY = "card_limit"
+        const val MINIMAL_LIMIT = 53000L
     }
 }

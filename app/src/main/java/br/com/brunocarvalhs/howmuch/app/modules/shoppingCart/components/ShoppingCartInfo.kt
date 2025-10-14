@@ -35,6 +35,8 @@ fun ShoppingCartInfo(
     totalPrice: Long = 0L,
     productsCount: Int = 0,
     isLoading: Boolean = false,
+    enabledCheckout: Boolean = true,
+    enabledShared: Boolean = true,
     onCheckout: (() -> Unit)? = null,
     onShared: (() -> Unit)? = null,
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
@@ -157,12 +159,13 @@ fun ShoppingCartInfo(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     onCheckout?.let {
-                        Button(onClick = it, enabled = productsCount > 0) {
+                        Button(onClick = it, enabled = productsCount > 0 && enabledCheckout) {
                             Text(text = stringResource(R.string.checkout))
                         }
                     }
                     onShared?.let {
                         Button(
+                            enabled = productsCount > 0 && enabledShared,
                             onClick = it,
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.secondary,

@@ -1,0 +1,13 @@
+appId: br.com.brunocarvalhs.howmuch
+---
+- launchApp
+- tapOn: "History"
+- tapOn:
+    id: "select_history"
+- tapOn:
+      id: "select_all"
+      repeat: 3
+- tapOn:
+    id: "delete_selected"
+- assertNotVisible:
+    text: "Maestro Supermarket"

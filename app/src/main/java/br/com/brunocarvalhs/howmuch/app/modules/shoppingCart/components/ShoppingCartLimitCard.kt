@@ -43,6 +43,7 @@ import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
 fun ShoppingCartLimitCard(
     limit: Long = 53000,
     totalSpent: Long = 0,
+    onLimit: (Long) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showDialog by remember { mutableStateOf(false) }
@@ -147,9 +148,8 @@ fun ShoppingCartLimitCard(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        if (inputLimit != limit) {
-                            showDialog = false
-                        }
+                        onLimit(inputLimit)
+                        showDialog = false
                     }
                 ) {
                     Text(stringResource(R.string.save))
@@ -165,7 +165,9 @@ fun ShoppingCartLimitCard(
                 Column {
                     PriceInput(
                         price = inputLimit,
-                        onPriceChange = { inputLimit = it },
+                        onPriceChange = {
+                            inputLimit = it
+                        },
                         label = { Text(stringResource(R.string.limit_text)) },
                     )
                 }

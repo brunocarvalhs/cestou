@@ -1,9 +1,12 @@
 package br.com.brunocarvalhs.howmuch.app.modules.products
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import br.com.brunocarvalhs.data.model.ProductModel
-import br.com.brunocarvalhs.domain.useCases.AddProductUseCase
+import br.com.brunocarvalhs.domain.usecases.product.AddProductUseCase
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.ProductGraphRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,11 +19,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProductViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val addProductUseCase: AddProductUseCase,
 ) : ViewModel() {
 
-    private var cartId: String? = null
-
+    private val args = savedStateHandle.toRoute<ProductGraphRoute>()
     private val _uiState = MutableStateFlow(ProductUiState())
     val uiState: StateFlow<ProductUiState> = _uiState.asStateFlow()
 
@@ -35,8 +38,6 @@ class ProductViewModel @Inject constructor(
                 quantity = intent.quantity
             )
 
-            is ProductUiIntent.LoadShoppingCart -> intent.cartId?.let { setCartId(it) }
-
             is ProductUiIntent.AddProductToList -> addProduct(
                 name = intent.name,
                 quantity = intent.quantity,
@@ -44,25 +45,20 @@ class ProductViewModel @Inject constructor(
         }
     }
 
-    private fun setCartId(id: String) {
-        cartId = id
-    }
-
-    private fun addProduct(name: String, price: Long? = null, quantity: Int) = viewModelScope.launch {
-        cartId?.let { cartId ->
+    private fun addProduct(name: String, price: Long? = null, quantity: Int) =
+        viewModelScope.launch {
             val product = ProductModel(
                 name = name,
                 price = price,
                 quantity = quantity,
                 isChecked = price != null
             )
-            addProductUseCase(cartId, product)
+            addProductUseCase(args.cartId, product)
                 .onSuccess {
                     _uiEffect.emit(ProductUiEffect.ProductAdded)
                 }
                 .onFailure {
                     _uiEffect.emit(ProductUiEffect.ShowError(it.message ?: "Unknown error"))
                 }
-        } ?: _uiEffect.emit(ProductUiEffect.ShowError("Cart ID is not set"))
-    }
+        }
 }

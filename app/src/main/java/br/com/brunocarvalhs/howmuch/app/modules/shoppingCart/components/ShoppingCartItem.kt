@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,8 +31,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.placeholder
@@ -52,6 +56,7 @@ fun ShoppingCartItem(
     titleFillMaxWidth: Float = 0.6f,
     priceFillMaxWidth: Float = 0.4f,
     quantityFillMaxWidth: Float = 0.3f,
+    onLongClick: (() -> Unit)? = null,
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
     onCheckedChange: ((Boolean) -> Unit)? = null
 ) {
@@ -61,7 +66,11 @@ fun ShoppingCartItem(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .combinedClickable(
+                onClick = { expanded = !expanded },
+                onLongClick = onLongClick
+            ),
         elevation = CardDefaults.cardElevation(2.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
@@ -113,7 +122,13 @@ fun ShoppingCartItem(
                         Row {
                             onCheckedChange?.let {
                                 Checkbox(
-                                    product?.isChecked ?: false,
+                                    modifier = Modifier
+                                        .align(Alignment.CenterVertically)
+                                        .semantics {
+                                            testTagsAsResourceId = true
+                                        }
+                                        .testTag("check_product"),
+                                    checked = product?.isChecked ?: false,
                                     onCheckedChange = { onCheckedChange.invoke(it) }
                                 )
                             }
@@ -206,7 +221,10 @@ fun ShoppingCartItem(
                         onRemove?.let {
                             IconButton(
                                 onClick = { onRemove() },
-                                modifier = Modifier.align(Alignment.CenterVertically)
+                                modifier = Modifier
+                                    .align(Alignment.CenterVertically)
+                                    .semantics { testTagsAsResourceId = true }
+                                    .testTag("delete_product")
                             ) {
                                 Icon(
                                     Icons.Default.Delete,
@@ -239,6 +257,9 @@ private fun QuantityControls(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
+                modifier = Modifier
+                    .semantics { testTagsAsResourceId = true }
+                    .testTag("decrease_quantity"),
                 enabled = product.quantity > ONE_INT,
                 onClick = {
                     if (product.quantity > ONE_INT) {
@@ -259,6 +280,9 @@ private fun QuantityControls(
             )
 
             IconButton(
+                modifier = Modifier
+                    .semantics { testTagsAsResourceId = true }
+                    .testTag("increase_quantity"),
                 onClick = { onQuantityChange.invoke(prod.quantity + ONE_INT) }
             ) {
                 Icon(

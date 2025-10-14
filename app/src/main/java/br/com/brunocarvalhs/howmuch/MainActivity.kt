@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.material.navigation.rememberBottomSheetNavigator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
@@ -18,6 +19,7 @@ import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsParam
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.firstOpen
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackNavigation
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.isFirstAppOpen
+import br.com.brunocarvalhs.howmuch.app.foundation.extensions.setStatusBarIconColor
 import br.com.brunocarvalhs.howmuch.app.foundation.theme.HowMuchTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -28,9 +30,11 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        statusBarColor()
         trackLifecycleEvent("onCreate")
         setContent {
-            val navController = rememberNavController()
+            val bottomSheetNavigator = rememberBottomSheetNavigator()
+            val navController = rememberNavController(bottomSheetNavigator)
             navController.trackNavigation()
             HowMuchTheme {
                 Surface(
@@ -39,7 +43,10 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
                 ) {
-                    MainApp(navController = navController)
+                    MainApp(
+                        navController = navController,
+                        bottomSheetNavigator = bottomSheetNavigator
+                    )
                 }
             }
         }
@@ -85,5 +92,9 @@ class MainActivity : ComponentActivity() {
                 AnalyticsParam.TIMESTAMP to System.currentTimeMillis()
             )
         )
+    }
+
+    private fun statusBarColor() {
+        window?.setStatusBarIconColor()
     }
 }

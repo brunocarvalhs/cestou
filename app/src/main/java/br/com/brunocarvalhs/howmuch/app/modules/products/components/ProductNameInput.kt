@@ -16,7 +16,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.EMPTY_STRING
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.marketItems
@@ -25,16 +28,25 @@ import br.com.brunocarvalhs.howmuch.app.foundation.constants.marketItems
 fun ProductNameInput(
     name: String,
     onNameChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     OutlinedTextField(
+        enabled = enabled,
         value = name,
         onValueChange = { onNameChange(it) },
         label = { Text(stringResource(R.string.product_name)) },
         singleLine = true,
         trailingIcon = {
-            if (name.isNotEmpty()) {
-                IconButton(onClick = { onNameChange(EMPTY_STRING) }) {
+            if (name.isNotEmpty() && enabled) {
+                IconButton(
+                    modifier = Modifier
+                        .semantics { testTagsAsResourceId = true }
+                        .testTag("clean_product_name"),
+                    onClick = {
+                        onNameChange(EMPTY_STRING)
+                    }
+                ) {
                     Icon(
                         imageVector = Icons.Default.Clear,
                         contentDescription = stringResource(R.string.clean)

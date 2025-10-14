@@ -45,7 +45,7 @@ class CartLocalStorageTest {
             dataStorageService.saveValue(CartLocalStorage.CART_HISTORY_KEY, withArg {
                 assertEquals(1, it.size)
                 assertEquals(cart, it[0])
-            }, List::class.java)
+            }, Array<ShoppingCartModel>::class.java)
         }
         coVerify { dataStorageService.removeValue(CartLocalStorage.CART_LOCAL_STORAGE_KEY) }
     }

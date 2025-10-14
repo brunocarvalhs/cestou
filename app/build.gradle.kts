@@ -107,6 +107,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.compose.material.navigation)
     implementation(libs.material3)
     implementation(libs.androidx.compose.material3)
 
