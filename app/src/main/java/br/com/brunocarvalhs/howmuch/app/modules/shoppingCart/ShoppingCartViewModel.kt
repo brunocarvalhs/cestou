@@ -39,10 +39,10 @@ class ShoppingCartViewModel @Inject constructor(
 
     fun onIntent(intent: ShoppingCartUiIntent) {
         when (intent) {
-            is ShoppingCartUiIntent.RemoveItem -> removeProduct(productId = intent.productId)
+            is ShoppingCartUiIntent.RemoveItem -> removeProduct(product = intent.product)
             ShoppingCartUiIntent.Retry -> initializeCart()
             is ShoppingCartUiIntent.UpdateQuantity -> updateProductQuantity(
-                productId = intent.productId,
+                product = intent.product,
                 newQuantity = intent.quantity
             )
             is ShoppingCartUiIntent.SetLimitCard -> setLimitCard(intent.limit)
@@ -67,8 +67,8 @@ class ShoppingCartViewModel @Inject constructor(
         }
     }
 
-    private fun removeProduct(productId: String) = viewModelScope.launch {
-        removeProductUseCase(productId)
+    private fun removeProduct(product: Product) = viewModelScope.launch {
+        removeProductUseCase(product)
             .onFailure { error ->
                 Toast.makeText(
                     context,
@@ -78,10 +78,10 @@ class ShoppingCartViewModel @Inject constructor(
             }
     }
 
-    private fun updateProductQuantity(productId: String, newQuantity: Int) = viewModelScope.launch {
+    private fun updateProductQuantity(product: Product, newQuantity: Int) = viewModelScope.launch {
         if (newQuantity < 1) return@launch
 
-        updateProductQuantityUseCase(productId, newQuantity)
+        updateProductQuantityUseCase(product, newQuantity)
             .onFailure { error ->
                 Toast.makeText(
                     context,

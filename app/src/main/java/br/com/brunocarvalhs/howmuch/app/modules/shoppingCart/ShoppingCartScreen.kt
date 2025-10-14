@@ -266,7 +266,7 @@ fun ShoppingCartContent(
                                 ShoppingCartItem(
                                     product = item,
                                     onRemove = {
-                                        onIntent(ShoppingCartUiIntent.RemoveItem(item.id))
+                                        onIntent(ShoppingCartUiIntent.RemoveItem(item))
                                         trackClick(
                                             viewId = "product_remove_${item.id}",
                                             viewName = "Remove Product",
@@ -274,7 +274,7 @@ fun ShoppingCartContent(
                                         )
                                     },
                                     onQuantityChange = {
-                                        onIntent(ShoppingCartUiIntent.UpdateQuantity(item.id, it))
+                                        onIntent(ShoppingCartUiIntent.UpdateQuantity(item, it))
                                         trackClick(
                                             viewId = "product_quantity_${item.id}",
                                             viewName = "Change Quantity",
@@ -310,7 +310,7 @@ fun ShoppingCartContent(
                                 ShoppingCartItem(
                                     product = product,
                                     onRemove = {
-                                        onIntent(ShoppingCartUiIntent.RemoveItem(product.id))
+                                        onIntent(ShoppingCartUiIntent.RemoveItem(product))
                                         trackClick(
                                             viewId = "product_remove_${product.id}",
                                             viewName = "Remove Product",
@@ -320,8 +320,8 @@ fun ShoppingCartContent(
                                     onQuantityChange = {
                                         onIntent(
                                             ShoppingCartUiIntent.UpdateQuantity(
-                                                product.id,
-                                                it
+                                                product = product,
+                                                quantity = it
                                             )
                                         )
                                         trackClick(
