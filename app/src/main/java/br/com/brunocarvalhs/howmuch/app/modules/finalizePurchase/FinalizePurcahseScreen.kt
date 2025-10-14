@@ -24,6 +24,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
@@ -37,6 +38,14 @@ fun FinalizePurchaseScreen(
     navController: NavController,
     viewModel: FinalizePurchaseViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState) {
+        if (uiState is FinalizePurchaseUiState.Success) {
+            navController.popBackStack()
+        }
+    }
+
     ModalBottomSheet(
         onDismissRequest = {
             navController.popBackStack()
@@ -44,15 +53,14 @@ fun FinalizePurchaseScreen(
         containerColor = MaterialTheme.colorScheme.surface,
     ) {
         FinalizePurchaseContent(
+            uiState = uiState,
             onSubmit = { name, price ->
                 viewModel.onIntent(
                     intent = FinalizePurchaseUiIntent.FinalizePurchase(
                         name = name,
                         price = price
                     )
-                ).run {
-                    navController.popBackStack()
-                }
+                )
             }
         )
     }
@@ -61,6 +69,7 @@ fun FinalizePurchaseScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FinalizePurchaseContent(
+    uiState: FinalizePurchaseUiState,
     name: String = EMPTY_STRING,
     price: Long = EMPTY_LONG,
     onSubmit: (name: String, price: Long) -> Unit
@@ -121,6 +130,7 @@ fun FinalizePurchaseContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
+            enabled = uiState is FinalizePurchaseUiState.Idle,
             onClick = {
                 if (name.isNotBlank() && price > 0L) {
                     onSubmit(name, price)
@@ -139,6 +149,7 @@ fun FinalizePurchaseContent(
 @DevicesPreview
 private fun FinalizePurchasePreview() {
     FinalizePurchaseContent(
+        uiState = FinalizePurchaseUiState.Idle,
         onSubmit = { _, _ -> }
     )
 }

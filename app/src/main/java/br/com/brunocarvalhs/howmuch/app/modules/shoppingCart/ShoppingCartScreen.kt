@@ -1,6 +1,5 @@
 package br.com.brunocarvalhs.howmuch.app.modules.shoppingCart
 
-import android.app.Activity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,11 +25,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -46,6 +45,9 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import br.com.brunocarvalhs.data.model.ProductModel
@@ -56,7 +58,6 @@ import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsParam
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackClick
 import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.ZERO_INT
-import br.com.brunocarvalhs.howmuch.app.foundation.extensions.setStatusBarIconColor
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.EditProductRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.FinalizePurchaseRoute
@@ -74,6 +75,7 @@ fun ShoppingCartScreen(
     viewModel: ShoppingCartViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(Unit) {
         trackEvent(
@@ -82,6 +84,18 @@ fun ShoppingCartScreen(
                 AnalyticsParam.SCREEN_NAME to "ShoppingCartScreen",
             )
         )
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.onIntent(ShoppingCartUiIntent.Retry)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     ShoppingCartContent(
@@ -126,7 +140,9 @@ fun ShoppingCartContent(
                 },
                 actions = {
                     IconButton(
-                        modifier = Modifier.semantics { testTagsAsResourceId = true }.testTag("enter_cart"),
+                        modifier = Modifier
+                            .semantics { testTagsAsResourceId = true }
+                            .testTag("enter_cart"),
                         enabled = uiState.token != null,
                         onClick = {
                             navController.navigate(TokenBottomSheetRoute(uiState.token.orEmpty()))
@@ -143,7 +159,9 @@ fun ShoppingCartContent(
                         )
                     }
                     IconButton(
-                        modifier = Modifier.semantics { testTagsAsResourceId = true }.testTag("share_cart"),
+                        modifier = Modifier
+                            .semantics { testTagsAsResourceId = true }
+                            .testTag("share_cart"),
                         enabled = uiState.cartId != null,
                         onClick = {
                             navController.navigate(SharedCartBottomSheetRoute(uiState.cartId.orEmpty()))
