@@ -47,14 +47,11 @@ fun MainApp(
                         },
                         NavBarItem.HISTORY to {
                             HistoryScreen(
-                                navController = navController,
                                 viewModel = hiltViewModel()
                             )
                         },
                         NavBarItem.MENU to {
-                            MenuScreen(
-                                navController = navController,
-                            )
+                            MenuScreen()
                         }
                     )
                 )
