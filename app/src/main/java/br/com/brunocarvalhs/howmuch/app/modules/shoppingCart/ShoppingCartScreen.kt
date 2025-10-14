@@ -309,6 +309,21 @@ fun ShoppingCartContent(
                             items(uiState.products.filter { it.isChecked }.reversed()) { product ->
                                 ShoppingCartItem(
                                     product = product,
+                                    onLongClick = {
+                                        navController.navigate(
+                                            EditProductRoute(
+                                                cartId = uiState.cartId.orEmpty(),
+                                                productId = product.id,
+                                                isEditPrice = true,
+                                                isEditName = true,
+                                                isEditQuantity = true,
+                                                name = product.name,
+                                                price = product.price,
+                                                quantity = product.quantity,
+                                                isChecked = product.isChecked
+                                            )
+                                        )
+                                    },
                                     onRemove = {
                                         onIntent(ShoppingCartUiIntent.RemoveItem(product))
                                         trackClick(

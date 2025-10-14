@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,6 +56,7 @@ fun ShoppingCartItem(
     titleFillMaxWidth: Float = 0.6f,
     priceFillMaxWidth: Float = 0.4f,
     quantityFillMaxWidth: Float = 0.3f,
+    onLongClick: (() -> Unit)? = null,
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
     onCheckedChange: ((Boolean) -> Unit)? = null
 ) {
@@ -64,7 +66,11 @@ fun ShoppingCartItem(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .combinedClickable(
+                onClick = { expanded = !expanded },
+                onLongClick = onLongClick
+            ),
         elevation = CardDefaults.cardElevation(2.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
@@ -217,6 +223,7 @@ fun ShoppingCartItem(
                                 onClick = { onRemove() },
                                 modifier = Modifier
                                     .align(Alignment.CenterVertically)
+                                    .semantics { testTagsAsResourceId = true }
                                     .testTag("delete_product")
                             ) {
                                 Icon(
@@ -250,7 +257,9 @@ private fun QuantityControls(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
-                modifier = Modifier.testTag("decrease_quantity"),
+                modifier = Modifier
+                    .semantics { testTagsAsResourceId = true }
+                    .testTag("decrease_quantity"),
                 enabled = product.quantity > ONE_INT,
                 onClick = {
                     if (product.quantity > ONE_INT) {
@@ -271,7 +280,9 @@ private fun QuantityControls(
             )
 
             IconButton(
-                modifier = Modifier.testTag("increase_quantity"),
+                modifier = Modifier
+                    .semantics { testTagsAsResourceId = true }
+                    .testTag("increase_quantity"),
                 onClick = { onQuantityChange.invoke(prod.quantity + ONE_INT) }
             ) {
                 Icon(

@@ -16,7 +16,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.EMPTY_STRING
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.marketItems
@@ -36,7 +39,11 @@ fun ProductNameInput(
         singleLine = true,
         trailingIcon = {
             if (name.isNotEmpty() && enabled) {
-                IconButton(onClick = { onNameChange(EMPTY_STRING) }) {
+                IconButton(
+                    modifier = Modifier
+                        .semantics { testTagsAsResourceId = true }
+                        .testTag("clean_product_name"),
+                    onClick = { onNameChange(EMPTY_STRING) }) {
                     Icon(
                         imageVector = Icons.Default.Clear,
                         contentDescription = stringResource(R.string.clean)

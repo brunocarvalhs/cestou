@@ -36,7 +36,11 @@ class EditProductViewModel @Inject constructor(
     val uiState: StateFlow<EditProductUiState> = _uiState.asStateFlow()
 
     fun onIntent(intent: EditProductUiIntent) = when(intent) {
-        is EditProductUiIntent.Save -> update(price = intent.price)
+        is EditProductUiIntent.Save -> update(
+            name = intent.name,
+            quantity = intent.quantity,
+            price = intent.price
+        )
     }
 
     private fun update(name: String? = null, price: Long? = null, quantity: Int? = null) = viewModelScope.launch {

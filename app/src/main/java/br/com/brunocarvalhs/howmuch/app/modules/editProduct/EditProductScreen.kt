@@ -134,7 +134,9 @@ private fun EditProductContent(
             onClick = {
                 onIntent(
                     EditProductUiIntent.Save(
+                        name = name,
                         price = price,
+                        quantity = quantity,
                     )
                 )
                 navController.popBackStack()
