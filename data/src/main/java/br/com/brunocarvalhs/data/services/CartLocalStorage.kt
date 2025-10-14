@@ -50,7 +50,7 @@ class CartLocalStorage @Inject constructor(
 
     override suspend fun getCartLimit(): Long {
         val limit = dataStorageService.getValue(CARD_LIMIT_KEY, Long::class.java)
-        return limit ?: 53000
+        return limit ?: MINIMAL_LIMIT
     }
 
     override suspend fun saveCartLimit(limit: Long) {
@@ -74,5 +74,6 @@ class CartLocalStorage @Inject constructor(
         const val CART_HISTORY_KEY = "cart_history"
         const val CART_LOCAL_STORAGE_KEY = "shopping_cart"
         const val CARD_LIMIT_KEY = "card_limit"
+        const val MINIMAL_LIMIT = 53000L
     }
 }

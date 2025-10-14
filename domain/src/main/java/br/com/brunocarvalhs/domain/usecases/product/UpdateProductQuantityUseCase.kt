@@ -1,6 +1,8 @@
 package br.com.brunocarvalhs.domain.usecases.product
 
 import br.com.brunocarvalhs.domain.entities.Product
+import br.com.brunocarvalhs.domain.exceptions.ProductNotFoundException
+import br.com.brunocarvalhs.domain.exceptions.ShoppingCartNotFoundException
 import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
 import br.com.brunocarvalhs.domain.services.ICartLocalStorage
 import br.com.brunocarvalhs.domain.usecases.cart.UpdateShoppingCartUseCase
@@ -24,19 +26,17 @@ class UpdateProductQuantityUseCase @Inject constructor(
         product: Product,
         newQuantity: Int
     ): Result<Unit> = runCatching {
-        if (newQuantity < 1) {
-            throw IllegalArgumentException("A quantidade deve ser de pelo menos 1.")
-        }
+        require(newQuantity < 1) { "A quantidade deve ser de pelo menos 1." }
 
         val cart = cartLocalStorage.getCartNow()?.id?.let { id ->
             repository.findById(id)
-        } ?: throw Exception("Carrinho não encontrado.")
+        } ?: throw ShoppingCartNotFoundException()
 
         val currentProducts = cart.products.toMutableList()
         val productIndex = currentProducts.indexOfFirst { it.id == product.id }
 
         if (productIndex == -1) {
-            throw Exception("Produto não encontrado no carrinho.")
+            throw ProductNotFoundException(product.id)
         }
 
         val updatedProduct = currentProducts[productIndex].toCopy(quantity = newQuantity)

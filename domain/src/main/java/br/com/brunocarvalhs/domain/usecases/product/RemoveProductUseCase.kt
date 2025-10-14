@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.domain.usecases.product
 
 import br.com.brunocarvalhs.domain.entities.Product
 import br.com.brunocarvalhs.domain.entities.ShoppingCart
+import br.com.brunocarvalhs.domain.exceptions.ShoppingCartNotFoundException
 import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
 import br.com.brunocarvalhs.domain.services.ICartLocalStorage
 import br.com.brunocarvalhs.domain.usecases.cart.UpdateShoppingCartUseCase
@@ -23,7 +24,7 @@ class RemoveProductUseCase @Inject constructor(
     suspend operator fun invoke(product: Product): Result<Unit> = runCatching {
         val cart = cartLocalStorage.getCartNow()?.id?.let { id ->
             repository.findById(id)
-        } ?: throw Exception("Carrinho não encontrado.")
+        } ?: throw ShoppingCartNotFoundException()
 
         val currentProducts = cart.products.toMutableList()
 
