@@ -33,7 +33,9 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug
 
-      - name: Create and start Android emulator
+      - name: Start Android Emulator and Run Maestro
+        id: maestro_run
+        continue-on-error: true
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
@@ -41,21 +43,26 @@ jobs:
           arch: x86_64
           profile: pixel_4
           script: |
-            # Instala Maestro
+            # Instalar Maestro
             curl -Ls "https://get.maestro.mobile.dev" | bash
             echo "$HOME/.maestro/bin" >> $GITHUB_PATH
             export PATH="$PATH:$HOME/.maestro/bin"
-
-            # Confirma instalação
-            maestro --version
-
-            # Lista o APK para confirmar o caminho
-            ls app/build/outputs/apk/debug/
-
-            # Executa o test suite principal
+            
+            # Executar teste
             maestro test .maestro/test_suite.yaml --format junit --output .maestro/results
+            echo "MAESTRO_EXIT_CODE=$?" >> $GITHUB_ENV
 
-      - name: Upload Maestro results
+      - name: Check Maestro result
+        if: always()
+        run: |
+          if [ "$MAESTRO_EXIT_CODE" != "0" ]; then
+            echo "❌ Maestro test failed"
+            exit 1
+          else
+            echo "✅ Maestro tests passed"
+          fi
+
+      - name: Upload Maestro Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
