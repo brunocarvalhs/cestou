@@ -1,0 +1,45 @@
+appId: br.com.brunocarvalhs.howmuch
+---
+- launchApp
+- tapOn: "Home"
+- tapOn: "List"
+- tapOn: "Add product"
+- tapOn: "Product name"
+- inputText: "Maestro Test List 1"
+- tapOn:
+    id: "increase_quantity"
+    repeat: 4
+- tapOn:
+    id: "decrease_quantity"
+    repeat: 2
+- tapOn: "Add product"
+- assertVisible: "Maestro Test List 1"
+
+- tapOn: "Add product"
+- tapOn: "Product name"
+- inputText: "Maestro Test List 2"
+- tapOn:
+    id: "increase_quantity"
+    repeat: 2
+- tapOn:
+    id: "decrease_quantity"
+    repeat: 1
+- tapOn: "Add product"
+- assertVisible: "Maestro Test List 2"
+
+- tapOn:
+    id: "check_product"
+- tapOn: "Price"
+- inputText: "1234"
+- tapOn: "confirm"
+
+- tapOn:
+    id: "check_product"
+- tapOn: "Price"
+- inputText: "5678"
+- tapOn: "confirm"
+
+- tapOn: "Cart"
+- assertVisible: "Maestro Test List 1"
+- assertVisible: "Maestro Test List 2"
+

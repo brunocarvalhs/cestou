@@ -30,8 +30,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.placeholder
@@ -113,7 +116,13 @@ fun ShoppingCartItem(
                         Row {
                             onCheckedChange?.let {
                                 Checkbox(
-                                    product?.isChecked ?: false,
+                                    modifier = Modifier
+                                        .align(Alignment.CenterVertically)
+                                        .semantics {
+                                            testTagsAsResourceId = true
+                                        }
+                                        .testTag("check_product"),
+                                    checked = product?.isChecked ?: false,
                                     onCheckedChange = { onCheckedChange.invoke(it) }
                                 )
                             }
@@ -206,7 +215,9 @@ fun ShoppingCartItem(
                         onRemove?.let {
                             IconButton(
                                 onClick = { onRemove() },
-                                modifier = Modifier.align(Alignment.CenterVertically)
+                                modifier = Modifier
+                                    .align(Alignment.CenterVertically)
+                                    .testTag("delete_product")
                             ) {
                                 Icon(
                                     Icons.Default.Delete,
@@ -239,6 +250,7 @@ private fun QuantityControls(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
+                modifier = Modifier.testTag("decrease_quantity"),
                 enabled = product.quantity > ONE_INT,
                 onClick = {
                     if (product.quantity > ONE_INT) {
@@ -259,6 +271,7 @@ private fun QuantityControls(
             )
 
             IconButton(
+                modifier = Modifier.testTag("increase_quantity"),
                 onClick = { onQuantityChange.invoke(prod.quantity + ONE_INT) }
             ) {
                 Icon(
