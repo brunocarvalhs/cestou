@@ -29,12 +29,6 @@ fun InputCode(
     count: Int = 6,
     onValueChange: (String) -> Unit
 ) {
-    LaunchedEffect(Unit) {
-        require(value.length > count) {
-            "Otp text value must not have less than otpCount: $count characters"
-        }
-    }
-
     BasicTextField(
         modifier = modifier.fillMaxWidth(),
         value = TextFieldValue(value, selection = TextRange(value.length)),
