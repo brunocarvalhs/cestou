@@ -43,7 +43,11 @@ class MainActivity : ComponentActivity() {
         trackLifecycleEvent("onCreate")
         setContent {
             val isPremium by produceState(initialValue = false, producer = {
-                value = subscriptionService.isUserPremium()
+                value = if (BuildConfig.DEBUG) {
+                    true
+                } else {
+                    subscriptionService.isUserPremium()
+                }
             })
             val bottomSheetNavigator = rememberBottomSheetNavigator()
             val navController = rememberNavController(bottomSheetNavigator)
