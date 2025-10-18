@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -73,6 +74,7 @@ import kotlin.random.Random
 fun ShoppingCartScreen(
     navController: NavController,
     viewModel: ShoppingCartViewModel = hiltViewModel(),
+    isPremium: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -102,6 +104,7 @@ fun ShoppingCartScreen(
         navController = navController,
         uiState = uiState,
         onIntent = viewModel::onIntent,
+        isPremium = isPremium
     )
 }
 
@@ -111,7 +114,8 @@ fun ShoppingCartContent(
     navController: NavController,
     uiState: ShoppingCartUiState,
     onIntent: (ShoppingCartUiIntent) -> Unit,
-    numberCardLoading: Int = 3
+    numberCardLoading: Int = 3,
+    isPremium: Boolean = false
 ) {
     val listState = rememberLazyListState()
     var selectedDestination by rememberSaveable { mutableIntStateOf(uiState.type.ordinal) }
@@ -139,24 +143,26 @@ fun ShoppingCartContent(
                     }
                 },
                 actions = {
-                    IconButton(
-                        modifier = Modifier
-                            .semantics { testTagsAsResourceId = true }
-                            .testTag("enter_cart"),
-                        enabled = uiState.token != null,
-                        onClick = {
-                            navController.navigate(TokenBottomSheetRoute(uiState.token.orEmpty()))
-                            trackClick(
-                                viewId = "header_enter_cart",
-                                viewName = "Header Enter Cart",
-                                screenName = "ShoppingCartScreen"
+                    if (isPremium) {
+                        IconButton(
+                            modifier = Modifier
+                                .semantics { testTagsAsResourceId = true }
+                                .testTag("enter_cart"),
+                            enabled = uiState.token != null,
+                            onClick = {
+                                navController.navigate(TokenBottomSheetRoute(uiState.token.orEmpty()))
+                                trackClick(
+                                    viewId = "header_enter_cart",
+                                    viewName = "Header Enter Cart",
+                                    screenName = "ShoppingCartScreen"
+                                )
+                            },
+                        ) {
+                            Icon(
+                                painterResource(R.drawable.ic_add_shopping_cart),
+                                contentDescription = "Enter cart"
                             )
-                        },
-                    ) {
-                        Icon(
-                            painterResource(R.drawable.ic_add_shopping_cart),
-                            contentDescription = "Enter cart"
-                        )
+                        }
                     }
                     IconButton(
                         modifier = Modifier
@@ -213,16 +219,17 @@ fun ShoppingCartContent(
         }
     ) { paddingValues ->
         PullToRefreshBox(
+            modifier = Modifier.padding(top = paddingValues.calculateTopPadding()),
             isRefreshing = uiState.isLoading,
             onRefresh = { onIntent(ShoppingCartUiIntent.Retry) },
         ) {
             LazyColumn(
                 state = listState,
-                contentPadding = paddingValues,
                 modifier = Modifier.fillMaxSize()
             ) {
                 item {
                     ShoppingCartCardsPager(
+                        modifier = Modifier.fillParentMaxWidth(),
                         uiState = uiState,
                         enabledCheckout = uiState.cartId != null,
                         onCheckout = {

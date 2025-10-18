@@ -26,7 +26,8 @@ import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 @Composable
 fun SharedCartScreen(
     navController: NavController,
-    viewModel: SharedCartViewModel = hiltViewModel()
+    viewModel: SharedCartViewModel = hiltViewModel(),
+    isPremium: Boolean = false
 ) {
     ModalBottomSheet(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -34,7 +35,8 @@ fun SharedCartScreen(
         onDismissRequest = { navController.popBackStack() },
     ) {
         ShareCartContent(
-            onIntent = viewModel::onIntent
+            onIntent = viewModel::onIntent,
+            isPremium = isPremium
         )
     }
 }
@@ -42,6 +44,7 @@ fun SharedCartScreen(
 @Composable
 private fun ShareCartContent(
     onIntent: (SharedCartUiIntent) -> Unit = {},
+    isPremium: Boolean = false
 ) {
     Column(
         modifier = Modifier
@@ -71,20 +74,22 @@ private fun ShareCartContent(
                 }
         )
 
-        ListItem(
-            headlineContent = { Text(stringResource(R.string.share_token)) },
-            leadingContent = {
-                Icon(
-                    painterResource(R.drawable.ic_key),
-                    contentDescription = stringResource(R.string.share_token)
-                )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    onIntent(SharedCartUiIntent.SharedToken)
+        if (isPremium) {
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.share_token)) },
+                leadingContent = {
+                    Icon(
+                        painterResource(R.drawable.ic_key),
+                        contentDescription = stringResource(R.string.share_token)
+                    )
                 },
-        )
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        onIntent(SharedCartUiIntent.SharedToken)
+                    },
+            )
+        }
     }
 }
 
@@ -92,6 +97,7 @@ private fun ShareCartContent(
 @DevicesPreview
 private fun SharedContentPreview() {
     ShareCartContent(
-        onIntent = {}
+        onIntent = {},
+        isPremium = true
     )
 }

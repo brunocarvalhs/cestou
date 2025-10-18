@@ -39,9 +39,15 @@ import br.com.brunocarvalhs.howmuch.app.modules.token.components.InputCode
 @Composable
 fun TokenScreen(
     navController: NavController,
-    viewModel: TokenViewModel = hiltViewModel()
+    viewModel: TokenViewModel = hiltViewModel(),
+    isPremium: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    if (isPremium.not()) {
+        navController.popBackStack()
+        return
+    }
 
     ModalBottomSheet(
         containerColor = MaterialTheme.colorScheme.surface,

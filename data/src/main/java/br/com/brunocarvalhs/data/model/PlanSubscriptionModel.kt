@@ -9,4 +9,5 @@ data class PlanSubscriptionModel(
     override val offerToken: String,
     override val features: List<String>,
     override val isRecommended: Boolean,
+    override val renewsAt: String,
 ): PlanSubscription

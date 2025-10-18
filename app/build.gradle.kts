@@ -110,6 +110,8 @@ dependencies {
     implementation(libs.androidx.compose.material.navigation)
     implementation(libs.material3)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.compose.material3.window.size)
 
     // AppStartUp
     implementation(libs.androidx.startup.runtime)

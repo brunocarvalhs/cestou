@@ -34,7 +34,8 @@ import br.com.brunocarvalhs.howmuch.app.modules.token.TokenScreen
 @Composable
 fun MainApp(
     navController: NavHostController,
-    bottomSheetNavigator: BottomSheetNavigator
+    bottomSheetNavigator: BottomSheetNavigator,
+    isPremium: Boolean = false
 ) {
     ModalBottomSheetLayout(bottomSheetNavigator) {
         NavHost(navController = navController, startDestination = ShoppingCartGraphRoute) {
@@ -43,6 +44,7 @@ fun MainApp(
                     tabs = linkedMapOf(
                         NavBarItem.HOME to {
                             ShoppingCartScreen(
+                                isPremium = isPremium,
                                 navController = navController,
                                 viewModel = hiltViewModel()
                             )
@@ -75,13 +77,15 @@ fun MainApp(
             bottomSheet<TokenBottomSheetRoute> {
                 TokenScreen(
                     navController = navController,
-                    viewModel = hiltViewModel()
+                    viewModel = hiltViewModel(),
+                    isPremium = isPremium,
                 )
             }
             bottomSheet<SharedCartBottomSheetRoute> {
                 SharedCartScreen(
                     navController = navController,
-                    viewModel = hiltViewModel()
+                    viewModel = hiltViewModel(),
+                    isPremium = isPremium,
                 )
             }
             bottomSheet<FinalizePurchaseRoute> {

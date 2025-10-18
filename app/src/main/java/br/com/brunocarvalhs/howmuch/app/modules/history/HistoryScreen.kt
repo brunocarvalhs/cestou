@@ -122,7 +122,7 @@ fun HistoryContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(top = paddingValues.calculateTopPadding()),
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),

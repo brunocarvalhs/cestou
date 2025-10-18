@@ -213,7 +213,8 @@ class GooglePlaySubscriptionService(
                                 features = basePlan.pricingPhases.pricingPhaseList.map { phase ->
                                     phase.formattedPrice
                                 },
-                                isRecommended = it.productId == "premium_subscription"
+                                isRecommended = it.productId == "premium_subscription",
+                                renewsAt = pricingPhase.billingPeriod
                             )
                         }
                     }

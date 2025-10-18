@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Badge
@@ -63,8 +64,9 @@ fun SubscriptionRoute(
                         navController.popBackStack()
                     }) {
                         Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = null
+                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = stringResource(R.string.back),
+                            tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 },
@@ -147,7 +149,7 @@ fun ActiveSubscriptionScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Renova em: 23/12/2024", // Placeholder
+                    text = "Renova em: ${state.plan.renewsAt}",
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
