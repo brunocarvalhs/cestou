@@ -7,10 +7,11 @@ import br.com.brunocarvalhs.data.services.RealtimeService
 import br.com.brunocarvalhs.domain.entities.Product
 import br.com.brunocarvalhs.domain.entities.ShoppingCart
 import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
+import br.com.brunocarvalhs.domain.services.Database
 import javax.inject.Inject
 
 class ShoppingCartRepositoryImpl @Inject constructor(
-    private val service: RealtimeService
+    private val service: Database
 ) : ShoppingCartRepository {
 
     override suspend fun create(cart: ShoppingCart?): ShoppingCart {

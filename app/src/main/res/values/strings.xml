@@ -62,4 +62,7 @@
     <string name="list">List</string>
     <string name="action_cancel">cancel</string>
     <string name="action_confirm">confirm</string>
+    <string name="menu_subscription">Subscription</string>
+    <string name="subscribe">Subscribe</string>
+    <string name="current_plan">Current plan</string>
 </resources>

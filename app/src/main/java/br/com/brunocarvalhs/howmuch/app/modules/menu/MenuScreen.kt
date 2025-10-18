@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import br.com.brunocarvalhs.howmuch.BuildConfig
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvent
@@ -31,10 +32,13 @@ import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackClick
 import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.getAppVersion
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.openPlayStore
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.SubscriptionGraphRoute
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MenuScreen() {
+fun MenuScreen(
+    navController: NavController
+) {
     val context = LocalContext.current
     val version = context.getAppVersion()
     val isDebug = BuildConfig.DEBUG
@@ -43,6 +47,9 @@ fun MenuScreen() {
         ServiceItem(R.string.rate_on_google_play) {
             context.openPlayStore()
         },
+        ServiceItem(R.string.menu_subscription) {
+            navController.navigate(SubscriptionGraphRoute)
+        }
     )
 
     LaunchedEffect(Unit) {

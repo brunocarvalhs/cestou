@@ -4,10 +4,13 @@ import android.content.Context
 import br.com.brunocarvalhs.data.repository.ShoppingCartRepositoryImpl
 import br.com.brunocarvalhs.data.services.CartLocalStorage
 import br.com.brunocarvalhs.data.services.DataStorageService
+import br.com.brunocarvalhs.data.services.GooglePlaySubscriptionService
 import br.com.brunocarvalhs.data.services.RealtimeService
 import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
+import br.com.brunocarvalhs.domain.services.Database
 import br.com.brunocarvalhs.domain.services.ICartLocalStorage
 import br.com.brunocarvalhs.domain.services.IDataStorageService
+import br.com.brunocarvalhs.domain.services.SubscriptionService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,7 +24,7 @@ object DataModuleDI {
 
     @Provides
     @Singleton
-    fun provideRealtimeService(): RealtimeService {
+    fun provideRealtimeService(): Database {
         return RealtimeService()
     }
 
@@ -38,7 +41,13 @@ object DataModuleDI {
     }
 
     @Provides
-    fun provideShoppingCartRepository(service: RealtimeService): ShoppingCartRepository {
+    @Singleton
+    fun provideSubscriptionService(@ApplicationContext context: Context): SubscriptionService {
+        return GooglePlaySubscriptionService(context = context)
+    }
+
+    @Provides
+    fun provideShoppingCartRepository(service: Database): ShoppingCartRepository {
         return ShoppingCartRepositoryImpl(service)
     }
 }
