@@ -39,7 +39,7 @@ class ShoppingCartViewModel @Inject constructor(
     fun onIntent(intent: ShoppingCartUiIntent) {
         when (intent) {
             is ShoppingCartUiIntent.RemoveItem -> removeProduct(product = intent.product)
-            ShoppingCartUiIntent.Retry -> initializeCart()
+            ShoppingCartUiIntent.Retry -> observeCart()
             is ShoppingCartUiIntent.UpdateQuantity -> updateProductQuantity(
                 product = intent.product,
                 newQuantity = intent.quantity
