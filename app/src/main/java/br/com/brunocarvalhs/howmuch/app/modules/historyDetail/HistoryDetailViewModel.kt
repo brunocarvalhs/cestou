@@ -9,6 +9,7 @@ import br.com.brunocarvalhs.domain.entities.ShoppingCart
 import br.com.brunocarvalhs.domain.usecases.history.CreateShoppingListFromHistoryUseCase
 import br.com.brunocarvalhs.domain.usecases.history.DeleteOneCartOfHistoryUseCase
 import br.com.brunocarvalhs.domain.usecases.history.GetCartByIdUseCase
+import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.DateFormat
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.shareText
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
@@ -72,17 +73,29 @@ class HistoryDetailViewModel @Inject constructor(
 
     private fun sharedCart(context: Context, cart: ShoppingCart) {
         val shareText = StringBuilder().apply {
-            append("Shopping Cart: ${cart.market}\n")
-            append("Date: ${cart.purchaseDate?.toFormatDate(DateFormat.DAY_MONTH_YEAR)}\n")
-            append("Total: R$ ${cart.totalPrice.toCurrencyString()}\n")
-            append("\nItems:\n")
+            append(context.getString(R.string.history_detail_share_shopping_cart, cart.market))
+            append("\n")
+            append(context.getString(R.string.history_detail_share_date, cart.purchaseDate?.toFormatDate(DateFormat.DAY_MONTH_YEAR)))
+            append("\n")
+            append(context.getString(R.string.history_detail_share_total, cart.totalPrice.toCurrencyString()))
+            append("\n")
+            append(context.getString(R.string.history_detail_share_items))
             cart.products.forEach { item ->
-                append("- ${item.name}: ${item.quantity}")
-                append(" x R$ ${item.price?.toCurrencyString()} ")
-                append("= R$ ${(item.quantity * (item.price ?: 0)).toCurrencyString()}\n")
+                append(
+                    context.getString(
+                        R.string.history_detail_share_item_format,
+                        item.name,
+                        item.quantity,
+                        item.price?.toCurrencyString(),
+                        item.calculateTotal().toCurrencyString()
+                    )
+                )
             }
         }.toString()
-        context.shareText(shareText, "Shopping Cart from ${cart.market}")
+        context.shareText(
+            shareText,
+            context.getString(R.string.history_detail_share_subject, cart.market)
+        )
     }
 
     private fun deleteCart(cart: ShoppingCart) {

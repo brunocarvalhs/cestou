@@ -99,7 +99,7 @@ class ShoppingCartViewModel @Inject constructor(
     ) {
         val updatedProducts = products ?: _uiState.value.products
         val updatedTotalPrice = totalPrice ?: run {
-            updatedProducts.sumOf { (it.price ?: 0) * it.quantity }
+            updatedProducts.sumOf { it.calculateTotal() }
         }
 
         _uiState.value = _uiState.value.copy(

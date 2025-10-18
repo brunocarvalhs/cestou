@@ -407,7 +407,7 @@ private class ShoppingCartStateProvider : PreviewParameterProvider<ShoppingCartU
 
     private fun getTotalPrice(): Long = getProducts().sumOf {
         if (it.isChecked) {
-            (it.price ?: ZERO_NUMBER) * it.quantity
+            it.calculateTotal()
         } else {
             ZERO_NUMBER
         }
