@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -27,7 +28,7 @@ import br.com.brunocarvalhs.howmuch.app.foundation.navigation.NavBarItem
 fun BaseScreen(
     tabs: LinkedHashMap<NavBarItem, @Composable (PaddingValues) -> Unit>
 ) {
-    var selectedTab by remember { mutableStateOf(tabs.entries.first().key) }
+    var selectedTab by rememberSaveable { mutableStateOf(tabs.entries.first().key) }
     val tabsNavController = rememberNavController()
 
     Scaffold(
