@@ -12,6 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.EditProductRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.FinalizePurchaseRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.HistoryDetailRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.NavBarItem
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.ProductGraphRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.SharedCartBottomSheetRoute
@@ -23,6 +24,7 @@ import br.com.brunocarvalhs.howmuch.app.modules.editProduct.EditProductScreen
 import br.com.brunocarvalhs.howmuch.app.modules.editProduct.EditProductViewModel
 import br.com.brunocarvalhs.howmuch.app.modules.finalizePurchase.FinalizePurchaseScreen
 import br.com.brunocarvalhs.howmuch.app.modules.finalizePurchase.FinalizePurchaseViewModel
+import br.com.brunocarvalhs.howmuch.app.modules.historyDetail.HistoryDetailScreen
 import br.com.brunocarvalhs.howmuch.app.modules.history.HistoryScreen
 import br.com.brunocarvalhs.howmuch.app.modules.menu.MenuScreen
 import br.com.brunocarvalhs.howmuch.app.modules.products.ProductFormScreen
@@ -51,6 +53,7 @@ fun MainApp(
                         },
                         NavBarItem.HISTORY to {
                             HistoryScreen(
+                                navController = navController,
                                 viewModel = hiltViewModel()
                             )
                         },
@@ -60,6 +63,12 @@ fun MainApp(
                             )
                         }
                     )
+                )
+            }
+            composable<HistoryDetailRoute> { backStackEntry ->
+                HistoryDetailScreen(
+                    navController = navController,
+                    viewModel = hiltViewModel()
                 )
             }
             composable<SubscriptionGraphRoute> {

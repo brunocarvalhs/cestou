@@ -72,19 +72,4 @@ class HistoryViewModel @Inject constructor(
                 }
         }
     }
-
-    fun sharedCart(context: Context, cart: ShoppingCart) {
-        val shareText = StringBuilder().apply {
-            append("Shopping Cart: ${cart.market}\n")
-            append("Date: ${cart.purchaseDate?.toFormatDate(DateFormat.DAY_MONTH_YEAR)}\n")
-            append("Total: R$ ${cart.totalPrice.toCurrencyString()}\n")
-            append("\nItems:\n")
-            cart.products.forEach { item ->
-                append("- ${item.name}: ${item.quantity}")
-                append(" x R$ ${item.price?.toCurrencyString()} ")
-                append("= R$ ${(item.quantity * (item.price ?: 0)).toCurrencyString()}\n")
-            }
-        }.toString()
-        context.shareText(shareText, "Shopping Cart from ${cart.market}")
-    }
 }
