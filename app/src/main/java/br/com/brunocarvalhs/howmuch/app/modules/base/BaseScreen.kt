@@ -171,7 +171,6 @@ private fun navigateToTab(navController: NavHostController, route: String) {
     }
 }
 
-
 @Composable
 @DevicesPreview
 private fun BaseScreenPreview() {

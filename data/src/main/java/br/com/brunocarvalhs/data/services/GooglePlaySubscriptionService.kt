@@ -119,7 +119,7 @@ class GooglePlaySubscriptionService(
     private fun queryProductDetails() {
         val productList = listOf(
             QueryProductDetailsParams.Product.newBuilder()
-                .setProductId("premium_subscription")
+                .setProductId(ACTIVE_SUBSCRIPTION_ID)
                 .setProductType(BillingClient.ProductType.SUBS)
                 .build()
         )
@@ -186,7 +186,7 @@ class GooglePlaySubscriptionService(
         suspendCancellableCoroutine { continuation ->
             val productList = listOf(
                 QueryProductDetailsParams.Product.newBuilder()
-                    .setProductId("premium_subscription")
+                    .setProductId(ACTIVE_SUBSCRIPTION_ID)
                     .setProductType(BillingClient.ProductType.SUBS)
                     .build()
             )
@@ -203,7 +203,7 @@ class GooglePlaySubscriptionService(
                         val pricingPhase = basePlan?.pricingPhases?.pricingPhaseList?.firstOrNull()
 
                         if (basePlan == null || pricingPhase == null) {
-                            null // mapNotNull irá remover este item da lista final.
+                            null
                         } else {
                             PlanSubscriptionModel(
                                 id = it.productId,
@@ -213,7 +213,7 @@ class GooglePlaySubscriptionService(
                                 features = basePlan.pricingPhases.pricingPhaseList.map { phase ->
                                     phase.formattedPrice
                                 },
-                                isRecommended = it.productId == "premium_subscription",
+                                isRecommended = it.productId == ACTIVE_SUBSCRIPTION_ID,
                                 renewsAt = pricingPhase.billingPeriod
                             )
                         }
@@ -226,25 +226,19 @@ class GooglePlaySubscriptionService(
             }
         }
 
-    override suspend fun cancelSubscription(activity: Activity): Result<Unit> {
-        return try {
-            // Primeiro, você precisa saber qual assinatura o usuário possui.
-            // Vamos assumir que temos o ID do produto da assinatura ativa.
-            val activeSubscriptionId = "premium_subscription"
+    override suspend fun cancelSubscription(activity: Activity): Result<Unit> = runCatching {
+        val url = "$URL?sku=$ACTIVE_SUBSCRIPTION_ID&package=${activity.packageName}"
 
-            val url =
-                "https://play.google.com/store/account/subscriptions?sku=$activeSubscriptionId&package=${activity.packageName}"
-
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = url.toUri()
-            }
-
-            activity.startActivity(intent)
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            println("Failed to launch subscription management page: ${e.message}")
-            Result.failure(e)
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            data = url.toUri()
         }
+
+        activity.startActivity(intent)
+    }
+
+    companion object {
+        private const val URL = "https://play.google.com/store/account/subscriptions"
+
+        private const val ACTIVE_SUBSCRIPTION_ID = "premium_subscription"
     }
 }

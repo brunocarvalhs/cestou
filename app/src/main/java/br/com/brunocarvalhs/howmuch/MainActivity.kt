@@ -1,3 +1,4 @@
+//noinspection UsingMaterialAndMaterial3Libraries
 package br.com.brunocarvalhs.howmuch
 
 import android.os.Bundle
@@ -9,7 +10,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material.navigation.rememberBottomSheetNavigator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier

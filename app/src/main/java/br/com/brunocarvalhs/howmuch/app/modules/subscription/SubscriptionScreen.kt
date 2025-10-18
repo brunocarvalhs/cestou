@@ -173,7 +173,6 @@ fun InactiveSubscriptionScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         item {
             PlanCard(
                 isCurrentPlan = true,
@@ -214,9 +213,13 @@ fun PlanCard(
     onSubscribe: (() -> Unit)? = null,
     isCurrentPlan: Boolean = false
 ) {
-    val cardColors = if (isRecommended) CardDefaults.cardColors(
-        containerColor = MaterialTheme.colorScheme.primaryContainer
-    ) else CardDefaults.cardColors()
+    val cardColors = if (isRecommended) {
+        CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    } else {
+        CardDefaults.cardColors()
+    }
 
     BadgedBox(
         badge = {
