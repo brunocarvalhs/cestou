@@ -63,9 +63,7 @@ class HistoryDetailViewModel @Inject constructor(
 
     private fun createListFromHistory(cart: ShoppingCart) {
         viewModelScope.launch {
-            createShoppingListFromHistoryUseCase(cart).onSuccess {
-
-            }.onFailure {
+            createShoppingListFromHistoryUseCase(cart).onFailure {
                 _uiState.value = _uiState.value.copy(error = it.message)
             }
         }
@@ -75,9 +73,19 @@ class HistoryDetailViewModel @Inject constructor(
         val shareText = StringBuilder().apply {
             append(context.getString(R.string.history_detail_share_shopping_cart, cart.market))
             append("\n")
-            append(context.getString(R.string.history_detail_share_date, cart.purchaseDate?.toFormatDate(DateFormat.DAY_MONTH_YEAR)))
+            append(
+                context.getString(
+                    R.string.history_detail_share_date,
+                    cart.purchaseDate?.toFormatDate(DateFormat.DAY_MONTH_YEAR)
+                )
+            )
             append("\n")
-            append(context.getString(R.string.history_detail_share_total, cart.totalPrice.toCurrencyString()))
+            append(
+                context.getString(
+                    R.string.history_detail_share_total,
+                    cart.totalPrice.toCurrencyString()
+                )
+            )
             append("\n")
             append(context.getString(R.string.history_detail_share_items))
             cart.products.forEach { item ->
@@ -93,8 +101,8 @@ class HistoryDetailViewModel @Inject constructor(
             }
         }.toString()
         context.shareText(
-            shareText,
-            context.getString(R.string.history_detail_share_subject, cart.market)
+            subject = shareText,
+            text = context.getString(R.string.history_detail_share_subject, cart.market)
         )
     }
 
@@ -102,9 +110,7 @@ class HistoryDetailViewModel @Inject constructor(
         viewModelScope.launch {
             deleteCartUseCase.invoke(cart).onSuccess {
                 _uiState.value = _uiState.value.copy(
-                    isDeleting = true,
-                    error = null,
-                    cart = null
+                    isDeleting = true, error = null, cart = null
                 )
             }.onFailure {
                 _uiState.value = _uiState.value.copy(error = it.message)

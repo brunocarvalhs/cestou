@@ -38,7 +38,6 @@ import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
 import br.com.brunocarvalhs.howmuch.app.modules.historyDetail.components.HistoryDetailTopBar
 
-
 @Composable
 fun HistoryDetailScreen(
     navController: NavController,

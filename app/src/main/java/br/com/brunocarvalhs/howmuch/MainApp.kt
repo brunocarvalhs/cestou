@@ -21,11 +21,9 @@ import br.com.brunocarvalhs.howmuch.app.foundation.navigation.SubscriptionGraphR
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.TokenBottomSheetRoute
 import br.com.brunocarvalhs.howmuch.app.modules.base.BaseScreen
 import br.com.brunocarvalhs.howmuch.app.modules.editProduct.EditProductScreen
-import br.com.brunocarvalhs.howmuch.app.modules.editProduct.EditProductViewModel
 import br.com.brunocarvalhs.howmuch.app.modules.finalizePurchase.FinalizePurchaseScreen
-import br.com.brunocarvalhs.howmuch.app.modules.finalizePurchase.FinalizePurchaseViewModel
-import br.com.brunocarvalhs.howmuch.app.modules.historyDetail.HistoryDetailScreen
 import br.com.brunocarvalhs.howmuch.app.modules.history.HistoryScreen
+import br.com.brunocarvalhs.howmuch.app.modules.historyDetail.HistoryDetailScreen
 import br.com.brunocarvalhs.howmuch.app.modules.menu.MenuScreen
 import br.com.brunocarvalhs.howmuch.app.modules.products.ProductFormScreen
 import br.com.brunocarvalhs.howmuch.app.modules.shared.SharedCartScreen
@@ -100,13 +98,13 @@ fun MainApp(
             bottomSheet<FinalizePurchaseRoute> {
                 FinalizePurchaseScreen(
                     navController = navController,
-                    viewModel = hiltViewModel<FinalizePurchaseViewModel>()
+                    viewModel = hiltViewModel()
                 )
             }
             bottomSheet<EditProductRoute> {
                 EditProductScreen(
                     navController = navController,
-                    viewModel = hiltViewModel<EditProductViewModel>()
+                    viewModel = hiltViewModel()
                 )
             }
         }
