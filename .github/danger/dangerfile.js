@@ -1,4 +1,4 @@
-const { danger, message } = require('danger');
+const { danger, message, fail } = require('danger');
 const { isAndroidFile, hasAndroidChanges } = require('./rules/utils');
 const { checkPRDescription, checkPRTitle, checkPRSize, checkWIPStatus } = require('./rules/pr-checks');
 const { checkForBlockedLibs, checkForDeprecatedLibs, checkLibsVersionsFile } = require('./rules/dependency-checks');

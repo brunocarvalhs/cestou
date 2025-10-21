@@ -1,8 +1,8 @@
 const { danger, message, fail } = require('danger');
 const { getLibsFromFile } = require('./utils');
 
-const blockedLibs = getLibsFromFile('.github/danger/blockedLibs.txt');
-const deprecatedLibs = getLibsFromFile('.github/danger/deprecatedLibs.txt');
+const blockedLibs = getLibsFromFile('.github/danger/blockedLibs.txt', { fail, message });
+const deprecatedLibs = getLibsFromFile('.github/danger/deprecatedLibs.txt', { fail, message });
 
 async function checkForBlockedLibs(files) {
   const gradleFiles = files.filter(
