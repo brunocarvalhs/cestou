@@ -1,9 +1,17 @@
 # Changelog
 
+## [1.2.2] - 2025-10-21
+
+* doc: ajuste de validação de fluxo
+* doc: ajuste de validação de fluxo
+* doc: ajuste de validação de fluxo
+* doc: removendo arquivos não usados
+* doc: removendo arquivos não usados
+* chore(release): Prepare release 1.2.1
+
 ## [1.2.1] - 2025-10-21
 
 * fix: adaptação de version automatico
-
 
 ## [1.2.0] - 2025-10-21
 

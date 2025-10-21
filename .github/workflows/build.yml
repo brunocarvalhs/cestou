@@ -1,27 +1,22 @@
-name: Build Application Debug
+name: Android CI/CD
 
 on:
+  # Build e deploy normais em push para develop
   push:
-    branches: [ develop ]
+    branches: [develop]
+  # Versionamento automático apenas em PRs para develop
+  pull_request:
+    branches: [develop]
 
 env:
-  # Configurações Gerais
   ACTIONS_ALLOW_UNSECURE_COMMANDS: true
   JDK_VERSION: 17
   GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
-
-  # Android
   BUILD_TOOLS_VERSION: "34.0.0"
   ANDROID_LOCAL_PROPERTIES: local.properties
-
-  # Projeto
   APP_NAME: "HowMuch"
-
-  # Caminhos
   APK_DEBUG_PATH: app/build/outputs/apk/debug/*.apk
   APK_RELEASE_PATH: app/build/outputs/apk/release/*.apk
-
-  # 🔑 Secrets (configurados no repo)
   GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
   FIREBASE_AUTH_TOKEN: ${{ secrets.FIREBASE_AUTH_TOKEN }}
   FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
@@ -44,12 +39,10 @@ jobs:
         uses: android-actions/setup-android@v2
 
       - name: Create local.properties
-        run: |
-          echo "sdk.dir=${{ env.ANDROID_HOME }}" > ${{ env.ANDROID_LOCAL_PROPERTIES }}
+        run: echo "sdk.dir=${{ env.ANDROID_HOME }}" > ${{ env.ANDROID_LOCAL_PROPERTIES }}
 
       - name: Create google-services.json
-        run: |
-          echo ${{ env.GOOGLE_SERVICE_JSON }} | base64 --decode > app/google-services.json
+        run: echo ${{ env.GOOGLE_SERVICE_JSON }} | base64 --decode > app/google-services.json
 
       - name: Cache Gradle
         uses: actions/cache@v3
@@ -65,10 +58,42 @@ jobs:
           name: workspace
           path: ./
 
+  versioning:
+    runs-on: ubuntu-24.04
+    name: Versioning
+    needs: checkout-and-setup
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Download Workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: workspace
+
+      - name: Give execution permissions to version script
+        run: chmod +x scripts/version.sh
+
+      - name: Run Version Script
+        id: version
+        run: |
+          NEW_VERSION=$(./scripts/version.sh)
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Commit Version Bump (if any)
+        run: |
+          if git status --porcelain | grep -q 'build.gradle.kts\|CHANGELOG.md'; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add app/build.gradle.kts CHANGELOG.md
+            git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }} [skip ci][auto-version]"
+            git push origin HEAD:develop
+          else
+            echo "No changes from version script."
+
   unit-tests:
     runs-on: ubuntu-24.04
     name: Run Unit Tests
     needs: checkout-and-setup
+    if: "!contains(github.event.head_commit.message, '[auto-version]')"
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
@@ -85,6 +110,7 @@ jobs:
     runs-on: ubuntu-24.04
     name: Run Lint Check
     needs: checkout-and-setup
+    if: "!contains(github.event.head_commit.message, '[auto-version]')"
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
@@ -101,6 +127,7 @@ jobs:
     runs-on: ubuntu-24.04
     name: Run Detekt Check
     needs: checkout-and-setup
+    if: "!contains(github.event.head_commit.message, '[auto-version]')"
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
@@ -117,8 +144,9 @@ jobs:
 
   build:
     runs-on: ubuntu-24.04
-    name: Build
+    name: Build APK
     needs: [unit-tests, lint-check, detekt-check]
+    if: "!contains(github.event.head_commit.message, '[auto-version]')"
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
@@ -140,13 +168,28 @@ jobs:
   deploy-firebase:
     runs-on: ubuntu-24.04
     name: Deploy to Firebase App Distribution
-    needs: [build]
+    needs: build
+    if: "!contains(github.event.head_commit.message, '[auto-version]')"
     steps:
       - name: Download APK Artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-apk-debug
           path: app/build/outputs/apk/release/
+
+      - name: Read versionName from build.gradle.kts
+        id: read_version
+        run: |
+          VERSION=$(grep "versionName = " app/build.gradle.kts | sed 's/.*versionName = "\(.*\)"/\1/')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Prepare release notes
+        run: |
+          CHANGELOG=$(awk '/## \['"$VERSION"'\]/,/## / { if (!/## \[.*\]/) print }' CHANGELOG.md | sed '/^[[:space:]]*$/d')
+          RELEASE_NOTES="Version $VERSION\n$CHANGELOG"
+          echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
+          echo "$RELEASE_NOTES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Install Firebase CLI
         run: curl -sL https://firebase.tools | bash
@@ -155,5 +198,5 @@ jobs:
         run: |
           firebase appdistribution:distribute ${{ env.APK_RELEASE_PATH }} \
             --app "${{ env.FIREBASE_APP_ID }}" \
-            --release-notes "release automatica" \
+            --release-notes "$RELEASE_NOTES" \
             --token "${{ env.FIREBASE_AUTH_TOKEN }}"
