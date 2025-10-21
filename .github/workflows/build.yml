@@ -1,22 +1,27 @@
-name: Android CI/CD
+name: Build Application Debug
 
 on:
-  # Build e deploy normais em push para develop
   push:
-    branches: [develop]
-  # Versionamento automático apenas em PRs para develop
-  pull_request:
-    branches: [develop]
+    branches: [ develop ]
 
 env:
+  # Configurações Gerais
   ACTIONS_ALLOW_UNSECURE_COMMANDS: true
   JDK_VERSION: 17
   GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
+
+  # Android
   BUILD_TOOLS_VERSION: "34.0.0"
   ANDROID_LOCAL_PROPERTIES: local.properties
+
+  # Projeto
   APP_NAME: "HowMuch"
+
+  # Caminhos
   APK_DEBUG_PATH: app/build/outputs/apk/debug/*.apk
   APK_RELEASE_PATH: app/build/outputs/apk/release/*.apk
+
+  # 🔑 Secrets (configurados no repo)
   GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
   FIREBASE_AUTH_TOKEN: ${{ secrets.FIREBASE_AUTH_TOKEN }}
   FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
@@ -39,10 +44,12 @@ jobs:
         uses: android-actions/setup-android@v2
 
       - name: Create local.properties
-        run: echo "sdk.dir=${{ env.ANDROID_HOME }}" > ${{ env.ANDROID_LOCAL_PROPERTIES }}
+        run: |
+          echo "sdk.dir=${{ env.ANDROID_HOME }}" > ${{ env.ANDROID_LOCAL_PROPERTIES }}
 
       - name: Create google-services.json
-        run: echo ${{ env.GOOGLE_SERVICE_JSON }} | base64 --decode > app/google-services.json
+        run: |
+          echo ${{ env.GOOGLE_SERVICE_JSON }} | base64 --decode > app/google-services.json
 
       - name: Cache Gradle
         uses: actions/cache@v3
@@ -110,7 +117,7 @@ jobs:
 
   build:
     runs-on: ubuntu-24.04
-    name: Build APK
+    name: Build
     needs: [unit-tests, lint-check, detekt-check]
     steps:
       - name: Download Workspace
@@ -133,7 +140,7 @@ jobs:
   deploy-firebase:
     runs-on: ubuntu-24.04
     name: Deploy to Firebase App Distribution
-    needs: [ build ]
+    needs: [build]
     steps:
       - name: Download APK Artifact
         uses: actions/download-artifact@v4
