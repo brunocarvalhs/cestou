@@ -10,10 +10,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.NavBarItem
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.EditProductRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.FinalizePurchaseRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.HistoryDetailRoute
-import br.com.brunocarvalhs.howmuch.app.foundation.navigation.NavBarItem
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.ProductGraphRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.SharedCartBottomSheetRoute
 import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.ShoppingCartGraphRoute
