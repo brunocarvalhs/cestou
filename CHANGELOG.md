@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.3.0] - 2025-10-21
+
+* feat: detekt ajustes
+* feat: organizando rotas para cada classe responsável
+* feat: importa lista de compra
+* fix: processo de captura dos dados e depois compartilhar
+* feat: incluindo permissão de assinatura
+* feat: novo fluxo de pipeline
+* feat: novo fluxo de pipeline
+* feat: testando nova pipeline mais performatico
+* feat: testando nova pipeline mais performatico
+* fix: voltando a versão estavel da esteira
+* fix: corrigindo problema de envio para o app Prepare release notes
+* fix: incluindo código para captura do changelog
+* fix: fluxo de geração de versão automatico
+
+
 ## [1.2.2] - 2025-10-21
 
 * doc: ajuste de validação de fluxo
