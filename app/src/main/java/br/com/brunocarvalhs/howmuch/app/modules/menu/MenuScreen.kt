@@ -32,7 +32,7 @@ import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackClick
 import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.getAppVersion
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.openPlayStore
-import br.com.brunocarvalhs.howmuch.app.foundation.navigation.SubscriptionGraphRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.SubscriptionGraphRoute
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

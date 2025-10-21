@@ -9,7 +9,7 @@ import br.com.brunocarvalhs.domain.usecases.cart.GetCartUseCase
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.shareText
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
-import br.com.brunocarvalhs.howmuch.app.foundation.navigation.SharedCartBottomSheetRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.SharedCartBottomSheetRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch

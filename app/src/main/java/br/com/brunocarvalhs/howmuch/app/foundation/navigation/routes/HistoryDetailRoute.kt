@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.app.foundation.navigation
+package br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes
 
 import kotlinx.serialization.Serializable
 
