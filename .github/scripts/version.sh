@@ -5,6 +5,9 @@
 
 set -e # Encerra se um comando falhar.
 
+# Move to the project root directory
+cd "$(dirname "$0")/../.."
+
 GRADLE_FILE="app/build.gradle.kts"
 CHANGELOG_FILE="CHANGELOG.md"
 
