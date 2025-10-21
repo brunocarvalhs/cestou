@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.data.model.ProductModel
 import br.com.brunocarvalhs.domain.usecases.product.EditProductUseCase
-import br.com.brunocarvalhs.howmuch.app.foundation.navigation.EditProductRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.EditProductRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

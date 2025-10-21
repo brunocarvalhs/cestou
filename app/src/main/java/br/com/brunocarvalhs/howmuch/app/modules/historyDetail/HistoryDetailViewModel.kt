@@ -14,7 +14,7 @@ import br.com.brunocarvalhs.howmuch.app.foundation.extensions.DateFormat
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.shareText
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toFormatDate
-import br.com.brunocarvalhs.howmuch.app.foundation.navigation.HistoryDetailRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.HistoryDetailRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
