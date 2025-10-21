@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">How Much</string>
+    <string name="app_name">Combien</string>
     <string name="nav_bar_home">Accueil</string>
     <string name="nav_bar_history">Historique</string>
     <string name="nav_bar_menu">Menu</string>
     <string name="share_shopping_cart">Partager le panier</string>
     <string name="share_cart_token">Partager le jeton du panier</string>
-    <string name="currency">%1$s €</string>
+    <string name="currency">$ %1$s</string>
     <string name="add_product">Ajouter un produit</string>
-    <string name="register_product">Enregistrer le produit</string>
+    <string name="register_product">Enregistrer un produit</string>
     <string name="price">Prix</string>
     <string name="clean_price">Effacer le prix</string>
     <string name="product_name">Nom du produit</string>
@@ -26,7 +26,7 @@
     <string name="confirm">Confirmer</string>
     <string name="cancel">Annuler</string>
     <string name="share">Partager</string>
-    <string name="checkout">Valider</string>
+    <string name="checkout">Paiement</string>
     <string name="quantity">Quantité : %1$d</string>
     <string name="cart_summary">Résumé du panier</string>
     <string name="shopping_cart_icon">Icône du panier</string>
@@ -35,9 +35,9 @@
     <string name="spending_limit">Limite de dépenses</string>
     <string name="total_money_spent">Total dépensé :</string>
     <string name="limit">Limite :</string>
-    <string name="savings_icon">Icône d\'économies</string>
+    <string name="savings_icon">Icône d’économies</string>
     <string name="you_economized">Vous avez économisé</string>
-    <string name="enter_the_digit_code">Saisissez le code à %1$d chiffres</string>
+    <string name="enter_the_digit_code">Entrez le code à %1$d chiffres</string>
     <string name="send">Envoyer</string>
     <string name="selected">%1$d sélectionné(s)</string>
     <string name="cancel_select_it">Annuler la sélection</string>
@@ -45,15 +45,15 @@
     <string name="delete_selected">Supprimer la sélection</string>
     <string name="select_items">Sélectionner les articles</string>
     <string name="all">Tous</string>
-    <string name="today">Aujourd\'hui</string>
-    <string name="last_7_days">Les 7 derniers jours</string>
-    <string name="last_30_days">Les 30 derniers jours</string>
+    <string name="today">Aujourd’hui</string>
+    <string name="last_7_days">7 derniers jours</string>
+    <string name="last_30_days">30 derniers jours</string>
     <string name="current_month">Mois en cours</string>
     <string name="click_to_read_more">Cliquez pour en savoir plus</string>
     <string name="history">Historique</string>
-    <string name="rate_on_google_play">Évaluer sur Google Play</string>
+    <string name="rate_on_google_play">Évaluez-nous sur Google Play</string>
     <string name="menu">Menu</string>
-    <string name="access">Accéder</string>
+    <string name="access">Accès</string>
     <string name="edit_limit">Modifier la limite</string>
     <string name="save">Enregistrer</string>
     <string name="set_cart_limit">Définir la limite du panier</string>
@@ -62,4 +62,16 @@
     <string name="list">Liste</string>
     <string name="action_cancel">annuler</string>
     <string name="action_confirm">confirmer</string>
+    <string name="menu_subscription">Abonnement</string>
+    <string name="subscribe">S’abonner</string>
+    <string name="current_plan">Forfait actuel</string>
+    <string name="back">Retour</string>
+    <string name="history_detail">Détail de l’historique</string>
+    <string name="create_list_from_history">Créer une liste à partir de l’historique</string>
+    <string name="history_detail_share_shopping_cart">Panier : %1$s</string>
+    <string name="history_detail_share_date">Date : %1$s</string>
+    <string name="history_detail_share_total">Total : %1$s</string>
+    <string name="history_detail_share_items">\nArticles :\n</string>
+    <string name="history_detail_share_item_format">- %1$s : %2$d × %3$s = %4$s\n</string>
+    <string name="history_detail_share_subject">Panier du %1$s</string>
 </resources>

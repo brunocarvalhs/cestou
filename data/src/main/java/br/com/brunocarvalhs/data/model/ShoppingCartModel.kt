@@ -74,7 +74,7 @@ data class ShoppingCartModel(
     }
 
     override fun recalculateTotal(): Long {
-        return products.sumOf { (it.price ?: 0 ) * it.quantity }
+        return products.sumOf { it.calculateTotal() }
     }
 }
 

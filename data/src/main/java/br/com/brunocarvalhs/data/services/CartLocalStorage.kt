@@ -57,6 +57,11 @@ class CartLocalStorage @Inject constructor(
         dataStorageService.saveValue(CARD_LIMIT_KEY, limit, Long::class.java)
     }
 
+    override suspend fun getCartById(id: String): ShoppingCart? {
+        val history = getMutableCartHistory()
+        return history.find { it.id == id }
+    }
+
     private suspend fun getMutableCartHistory(): MutableList<ShoppingCartModel> {
         return dataStorageService.getValue(CART_HISTORY_KEY, Array<ShoppingCartModel>::class.java)
             ?.toMutableList() ?: mutableListOf()

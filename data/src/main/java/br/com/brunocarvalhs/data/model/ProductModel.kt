@@ -27,6 +27,10 @@ data class ProductModel(
         quantity = quantity,
         isChecked = isChecked
     )
+
+    override fun calculateTotal(): Long {
+        return (this.price ?: 0 ) * this.quantity
+    }
 }
 
 internal fun Product.toProductModel(): ProductModel =
