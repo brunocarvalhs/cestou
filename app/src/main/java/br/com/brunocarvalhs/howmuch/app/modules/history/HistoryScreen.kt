@@ -31,7 +31,7 @@ import br.com.brunocarvalhs.howmuch.app.foundation.constants.TIPS
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.DateFormat
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.isWithinLastDays
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toFormatDate
-import br.com.brunocarvalhs.howmuch.app.foundation.navigation.HistoryDetailRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.HistoryDetailRoute
 import br.com.brunocarvalhs.howmuch.app.modules.history.components.HistoryFilter
 import br.com.brunocarvalhs.howmuch.app.modules.history.components.HistoryFilterType
 import br.com.brunocarvalhs.howmuch.app.modules.history.components.HistoryItem

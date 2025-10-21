@@ -1,39 +1,40 @@
-name: Android CI/CD Pipeline
+name: Build and Release Application
 
 on:
   push:
-    branches: [master]
+    branches: [ master ]
 
 env:
-  # Configuração global
+  # Configurações Gerais
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
   JDK_VERSION: 17
-  GRADLE_OPTS: "-Dorg.gradle.daemon=true -Dorg.gradle.parallel=true -Dorg.gradle.configureondemand=true -Xmx3072m"
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
+
+  # Android
   BUILD_TOOLS_VERSION: "34.0.0"
   ANDROID_LOCAL_PROPERTIES: local.properties
 
-  # Projeto
+  # Projeto (cada repo sobrescreve aqui)
   APP_NAME: "HowMuch"
   PACKAGE_NAME: "br.com.brunocarvalhs.howmuch"
-  ANDROID_MODULE: "app"
+
+  # Caminhos
   APK_DEBUG_PATH: app/build/outputs/apk/debug/*.apk
   APK_RELEASE_PATH: app/build/outputs/apk/release/*.apk
   AAB_RELEASE_PATH: app/build/outputs/bundle/release/*.aab
 
-  # Secrets
+  # 🔑 Secrets (todos centralizados)
   GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
-  KEYSTORE_FILE_BASE64: ${{ secrets.KEYSTORE_FILE_BASE64 }}
   KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
   KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
   KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
   GITHUB_TOKEN: ${{ secrets.TOKEN }}
   DEPLOY_SERVICE_ACCOUNT_JSON: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
 
-# ========================
-# 1️⃣ Setup Inicial
-# ========================
 jobs:
-  setup:
+  checkout-and-setup:
     runs-on: ubuntu-24.04
+    name: Checkout and Setup Environment
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -48,105 +49,70 @@ jobs:
         uses: android-actions/setup-android@v2
 
       - name: Create local.properties
-        run: echo "sdk.dir=${{ env.ANDROID_HOME }}" > ${{ env.ANDROID_LOCAL_PROPERTIES }}
+        run: |
+          echo "sdk.dir=${{ env.ANDROID_HOME }}" > ${{ env.ANDROID_LOCAL_PROPERTIES }}
 
       - name: Create google-services.json
         run: |
-          echo ${{ env.GOOGLE_SERVICE_JSON }} | base64 --decode > ${{ env.ANDROID_MODULE }}/google-services.json
+          echo ${{ env.GOOGLE_SERVICE_JSON }} | base64 --decode > app/google-services.json
 
-      - name: Restore Gradle Cache
-        id: cache-gradle
+      - name: Cache Gradle
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper/
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
-            gradle-${{ runner.os }}-
+            ${{ runner.os }}-gradle-
 
       - name: Upload Workspace
         uses: actions/upload-artifact@v4
         with:
           name: workspace
-          path: |
-            gradlew
-            build.gradle
-            settings.gradle
-            app/src
-            app/google-services.json
+          path: ./
 
-  # ========================
-  # 2️⃣ Jobs de Verificação Paralelos
-  # ========================
   unit-tests:
-    needs: setup
     runs-on: ubuntu-24.04
+    name: Unit Tests
+    needs: checkout-and-setup
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
           name: workspace
 
-      - name: Restore Gradle Cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper/
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-
-      - name: Give execution permissions
+      - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
       - name: Run Unit Tests
-        run: ./gradlew testDebug --build-cache
-        env:
-          GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
+        run: ./gradlew testDebug
 
-  lint:
-    needs: setup
+  lint-check:
     runs-on: ubuntu-24.04
+    name: Lint Check
+    needs: checkout-and-setup
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
           name: workspace
 
-      - name: Restore Gradle Cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper/
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-
-      - name: Give execution permissions
+      - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
       - name: Run Lint
         run: ./gradlew lintDebug
-        env:
-          GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
 
-  detekt:
-    needs: setup
+  detekt-check:
     runs-on: ubuntu-24.04
+    name: Run Detekt Check
+    needs: checkout-and-setup
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
           name: workspace
 
-      - name: Restore Gradle Cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper/
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-
-      - name: Give execution permissions
+      - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
       - name: Run Detekt
@@ -154,12 +120,10 @@ jobs:
         env:
           GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
 
-  # ========================
-  # 3️⃣ Build AAB
-  # ========================
   build:
-    needs: [unit-tests, lint, detekt]
     runs-on: ubuntu-24.04
+    name: Build
+    needs: [unit-tests, lint-check, detekt-check]
     env:
       KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
       KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
@@ -170,89 +134,106 @@ jobs:
         with:
           name: workspace
 
-      - name: Restore Gradle Cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper/
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-
-      - name: Give execution permissions
+      - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
-      - name: Recreate keystore from secret
+      - name: Check if keystore exists
         run: |
-          echo $KEYSTORE_FILE_BASE64 | base64 --decode > ${{ env.ANDROID_MODULE }}/release.keystore
+          if [ -f "app/release.keystore" ]; then
+            echo "Keystore exists"
+          else
+            echo "::error::Keystore file 'app/release.keystore' does not exist. Please ensure it is in the correct location."
+            exit 1
+          fi
 
       - name: Build AAB
-        run: ./gradlew bundleRelease --build-cache
+        run: ./gradlew bundleRelease
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-aab
-          path: ${{ env.AAB_RELEASE_PATH }}
+          path: app/build/outputs/bundle/release/*.aab
 
-  # ========================
-  # 4️⃣ Release GitHub
-  # ========================
   release:
-    needs: build
     runs-on: ubuntu-24.04
+    name: Create and Upload Release
+    needs: [build]
     steps:
-      - name: Download AAB
+      - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.APP_NAME }}-aab
+          name: workspace
+        continue-on-error: true
 
-      - name: Get version from build.gradle.kts
+      - name: Setup Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Run versioning script
+        id: versioning
+        run: |
+          chmod +x .github/scripts/version.sh
+          new_version=$(.github/scripts/version.sh)
+          echo "::set-output name=new_version::$new_version"
+
+      - name: Commit and push changes
+        run: |
+          # Verifica se o script de versionamento produziu uma nova versão
+          if [ -n "${{ steps.versioning.outputs.new_version }}" ]; then
+            git add app/build.gradle.kts CHANGELOG.md
+            git commit -m "chore(release): Prepare release ${{ steps.versioning.outputs.new_version }}"
+            git push
+          else
+            echo "Nenhuma nova versão para commitar."
+          fi
+
+      - name: Get App Version from build.gradle.kts
         run: |
           VERSION=$(grep versionName app/build.gradle.kts | sed 's/.*versionName = "\(.*\)"/\1/')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_ENV
+        continue-on-error: true
 
-      - name: Create GitHub Release
+      - name: Create Release
+        id: create_release
         uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ env.VERSION }}
-          release_name: v${{ env.VERSION }}
+          tag_name: ${{ env.version }}
+          release_name: v${{ env.version }}
           draft: false
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
 
-  # ========================
-  # 5️⃣ Deploy Google Play
-  # ========================
-  deploy-prod:
-    needs: build
+  deploy:
     runs-on: ubuntu-24.04
+    name: Deploy to Google Play
+    needs: release
     steps:
-      - name: Download AAB
+      - name: Download AAB Artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-aab
+          path: app/build/outputs/bundle/release/
 
-      - name: Deploy to Production
+      - name: Upload to Google Play (Production)
+        id: deploy_prod
+        continue-on-error: true
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ env.PACKAGE_NAME }}
           releaseFiles: ${{ env.AAB_RELEASE_PATH }}
           track: production
-          status: completed
+          status: inProgress
+          userFraction: 0.5
 
-  deploy-beta:
-    needs: build
-    if: ${{ needs.deploy-prod.result == 'failure' }}
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Download AAB
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ env.APP_NAME }}-aab
-
-      - name: Deploy to Beta
+      - name: Upload to Google Play (Beta)
+        if: steps.deploy_prod.outcome == 'failure'
+        id: deploy_beta
+        continue-on-error: true
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
@@ -260,18 +241,10 @@ jobs:
           releaseFiles: ${{ env.AAB_RELEASE_PATH }}
           track: beta
           status: completed
+          changesNotSentForReview: true
 
-  deploy-internal:
-    needs: build
-    if: ${{ needs.deploy-beta.result == 'failure' }}
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Download AAB
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ env.APP_NAME }}-aab
-
-      - name: Deploy to Internal
+      - name: Upload to Google Play (Internal)
+        if: steps.deploy_beta.outcome == 'failure'
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
@@ -279,3 +252,4 @@ jobs:
           releaseFiles: ${{ env.AAB_RELEASE_PATH }}
           track: internal
           status: completed
+          changesNotSentForReview: true

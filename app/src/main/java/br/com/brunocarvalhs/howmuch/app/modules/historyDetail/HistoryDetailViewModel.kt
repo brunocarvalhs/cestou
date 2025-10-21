@@ -14,12 +14,14 @@ import br.com.brunocarvalhs.howmuch.app.foundation.extensions.DateFormat
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.shareText
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toFormatDate
-import br.com.brunocarvalhs.howmuch.app.foundation.navigation.HistoryDetailRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.HistoryDetailRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -69,41 +71,46 @@ class HistoryDetailViewModel @Inject constructor(
         }
     }
 
-    private fun sharedCart(context: Context, cart: ShoppingCart) {
-        val shareText = StringBuilder().apply {
-            append(context.getString(R.string.history_detail_share_shopping_cart, cart.market))
-            append("\n")
-            append(
-                context.getString(
-                    R.string.history_detail_share_date,
-                    cart.purchaseDate?.toFormatDate(DateFormat.DAY_MONTH_YEAR)
-                )
-            )
-            append("\n")
-            append(
-                context.getString(
-                    R.string.history_detail_share_total,
-                    cart.totalPrice.toCurrencyString()
-                )
-            )
-            append("\n")
-            append(context.getString(R.string.history_detail_share_items))
-            cart.products.forEach { item ->
+    private fun sharedCart(context: Context, cart: ShoppingCart) = viewModelScope.launch {
+        getCartByIdUseCase(args.cartId).onSuccess {
+            val shareText = StringBuilder().apply {
+                append(context.getString(R.string.history_detail_share_shopping_cart, cart.market))
+                append("\n")
                 append(
                     context.getString(
-                        R.string.history_detail_share_item_format,
-                        item.name,
-                        item.quantity,
-                        item.price?.toCurrencyString(),
-                        item.calculateTotal().toCurrencyString()
+                        R.string.history_detail_share_date,
+                        cart.purchaseDate?.toFormatDate(DateFormat.DAY_MONTH_YEAR)
                     )
                 )
+                append("\n")
+                append(
+                    context.getString(
+                        R.string.history_detail_share_total,
+                        cart.totalPrice.toCurrencyString()
+                    )
+                )
+                append("\n")
+                append(context.getString(R.string.history_detail_share_items))
+                cart.products.forEach { item ->
+                    append(
+                        context.getString(
+                            R.string.history_detail_share_item_format,
+                            item.name,
+                            item.quantity,
+                            item.price?.toCurrencyString(),
+                            item.calculateTotal().toCurrencyString()
+                        )
+                    )
+                }
+            }.toString()
+
+            withContext(Dispatchers.Main) {
+                context.shareText(
+                    subject = shareText,
+                    text = context.getString(R.string.history_detail_share_subject, cart.market)
+                )
             }
-        }.toString()
-        context.shareText(
-            subject = shareText,
-            text = context.getString(R.string.history_detail_share_subject, cart.market)
-        )
+        }
     }
 
     private fun deleteCart(cart: ShoppingCart) {

@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.domain.usecases.cart.EnterShoppingCartWithTokenUseCase
-import br.com.brunocarvalhs.howmuch.app.foundation.navigation.TokenBottomSheetRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.TokenBottomSheetRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
