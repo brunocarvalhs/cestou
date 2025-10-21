@@ -1,11 +1,64 @@
 const { danger, message, warn, fail } = require('danger');
 const fs = require('fs');
 
+// Verifica o tamanho dos arquivos
+function checkFileSizes(files, maxSizeKB = 500) {
+  files.forEach(file => {
+    try {
+      // Ignora arquivos que não existem no sistema de arquivos local (por exemplo, submódulos do git)
+      if (!fs.existsSync(file)) return;
+      const stats = fs.statSync(file);
+      const fileSizeInKB = stats.size / 1024;
+      if (fileSizeInKB > maxSizeKB) {
+        warn(`O arquivo ${file} tem ${fileSizeInKB.toFixed(2)}KB, que é maior que o limite de ${maxSizeKB}KB.`);
+      }
+    } catch (error) {
+      // Ignora arquivos que não existem mais (por exemplo, deletados)
+      if (error.code !== 'ENOENT') {
+        fail(`Erro ao verificar o tamanho do arquivo ${file}: ${error.message}`);
+      }
+    }
+  });
+}
+
+// Alerta sobre TODOs no código
+async function checkForTodos(files) {
+  for (const file of files) {
+    const content = await danger.git.diffForFile(file);
+    if (content?.diff) {
+      const addedLines = content.diff.split('\\n').filter(l => l.startsWith('+'));
+      addedLines.forEach(line => {
+        if (line.match(/TODO/i)) {
+          warn(`Encontrado um "TODO" no arquivo ${file}. Considere criar uma issue para isso.`);
+        }
+      });
+    }
+  }
+}
+
+// Verifica strings hardcoded em arquivos de layout XML
+async function checkForHardcodedStrings(files) {
+  const layoutFiles = files.filter(f => f.match(/res\\/layout\\/.*\\.xml$/));
+  for (const file of layoutFiles) {
+    const content = await danger.git.diffForFile(file);
+    if (content?.diff) {
+      const addedLines = content.diff.split('\\n').filter(l => l.startsWith('+'));
+      addedLines.forEach(line => {
+        if (line.includes('android:text="')) {
+          if (!line.includes('@string/') && !line.includes('@={')) {
+            warn(`String hardcoded encontrada em ${file}: ${line.trim()}. Extraia para um resource de string.`);
+          }
+        }
+      });
+    }
+  }
+}
+
 // Lê bibliotecas bloqueadas e depreciadas
 function getLibsFromFile(fileName) {
   try {
     const fileContent = fs.readFileSync(fileName, 'utf-8');
-    return fileContent.split('\n').map(lib => lib.trim()).filter(lib => lib.length > 0);
+    return fileContent.split('\\n').map(lib => lib.trim()).filter(lib => lib.length > 0);
   } catch (error) {
     if (error.code === 'ENOENT') {
       message(`Arquivo ${fileName} não encontrado.`);
@@ -121,9 +174,9 @@ async function checkForBlockedLibs(files) {
   for (const file of gradleFiles) {
     const content = await danger.git.diffForFile(file);
     if (content?.diff) {
-      const addedLines = content.diff.split('\n').filter(l => l.startsWith('+'));
+      const addedLines = content.diff.split('\\n').filter(l => l.startsWith('+'));
       blockedLibs.forEach(lib => {
-        const regex = new RegExp(`\\b${lib.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`);
+        const regex = new RegExp(`\\\\b${lib.replace(/[-\\/\\\\^$*+?.()|[\]{}]/g, '\\\\$&')}\\\\b`);
         if (addedLines.some(line => regex.test(line))) {
           fail(`Biblioteca bloqueada ${lib} adicionada em ${file}.`);
         }
@@ -138,7 +191,7 @@ async function checkForDeprecatedLibs(files) {
   for (const file of gradleFiles) {
     const content = await danger.git.diffForFile(file);
     if (content?.diff) {
-      const addedLines = content.diff.split('\n').filter(l => l.startsWith('+'));
+      const addedLines = content.diff.split('\\n').filter(l => l.startsWith('+'));
       deprecatedLibs.forEach(lib => {
         if (addedLines.some(line => line.includes(lib) || line.includes(lib.split(':')[0]))) {
           message(`Biblioteca depreciada ${lib} adicionada em ${file}.`);
@@ -157,9 +210,11 @@ async function runPRChecks() {
   const modifiedFiles = danger.git.modified_files || [];
   const deletedFiles = danger.git.deleted_files || [];
   const allFiles = [...createdFiles, ...modifiedFiles, ...deletedFiles];
+  const createdAndModifiedFiles = [...createdFiles, ...modifiedFiles];
 
   // Filtra arquivos Android relevantes
   const androidFiles = allFiles.filter(isAndroidFile);
+  const androidCreatedAndModified = createdAndModifiedFiles.filter(isAndroidFile);
 
   const androidChanges = hasAndroidChanges(androidFiles);
 
@@ -168,6 +223,11 @@ async function runPRChecks() {
   checkModifiedFiles(androidFiles);
   await checkForBlockedLibs(androidFiles);
   await checkForDeprecatedLibs(androidFiles);
+
+  // --- Calling new functions for all relevant files ---
+  checkFileSizes(androidCreatedAndModified);
+  await checkForTodos(androidCreatedAndModified);
+  await checkForHardcodedStrings(androidCreatedAndModified);
 
   // Checagens condicionais só se houver impacto no Android
   if (androidChanges) {
