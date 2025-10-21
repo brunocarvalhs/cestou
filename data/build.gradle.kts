@@ -69,4 +69,7 @@ dependencies {
 
     // Gson
     implementation(libs.gson)
+
+    // Google Pay
+    implementation(libs.billing)
 }

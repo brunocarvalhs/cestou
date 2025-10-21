@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,18 +40,18 @@ fun ShoppingCartCardsPager(
     enabledShared: Boolean = true,
     onCheckout: () -> Unit = {},
     onShared: (() -> Unit)? = null,
-    onLimit: (Long) -> Unit = {}
+    onLimit: (Long) -> Unit = {},
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
 ) {
     BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .background(MaterialTheme.colorScheme.primary)
     ) {
         if (maxWidth > TABLET_BREAKPOINT) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp, horizontal = 16.dp)
+                    .padding(vertical = 8.dp)
                     .height(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
