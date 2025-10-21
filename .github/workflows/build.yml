@@ -30,6 +30,8 @@ jobs:
   checkout-and-setup:
     runs-on: ubuntu-24.04
     name: Checkout and Setup Environment
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
