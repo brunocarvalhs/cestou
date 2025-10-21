@@ -93,10 +93,18 @@ jobs:
         env:
           GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
 
-      - name: Comment PR Result
+      - name: Comment PR on Success
+        if: success()
         uses: mb2dev/github-action-comment-pull-request@1.0.0
         with:
-          message: ${{ success() && '✅ Testes unitários passaram!' || '❌ Falha nos testes unitários!' }}
+          message: '✅ Testes unitários passaram!'
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+
+      - name: Comment PR on Failure
+        if: failure()
+        uses: mb2dev/github-action-comment-pull-request@1.0.0
+        with:
+          message: '❌ Falha nos testes unitários!'
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
 
   # ========================
@@ -129,10 +137,18 @@ jobs:
         env:
           GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
 
-      - name: Comment PR Result
+      - name: Comment PR on Success
+        if: success()
         uses: mb2dev/github-action-comment-pull-request@1.0.0
         with:
-          message: ${{ success() && '✅ Lint passou!' || '❌ Falha no Lint!' }}
+          message: '✅ Lint passou!'
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+
+      - name: Comment PR on Failure
+        if: failure()
+        uses: mb2dev/github-action-comment-pull-request@1.0.0
+        with:
+          message: '❌ Falha no Lint!'
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
 
   # ========================
@@ -165,10 +181,18 @@ jobs:
         env:
           GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
 
-      - name: Comment PR Result
+      - name: Comment PR on Success
+        if: success()
         uses: mb2dev/github-action-comment-pull-request@1.0.0
         with:
-          message: ${{ success() && '✅ Detekt passou!' || '❌ Falha no Detekt!' }}
+          message: '✅ Detekt passou!'
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+
+      - name: Comment PR on Failure
+        if: failure()
+        uses: mb2dev/github-action-comment-pull-request@1.0.0
+        with:
+          message: '❌ Falha no Detekt!'
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
 
   # ========================
