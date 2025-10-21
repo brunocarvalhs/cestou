@@ -1,14 +1,16 @@
 const { danger, message } = require('danger');
 const { isAndroidFile, hasAndroidChanges } = require('./rules/utils');
-const { checkPRDescription, checkPRTitle } = require('./rules/pr-checks');
+const { checkPRDescription, checkPRTitle, checkPRSize, checkWIPStatus } = require('./rules/pr-checks');
 const { checkForBlockedLibs, checkForDeprecatedLibs, checkLibsVersionsFile } = require('./rules/dependency-checks');
-const { checkModifiedFiles, checkForUnitTests, checkForComposeFiles, checkAndroidCoreFiles } = require('./rules/file-checks');
+const { checkModifiedFiles, checkForUnitTests, checkForComposeFiles, checkAndroidCoreFiles, checkScreenshotsForUIChanges } = require('./rules/file-checks');
 
 // Executa verificações
 async function runPRChecks() {
   // PR Checks
   checkPRDescription();
   checkPRTitle();
+  checkPRSize();
+  checkWIPStatus();
 
   const createdFiles = danger.git.created_files || [];
   const modifiedFiles = danger.git.modified_files || [];
@@ -35,6 +37,7 @@ async function runPRChecks() {
     );
     checkForComposeFiles(androidFiles);
     checkAndroidCoreFiles(androidFiles);
+    checkScreenshotsForUIChanges(androidFiles);
   } else {
     message("PR não impacta arquivos críticos do Android, warnings de testes e core foram ignorados.");
   }
