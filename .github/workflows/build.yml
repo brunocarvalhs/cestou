@@ -62,7 +62,6 @@ jobs:
     runs-on: ubuntu-24.04
     name: Run Unit Tests
     needs: checkout-and-setup
-    if: "!contains(github.event.head_commit.message, '[auto-version]')"
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
@@ -79,7 +78,6 @@ jobs:
     runs-on: ubuntu-24.04
     name: Run Lint Check
     needs: checkout-and-setup
-    if: "!contains(github.event.head_commit.message, '[auto-version]')"
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
@@ -96,7 +94,6 @@ jobs:
     runs-on: ubuntu-24.04
     name: Run Detekt Check
     needs: checkout-and-setup
-    if: "!contains(github.event.head_commit.message, '[auto-version]')"
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
@@ -115,7 +112,6 @@ jobs:
     runs-on: ubuntu-24.04
     name: Build APK
     needs: [unit-tests, lint-check, detekt-check]
-    if: "!contains(github.event.head_commit.message, '[auto-version]')"
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
@@ -137,31 +133,13 @@ jobs:
   deploy-firebase:
     runs-on: ubuntu-24.04
     name: Deploy to Firebase App Distribution
-    needs: build
-    if: "!contains(github.event.head_commit.message, '[auto-version]')"
+    needs: [ build ]
     steps:
       - name: Download APK Artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-apk-debug
           path: app/build/outputs/apk/release/
-
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Read versionName from build.gradle.kts
-        id: read_version
-        run: |
-          VERSION=$(grep "versionName = " app/build.gradle.kts | sed 's/.*versionName = "\(.*\)"/\1/')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      - name: Prepare release notes
-        run: |
-          CHANGELOG=$(awk '/## \['"$VERSION"'\]/,/## / { if (!/## \[.*\]/) print }' CHANGELOG.md | sed '/^[[:space:]]*$/d')
-          RELEASE_NOTES="Version $VERSION\n$CHANGELOG"
-          echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
-          echo "$RELEASE_NOTES" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
 
       - name: Install Firebase CLI
         run: curl -sL https://firebase.tools | bash
@@ -170,5 +148,5 @@ jobs:
         run: |
           firebase appdistribution:distribute ${{ env.APK_RELEASE_PATH }} \
             --app "${{ env.FIREBASE_APP_ID }}" \
-            --release-notes "$RELEASE_NOTES" \
+            --release-notes "release automatica" \
             --token "${{ env.FIREBASE_AUTH_TOKEN }}"
