@@ -54,7 +54,7 @@ jobs:
       - name: Verify versions
         run: |
           VERSION_GRADLE=$(grep "versionName =" app/build.gradle.kts | head -n 1 | cut -d '"' -f 2)
-          VERSION_CHANGELOG=$(grep -m 1 "## \\[" CHANGELOG.md | sed -n 's/.*\\[\\([^]]*\\)\\].*/\\1/p')
+          VERSION_CHANGELOG=$(awk -F '[][]' '/^## \\[/ {print $2; exit}' CHANGELOG.md)
 
           echo "Version from build.gradle.kts: $VERSION_GRADLE"
           echo "Version from CHANGELOG.md: $VERSION_CHANGELOG"
