@@ -34,8 +34,6 @@ env:
 jobs:
   setup:
     runs-on: ubuntu-24.04
-    outputs:
-      cache-hit: ${{ steps.cache-gradle.outputs.cache-hit }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -67,28 +65,28 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      - name: Upload minimal workspace
+      - name: Upload Workspace
         uses: actions/upload-artifact@v4
         with:
-          name: source
+          name: workspace
           path: |
             gradlew
             build.gradle
             settings.gradle
             app/src
+            app/google-services.json
 
   # ========================
-  # 2️⃣ Jobs de Verificação (Paralelos)
+  # 2️⃣ Jobs de Verificação Paralelos
   # ========================
-
   unit-tests:
     needs: setup
     runs-on: ubuntu-24.04
     steps:
-      - name: Download source
+      - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
-          name: source
+          name: workspace
 
       - name: Restore Gradle Cache
         uses: actions/cache@v3
@@ -97,8 +95,6 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper/
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
 
       - name: Give execution permissions
         run: chmod +x gradlew
@@ -112,10 +108,10 @@ jobs:
     needs: setup
     runs-on: ubuntu-24.04
     steps:
-      - name: Download source
+      - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
-          name: source
+          name: workspace
 
       - name: Restore Gradle Cache
         uses: actions/cache@v3
@@ -124,8 +120,6 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper/
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
 
       - name: Give execution permissions
         run: chmod +x gradlew
@@ -139,10 +133,10 @@ jobs:
     needs: setup
     runs-on: ubuntu-24.04
     steps:
-      - name: Download source
+      - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
-          name: source
+          name: workspace
 
       - name: Restore Gradle Cache
         uses: actions/cache@v3
@@ -151,8 +145,6 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper/
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
 
       - name: Give execution permissions
         run: chmod +x gradlew
@@ -173,10 +165,10 @@ jobs:
       KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
       KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     steps:
-      - name: Download source
+      - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
-          name: source
+          name: workspace
 
       - name: Restore Gradle Cache
         uses: actions/cache@v3
@@ -185,8 +177,6 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper/
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
 
       - name: Give execution permissions
         run: chmod +x gradlew
