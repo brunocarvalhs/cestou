@@ -30,8 +30,6 @@ jobs:
   checkout-and-setup:
     runs-on: ubuntu-24.04
     name: Checkout and Setup Environment
-    permissions:
-      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -53,28 +51,19 @@ jobs:
         run: |
           echo ${{ env.GOOGLE_SERVICE_JSON }} | base64 --decode > app/google-services.json
 
-      - name: Setup Git
+      - name: Verify versions
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          VERSION_GRADLE=$(grep "versionName =" app/build.gradle.kts | head -n 1 | cut -d '"' -f 2)
+          VERSION_CHANGELOG=$(grep -m 1 "## \\[" CHANGELOG.md | sed -n 's/.*\\[\\([^]]*\\)\\].*/\\1/p')
 
-      - name: Run versioning script
-        id: versioning
-        run: |
-          chmod +x .github/scripts/version.sh
-          new_version=$(.github/scripts/version.sh)
-          echo "::set-output name=new_version::$new_version"
+          echo "Version from build.gradle.kts: $VERSION_GRADLE"
+          echo "Version from CHANGELOG.md: $VERSION_CHANGELOG"
 
-      - name: Commit and push changes
-        run: |
-          # Verifica se o script de versionamento produziu uma nova versão
-          if [ -n "${{ steps.versioning.outputs.new_version }}" ]; then
-            git add app/build.gradle.kts CHANGELOG.md
-            git commit -m "chore(release): Prepare release ${{ steps.versioning.outputs.new_version }}"
-            git push
-          else
-            echo "Nenhuma nova versão para commitar."
+          if [ "$VERSION_GRADLE" != "$VERSION_CHANGELOG" ]; then
+            echo "Error: Versions do not match."
+            exit 1
           fi
+          echo "Versions match!"
 
       - name: Cache Gradle
         uses: actions/cache@v3
