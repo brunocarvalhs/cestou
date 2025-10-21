@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.1] - 2025-10-21
+
+* fix: adaptação de version automatico
+
+
 ## [1.2.0] - 2025-10-21
 
 * fix: ajuste de script para diretorio do version.sh
