@@ -37,3 +37,6 @@ data class FinalizePurchaseRoute(
     val cartId: String,
     val price: Long,
 )
+
+@Serializable
+data object SubscriptionGraphRoute

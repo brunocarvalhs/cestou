@@ -7,10 +7,6 @@ import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.domain.entities.ShoppingCart
 import br.com.brunocarvalhs.domain.usecases.history.DeleteCartOfHistoryUseCase
 import br.com.brunocarvalhs.domain.usecases.history.GetHistoryCartUseCase
-import br.com.brunocarvalhs.howmuch.app.foundation.extensions.DateFormat
-import br.com.brunocarvalhs.howmuch.app.foundation.extensions.shareText
-import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
-import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toFormatDate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -71,20 +67,5 @@ class HistoryViewModel @Inject constructor(
                     Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
                 }
         }
-    }
-
-    fun sharedCart(context: Context, cart: ShoppingCart) {
-        val shareText = StringBuilder().apply {
-            append("Shopping Cart: ${cart.market}\n")
-            append("Date: ${cart.purchaseDate?.toFormatDate(DateFormat.DAY_MONTH_YEAR)}\n")
-            append("Total: R$ ${cart.totalPrice.toCurrencyString()}\n")
-            append("\nItems:\n")
-            cart.products.forEach { item ->
-                append("- ${item.name}: ${item.quantity}")
-                append(" x R$ ${item.price?.toCurrencyString()} ")
-                append("= R$ ${(item.quantity * (item.price ?: 0)).toCurrencyString()}\n")
-            }
-        }.toString()
-        context.shareText(shareText, "Shopping Cart from ${cart.market}")
     }
 }

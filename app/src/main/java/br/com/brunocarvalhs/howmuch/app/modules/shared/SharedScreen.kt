@@ -22,58 +22,59 @@ import androidx.navigation.NavController
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SharedCartScreen(
     navController: NavController,
-    viewModel: SharedCartViewModel = hiltViewModel()
-) {
-    ShareCartContent(
-        onIntent = viewModel::onIntent,
-        onDismiss = {
-            navController.popBackStack()
-        },
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ShareCartContent(
-    onDismiss: () -> Unit,
-    onIntent: (SharedCartUiIntent) -> Unit = {},
+    viewModel: SharedCartViewModel = hiltViewModel(),
+    isPremium: Boolean = false
 ) {
     ModalBottomSheet(
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
-        onDismissRequest = { onDismiss() },
+        onDismissRequest = { navController.popBackStack() },
     ) {
-        Column(
+        ShareCartContent(
+            onIntent = viewModel::onIntent,
+            isPremium = isPremium
+        )
+    }
+}
+
+@Composable
+private fun ShareCartContent(
+    onIntent: (SharedCartUiIntent) -> Unit = {},
+    isPremium: Boolean = false
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.share_cart),
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+        ListItem(
+            headlineContent = { Text(stringResource(R.string.share_shopping_list)) },
+            leadingContent = {
+                Icon(
+                    painterResource(R.drawable.ic_format_list_bulleted),
+                    contentDescription = stringResource(R.string.share_shopping_list)
+                )
+            },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.share_cart),
-                style = MaterialTheme.typography.titleMedium
-            )
+                .clickable {
+                    onIntent(SharedCartUiIntent.SharedList)
+                }
+        )
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.share_shopping_list)) },
-                leadingContent = {
-                    Icon(
-                        painterResource(R.drawable.ic_format_list_bulleted),
-                        contentDescription = stringResource(R.string.share_shopping_list)
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        onIntent(SharedCartUiIntent.SharedList)
-                    }
-            )
-
+        if (isPremium) {
             ListItem(
                 headlineContent = { Text(stringResource(R.string.share_token)) },
                 leadingContent = {
@@ -87,9 +88,6 @@ private fun ShareCartContent(
                     .clickable {
                         onIntent(SharedCartUiIntent.SharedToken)
                     },
-                supportingContent = {
-                    Text(text = stringResource(R.string.token, ""))
-                }
             )
         }
     }
@@ -99,7 +97,7 @@ private fun ShareCartContent(
 @DevicesPreview
 private fun SharedContentPreview() {
     ShareCartContent(
-        onDismiss = {},
-        onIntent = {}
+        onIntent = {},
+        isPremium = true
     )
 }
