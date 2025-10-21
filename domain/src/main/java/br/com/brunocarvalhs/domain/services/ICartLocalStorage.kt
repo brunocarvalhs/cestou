@@ -14,4 +14,6 @@ interface ICartLocalStorage {
     suspend fun getCartLimit(): Long
 
     suspend fun saveCartLimit(limit: Long)
+
+    suspend fun getCartById(id: String): ShoppingCart?
 }

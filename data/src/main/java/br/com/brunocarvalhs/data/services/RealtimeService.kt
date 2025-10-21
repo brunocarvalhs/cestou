@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.data.services
 
+import br.com.brunocarvalhs.domain.services.Database
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -15,22 +16,22 @@ class RealtimeService(
         "https://how-much-2a72e-default-rtdb.asia-southeast1.firebasedatabase.app/"
     ),
     val reference: DatabaseReference = database.reference
-) {
+) : Database {
 
-    suspend fun <T> setValue(path: String, value: T) {
+    override suspend fun <T> setValue(path: String, value: T) {
         reference.child(path).setValue(value).await()
     }
 
-    suspend fun removeValue(path: String) {
+    override suspend fun removeValue(path: String) {
         reference.child(path).removeValue().await()
     }
 
-    suspend fun <T> getValue(path: String, clazz: Class<T>): T? {
+    override suspend fun <T> getValue(path: String, clazz: Class<T>): T? {
         val snapshot = reference.child(path).get().await()
         return snapshot.getValue(clazz)
     }
 
-    suspend fun <T> queryByChild(path: String, child: String, value: String, clazz: Class<T>): T? {
+    override suspend fun <T> queryByChild(path: String, child: String, value: String, clazz: Class<T>): T? {
         val snapshot = reference.child(path)
             .orderByChild(child)
             .equalTo(value)
@@ -39,7 +40,7 @@ class RealtimeService(
         return snapshot.children.firstOrNull()?.getValue(clazz)
     }
 
-    fun <T> observe(path: String, clazz: Class<T>): Flow<T> = callbackFlow {
+    override fun <T> observe(path: String, clazz: Class<T>): Flow<T> = callbackFlow {
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 snapshot.getValue(clazz)?.let { trySend(it).isSuccess }

@@ -1,3 +1,4 @@
+//noinspection UsingMaterialAndMaterial3Libraries
 package br.com.brunocarvalhs.howmuch
 
 import android.os.Bundle
@@ -9,10 +10,13 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material.navigation.rememberBottomSheetNavigator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
+import br.com.brunocarvalhs.domain.services.SubscriptionService
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvent
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsParam
@@ -23,9 +27,14 @@ import br.com.brunocarvalhs.howmuch.app.foundation.extensions.setStatusBarIconCo
 import br.com.brunocarvalhs.howmuch.app.foundation.theme.HowMuchTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var subscriptionService: SubscriptionService
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         enableEdgeToEdge()
@@ -33,6 +42,13 @@ class MainActivity : ComponentActivity() {
         statusBarColor()
         trackLifecycleEvent("onCreate")
         setContent {
+            val isPremium by produceState(initialValue = false, producer = {
+                value = if (BuildConfig.DEBUG) {
+                    true
+                } else {
+                    subscriptionService.isUserPremium()
+                }
+            })
             val bottomSheetNavigator = rememberBottomSheetNavigator()
             val navController = rememberNavController(bottomSheetNavigator)
             navController.trackNavigation()
@@ -45,7 +61,8 @@ class MainActivity : ComponentActivity() {
                 ) {
                     MainApp(
                         navController = navController,
-                        bottomSheetNavigator = bottomSheetNavigator
+                        bottomSheetNavigator = bottomSheetNavigator,
+                        isPremium = isPremium,
                     )
                 }
             }

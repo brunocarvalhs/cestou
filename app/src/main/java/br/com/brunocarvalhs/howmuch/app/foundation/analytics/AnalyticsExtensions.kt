@@ -37,7 +37,7 @@ fun Activity.firstOpen() {
 
 fun NavController.trackNavigation() {
     addOnDestinationChangedListener { _, destination, _ ->
-        AnalyticsEvents.trackScreen(destination.route ?: "Unknown")
+        AnalyticsEvents.trackScreen(destination.route.toString())
     }
 }
 
