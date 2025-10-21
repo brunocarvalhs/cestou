@@ -1,25 +1,27 @@
-name: Android Tests
+name: Android PR Tests
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
 
 env:
-  # 🔧 Configuração do ambiente
-  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
   JDK_VERSION: 17
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
+  GRADLE_OPTS: "-Dorg.gradle.daemon=true -Dorg.gradle.parallel=true -Dorg.gradle.configureondemand=true -Xmx3072m"
   BUILD_TOOLS_VERSION: "34.0.0"
   APP_NAME: "HowMuch"
+  ANDROID_MODULE: "app"
 
-  # 🔑 Secrets
   GITHUB_TOKEN: ${{ secrets.TOKEN }}
   GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
+# ========================
+# Setup inicial
+# ========================
 jobs:
-  checkout-and-setup:
+  setup:
     runs-on: ubuntu-24.04
-    name: Checkout and Setup Environment
+    outputs:
+      cache-key: ${{ steps.cache-gradle.outputs.cache-hit }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -34,70 +36,92 @@ jobs:
         uses: android-actions/setup-android@v2
 
       - name: Create local.properties
-        run: |
-          echo "sdk.dir=${{ env.ANDROID_HOME }}" > local.properties
+        run: echo "sdk.dir=${{ env.ANDROID_HOME }}" > local.properties
 
       - name: Create google-services.json
-        run: |
-          echo ${{ env.GOOGLE_SERVICE_JSON }} | base64 --decode > app/google-services.json
+        run: echo ${{ env.GOOGLE_SERVICE_JSON }} | base64 --decode > ${{ env.ANDROID_MODULE }}/google-services.json
 
       - name: Cache Gradle
+        id: cache-gradle
         uses: actions/cache@v3
         with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper/
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-
+            gradle-${{ runner.os }}-
 
-      - name: Upload Workspace
+      - name: Give execution permissions to gradlew
+        run: chmod +x gradlew
+
+      - name: Upload minimal source
         uses: actions/upload-artifact@v4
         with:
-          name: workspace
-          path: ./
+          name: source
+          path: |
+            gradlew
+            build.gradle
+            settings.gradle
+            app/src
 
+  # ========================
+  # Unit Tests
+  # ========================
   unit-tests:
+    needs: setup
     runs-on: ubuntu-24.04
-    name: Run Unit Tests
-    needs: checkout-and-setup
     steps:
-      - name: Download Workspace
+      - name: Download source
         uses: actions/download-artifact@v4
         with:
-          name: workspace
+          name: source
+
+      - name: Restore Gradle Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper/
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
 
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
       - name: Run Unit Tests
-        run: ./gradlew testDebug
+        run: ./gradlew testDebug --build-cache
         env:
           GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
 
-      - name: Comment Failure
-        if: ${{ failure() }}
+      - name: Comment PR Result
         uses: mb2dev/github-action-comment-pull-request@1.0.0
         with:
-          message: "❌ Ops, encontrado falhas nos testes unitários, por favor corrija."
+          message: ${{ success() && '✅ Testes unitários passaram!' || '❌ Falha nos testes unitários!' }}
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-          reactions: "-1 | confused"
 
-      - name: Comment Success
-        if: ${{ success() }}
-        uses: mb2dev/github-action-comment-pull-request@1.0.0
-        with:
-          message: "✅ Todos os testes unitários passaram com sucesso! Bom trabalho."
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-          reactions: "+1"
-
-  lint-check:
+  # ========================
+  # Lint Check
+  # ========================
+  lint:
+    needs: setup
     runs-on: ubuntu-24.04
-    name: Run Lint Check
-    needs: checkout-and-setup
     steps:
-      - name: Download Workspace
+      - name: Download source
         uses: actions/download-artifact@v4
         with:
-          name: workspace
+          name: source
+
+      - name: Restore Gradle Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper/
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
 
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
@@ -107,31 +131,33 @@ jobs:
         env:
           GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
 
-      - name: Comment Failure
-        if: ${{ failure() }}
+      - name: Comment PR Result
         uses: mb2dev/github-action-comment-pull-request@1.0.0
         with:
-          message: "❌ Ops, encontrado falhas no lint, por favor corrija."
+          message: ${{ success() && '✅ Lint passou!' || '❌ Falha no Lint!' }}
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-          reactions: "-1 | confused"
 
-      - name: Comment Success
-        if: ${{ success() }}
-        uses: mb2dev/github-action-comment-pull-request@1.0.0
-        with:
-          message: "✅ Todos os lints passaram com sucesso! Bom trabalho."
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-          reactions: "+1"
-
-  detekt-check:
+  # ========================
+  # Detekt Check
+  # ========================
+  detekt:
+    needs: setup
     runs-on: ubuntu-24.04
-    name: Run Detekt Check
-    needs: checkout-and-setup
     steps:
-      - name: Download Workspace
+      - name: Download source
         uses: actions/download-artifact@v4
         with:
-          name: workspace
+          name: source
+
+      - name: Restore Gradle Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper/
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
 
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
@@ -141,40 +167,42 @@ jobs:
         env:
           GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
 
-      - name: Comment Failure
-        if: ${{ failure() }}
+      - name: Comment PR Result
         uses: mb2dev/github-action-comment-pull-request@1.0.0
         with:
-          message: "❌ Ops, encontrado falhas no detekt, por favor corrija."
+          message: ${{ success() && '✅ Detekt passou!' || '❌ Falha no Detekt!' }}
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-          reactions: "-1 | confused"
 
-      - name: Comment Success
-        if: ${{ success() }}
-        uses: mb2dev/github-action-comment-pull-request@1.0.0
-        with:
-          message: "✅ Todos os detekts passaram com sucesso! Bom trabalho."
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-          reactions: "+1"
-
+  # ========================
+  # Build APK (opcional para PR)
+  # ========================
   build:
+    needs: [unit-tests, lint, detekt]
     runs-on: ubuntu-24.04
-    name: Build
-    needs: [unit-tests, lint-check, detekt-check]
     steps:
-      - name: Download Workspace
+      - name: Download source
         uses: actions/download-artifact@v4
         with:
-          name: workspace
+          name: source
+
+      - name: Restore Gradle Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper/
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
 
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
       - name: Build APK Debug
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --build-cache
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-apk-debug
-          path: app/build/outputs/apk/debug/*.apk
+          path: ${{ env.ANDROID_MODULE }}/build/outputs/apk/debug/*.apk

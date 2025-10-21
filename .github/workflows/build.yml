@@ -1,34 +1,28 @@
 name: Android CI/CD Pipeline
 
-# Dispara em push para develop ou PR
 on:
   push:
     branches: [develop]
-  pull_request:
-    branches: [develop]
 
-# Variáveis de ambiente globais
 env:
   JDK_VERSION: 17
   GRADLE_OPTS: "-Dorg.gradle.daemon=true -Dorg.gradle.parallel=true -Dorg.gradle.configureondemand=true -Xmx3072m"
   ANDROID_LOCAL_PROPERTIES: local.properties
   BUILD_TOOLS_VERSION: "34.0.0"
 
-  # Projeto (parametrize por projeto)
   APP_NAME: "HowMuch"
   ANDROID_MODULE: "app"
   APK_DEBUG_PATH: app/build/outputs/apk/debug/*.apk
   APK_RELEASE_PATH: app/build/outputs/apk/release/*.apk
 
-  # Secrets (genéricos para qualquer projeto)
   GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
   FIREBASE_AUTH_TOKEN: ${{ secrets.FIREBASE_AUTH_TOKEN }}
   FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
 
+# ========================
+# Setup inicial
+# ========================
 jobs:
-  # ========================
-  # Setup e checkout
-  # ========================
   setup:
     runs-on: ubuntu-24.04
     outputs:
@@ -67,14 +61,11 @@ jobs:
         run: chmod +x gradlew
 
   # ========================
-  # Jobs de verificação (paralelos)
+  # Unit Tests
   # ========================
-  tests:
+  unit-tests:
     needs: setup
     runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        task: [unit-test, lint, detekt]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -92,15 +83,64 @@ jobs:
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
-      - name: Run task
-        run: |
-          if [ "${{ matrix.task }}" == "unit-test" ]; then
-            ./gradlew testDebug --build-cache
-          elif [ "${{ matrix.task }}" == "lint" ]; then
-            ./gradlew lintDebug
-          elif [ "${{ matrix.task }}" == "detekt" ]; then
-            ./gradlew detekt
-          fi
+      - name: Run Unit Tests
+        run: ./gradlew testDebug --build-cache
+        env:
+          GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
+
+  # ========================
+  # Lint Check
+  # ========================
+  lint:
+    needs: setup
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Restore Gradle Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper/
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Give execution permissions to gradlew
+        run: chmod +x gradlew
+
+      - name: Run Lint
+        run: ./gradlew lintDebug
+        env:
+          GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
+
+  # ========================
+  # Detekt Check
+  # ========================
+  detekt:
+    needs: setup
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Restore Gradle Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper/
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Give execution permissions to gradlew
+        run: chmod +x gradlew
+
+      - name: Run Detekt
+        run: ./gradlew detekt
         env:
           GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
 
@@ -108,7 +148,7 @@ jobs:
   # Build APK
   # ========================
   build:
-    needs: tests
+    needs: [unit-tests, lint, detekt]
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
@@ -137,7 +177,7 @@ jobs:
           path: ${{ env.APK_DEBUG_PATH }}
 
   # ========================
-  # Deploy para Firebase
+  # Deploy Firebase
   # ========================
   deploy:
     needs: build
