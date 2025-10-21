@@ -73,6 +73,24 @@ data class ShoppingCartModel(
         return ShoppingCartModel(id = id, token = token, items = productModels)
     }
 
+    override fun cloneCart(): ShoppingCart {
+        return this.copy(
+            id = UUID.randomUUID().toString(),
+            token = randomToken(),
+            items = products.map {
+                it.toProductModel().copy(
+                    id = UUID.randomUUID().toString(),
+                    quantity = it.quantity,
+                    price = null,
+                    isChecked = false
+                )
+            }.toMutableList(),
+            totalPrice = EMPTY_LONG,
+            purchaseDate = null,
+            market = EMPTY_STRING
+        )
+    }
+
     override fun recalculateTotal(): Long {
         return products.sumOf { it.calculateTotal() }
     }
