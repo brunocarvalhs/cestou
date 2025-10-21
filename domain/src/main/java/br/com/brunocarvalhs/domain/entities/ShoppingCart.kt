@@ -24,6 +24,8 @@ interface ShoppingCart {
         products: MutableList<Product> = this.products,
     ): ShoppingCart
 
+    fun cloneCart(): ShoppingCart
+
     fun recalculateTotal(): Long
 
     companion object {
