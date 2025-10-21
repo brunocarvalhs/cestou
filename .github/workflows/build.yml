@@ -1,35 +1,38 @@
-name: Build Application Debug
+name: Android CI/CD Pipeline
 
+# Dispara em push para develop ou PR
 on:
   push:
-    branches: [ develop ]
+    branches: [develop]
+  pull_request:
+    branches: [develop]
 
+# Variáveis de ambiente globais
 env:
-  # Configurações Gerais
-  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
   JDK_VERSION: 17
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
-
-  # Android
-  BUILD_TOOLS_VERSION: "34.0.0"
+  GRADLE_OPTS: "-Dorg.gradle.daemon=true -Dorg.gradle.parallel=true -Dorg.gradle.configureondemand=true -Xmx3072m"
   ANDROID_LOCAL_PROPERTIES: local.properties
+  BUILD_TOOLS_VERSION: "34.0.0"
 
-  # Projeto
+  # Projeto (parametrize por projeto)
   APP_NAME: "HowMuch"
-
-  # Caminhos
+  ANDROID_MODULE: "app"
   APK_DEBUG_PATH: app/build/outputs/apk/debug/*.apk
   APK_RELEASE_PATH: app/build/outputs/apk/release/*.apk
 
-  # 🔑 Secrets (configurados no repo)
+  # Secrets (genéricos para qualquer projeto)
   GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
   FIREBASE_AUTH_TOKEN: ${{ secrets.FIREBASE_AUTH_TOKEN }}
   FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
 
 jobs:
-  checkout-and-setup:
+  # ========================
+  # Setup e checkout
+  # ========================
+  setup:
     runs-on: ubuntu-24.04
-    name: Checkout and Setup Environment
+    outputs:
+      cache-key: ${{ steps.cache-gradle.outputs.cache-hit }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -44,92 +47,88 @@ jobs:
         uses: android-actions/setup-android@v2
 
       - name: Create local.properties
-        run: |
-          echo "sdk.dir=${{ env.ANDROID_HOME }}" > ${{ env.ANDROID_LOCAL_PROPERTIES }}
+        run: echo "sdk.dir=${{ env.ANDROID_HOME }}" > ${{ env.ANDROID_LOCAL_PROPERTIES }}
 
       - name: Create google-services.json
-        run: |
-          echo ${{ env.GOOGLE_SERVICE_JSON }} | base64 --decode > app/google-services.json
+        run: echo ${{ env.GOOGLE_SERVICE_JSON }} | base64 --decode > ${{ env.ANDROID_MODULE }}/google-services.json
 
       - name: Cache Gradle
+        id: cache-gradle
         uses: actions/cache@v3
         with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper/
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Upload Workspace
-        uses: actions/upload-artifact@v4
-        with:
-          name: workspace
-          path: ./
-
-  unit-tests:
-    runs-on: ubuntu-24.04
-    name: Run Unit Tests
-    needs: checkout-and-setup
-    steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
-        with:
-          name: workspace
+            gradle-${{ runner.os }}-
 
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
-      - name: Run Unit Tests
-        run: ./gradlew testDebug
-
-  lint-check:
+  # ========================
+  # Jobs de verificação (paralelos)
+  # ========================
+  tests:
+    needs: setup
     runs-on: ubuntu-24.04
-    name: Run Lint Check
-    needs: checkout-and-setup
+    strategy:
+      matrix:
+        task: [unit-test, lint, detekt]
     steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Restore Gradle Cache
+        uses: actions/cache@v3
         with:
-          name: workspace
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper/
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
 
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
-      - name: Run Lint
-        run: ./gradlew lintDebug
-
-  detekt-check:
-    runs-on: ubuntu-24.04
-    name: Run Detekt Check
-    needs: checkout-and-setup
-    steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
-        with:
-          name: workspace
-
-      - name: Give execution permissions to gradlew
-        run: chmod +x gradlew
-
-      - name: Run Detekt
-        run: ./gradlew detekt
+      - name: Run task
+        run: |
+          if [ "${{ matrix.task }}" == "unit-test" ]; then
+            ./gradlew testDebug --build-cache
+          elif [ "${{ matrix.task }}" == "lint" ]; then
+            ./gradlew lintDebug
+          elif [ "${{ matrix.task }}" == "detekt" ]; then
+            ./gradlew detekt
+          fi
         env:
           GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
 
+  # ========================
+  # Build APK
+  # ========================
   build:
+    needs: tests
     runs-on: ubuntu-24.04
-    name: Build
-    needs: [unit-tests, lint-check, detekt-check]
     steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Restore Gradle Cache
+        uses: actions/cache@v3
         with:
-          name: workspace
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper/
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
 
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
       - name: Build APK Debug
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --build-cache
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
@@ -137,23 +136,25 @@ jobs:
           name: ${{ env.APP_NAME }}-apk-debug
           path: ${{ env.APK_DEBUG_PATH }}
 
-  deploy-firebase:
+  # ========================
+  # Deploy para Firebase
+  # ========================
+  deploy:
+    needs: build
     runs-on: ubuntu-24.04
-    name: Deploy to Firebase App Distribution
-    needs: [build]
     steps:
       - name: Download APK Artifact
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-apk-debug
-          path: app/build/outputs/apk/release/
+          path: ${{ env.ANDROID_MODULE }}/build/outputs/apk/debug/
 
       - name: Install Firebase CLI
         run: curl -sL https://firebase.tools | bash
 
-      - name: Upload APK to Firebase App Distribution
+      - name: Deploy to Firebase App Distribution
         run: |
-          firebase appdistribution:distribute ${{ env.APK_RELEASE_PATH }} \
+          firebase appdistribution:distribute ${{ env.APK_DEBUG_PATH }} \
             --app "${{ env.FIREBASE_APP_ID }}" \
-            --release-notes "release automatica" \
+            --release-notes "Automated release" \
             --token "${{ env.FIREBASE_AUTH_TOKEN }}"
