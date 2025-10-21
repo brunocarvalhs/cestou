@@ -19,14 +19,14 @@ env:
   FIREBASE_AUTH_TOKEN: ${{ secrets.FIREBASE_AUTH_TOKEN }}
   FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
 
-# ========================
-# Setup inicial
-# ========================
 jobs:
+  # ========================
+  # Setup inicial + workspace
+  # ========================
   setup:
     runs-on: ubuntu-24.04
     outputs:
-      cache-key: ${{ steps.cache-gradle.outputs.cache-hit }}
+      workspace-artifact: workspace
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -60,6 +60,12 @@ jobs:
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
+      - name: Upload Workspace
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace
+          path: .
+
   # ========================
   # Unit Tests
   # ========================
@@ -67,18 +73,10 @@ jobs:
     needs: setup
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Restore Gradle Cache
-        uses: actions/cache@v3
+      - name: Download Workspace
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper/
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
+          name: workspace
 
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
@@ -95,18 +93,10 @@ jobs:
     needs: setup
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Restore Gradle Cache
-        uses: actions/cache@v3
+      - name: Download Workspace
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper/
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
+          name: workspace
 
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
@@ -123,18 +113,10 @@ jobs:
     needs: setup
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Restore Gradle Cache
-        uses: actions/cache@v3
+      - name: Download Workspace
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper/
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
+          name: workspace
 
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
@@ -151,18 +133,10 @@ jobs:
     needs: [unit-tests, lint, detekt]
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Restore Gradle Cache
-        uses: actions/cache@v3
+      - name: Download Workspace
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper/
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
+          name: workspace
 
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
