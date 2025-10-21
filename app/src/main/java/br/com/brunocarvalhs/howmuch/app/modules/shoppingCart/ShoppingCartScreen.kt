@@ -60,11 +60,11 @@ import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackClick
 import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.ZERO_INT
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toCurrencyString
-import br.com.brunocarvalhs.howmuch.app.foundation.navigation.EditProductRoute
-import br.com.brunocarvalhs.howmuch.app.foundation.navigation.FinalizePurchaseRoute
-import br.com.brunocarvalhs.howmuch.app.foundation.navigation.ProductGraphRoute
-import br.com.brunocarvalhs.howmuch.app.foundation.navigation.SharedCartBottomSheetRoute
-import br.com.brunocarvalhs.howmuch.app.foundation.navigation.TokenBottomSheetRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.EditProductRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.FinalizePurchaseRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.ProductGraphRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.SharedCartBottomSheetRoute
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.TokenBottomSheetRoute
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartCardsPager
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.components.ShoppingCartItem
 import br.com.brunocarvalhs.howmuch.app.modules.shoppingCart.helpers.TypeShopping
