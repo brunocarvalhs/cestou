@@ -1,0 +1,10 @@
+appId: br.com.brunocarvalhs.howmuch
+---
+- launchApp
+- assertVisible: "Cart summary"
+- tapOn:
+    id: "share_cart"
+- assertVisible: "Share cart"
+- assertVisible: "Share shopping list"
+- assertVisible: "Share token"
+- back

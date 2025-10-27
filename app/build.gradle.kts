@@ -9,6 +9,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("io.gitlab.arturbosch.detekt")
     kotlin("plugin.serialization") version "2.1.20"
+    alias(libs.plugins.baselineprofile)
 }
 
 android {
@@ -19,8 +20,8 @@ android {
         applicationId = "br.com.brunocarvalhs.howmuch"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.1.1"
+        versionCode = 7
+        versionName = "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -88,6 +89,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.metrics.performance)
+    implementation(libs.androidx.profileinstaller)
 
     // Tests
     testImplementation(libs.junit)
@@ -99,6 +101,7 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    "baselineProfile"(project(":baselineprofile"))
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
@@ -107,8 +110,11 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.compose.material.navigation)
     implementation(libs.material3)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.compose.material3.window.size)
 
     // AppStartUp
     implementation(libs.androidx.startup.runtime)

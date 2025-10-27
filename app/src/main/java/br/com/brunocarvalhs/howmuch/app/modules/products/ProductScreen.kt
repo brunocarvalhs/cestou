@@ -3,7 +3,6 @@ package br.com.brunocarvalhs.howmuch.app.modules.products
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -12,9 +11,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,7 +30,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvent
@@ -53,42 +49,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun ProductFormScreen(
     shoppingCartId: String?,
-    navController: NavController,
-    viewModel: ProductViewModel = hiltViewModel()
-) {
-    val context = LocalContext.current
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val uiEffect by viewModel.uiEffect.collectAsState(initial = null)
-
-    LaunchedEffect(shoppingCartId) {
-        viewModel.onIntent(ProductUiIntent.LoadShoppingCart(shoppingCartId))
-    }
-
-    LaunchedEffect(uiEffect) {
-        uiEffect?.let { effect ->
-            when (effect) {
-                is ProductUiEffect.ShowError -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                }
-
-                is ProductUiEffect.ProductAdded -> {
-                    navController.popBackStack()
-                }
-            }
-        }
-    }
-
-    ProductContent(
-        onIntent = viewModel::onIntent
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ProductFormBottomSheet(
-    shoppingCartId: String?,
     isProductListed: Boolean = false,
-    onDismiss: () -> Unit,
+    navController: NavController,
     viewModel: ProductViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -97,8 +59,7 @@ fun ProductFormBottomSheet(
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    LaunchedEffect(shoppingCartId) {
-        viewModel.onIntent(ProductUiIntent.LoadShoppingCart(shoppingCartId))
+    LaunchedEffect(Unit) {
         trackEvent(
             AnalyticsEvent.SCREEN_VIEW,
             mapOf(
@@ -118,7 +79,7 @@ fun ProductFormBottomSheet(
                 is ProductUiEffect.ProductAdded -> {
                     scope.launch {
                         sheetState.hide()
-                        onDismiss()
+                        navController.popBackStack()
                     }
                 }
             }
@@ -130,7 +91,7 @@ fun ProductFormBottomSheet(
         contentColor = MaterialTheme.colorScheme.onSurface,
         sheetState = sheetState,
         onDismissRequest = {
-            onDismiss()
+            navController.popBackStack()
             trackClick(
                 viewId = "product_sheet_dismiss",
                 viewName = "Dismiss Product Sheet",
@@ -162,95 +123,86 @@ private fun ProductContent(
         nameFocusRequester.requestFocus()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.register_product)) })
-        },
-        bottomBar = {
-            Button(
-                onClick = {
-                    onIntent(
-                        if (isProductListed) {
-                            ProductUiIntent.AddProductToList(
-                                name = name,
-                                quantity = quantity
-                            )
-                        } else {
-                            ProductUiIntent.AddProductToCart(
-                                name = name,
-                                price = price,
-                                quantity = quantity
-                            )
-                        }
-                    )
-                    name = EMPTY_STRING
-                    price = EMPTY_LONG
-                    quantity = ONE_INT
-                    nameFocusRequester.requestFocus()
-                    trackClick(
-                        viewId = "btn_add_product",
-                        viewName = "Submit Product",
-                        screenName = "ProductFormBottomSheet"
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text(stringResource(R.string.add_product))
-            }
-        }
-    ) { padding ->
-        Column(
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 20.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        ProductNameInput(
+            name = name,
+            onNameChange = { newName ->
+                name = newName
+                trackClick(
+                    viewId = "input_product_name",
+                    viewName = "Product Name Changed",
+                    screenName = "ProductFormBottomSheet"
+                )
+            },
             modifier = Modifier
-                .padding(padding)
-                .padding(horizontal = 16.dp, vertical = 20.dp)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            ProductNameInput(
-                name = name,
-                onNameChange = { newName ->
-                    name = newName
+                .fillMaxWidth()
+                .focusRequester(nameFocusRequester)
+        )
+        if (!isProductListed) {
+            PriceInput(
+                price = price,
+                onPriceChange = { newPrice ->
+                    price = newPrice
                     trackClick(
-                        viewId = "input_product_name",
-                        viewName = "Product Name Changed",
+                        viewId = "input_product_price",
+                        viewName = "Product Price Changed",
                         screenName = "ProductFormBottomSheet"
                     )
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .focusRequester(nameFocusRequester)
+                    .focusRequester(priceFocusRequester)
             )
-            if (!isProductListed) {
-                PriceInput(
-                    price = price,
-                    onPriceChange = { newPrice ->
-                        price = newPrice
-                        trackClick(
-                            viewId = "input_product_price",
-                            viewName = "Product Price Changed",
-                            screenName = "ProductFormBottomSheet"
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(priceFocusRequester)
+        }
+        QuantitySelector(
+            quantity = quantity,
+            modifier = Modifier.fillMaxWidth(),
+            onQuantityChange = { newQuantity ->
+                quantity = newQuantity
+                trackClick(
+                    viewId = "input_product_quantity",
+                    viewName = "Product Quantity Changed",
+                    screenName = "ProductFormBottomSheet"
                 )
             }
-            QuantitySelector(
-                quantity = quantity,
-                modifier = Modifier.fillMaxWidth(),
-                onQuantityChange = { newQuantity ->
-                    quantity = newQuantity
-                    trackClick(
-                        viewId = "input_product_quantity",
-                        viewName = "Product Quantity Changed",
-                        screenName = "ProductFormBottomSheet"
-                    )
-                }
-            )
+        )
+
+        Button(
+            onClick = {
+                onIntent(
+                    if (isProductListed) {
+                        ProductUiIntent.AddProductToList(
+                            name = name,
+                            quantity = quantity
+                        )
+                    } else {
+                        ProductUiIntent.AddProductToCart(
+                            name = name,
+                            price = price,
+                            quantity = quantity
+                        )
+                    }
+                )
+                name = EMPTY_STRING
+                price = EMPTY_LONG
+                quantity = ONE_INT
+                nameFocusRequester.requestFocus()
+                trackClick(
+                    viewId = "btn_add_product",
+                    viewName = "Submit Product",
+                    screenName = "ProductFormBottomSheet"
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(stringResource(R.string.add_product))
         }
     }
 }

@@ -1,7 +1,5 @@
 package br.com.brunocarvalhs.howmuch.app.modules.history
 
-import android.app.Activity
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,7 +12,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import br.com.brunocarvalhs.domain.entities.ShoppingCart
 import br.com.brunocarvalhs.howmuch.R
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackClick
@@ -32,8 +30,8 @@ import br.com.brunocarvalhs.howmuch.app.foundation.annotations.DevicesPreview
 import br.com.brunocarvalhs.howmuch.app.foundation.constants.TIPS
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.DateFormat
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.isWithinLastDays
-import br.com.brunocarvalhs.howmuch.app.foundation.extensions.setStatusBarIconColor
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.toFormatDate
+import br.com.brunocarvalhs.howmuch.app.foundation.navigation.routes.HistoryDetailRoute
 import br.com.brunocarvalhs.howmuch.app.modules.history.components.HistoryFilter
 import br.com.brunocarvalhs.howmuch.app.modules.history.components.HistoryFilterType
 import br.com.brunocarvalhs.howmuch.app.modules.history.components.HistoryItem
@@ -45,32 +43,21 @@ import java.util.Locale
 
 @Composable
 fun HistoryScreen(
+    navController: NavController,
     viewModel: HistoryViewModel
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val uiEffect by viewModel.uiEffect.collectAsState(initial = null)
 
     LaunchedEffect(Unit) {
-        (context as Activity).window.setStatusBarIconColor(false)
         viewModel.onIntent(HistoryUiIntent.Retry)
-    }
-
-    LaunchedEffect(uiEffect) {
-        uiEffect?.let { effect ->
-            when (effect) {
-                is HistoryUiEffect.ShowError -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
     }
 
     HistoryContent(
         uiState = uiState,
         onIntent = viewModel::onIntent,
-        onShared = { cart ->
-            viewModel.sharedCart(context, cart)
+        onSelect = { cart ->
+            navController.navigate(HistoryDetailRoute(cart.id))
             trackClick(
                 viewId = "history_item_shared",
                 viewName = "History Item Shared",
@@ -84,7 +71,7 @@ fun HistoryScreen(
 fun HistoryContent(
     uiState: HistoryUiState = HistoryUiState(),
     onIntent: (HistoryUiIntent) -> Unit = {},
-    onShared: (ShoppingCart) -> Unit = {}
+    onSelect: (ShoppingCart) -> Unit = {}
 ) {
     var selectedFilter by rememberSaveable { mutableStateOf(HistoryFilterType.ALL) }
     var selectionMode by rememberSaveable { mutableStateOf(false) }
@@ -138,7 +125,7 @@ fun HistoryContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(top = paddingValues.calculateTopPadding()),
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -173,7 +160,9 @@ fun HistoryContent(
                                 if (checked) selectedItems + item else selectedItems - item
                         },
                         onClick = {
-                            if (!selectionMode) onShared(item)
+                            if (!selectionMode) {
+                                onSelect.invoke(item)
+                            }
                         }
                     )
                 }

@@ -14,4 +14,6 @@ interface Product {
         quantity: Int = this.quantity,
         isChecked: Boolean = this.isChecked
     ): Product
+
+    fun calculateTotal(): Long
 }

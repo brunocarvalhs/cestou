@@ -1,3 +1,4 @@
+//noinspection UsingMaterialAndMaterial3Libraries
 package br.com.brunocarvalhs.howmuch
 
 import android.os.Bundle
@@ -6,31 +7,50 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.material.navigation.rememberBottomSheetNavigator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
+import br.com.brunocarvalhs.domain.services.SubscriptionService
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvent
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsParam
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.firstOpen
 import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackNavigation
 import br.com.brunocarvalhs.howmuch.app.foundation.extensions.isFirstAppOpen
+import br.com.brunocarvalhs.howmuch.app.foundation.extensions.setStatusBarIconColor
 import br.com.brunocarvalhs.howmuch.app.foundation.theme.HowMuchTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var subscriptionService: SubscriptionService
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        statusBarColor()
         trackLifecycleEvent("onCreate")
         setContent {
-            val navController = rememberNavController()
+            val isPremium by produceState(initialValue = false, producer = {
+                value = if (BuildConfig.DEBUG) {
+                    true
+                } else {
+                    subscriptionService.isUserPremium()
+                }
+            })
+            val bottomSheetNavigator = rememberBottomSheetNavigator()
+            val navController = rememberNavController(bottomSheetNavigator)
             navController.trackNavigation()
             HowMuchTheme {
                 Surface(
@@ -39,7 +59,11 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
                 ) {
-                    MainApp(navController = navController)
+                    MainApp(
+                        navController = navController,
+                        bottomSheetNavigator = bottomSheetNavigator,
+                        isPremium = isPremium,
+                    )
                 }
             }
         }
@@ -85,5 +109,9 @@ class MainActivity : ComponentActivity() {
                 AnalyticsParam.TIMESTAMP to System.currentTimeMillis()
             )
         )
+    }
+
+    private fun statusBarColor() {
+        window?.setStatusBarIconColor()
     }
 }

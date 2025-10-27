@@ -166,6 +166,29 @@ jobs:
           name: workspace
         continue-on-error: true
 
+      - name: Setup Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Run versioning script
+        id: versioning
+        run: |
+          chmod +x .github/scripts/version.sh
+          new_version=$(.github/scripts/version.sh)
+          echo "::set-output name=new_version::$new_version"
+
+      - name: Commit and push changes
+        run: |
+          # Verifica se o script de versionamento produziu uma nova versão
+          if [ -n "${{ steps.versioning.outputs.new_version }}" ]; then
+            git add app/build.gradle.kts CHANGELOG.md
+            git commit -m "chore(release): Prepare release ${{ steps.versioning.outputs.new_version }}"
+            git push
+          else
+            echo "Nenhuma nova versão para commitar."
+          fi
+
       - name: Get App Version from build.gradle.kts
         run: |
           VERSION=$(grep versionName app/build.gradle.kts | sed 's/.*versionName = "\(.*\)"/\1/')
@@ -194,7 +217,7 @@ jobs:
         with:
           name: ${{ env.APP_NAME }}-aab
           path: app/build/outputs/bundle/release/
-  
+
       - name: Upload to Google Play (Production)
         id: deploy_prod
         continue-on-error: true
@@ -203,10 +226,10 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ env.PACKAGE_NAME }}
           releaseFiles: ${{ env.AAB_RELEASE_PATH }}
-          track: production 
-          status: inProgress 
+          track: production
+          status: inProgress
           userFraction: 0.5
-  
+
       - name: Upload to Google Play (Beta)
         if: steps.deploy_prod.outcome == 'failure'
         id: deploy_beta
@@ -219,7 +242,7 @@ jobs:
           track: beta
           status: completed
           changesNotSentForReview: true
-  
+
       - name: Upload to Google Play (Internal)
         if: steps.deploy_beta.outcome == 'failure'
         uses: r0adkll/upload-google-play@v1
@@ -230,4 +253,3 @@ jobs:
           track: internal
           status: completed
           changesNotSentForReview: true
-

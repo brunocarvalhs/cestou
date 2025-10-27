@@ -7,19 +7,22 @@ import br.com.brunocarvalhs.data.services.RealtimeService
 import br.com.brunocarvalhs.domain.entities.Product
 import br.com.brunocarvalhs.domain.entities.ShoppingCart
 import br.com.brunocarvalhs.domain.repository.ShoppingCartRepository
+import br.com.brunocarvalhs.domain.services.Database
 import javax.inject.Inject
 
 class ShoppingCartRepositoryImpl @Inject constructor(
-    private val service: RealtimeService
+    private val service: Database
 ) : ShoppingCartRepository {
 
-    override suspend fun create(cart: ShoppingCart): ShoppingCart {
-        val cartModel = cart as? ShoppingCartModel ?: ShoppingCartModel(
-            id = cart.id,
-            token = cart.token,
-            items = cart.products.map { it.toProductModel() }.toMutableList(),
-        )
-        service.setValue(path = "${ShoppingCart.TABLE_NAME}/${cart.id}", value = cartModel)
+    override suspend fun create(cart: ShoppingCart?): ShoppingCart {
+        val cartModel = cart as? ShoppingCartModel ?: cart?.let {
+            ShoppingCartModel(
+                id = cart.id,
+                token = cart.token,
+                items = cart.products.map { it.toProductModel() }.toMutableList(),
+            )
+        } ?: ShoppingCartModel()
+        service.setValue(path = "${ShoppingCart.TABLE_NAME}/${cartModel.id}", value = cartModel)
         return cartModel
     }
 

@@ -10,4 +10,10 @@ interface ICartLocalStorage {
 
     suspend fun saveCartNow(cart: ShoppingCart)
     suspend fun removeCartHistory(cart: ShoppingCart)
+
+    suspend fun getCartLimit(): Long
+
+    suspend fun saveCartLimit(limit: Long)
+
+    suspend fun getCartById(id: String): ShoppingCart?
 }

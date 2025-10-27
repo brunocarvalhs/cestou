@@ -1,0 +1,15 @@
+appId: br.com.brunocarvalhs.howmuch
+---
+- launchApp
+- tapOn:
+    text: "Checkout"
+    delay: 500
+- assertVisible: "Checkout cart"
+- tapOn: "Market name"
+- inputText: "Maestro Supermarket"
+- tapOn: "Price paid"
+- inputText: "12345"
+- tapOn:
+      text: "Confirm"
+      delay: 500
+- assertVisible: "Cart summary"

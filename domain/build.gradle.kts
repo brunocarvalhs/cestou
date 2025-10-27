@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    id("com.google.dagger.hilt.android")
+    id("com.google.devtools.ksp")
     id("io.gitlab.arturbosch.detekt")
 }
 
@@ -47,4 +49,12 @@ dependencies {
     testImplementation(libs.mockk)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    androidTestImplementation(libs.hilt.android.testing)
+    kspAndroidTest(libs.hilt.compiler)
+    testImplementation(libs.hilt.android.testing)
+    kspTest(libs.hilt.compiler)
 }

@@ -1,6 +1,7 @@
 [versions]
 accompanistSystemuicontroller = "0.36.0"
 agp = "8.12.2"
+billing = "8.0.0"
 datastorePreferences = "1.1.7"
 detekt = "1.23.6"
 firebaseBom = "34.2.0"
@@ -13,6 +14,7 @@ espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.9.3"
 activityCompose = "1.10.1"
 composeBom = "2025.08.01"
+materialNavigation = "1.9.3"
 mockk = "1.14.5"
 playServicesWearable = "19.0.0"
 composeMaterial = "1.5.0"
@@ -36,11 +38,19 @@ navigationCompose = "2.9.3"
 material3 = "1.3.2"
 composeMaterial3 = "1.5.0"
 metricsPerformance = "1.0.0-beta04"
+material3WindowSizeClass = "1.4.0"
+uiautomator = "2.3.0"
+benchmarkMacroJunit4 = "1.4.1"
+baselineprofile = "1.2.4"
+profileinstaller = "1.3.1"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
+androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+androidx-compose-material-navigation = { module = "androidx.compose.material:material-navigation", version.ref = "materialNavigation" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+billing = { module = "com.android.billingclient:billing", version.ref = "billing" }
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-database-ktx = { module = "com.google.firebase:firebase-database" }
@@ -59,10 +69,6 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
-play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
-androidx-compose-material = { group = "androidx.wear.compose", name = "compose-material", version.ref = "composeMaterial" }
-androidx-compose-foundation = { group = "androidx.wear.compose", name = "compose-foundation", version.ref = "composeFoundation" }
-androidx-wear-tooling-preview = { group = "androidx.wear", name = "wear-tooling-preview", version.ref = "wearToolingPreview" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
@@ -74,12 +80,15 @@ androidx-startup-runtime = { group = "androidx.startup", name = "startup-runtime
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics", version.ref = "firebaseAnalytics" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics", version.ref = "firebaseCrashlytics" }
 firebase-perf = { group = "com.google.firebase", name = "firebase-perf", version.ref = "firebasePerf" }
-androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 androidx-compose-material3 = { group = "androidx.wear.compose", name = "compose-material3", version.ref = "composeMaterial3" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 androidx-metrics-performance = { group = "androidx.metrics", name = "metrics-performance", version.ref = "metricsPerformance" }
+androidx-compose-material3-window-size = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "material3WindowSizeClass" }
+androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
+androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmarkMacroJunit4" }
+androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -89,4 +98,6 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
 google-firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "googleFirebaseCrashlytics" }
 google-firebase-firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "googleFirebaseFirebasePerf" }
+android-test = { id = "com.android.test", version.ref = "agp" }
+baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineprofile" }
 
