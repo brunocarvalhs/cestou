@@ -1,0 +1,96 @@
+<resources>
+    <!-- Feature: Settings -->
+    <string name="settings_title">Configurações</string>
+    <string name="settings_section_general">Geral</string>
+    <string name="settings_section_ai">IA</string>
+    <string name="settings_section_shopping">Compras</string>
+    <string name="settings_section_data">Dados</string>
+    <string name="settings_section_notifications">Notificações</string>
+    <string name="settings_section_support">Suporte</string>
+    <string name="settings_section_about">Sobre</string>
+
+    <string name="settings_item_theme">Tema</string>
+    <string name="settings_item_language">Idioma</string>
+    <string name="settings_item_currency">Moeda</string>
+    <string name="settings_item_ai_model">Modelo de IA</string>
+    <string name="settings_item_default_list">Lista Padrão</string>
+    <string name="settings_item_delete_all">Apagar todos os dados</string>
+    <string name="settings_item_delete_all_desc">Remove listas e configurações</string>
+    <string name="settings_item_notifications">Notificações</string>
+    <string name="settings_item_contact">Fale Conosco</string>
+    <string name="settings_item_bug_report">Reportar Problema</string>
+    <string name="settings_item_bug_report_desc">Encontrou algum bug?</string>
+    <string name="settings_item_feedback">Enviar Sugestão</string>
+    <string name="settings_item_feedback_desc">Ajude a melhorar o aplicativo</string>
+    <string name="settings_item_rate">Avaliar Aplicativo</string>
+    <string name="settings_item_rate_desc">Deixe sua avaliação</string>
+    <string name="settings_item_terms">Termos de Uso</string>
+    <string name="settings_item_privacy">Política de Privacidade</string>
+    <string name="settings_item_licenses">Licenças de Código Aberto</string>
+    <string name="settings_item_release_notes">Novidades da Versão</string>
+    <string name="settings_item_release_notes_desc">Veja o que mudou</string>
+    <string name="settings_item_version">Versão</string>
+
+    <string name="settings_theme_system">Sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Escuro</string>
+    <string name="settings_theme_select">Selecione o Tema</string>
+
+    <string name="settings_language_pt">Português (Brasil)</string>
+    <string name="settings_language_en">English (United States)</string>
+    <string name="settings_language_es">Español (España)</string>
+
+    <string name="settings_currency_brl">Real brasileiro (R$)</string>
+    <string name="settings_currency_usd">Dólar americano ($)</string>
+    <string name="settings_currency_eur">Euro (€)</string>
+
+    <string name="settings_notifications_enable">Ativar notificações</string>
+    <string name="settings_notifications_desc">Receber lembretes de listas pendentes</string>
+    <string name="settings_notifications_reminder_time">Horário do lembrete</string>
+    <string name="settings_notifications_enabled">Ativadas</string>
+    <string name="settings_notifications_disabled">Desactivadas</string>
+
+    <string name="settings_shopping_preferences">Preferências de Compra</string>
+    <string name="settings_shopping_default_sorting">Ordenação padrão das listas</string>
+    <string name="settings_shopping_sort_category">Por Categoria</string>
+    <string name="settings_shopping_sort_name">Por Nome</string>
+    <string name="settings_shopping_reminders">Lembretes de compras</string>
+    <string name="settings_shopping_reminders_desc">Notificar quando houver listas pendentes</string>
+    <string name="settings_shopping_none_selected">Nenhuma selecionada</string>
+
+    <string name="settings_placeholder_soon">Funcionalidade de %s em breve</string>
+
+    <string name="settings_title_ai">IA</string>
+    <string name="settings_title_data">Dados</string>
+    <string name="settings_ai_header">Configurações de Inteligência Artificial</string>
+    <string name="settings_ai_label_model">Modelo de IA (Grátis)</string>
+    <string name="settings_ai_label_custom_prompt">Prompt Personalizado</string>
+    <string name="settings_ai_placeholder_custom_prompt">Utilizando o padrão do aplicativo</string>
+    <string name="settings_ai_label_creativity">Criatividade (Temperatura): %1$.1f</string>
+    <string name="settings_ai_button_save">Salvar Preferências</string>
+    <string name="settings_data_clear_cache">Limpar cache</string>
+    <string name="settings_data_clear_cache_hint">Libera espaço ocupado</string>
+    <string name="settings_data_delete_all">Apagar todos os dados</string>
+    <string name="settings_data_delete_all_hint">Remove listas e configurações permanentemente</string>
+    <string name="settings_data_delete_confirmation_title">Apagar todos os dados?</string>
+    <string name="settings_data_delete_confirmation_message">Esta ação não pode ser desfeita. Todas as suas listas e configurações locais serão removidas permanentemente.</string>
+    <string name="settings_data_delete_button">Sim, apagar tudo</string>
+
+    <string name="settings_terms_content">
+        Ao utilizar o Cestou, você concorda com os seguintes termos: \n\n
+        1. Uso do Aplicativo: O Cestou é uma ferramenta para gestão de listas de compras.\n
+        2. IA: O assistente de IA é fornecido \"como está\" e pode gerar informações imprecisas.\n
+        3. Dados: Suas listas são sincronizadas de forma segura via Firestore.\n
+        4. Responsabilidade: Não nos responsabilizamos por perdas de dados decorrentes do mau uso do dispositivo.\n\n
+        Versão: 1.0.0
+    </string>
+
+    <string name="settings_privacy_content">
+        Sua privacidade é nossa prioridade:\n\n
+        1. Coleta de Dados: Coletamos apenas seu ID de usuário anônimo e suas listas de compras para sincronização.\n
+        2. Compartilhamento: Não compartilhamos seus dados pessoais com terceiros para fins publicitários.\n
+        3. Cookies: Não utilizamos cookies de rastreamento.\n
+        4. Segurança: Utilizamos criptografia AES para proteger dados sensíveis no dispositivo.\n\n
+        Dúvidas? Entre em contato via suporte@cestou.com.br
+    </string>
+</resources>

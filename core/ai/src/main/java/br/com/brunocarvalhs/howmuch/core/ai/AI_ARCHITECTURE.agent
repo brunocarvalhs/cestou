@@ -1,0 +1,41 @@
+# Cestou AI Architecture (.agent)
+
+Este Agente foi projetado para ser um "Shopping Assistant" que opera sobre o domínio de listas de compras e produtos.
+
+## 🧱 Pilares da Arquitetura
+
+1. **AiAgent (Cérebro)**:
+   - Responsável pela orquestração do LLM.
+   - Implementação: `OpenRouterAiAgent`.
+   - Suporta *Tool Calling* para interagir com o app.
+
+2. **AiAgentSession (Identidade)**:
+   - Dados persistentes (userId, locale).
+   - Define o idioma de resposta e filtra dados do banco.
+
+3. **AiAgentContext (Visão)**:
+   - Interface implementada pelos UI States.
+   - Fornece o estado atual da tela (ex: `shoppingListId` ativo) para que a IA não precise perguntar o óbvio.
+
+4. **AgentAction (Ferramentas)**:
+   - Funcionalidades do app expostas à IA.
+   - Implementadas via `AgentActionUseCase`.
+
+## 🚀 Guia para Futuras Features
+
+### Como adicionar uma nova ferramenta (Tool)
+1. Crie um UseCase que estenda `AgentActionUseCase`.
+2. Use a anotação `@AiAction` para descrever o que a ferramenta faz (isso é o "manual" para a IA).
+3. Use a anotação `@AiParam` para definir os dados que a IA deve extrair do usuário.
+4. O registro é automático no `AgentRegistry` via injeção de dependência.
+
+### Como dar "visão" a uma nova tela
+Faça o `UiState` da tela implementar `AiAgentContext` e retorne um mapa com IDs relevantes:
+```kotlin
+override fun toMetadata() = mapOf("current_list_id" to listId)
+```
+
+## 📜 Regras de Comportamento
+- **Foco em Compras**: O agente deve recusar conversas fora do domínio de compras/gestão doméstica.
+- **Segurança**: Operações destrutivas (excluir lista) devem exigir confirmação se o contexto for vago.
+- **Concisão**: Respostas rápidas e em bullet-points são preferidas.
