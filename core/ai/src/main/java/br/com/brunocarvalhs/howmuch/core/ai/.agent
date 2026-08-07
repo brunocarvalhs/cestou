@@ -1,0 +1,22 @@
+# Cestou AI Agent Architecture
+
+Este Agente é projetado para ser um "Shopping Assistant" que opera sobre listas de compras.
+
+## 🧠 Core Identity
+- **Nome**: Cestou Assistant
+- **Papel**: Auxiliar na gestão de produtos, listas e preços.
+- **Estilo**: Conciso, prestativo e focado em produtividade.
+
+## 🏗️ Estrutura de Dados
+- **AiAgentSession**: Dados persistentes (User ID, Locale). Usados para filtrar dados e definir o idioma da IA.
+- **AiAgentContext**: O "olho" do agente. Deve conter metadados da tela atual (ex: ID da lista aberta).
+- **AgentAction**: As "mãos" do agente. Implementadas como UseCases anotados que a IA pode "chamar".
+
+## 🚀 Diretrizes para Feature Feature
+1. **Tool Calling**: Se a IA precisar interagir com o app, crie um `AgentActionUseCase`.
+2. **Descrições**: Use `@AiAgentAction` com descrições claras em português para que o modelo entenda *quando* usar a ferramenta.
+3. **Contexto**: ViewModels de novas telas devem implementar `AiAgentContext` para passar informações contextuais automaticamente.
+
+## 🛠️ Stack Técnica
+- **LLM**: OpenRouter (Modelos com Function Calling).
+- **DI**: Hilt (Auto-registro de ferramentas via `AgentRegistry`).

@@ -1,0 +1,78 @@
+<resources>
+    <string name="ai_assistant_title">Assistente Virtual</string>
+    <string name="ai_sender_assistant">Assistente</string>
+    <string name="ai_input_placeholder">Pergunte ao Cestou&#8230;</string>
+    <string name="ai_thinking">IA pensando&#8230;</string>
+    <string name="ai_suggestions_title">Dicas do Assistente</string>
+
+    <!-- Permissions -->
+    <string name="permission_camera_required">Permissão de câmera necessária</string>
+    <string name="grant_permission">Conceder Permissão</string>
+
+    <!-- Feature: Product -->
+    <string name="product_ai_identifying">A IA está identificando os itens&#8230;</string>
+    <string name="product_barcode_instruction">Posicione o código de barras dentro da área</string>
+    <string name="product_photo_instruction">Tire uma foto dos produtos para a IA analisar</string>
+    <string name="product_option_barcode">Código de Barras</string>
+    <string name="product_option_search">Pesquisar</string>
+    <string name="product_option_photo">Foto</string>
+    <string name="product_option_suggestions">Sugestões</string>
+    <string name="product_empty_title">Nenhum produto encontrado</string>
+    <string name="product_empty_description">Encontre seus produtos utilizando a busca,\no código de barras ou crie um novo produto.</string>
+    <string name="product_error_loading_image">Erro ao carregar a imagem</string>
+
+    <!-- Feature: Product Search & Recipes -->
+    <string name="product_search_products_label">Produtos</string>
+    <string name="product_search_recipes_label">Receitas</string>
+    <string name="product_search_placeholder">Buscar produto</string>
+    <string name="recipe_search_placeholder">Buscar receita</string>
+    <string name="product_search_empty_text">Pesquise um produto ou tire uma foto.</string>
+    <string name="recipe_search_empty_text">Encontre receitas e adicione os ingredientes.</string>
+    <string name="product_search_ai_hint">Também é possível utilizar IA para reconhecer automaticamente o conteúdo.</string>
+    <string name="recipe_details_ingredients">Ingredientes</string>
+    <string name="recipe_details_instructions">Instruções</string>
+    <string name="recipe_details_add_to_list">Adicionar à Lista</string>
+    <string name="product_action_retake">Repetir</string>
+    <string name="product_action_analyze">Analisar</string>
+
+    <!-- Feature: Shopping List (Products) -->
+    <string name="product_item_mark_purchased">Marcar como comprado</string>
+    <string name="product_item_more_options">Mais opções</string>
+
+    <string name="shopping_list_updated">Lista atualizada!</string>
+    <string name="shopping_list_default_title">Lista de produtos</string>
+    <string name="shopping_list_members_collaborating">%d membros colaborando</string>
+    <string name="shopping_list_menu_clear_purchased">Limpar comprados</string>
+    <string name="shopping_list_move_to">Mover para&#8230;</string>
+    <string name="shopping_list_finish_title">Finalizar Compra</string>
+    <string name="shopping_list_finish_description">Informe o valor total pago e o local da compra.</string>
+    <string name="shopping_list_label_total_value">Valor Total</string>
+    <string name="shopping_list_label_establishment">Estabelecimento (Opcional)</string>
+    <string name="shopping_list_placeholder_establishment">Ex: Supermercado X</string>
+    <string name="shopping_list_confirm_save">Confirmar e Salvar</string>
+    <string name="shopping_list_confirm_item_title">Confirmar Item</string>
+    <string name="shopping_list_label_unit_price">Preço Unitário</string>
+    <string name="shopping_list_label_quantity">Quantidade</string>
+    <string name="shopping_list_edit_title">Editar Produto</string>
+    <string name="shopping_list_label_product_name">Nome do Produto</string>
+    <string name="shopping_list_label_category">Categoria</string>
+    <string name="shopping_list_label_unit">Un.</string>
+    <string name="shopping_list_save_changes">Salvar Alterações</string>
+    <string name="shopping_list_locked_title">Lista Finalizada</string>
+    <string name="shopping_list_locked_description">Esta lista está bloqueada para alterações.</string>
+    <string name="shopping_list_summary_over_budget">Limite Excedido!</string>
+    <string name="shopping_list_summary_in_cart">No Carrinho</string>
+    <string name="shopping_list_summary_total">Total: %s</string>
+    <string name="shopping_list_summary_items_count">%1$d de %2$d</string>
+    <string name="shopping_list_summary_items_in_cart">itens no carrinho</string>
+    <string name="shopping_list_empty_title">Sua lista está vazia</string>
+    <string name="shopping_list_empty_description">Adicione produtos ou peça ajuda à IA!</string>
+    <string name="shopping_list_share_options_title">Como deseja compartilhar?</string>
+    <string name="shopping_list_share_invite_member">Convidar para Colaborar</string>
+    <string name="shopping_list_share_invite_member_desc">Outro usuário poderá editar a lista em tempo real</string>
+    <string name="shopping_list_share_text">Enviar como Texto</string>
+    <string name="shopping_list_share_text_desc">Envie a lista de itens via WhatsApp, e-mail, etc.</string>
+
+    <string name="state_description_in_cart">No carrinho</string>
+    <string name="state_description_not_in_cart">Fora do carrinho</string>
+</resources>

@@ -1,0 +1,12 @@
+package br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase
+
+import br.com.brunocarvalhs.howmuch.core.domain.entity.AppSettings
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.repository.SettingsRepository
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+
+class GetSettingsUseCase @Inject constructor(
+    private val repository: SettingsRepository
+) {
+    operator fun invoke(): Flow<AppSettings> = repository.getSettings()
+}
