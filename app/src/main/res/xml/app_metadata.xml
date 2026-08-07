@@ -1,0 +1,14 @@
+<AppFunctionAppMetadata xmlns:appfn="http://schemas.android.com/apk/androidx.appfunctions"
+    appfn:description="Cestou é um assistente completo para gestão de listas de compras e planejamento de refeições.
+
+    Capacidades:
+    - Gestão de Listas: Criar, listar, atualizar e deletar listas de compras.
+    - Gestão de Produtos: Buscar produtos e adicioná-los a listas específicas.
+    - Receitas e Planejamento: Buscar receitas culinárias e adicionar todos os seus ingredientes automaticamente a uma lista de compras.
+    - Inteligência de Preço: Comparar preços de produtos entre diferentes estabelecimentos.
+
+    Operational Patterns:
+    - Sempre utilize 'getAllShoppingLists' para obter o 'shoppingId' correto antes de realizar operações de detalhamento, atualização ou exclusão.
+    - Utilize 'searchRecipes' para encontrar o 'recipeId' antes de adicionar ingredientes via 'addRecipeIngredientsToList'.
+    - Use 'searchProducts' para verificar a disponibilidade e categoria correta antes de adicionar itens."
+    appfn:displayDescription="Gestão inteligente de compras e receitas com IA" />
