@@ -2,10 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="com.android.vending.BILLING" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
-        android:name=".CustomApplication"
+        android:name=".CestouApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -13,16 +18,11 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.App.Starting">
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+        android:theme="@style/Theme.Cestou">
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+        <property
+            android:name="android.app.appfunctions.app_metadata"
+            android:resource="@xml/app_metadata" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"
@@ -30,17 +30,43 @@
             android:exported="false"
             tools:node="merge">
             <meta-data
-                android:name="br.com.brunocarvalhs.howmuch.app.foundation.sdks.AnalyticsInitializer"
+                android:name="br.com.brunocarvalhs.howmuch.core.common.initializer.FirebaseInitializer"
                 android:value="androidx.startup" />
-
             <meta-data
-                android:name="br.com.brunocarvalhs.howmuch.app.foundation.sdks.CrashlyticsInitializer"
+                android:name="br.com.brunocarvalhs.howmuch.core.auth.initializer.AuthInitializer"
                 android:value="androidx.startup" />
-
             <meta-data
-                android:name="br.com.brunocarvalhs.howmuch.app.foundation.sdks.PerformanceInitializer"
+                android:name="br.com.brunocarvalhs.howmuch.core.common.initializer.CrashlyticsInitializer"
+                android:value="androidx.startup" />
+            <meta-data
+                android:name="br.com.brunocarvalhs.howmuch.core.common.initializer.TimberInitializer"
                 android:value="androidx.startup" />
         </provider>
+
+        <provider
+            android:name="com.google.firebase.provider.FirebaseInitProvider"
+            android:authorities="${applicationId}.firebaseinitprovider"
+            android:exported="false"
+            tools:node="remove" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.App.Starting">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="cestou.app" android:pathPrefix="/join" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

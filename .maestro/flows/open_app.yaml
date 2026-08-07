@@ -1,0 +1,130 @@
+appId: br.com.brunocarvalhs.cestou
+---
+- launchApp:
+        clearState: true
+# Home
+- assertVisible: "Cestou"
+- assertVisible: "Join a list"
+- assertVisible:
+        point: 77%,4%
+- assertVisible: "Settings"
+- assertVisible: "Search"
+- assertVisible: "All"
+- assertVisible: "Shopping"
+- assertVisible: "Favorites"
+- assertVisible: "Total Spent"
+- waitForAnimationToEnd:
+        timeout: 2000
+
+# Create Shopping
+- tapOn:
+        point: 77%,4%
+        retryTapIfNoChange: true
+- assertVisible: "New List"
+- assertVisible: "Give your new shopping list a name"
+- assertVisible: "List Title"
+- assertVisible: "Description (Optional)"
+- assertVisible: "Cancel"
+- assertVisible: "Create"
+- tapOn: "List Title"
+- inputText: "value"
+- tapOn: "Description (Optional)"
+- inputText: "value"
+- waitForAnimationToEnd:
+        timeout: 1000
+- tapOn: "Create"
+
+# Home - shopping detail
+- waitForAnimationToEnd:
+        timeout: 5000
+- assertVisible: "value"
+- assertVisible: "Share list"
+- assertVisible: "Back"
+- assertVisible: "More options"
+- assertVisible: "$0.00"
+- assertVisible: "0 of 0"
+- assertVisible: "Your list is empty"
+- assertVisible: "Add products or ask the AI for help!"
+- assertVisible:
+        point: 5%,86%
+- assertVisible:
+        point: 80%,88%
+
+# flow create product in shopping
+- tapOn:
+        point: 80%,88%
+- assertVisible: "Suggestions"
+- assertVisible: "Search"
+- assertVisible: "Photo"
+- assertVisible: "Barcode"
+- assertVisible: "Search product"
+- assertVisible: "Arroz"
+- assertVisible: "Feijão"
+- assertVisible: "Óleo"
+- tapOn: "Search"
+- assertVisible: "Products"
+- assertVisible: "Recipes"
+- assertVisible: "Search product"
+- tapOn: "Recipes"
+- assertVisible: "Find recipes and add the ingredients."
+- assertVisible: "You can also use AI to automatically recognize the content."
+- tapOn: "Photo"
+- assertVisible:
+        point: 0%,22%
+- tapOn: "Barcode"
+- assertVisible:
+        point: 0%,22%
+- tapOn: "Suggestions"
+- tapOn: "Arroz"
+
+# flow product in shopping validate
+- assertVisible: "Grocery"
+- assertVisible: "Mark as purchased"
+- assertVisible: "Arroz"
+- assertVisible:
+        point: 56%,46%
+- assertVisible:
+        text: "More options"
+        index: 1
+- assertVisible:
+        text: "$0.00"
+        index: 1
+- assertVisible: "• Mercearia"
+- tapOn:
+        text: "More options"
+        index: 1
+- assertVisible: "Edit"
+- assertVisible: "Delete"
+
+# Edit Product
+- tapOn: "Edit"
+- assertVisible: "Edit Product"
+- assertVisible: "Product Name"
+- assertVisible: "Category"
+- assertVisible: "Unit Price"
+- assertVisible: "Quantity"
+- assertVisible: "Unit"
+- tapOn: "Unit Price"
+- inputText: "10000"
+- assertVisible: "Save Changes"
+- tapOn: "Save Changes"
+- waitForAnimationToEnd:
+        timeout: 1000
+
+# Flow de Finish
+- assertVisible: "Finish"
+- tapOn: "Finish"
+- waitForAnimationToEnd:
+        timeout: 1000
+- assertVisible: "Finish Purchase"
+- assertVisible: "Enter the total amount paid and the purchase location."
+- assertVisible: "Total Amount"
+- assertVisible: "Establishment (Optional)"
+- assertVisible: "Confirm and Save"
+- inputText: "value"
+- tapOn: "Confirm and Save"
+- assertVisible: "Finished List"
+- assertVisible: "This list is locked for changes."
+- assertVisible: "Back"
+- tapOn: "Back"
+- assertVisible: "Cestou"
