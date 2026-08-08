@@ -31,5 +31,6 @@ internal fun Shopping.toModel(): ShoppingModel = ShoppingModel(
     isFavorite = isFavorite,
     isCategorized = isCategorized,
     shortCode = shortCode,
-    budget = budget
+    budget = budget,
+    position = position
 )

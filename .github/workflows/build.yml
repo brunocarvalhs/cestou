@@ -25,6 +25,7 @@ env:
   GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
   FIREBASE_AUTH_TOKEN: ${{ secrets.FIREBASE_AUTH_TOKEN }}
   FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+  DOTENV: ${{ secrets.DOTENV || vars.DOTENV }}
 
 jobs:
   checkout-and-setup:
@@ -33,6 +34,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Create .env
+        run: |
+          if [ "${{ env.DOTENV }}" != "" ]; then
+            echo "${{ env.DOTENV }}" > .env
+            cp .env .env.example
+          else
+            echo "DOTENV is missing! Creating dummy files to avoid build failure."
+            touch .env
+            touch .env.example
+          fi
 
       - name: Set up JDK
         uses: actions/setup-java@v3
