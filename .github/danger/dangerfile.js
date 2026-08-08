@@ -26,6 +26,9 @@ async function loadAndRunSteps() {
         try {
           const result = step(danger);
           if (result && typeof result.then === 'function') await result;
+          // Log success for each step
+          const stepName = file.replace(/^\d+-/, '').replace('.js', '');
+          console.log(`✅ Step concluído: ${stepName}`);
         } catch (err) {
           console.error(`Erro no step ${file}:`, err.message || err);
           fail(`Falha técnica ao executar verificação: ${file}`);
