@@ -30,6 +30,7 @@ env:
   KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
   GITHUB_TOKEN: ${{ secrets.TOKEN }}
   DEPLOY_SERVICE_ACCOUNT_JSON: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
+  DOTENV: ${{ secrets.DOTENV || vars.DOTENV }}
 
 jobs:
   checkout-and-setup:
@@ -38,6 +39,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Create .env
+        run: |
+          if [ "${{ env.DOTENV }}" != "" ]; then
+            echo "${{ env.DOTENV }}" > .env
+            cp .env .env.example
+          else
+            echo "DOTENV is missing! Creating dummy files to avoid build failure."
+            touch .env
+            touch .env.example
+          fi
 
       - name: Set up JDK
         uses: actions/setup-java@v3
