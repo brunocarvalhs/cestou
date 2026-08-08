@@ -1,60 +1,55 @@
 const fs = require('fs');
+const config = require('../config');
+const utils = require('../utils');
 
 function getLibsFromFile(fileName, danger) {
   const { message, fail } = danger;
   try {
+    if (!fs.existsSync(fileName)) return [];
     const fileContent = fs.readFileSync(fileName, 'utf-8');
     return fileContent.split('\n').map(lib => lib.trim()).filter(lib => lib.length > 0);
   } catch (error) {
-    if (error.code === 'ENOENT') {
-      message(`Arquivo ${fileName} não encontrado.`);
-    } else {
-      fail(`Erro ao ler ${fileName}: ${error.message}`);
-    }
+    fail(`Erro ao ler arquivo de configuração de libs (${fileName}): ${error.message}`);
     return [];
   }
 }
 
-async function checkForBlockedLibs(dangerInstance, files) {
-  const blockedLibs = getLibsFromFile('.github/danger/excludes/blockedLibs.txt', dangerInstance);
-  const gradleFiles = files.filter(f => f.endsWith('build.gradle.kts') || f.includes('libs.versions.toml'));
-  for (const file of gradleFiles) {
-    const content = await dangerInstance.git.diffForFile(file);
-    if (content?.diff) {
-      const addedLines = content.diff.split('\n').filter(l => l.startsWith('+'));
-      blockedLibs.forEach(lib => {
-        const regex = new RegExp(`\\b${lib.replace(/[-\\/\\^$*+?.()|[\\]{}]/g, '\\$&')}\\b`);
-        if (addedLines.some(line => regex.test(line))) {
-          dangerInstance.fail(`Biblioteca bloqueada ${lib} adicionada em ${file}.`);
-        }
-      });
-    }
-  }
-}
+async function checkDependencies(danger, files) {
+  const blockedLibs = getLibsFromFile(config.paths.blockedLibs, danger);
+  const deprecatedLibs = getLibsFromFile(config.paths.deprecatedLibs, danger);
 
-async function checkForDeprecatedLibs(dangerInstance, files) {
-  const deprecatedLibs = getLibsFromFile('.github/danger/excludes/deprecatedLibs.txt', dangerInstance);
-  const gradleFiles = files.filter(f => f.endsWith('build.gradle.kts') || f.includes('libs.versions.toml'));
+  const gradleFiles = files.filter(f => f.endsWith('.gradle.kts') || f.endsWith('.toml'));
+
   for (const file of gradleFiles) {
-    const content = await dangerInstance.git.diffForFile(file);
-    if (content?.diff) {
-      const addedLines = content.diff.split('\n').filter(l => l.startsWith('+'));
-      deprecatedLibs.forEach(lib => {
-        if (addedLines.some(line => line.includes(lib) || line.includes(lib.split(':')[0]))) {
-          dangerInstance.message(`Biblioteca depreciada ${lib} adicionada em ${file}.`);
+    const addedLines = await utils.getAddedLines(danger, file);
+
+    for (const line of addedLines) {
+      // Check Blocked
+      blockedLibs.forEach(lib => {
+        if (line.includes(lib)) {
+          danger.fail(`Biblioteca bloqueada adicionada em ${file}: ${lib}`);
         }
       });
+
+      // Check Deprecated
+      deprecatedLibs.forEach(lib => {
+        if (line.includes(lib)) {
+          danger.warn(`Biblioteca depreciada adicionada em ${file}: ${lib}`);
+        }
+      });
+
+      // Check Dynamic Versions
+      if (/\+ |latest\.release|\[.*,/.test(line)) {
+        danger.warn(`Evite usar versões dinâmicas em ${file}: \`${line.trim()}\``);
+      }
     }
   }
 }
 
 module.exports = async function stepLibsChecks(dangerInstance) {
-  const createdFiles = dangerInstance.git.created_files || [];
-  const modifiedFiles = dangerInstance.git.modified_files || [];
-  const deletedFiles = dangerInstance.git.deleted_files || [];
-  const allFiles = [...createdFiles, ...modifiedFiles, ...deletedFiles];
-  const androidFiles = allFiles.filter(f => !['.github/', 'docs/', 'scripts/'].some(p => f.startsWith(p)));
+  const { git } = dangerInstance;
+  const allFiles = [...git.created_files, ...git.modified_files, ...git.deleted_files];
+  const androidFiles = allFiles.filter(utils.isAndroidFile);
 
-  await checkForBlockedLibs(dangerInstance, androidFiles);
-  await checkForDeprecatedLibs(dangerInstance, androidFiles);
+  await checkDependencies(dangerInstance, androidFiles);
 };
