@@ -64,6 +64,11 @@ module.exports = {
   paths: {
     blockedLibs: '.github/danger/excludes/blockedLibs.txt',
     deprecatedLibs: '.github/danger/excludes/deprecatedLibs.txt',
+    reports: {
+      junit: '**/build/test-results/**/*.xml',
+      lint: '**/build/reports/lint-results*.xml',
+      detekt: '**/build/reports/detekt/detekt.xml',
+    }
   },
   hygiene: {
     forbiddenPatterns: [

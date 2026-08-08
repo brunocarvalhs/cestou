@@ -1,0 +1,145 @@
+name: Pull Request CI
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+    branches:
+      - develop
+      - master
+
+env:
+  JDK_VERSION: 17
+  NODE_VERSION: 20
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
+  GITHUB_TOKEN: ${{ secrets.TOKEN }}
+  GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
+  DOTENV: ${{ secrets.DOTENV || vars.DOTENV }}
+
+jobs:
+  checkout-and-setup:
+    runs-on: ubuntu-24.04
+    name: Setup Environment
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create .env
+        run: |
+          if [ "${{ env.DOTENV }}" != "" ]; then
+            echo "${{ env.DOTENV }}" > .env
+            cp .env .env.example
+          else
+            echo "DOTENV is missing!"
+            touch .env
+            touch .env.example
+          fi
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JDK_VERSION }}
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Create google-services.json
+        run: |
+          echo ${{ env.GOOGLE_SERVICE_JSON }} | base64 --decode > app/google-services.json
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Upload Workspace
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace
+          path: ./
+
+  static-analysis:
+    runs-on: ubuntu-24.04
+    name: Lint & Detekt
+    needs: checkout-and-setup
+    steps:
+      - name: Download Workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: workspace
+
+      - name: Give execution permissions to gradlew
+        run: chmod +x gradlew
+
+      - name: Run Lint and Detekt
+        run: ./gradlew lintDebug detekt
+        continue-on-error: true
+
+      - name: Upload Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: analysis-reports
+          path: "**/build/reports/**"
+
+  unit-tests:
+    runs-on: ubuntu-24.04
+    name: Unit Tests
+    needs: checkout-and-setup
+    steps:
+      - name: Download Workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: workspace
+
+      - name: Give execution permissions to gradlew
+        run: chmod +x gradlew
+
+      - name: Run Unit Tests
+        run: ./gradlew testDebug
+        continue-on-error: true
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: "**/build/test-results/**"
+
+  danger:
+    runs-on: ubuntu-24.04
+    name: DangerJS Feedback
+    needs: [static-analysis, unit-tests]
+    steps:
+      - name: Download Workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: workspace
+
+      - name: Download Analysis Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: analysis-reports
+          path: .
+
+      - name: Download Test Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results
+          path: .
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm install -g danger conventional-changelog
+
+      - name: Run Danger
+        run: danger ci --dangerfile .github/danger/dangerfile.js
+        env:
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
