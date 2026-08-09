@@ -5,22 +5,6 @@ on:
     branches: [ develop ]
 
 env:
-  # Configurações Gerais
-  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-  JDK_VERSION: 17
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
-
-  # Android
-  BUILD_TOOLS_VERSION: "34.0.0"
-  ANDROID_LOCAL_PROPERTIES: local.properties
-
-  # Projeto
-  APP_NAME: "HowMuch"
-
-  # Caminhos
-  APK_DEBUG_PATH: app/build/outputs/apk/debug/*.apk
-  APK_RELEASE_PATH: app/build/outputs/apk/release/*.apk
-
   # 🔑 Secrets (configurados no repo)
   GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
   FIREBASE_AUTH_TOKEN: ${{ secrets.FIREBASE_AUTH_TOKEN }}
@@ -34,6 +18,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
 
       - name: Create .env
         run: |
@@ -87,6 +74,9 @@ jobs:
         with:
           name: workspace
 
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
+
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
@@ -103,6 +93,9 @@ jobs:
         with:
           name: workspace
 
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
+
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
@@ -118,6 +111,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: workspace
+
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
 
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
@@ -136,6 +132,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: workspace
+
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
 
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
@@ -159,6 +158,9 @@ jobs:
         with:
           name: ${{ env.APP_NAME }}-apk-debug
           path: app/build/outputs/apk/release/
+
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
 
       - name: Install Firebase CLI
         run: curl -sL https://firebase.tools | bash

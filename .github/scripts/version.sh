@@ -8,8 +8,8 @@ set -euo pipefail
 # Move para o diretório raiz do projeto
 cd "$(dirname "$0")/../.."
 
-GRADLE_FILE="app/build.gradle.kts"
-CHANGELOG_FILE="CHANGELOG.md"
+GRADLE_FILE="${MAIN_GRADLE_FILE:-app/build.gradle.kts}"
+CHANGELOG_FILE="${CHANGELOG_FILE:-CHANGELOG.md}"
 
 # 1️⃣ Pega a última tag (se houver)
 latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
