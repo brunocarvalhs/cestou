@@ -5,24 +5,6 @@ on:
     branches: [ master ]
 
 env:
-  # Configurações Gerais
-  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-  JDK_VERSION: 17
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
-
-  # Android
-  BUILD_TOOLS_VERSION: "34.0.0"
-  ANDROID_LOCAL_PROPERTIES: local.properties
-
-  # Projeto (cada repo sobrescreve aqui)
-  APP_NAME: "HowMuch"
-  PACKAGE_NAME: "br.com.brunocarvalhs.howmuch"
-
-  # Caminhos
-  APK_DEBUG_PATH: app/build/outputs/apk/debug/*.apk
-  APK_RELEASE_PATH: app/build/outputs/apk/release/*.apk
-  AAB_RELEASE_PATH: app/build/outputs/bundle/release/*.aab
-
   # 🔑 Secrets (todos centralizados)
   GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
   KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -39,6 +21,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
 
       - name: Create .env
         run: |
@@ -92,6 +77,9 @@ jobs:
         with:
           name: workspace
 
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
+
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
@@ -107,6 +95,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: workspace
+
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
 
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
@@ -124,6 +115,9 @@ jobs:
         with:
           name: workspace
 
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
+
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
@@ -136,15 +130,14 @@ jobs:
     runs-on: ubuntu-24.04
     name: Build
     needs: [unit-tests, lint-check, detekt-check]
-    env:
-      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-      KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
-      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
           name: workspace
+
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
 
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
@@ -177,6 +170,9 @@ jobs:
         with:
           name: workspace
         continue-on-error: true
+
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
 
       - name: Setup Git
         run: |
@@ -229,6 +225,9 @@ jobs:
         with:
           name: ${{ env.APP_NAME }}-aab
           path: app/build/outputs/bundle/release/
+
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
 
       - name: Upload to Google Play (Production)
         id: deploy_prod

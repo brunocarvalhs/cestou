@@ -8,9 +8,6 @@ on:
       - master
 
 env:
-  JDK_VERSION: 17
-  NODE_VERSION: 20
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
   GITHUB_TOKEN: ${{ secrets.TOKEN }}
   GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
   DOTENV: ${{ secrets.DOTENV || vars.DOTENV }}
@@ -24,6 +21,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
 
       - name: Create .env
         run: |
@@ -73,12 +73,14 @@ jobs:
         with:
           name: workspace
 
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
+
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
       - name: Run Lint and Detekt
         run: ./gradlew lintDebug detekt
-        continue-on-error: true
 
       - name: Upload Reports
         uses: actions/upload-artifact@v4
@@ -96,12 +98,14 @@ jobs:
         with:
           name: workspace
 
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
+
       - name: Give execution permissions to gradlew
         run: chmod +x gradlew
 
       - name: Run Unit Tests
         run: ./gradlew testDebug
-        continue-on-error: true
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
@@ -112,6 +116,7 @@ jobs:
   danger:
     runs-on: ubuntu-24.04
     name: DangerJS Feedback
+    if: always()
     needs: [static-analysis, unit-tests]
     steps:
       - name: Download Workspace
@@ -119,17 +124,22 @@ jobs:
         with:
           name: workspace
 
+      - name: Load Pipeline Config
+        uses: ./.github/actions/load-pipeline-config
+
       - name: Download Analysis Reports
         uses: actions/download-artifact@v4
         with:
           name: analysis-reports
           path: .
+        continue-on-error: true
 
       - name: Download Test Results
         uses: actions/download-artifact@v4
         with:
           name: test-results
           path: .
+        continue-on-error: true
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
