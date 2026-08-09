@@ -29,10 +29,11 @@ jobs:
           echo "build_enabled=$(yq '.stages.build.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "deploy_enabled=$(yq '.stages.deploy_firebase.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
-  checkout-and-setup:
-    needs: prepare
+  unit-tests:
+    needs: [prepare]
+    if: needs.prepare.outputs.ut_enabled == 'true'
     runs-on: ubuntu-24.04
-    name: Checkout and Setup Environment
+    name: Run Unit Tests
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -44,23 +45,6 @@ jobs:
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
-      - name: Upload Workspace
-        uses: actions/upload-artifact@v4
-        with:
-          name: workspace
-          path: ./
-
-  unit-tests:
-    needs: [prepare, checkout-and-setup]
-    if: needs.prepare.outputs.ut_enabled == 'true'
-    runs-on: ubuntu-24.04
-    name: Run Unit Tests
-    steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
-        with:
-          name: workspace
-
       - name: Run Unit Tests
         run: |
           COMMAND=$(yq '.stages.unit_tests.command' .github/pipeline-config.yaml)
@@ -70,15 +54,20 @@ jobs:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
   lint-check:
-    needs: [prepare, checkout-and-setup]
+    needs: [prepare]
     if: needs.prepare.outputs.lint_enabled == 'true'
     runs-on: ubuntu-24.04
     name: Run Lint Check
     steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
         with:
-          name: workspace
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
       - name: Run Lint
         run: |
@@ -89,15 +78,20 @@ jobs:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
   detekt-check:
-    needs: [prepare, checkout-and-setup]
+    needs: [prepare]
     if: needs.prepare.outputs.detekt_enabled == 'true'
     runs-on: ubuntu-24.04
     name: Run Detekt Check
     steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
         with:
-          name: workspace
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
       - name: Run Detekt
         run: |
@@ -118,10 +112,15 @@ jobs:
     runs-on: ubuntu-24.04
     name: Build
     steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
         with:
-          name: workspace
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
       - name: Build APK Debug
         run: |
@@ -143,10 +142,8 @@ jobs:
     runs-on: ubuntu-24.04
     name: Deploy to Firebase App Distribution
     steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
-        with:
-          name: workspace
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Download APK Artifact
         uses: actions/download-artifact@v4

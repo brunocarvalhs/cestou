@@ -33,10 +33,11 @@ jobs:
           echo "detekt_enabled=$(yq '.stages.detekt.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "release_enabled=$(yq '.stages.release.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
-  checkout-and-setup:
-    needs: prepare
+  unit-tests:
+    needs: [prepare]
+    if: needs.prepare.outputs.ut_enabled == 'true'
     runs-on: ubuntu-24.04
-    name: Checkout and Setup Environment
+    name: Unit Tests
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -48,23 +49,6 @@ jobs:
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
-      - name: Upload Workspace
-        uses: actions/upload-artifact@v4
-        with:
-          name: workspace-release
-          path: ./
-
-  unit-tests:
-    needs: [prepare, checkout-and-setup]
-    if: needs.prepare.outputs.ut_enabled == 'true'
-    runs-on: ubuntu-24.04
-    name: Unit Tests
-    steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
-        with:
-          name: workspace-release
-
       - name: Run Unit Tests
         run: |
           COMMAND=$(yq '.stages.unit_tests.command' .github/pipeline-config.yaml)
@@ -74,15 +58,20 @@ jobs:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
   lint-check:
-    needs: [prepare, checkout-and-setup]
+    needs: [prepare]
     if: needs.prepare.outputs.lint_enabled == 'true'
     runs-on: ubuntu-24.04
     name: Lint Check
     steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
         with:
-          name: workspace-release
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
       - name: Run Lint
         run: |
@@ -93,15 +82,20 @@ jobs:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
   detekt-check:
-    needs: [prepare, checkout-and-setup]
+    needs: [prepare]
     if: needs.prepare.outputs.detekt_enabled == 'true'
     runs-on: ubuntu-24.04
     name: Run Detekt Check
     steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
         with:
-          name: workspace-release
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
       - name: Run Detekt
         run: |
@@ -117,10 +111,15 @@ jobs:
     runs-on: ubuntu-24.04
     name: Build AAB
     steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
         with:
-          name: workspace-release
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
       - name: Build AAB
         run: |
@@ -144,10 +143,8 @@ jobs:
     name: Create and Upload Release
     needs: [prepare, build]
     steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
-        with:
-          name: workspace-release
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup Git
         run: |
@@ -188,10 +185,8 @@ jobs:
     name: Deploy to Google Play
     needs: [prepare, release]
     steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
-        with:
-          name: workspace-release
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Download AAB Artifact
         uses: actions/download-artifact@v4
