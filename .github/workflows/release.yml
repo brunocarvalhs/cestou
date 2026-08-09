@@ -4,264 +4,206 @@ on:
   push:
     branches: [ master ]
 
-env:
-  # Configurações Gerais
-  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-  JDK_VERSION: 17
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
-
-  # Android
-  BUILD_TOOLS_VERSION: "34.0.0"
-  ANDROID_LOCAL_PROPERTIES: local.properties
-
-  # Projeto (cada repo sobrescreve aqui)
-  APP_NAME: "HowMuch"
-  PACKAGE_NAME: "br.com.brunocarvalhs.howmuch"
-
-  # Caminhos
-  APK_DEBUG_PATH: app/build/outputs/apk/debug/*.apk
-  APK_RELEASE_PATH: app/build/outputs/apk/release/*.apk
-  AAB_RELEASE_PATH: app/build/outputs/bundle/release/*.aab
-
-  # 🔑 Secrets (todos centralizados)
-  GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
-  KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-  KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
-  KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-  GITHUB_TOKEN: ${{ secrets.TOKEN }}
-  DEPLOY_SERVICE_ACCOUNT_JSON: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
-  DOTENV: ${{ secrets.DOTENV || vars.DOTENV }}
-
 jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    outputs:
+      jdk_version: ${{ steps.config.outputs.jdk_version }}
+      gradle_opts: ${{ steps.config.outputs.gradle_opts }}
+      app_name: ${{ steps.config.outputs.app_name }}
+      package_name: ${{ steps.config.outputs.package_name }}
+      aab_path: ${{ steps.config.outputs.aab_path }}
+      keystore_path: ${{ steps.config.outputs.keystore_path }}
+      ut_enabled: ${{ steps.config.outputs.ut_enabled }}
+      lint_enabled: ${{ steps.config.outputs.lint_enabled }}
+      detekt_enabled: ${{ steps.config.outputs.detekt_enabled }}
+      release_enabled: ${{ steps.config.outputs.release_enabled }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: config
+        run: |
+          echo "jdk_version=$(yq '.project.jdk_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "gradle_opts=$(yq '.project.gradle_opts' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "app_name=$(yq '.project.name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "package_name=$(yq '.project.package_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "aab_path=$(yq '.paths.aab_release' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "keystore_path=$(yq '.paths.keystore' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "ut_enabled=$(yq '.stages.unit_tests.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "lint_enabled=$(yq '.stages.lint.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "detekt_enabled=$(yq '.stages.detekt.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "release_enabled=$(yq '.stages.release.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+
   checkout-and-setup:
+    needs: prepare
     runs-on: ubuntu-24.04
     name: Checkout and Setup Environment
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Create .env
-        run: |
-          if [ "${{ env.DOTENV }}" != "" ]; then
-            echo "${{ env.DOTENV }}" > .env
-            cp .env .env.example
-          else
-            echo "DOTENV is missing! Creating dummy files to avoid build failure."
-            touch .env
-            touch .env.example
-          fi
-
-      - name: Set up JDK
-        uses: actions/setup-java@v3
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
         with:
-          distribution: 'temurin'
-          java-version: ${{ env.JDK_VERSION }}
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
-
-      - name: Create local.properties
-        run: |
-          echo "sdk.dir=${{ env.ANDROID_HOME }}" > ${{ env.ANDROID_LOCAL_PROPERTIES }}
-
-      - name: Create google-services.json
-        run: |
-          echo ${{ env.GOOGLE_SERVICE_JSON }} | base64 --decode > app/google-services.json
-
-      - name: Cache Gradle
-        uses: actions/cache@v3
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
       - name: Upload Workspace
         uses: actions/upload-artifact@v4
         with:
-          name: workspace
+          name: workspace-release
           path: ./
 
   unit-tests:
+    needs: [prepare, checkout-and-setup]
+    if: needs.prepare.outputs.ut_enabled == 'true'
     runs-on: ubuntu-24.04
     name: Unit Tests
-    needs: checkout-and-setup
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
-          name: workspace
-
-      - name: Give execution permissions to gradlew
-        run: chmod +x gradlew
+          name: workspace-release
 
       - name: Run Unit Tests
-        run: ./gradlew testDebug
+        run: |
+          COMMAND=$(yq '.stages.unit_tests.command' .github/pipeline-config.yaml)
+          chmod +x gradlew
+          $COMMAND
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
   lint-check:
+    needs: [prepare, checkout-and-setup]
+    if: needs.prepare.outputs.lint_enabled == 'true'
     runs-on: ubuntu-24.04
     name: Lint Check
-    needs: checkout-and-setup
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
-          name: workspace
-
-      - name: Give execution permissions to gradlew
-        run: chmod +x gradlew
+          name: workspace-release
 
       - name: Run Lint
-        run: ./gradlew lintDebug
+        run: |
+          COMMAND=$(yq '.stages.lint.command' .github/pipeline-config.yaml)
+          chmod +x gradlew
+          $COMMAND
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
   detekt-check:
+    needs: [prepare, checkout-and-setup]
+    if: needs.prepare.outputs.detekt_enabled == 'true'
     runs-on: ubuntu-24.04
     name: Run Detekt Check
-    needs: checkout-and-setup
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
-          name: workspace
-
-      - name: Give execution permissions to gradlew
-        run: chmod +x gradlew
+          name: workspace-release
 
       - name: Run Detekt
-        run: ./gradlew detekt
+        run: |
+          COMMAND=$(yq '.stages.detekt.command' .github/pipeline-config.yaml)
+          chmod +x gradlew
+          $COMMAND
         env:
-          GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
   build:
+    needs: [prepare, unit-tests, lint-check, detekt-check]
+    if: needs.prepare.outputs.release_enabled == 'true'
     runs-on: ubuntu-24.04
-    name: Build
-    needs: [unit-tests, lint-check, detekt-check]
-    env:
-      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-      KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
-      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+    name: Build AAB
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
-          name: workspace
-
-      - name: Give execution permissions to gradlew
-        run: chmod +x gradlew
-
-      - name: Check if keystore exists
-        run: |
-          if [ -f "app/release.keystore" ]; then
-            echo "Keystore exists"
-          else
-            echo "::error::Keystore file 'app/release.keystore' does not exist. Please ensure it is in the correct location."
-            exit 1
-          fi
+          name: workspace-release
 
       - name: Build AAB
-        run: ./gradlew bundleRelease
+        run: |
+          COMMAND=$(yq '.stages.release.command_aab' .github/pipeline-config.yaml)
+          chmod +x gradlew
+          $COMMAND
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.APP_NAME }}-aab
-          path: app/build/outputs/bundle/release/*.aab
+          name: ${{ needs.prepare.outputs.app_name }}-aab
+          path: ${{ needs.prepare.outputs.aab_path }}
 
   release:
     runs-on: ubuntu-24.04
     name: Create and Upload Release
-    needs: [build]
+    needs: [prepare, build]
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
-          name: workspace
-        continue-on-error: true
+          name: workspace-release
 
       - name: Setup Git
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          BOT_NAME=$(yq '.git.bot_name' .github/pipeline-config.yaml)
+          BOT_EMAIL=$(yq '.git.bot_email' .github/pipeline-config.yaml)
+          git config --global user.name "$BOT_NAME"
+          git config --global user.email "$BOT_EMAIL"
 
       - name: Run versioning script
         id: versioning
         run: |
           chmod +x .github/scripts/version.sh
           new_version=$(.github/scripts/version.sh)
-          echo "::set-output name=new_version::$new_version"
+          echo "new_version=$new_version" >> $GITHUB_OUTPUT
 
       - name: Commit and push changes
         run: |
-          # Verifica se o script de versionamento produziu uma nova versão
+          GRADLE_FILE=$(yq '.paths.gradle_file' .github/pipeline-config.yaml)
+          CHANGELOG_FILE=$(yq '.paths.changelog' .github/pipeline-config.yaml)
           if [ -n "${{ steps.versioning.outputs.new_version }}" ]; then
-            git add app/build.gradle.kts CHANGELOG.md
+            git add $GRADLE_FILE $CHANGELOG_FILE
             git commit -m "chore(release): Prepare release ${{ steps.versioning.outputs.new_version }}"
             git push
-          else
-            echo "Nenhuma nova versão para commitar."
           fi
 
-      - name: Get App Version from build.gradle.kts
-        run: |
-          VERSION=$(grep versionName app/build.gradle.kts | sed 's/.*versionName = "\(.*\)"/\1/')
-          echo "version=$VERSION" >> $GITHUB_ENV
-        continue-on-error: true
-
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@latest
-        env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
+        if: steps.versioning.outputs.new_version != ''
         with:
-          tag_name: ${{ env.version }}
-          release_name: v${{ env.version }}
+          tag_name: ${{ steps.versioning.outputs.new_version }}
+          name: v${{ steps.versioning.outputs.new_version }}
           draft: false
           prerelease: false
-        continue-on-error: true
+          token: ${{ secrets.TOKEN }}
 
   deploy:
     runs-on: ubuntu-24.04
     name: Deploy to Google Play
-    needs: release
+    needs: [prepare, release]
     steps:
+      - name: Download Workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: workspace-release
+
       - name: Download AAB Artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.APP_NAME }}-aab
+          name: ${{ needs.prepare.outputs.app_name }}-aab
           path: app/build/outputs/bundle/release/
 
-      - name: Upload to Google Play (Production)
-        id: deploy_prod
-        continue-on-error: true
+      - name: Upload to Google Play
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
-          packageName: ${{ env.PACKAGE_NAME }}
-          releaseFiles: ${{ env.AAB_RELEASE_PATH }}
+          packageName: ${{ needs.prepare.outputs.package_name }}
+          releaseFiles: ${{ needs.prepare.outputs.aab_path }}
           track: production
-          status: inProgress
-          userFraction: 0.5
-
-      - name: Upload to Google Play (Beta)
-        if: steps.deploy_prod.outcome == 'failure'
-        id: deploy_beta
-        continue-on-error: true
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
-          packageName: ${{ env.PACKAGE_NAME }}
-          releaseFiles: ${{ env.AAB_RELEASE_PATH }}
-          track: beta
           status: completed
-          changesNotSentForReview: true
-
-      - name: Upload to Google Play (Internal)
-        if: steps.deploy_beta.outcome == 'failure'
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
-          packageName: ${{ env.PACKAGE_NAME }}
-          releaseFiles: ${{ env.AAB_RELEASE_PATH }}
-          track: internal
-          status: completed
-          changesNotSentForReview: true
