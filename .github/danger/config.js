@@ -34,8 +34,6 @@ module.exports = {
   jira: {
     pattern: /\[?[A-Z]{2,}-\d+\]?/, // Matches [PROJ-123] or PROJ-123
   },
-
-  // --- PROJECT SPECIFIC RULES ---
   architecture: {
     // Rules: moduleType: [allowedDependenciesTypes]
     // Types identified by directory name
@@ -60,14 +58,17 @@ module.exports = {
       RepositoryImpl: 'RepositoryImpl',
     }
   },
-  // --- END OF PROJECT SPECIFIC RULES ---
-
   compose: {
     maxParameters: 10,
   },
   paths: {
     blockedLibs: '.github/danger/excludes/blockedLibs.txt',
     deprecatedLibs: '.github/danger/excludes/deprecatedLibs.txt',
+    reports: {
+      junit: '**/build/test-results/**/*.xml',
+      lint: '**/build/reports/lint-results*.xml',
+      detekt: '**/build/reports/detekt/detekt.xml',
+    }
   },
   hygiene: {
     forbiddenPatterns: [
