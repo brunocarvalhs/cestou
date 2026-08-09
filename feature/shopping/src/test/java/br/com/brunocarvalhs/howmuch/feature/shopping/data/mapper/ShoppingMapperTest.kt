@@ -7,19 +7,25 @@ import org.junit.Test
 
 class ShoppingMapperTest {
 
+    companion object {
+        private const val PRICE = 100.0
+        private const val CREATED_AT = 123456789L
+        private const val BUDGET = 500.0
+    }
+
     private val domain = Shopping(
         id = "1",
         title = "Test Shopping",
         description = "Description",
-        price = 100.0,
+        price = PRICE,
         status = Shopping.Status.IN_PROGRESS,
         users = listOf("user1"),
         roles = mapOf("user1" to "admin"),
-        createdAt = 123456789L,
+        createdAt = CREATED_AT,
         isFavorite = true,
         isCategorized = false,
         shortCode = "ABC",
-        budget = 500.0,
+        budget = BUDGET,
         position = 1
     )
 
@@ -27,15 +33,15 @@ class ShoppingMapperTest {
         id = "1",
         title = "Test Shopping",
         description = "Description",
-        price = 100.0,
+        price = PRICE,
         status = Shopping.Status.IN_PROGRESS,
         users = listOf("user1"),
         roles = mapOf("user1" to "admin"),
-        createdAt = 123456789L,
+        createdAt = CREATED_AT,
         isFavorite = true,
         isCategorized = false,
         shortCode = "ABC",
-        budget = 500.0,
+        budget = BUDGET,
         position = 1
     )
 
