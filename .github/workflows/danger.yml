@@ -7,39 +7,41 @@ on:
       - develop
       - master
 
-env:
-  # Versões
-  NODE_VERSION: 20
-
-  # 🔑 Secrets
-  GITHUB_TOKEN: ${{ secrets.TOKEN }}
-
 jobs:
   danger:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Load Config
+        id: config
+        run: |
+          echo "enabled=$(yq '.danger.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "node_version=$(yq '.danger.node_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+
       - name: Set up Node.js
+        if: steps.config.outputs.enabled == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: ${{ steps.config.outputs.node_version }}
 
       - name: Install dependencies
+        if: steps.config.outputs.enabled == 'true'
         run: npm install -g danger conventional-changelog
 
       - name: Run Danger
+        if: steps.config.outputs.enabled == 'true'
         run: danger ci --dangerfile .github/danger/dangerfile.js
         env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
       - name: Install GitHub CLI
+        if: steps.config.outputs.enabled == 'true'
         run: sudo apt-get install gh
 
       - name: Approve PR
-        if: success() && !failure()
+        if: steps.config.outputs.enabled == 'true' && success() && !failure()
         run: |
           if [[ "${{ github.actor }}" == "${{ github.event.pull_request.user.login }}" ]]; then
             echo "Você não pode aprovar seu próprio PR. Por favor, peça a um revisor para aprovar."
@@ -48,4 +50,4 @@ jobs:
             gh pr review "${{ github.event.pull_request.number }}" --approve --body "Aprovado automaticamente pelo DangerJS."
           fi
         env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}

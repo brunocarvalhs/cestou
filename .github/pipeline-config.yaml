@@ -1,0 +1,51 @@
+# Configuration for GitHub Actions Pipeline
+
+project:
+  name: "HowMuch"
+  jdk_version: 17
+  gradle_opts: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
+  build_tools_version: "34.0.0"
+  package_name: "br.com.brunocarvalhs.howmuch"
+
+git:
+  bot_name: "github-actions[bot]"
+  bot_email: "41898282+github-actions[bot]@users.noreply.github.com"
+  branches:
+    main: "master"
+    develop: "develop"
+
+paths:
+  gradle_file: "app/build.gradle.kts"
+  changelog: "CHANGELOG.md"
+  keystore: "app/release.keystore"
+  apk_debug: "app/build/outputs/apk/debug/*.apk"
+  apk_release: "app/build/outputs/apk/release/*.apk"
+  aab_release: "app/build/outputs/bundle/release/*.aab"
+
+stages:
+  unit_tests:
+    enabled: true
+    command: "./gradlew testDebug"
+  lint:
+    enabled: true
+    command: "./gradlew lintDebug"
+  detekt:
+    enabled: true
+    command: "./gradlew detekt"
+  build:
+    enabled: true
+    command: "./gradlew assembleDebug"
+    artifact_name: "HowMuch-apk-debug"
+  deploy_firebase:
+    enabled: true
+    release_notes: "release automatica"
+  release:
+    enabled: true
+    command_aab: "./gradlew bundleRelease"
+    google_play:
+      tracks: ["production", "beta", "internal"]
+      user_fraction: 0.5
+
+danger:
+  enabled: true
+  node_version: 20

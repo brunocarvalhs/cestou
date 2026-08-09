@@ -4,72 +4,45 @@ on:
   push:
     branches: [ develop ]
 
-env:
-  # Configurações Gerais
-  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-  JDK_VERSION: 17
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
-
-  # Android
-  BUILD_TOOLS_VERSION: "34.0.0"
-  ANDROID_LOCAL_PROPERTIES: local.properties
-
-  # Projeto
-  APP_NAME: "HowMuch"
-
-  # Caminhos
-  APK_DEBUG_PATH: app/build/outputs/apk/debug/*.apk
-  APK_RELEASE_PATH: app/build/outputs/apk/release/*.apk
-
-  # 🔑 Secrets (configurados no repo)
-  GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
-  FIREBASE_AUTH_TOKEN: ${{ secrets.FIREBASE_AUTH_TOKEN }}
-  FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
-  DOTENV: ${{ secrets.DOTENV || vars.DOTENV }}
-
 jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    outputs:
+      jdk_version: ${{ steps.config.outputs.jdk_version }}
+      gradle_opts: ${{ steps.config.outputs.gradle_opts }}
+      app_name: ${{ steps.config.outputs.app_name }}
+      ut_enabled: ${{ steps.config.outputs.ut_enabled }}
+      lint_enabled: ${{ steps.config.outputs.lint_enabled }}
+      detekt_enabled: ${{ steps.config.outputs.detekt_enabled }}
+      build_enabled: ${{ steps.config.outputs.build_enabled }}
+      deploy_enabled: ${{ steps.config.outputs.deploy_enabled }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: config
+        run: |
+          echo "jdk_version=$(yq '.project.jdk_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "gradle_opts=$(yq '.project.gradle_opts' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "app_name=$(yq '.project.name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "ut_enabled=$(yq '.stages.unit_tests.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "lint_enabled=$(yq '.stages.lint.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "detekt_enabled=$(yq '.stages.detekt.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "build_enabled=$(yq '.stages.build.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "deploy_enabled=$(yq '.stages.deploy_firebase.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+
   checkout-and-setup:
+    needs: prepare
     runs-on: ubuntu-24.04
     name: Checkout and Setup Environment
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Create .env
-        run: |
-          if [ "${{ env.DOTENV }}" != "" ]; then
-            echo "${{ env.DOTENV }}" > .env
-            cp .env .env.example
-          else
-            echo "DOTENV is missing! Creating dummy files to avoid build failure."
-            touch .env
-            touch .env.example
-          fi
-
-      - name: Set up JDK
-        uses: actions/setup-java@v3
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
         with:
-          distribution: 'temurin'
-          java-version: ${{ env.JDK_VERSION }}
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
-
-      - name: Create local.properties
-        run: |
-          echo "sdk.dir=${{ env.ANDROID_HOME }}" > ${{ env.ANDROID_LOCAL_PROPERTIES }}
-
-      - name: Create google-services.json
-        run: |
-          echo ${{ env.GOOGLE_SERVICE_JSON }} | base64 --decode > app/google-services.json
-
-      - name: Cache Gradle
-        uses: actions/cache@v3
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
       - name: Upload Workspace
         uses: actions/upload-artifact@v4
@@ -78,86 +51,107 @@ jobs:
           path: ./
 
   unit-tests:
+    needs: [prepare, checkout-and-setup]
+    if: needs.prepare.outputs.ut_enabled == 'true'
     runs-on: ubuntu-24.04
     name: Run Unit Tests
-    needs: checkout-and-setup
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
           name: workspace
-
-      - name: Give execution permissions to gradlew
-        run: chmod +x gradlew
 
       - name: Run Unit Tests
-        run: ./gradlew testDebug
+        run: |
+          COMMAND=$(yq '.stages.unit_tests.command' .github/pipeline-config.yaml)
+          chmod +x gradlew
+          $COMMAND
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
   lint-check:
+    needs: [prepare, checkout-and-setup]
+    if: needs.prepare.outputs.lint_enabled == 'true'
     runs-on: ubuntu-24.04
     name: Run Lint Check
-    needs: checkout-and-setup
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
           name: workspace
-
-      - name: Give execution permissions to gradlew
-        run: chmod +x gradlew
 
       - name: Run Lint
-        run: ./gradlew lintDebug
+        run: |
+          COMMAND=$(yq '.stages.lint.command' .github/pipeline-config.yaml)
+          chmod +x gradlew
+          $COMMAND
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
   detekt-check:
+    needs: [prepare, checkout-and-setup]
+    if: needs.prepare.outputs.detekt_enabled == 'true'
     runs-on: ubuntu-24.04
     name: Run Detekt Check
-    needs: checkout-and-setup
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
           name: workspace
-
-      - name: Give execution permissions to gradlew
-        run: chmod +x gradlew
 
       - name: Run Detekt
-        run: ./gradlew detekt
+        run: |
+          COMMAND=$(yq '.stages.detekt.command' .github/pipeline-config.yaml)
+          chmod +x gradlew
+          $COMMAND
         env:
-          GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
   build:
+    needs: [prepare, unit-tests, lint-check, detekt-check]
+    if: |
+      always() && 
+      needs.prepare.outputs.build_enabled == 'true' && 
+      (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped') &&
+      (needs.lint-check.result == 'success' || needs.lint-check.result == 'skipped') &&
+      (needs.detekt-check.result == 'success' || needs.detekt-check.result == 'skipped')
     runs-on: ubuntu-24.04
     name: Build
-    needs: [unit-tests, lint-check, detekt-check]
     steps:
       - name: Download Workspace
         uses: actions/download-artifact@v4
         with:
           name: workspace
 
-      - name: Give execution permissions to gradlew
-        run: chmod +x gradlew
-
       - name: Build APK Debug
-        run: ./gradlew assembleDebug
+        run: |
+          COMMAND=$(yq '.stages.build.command' .github/pipeline-config.yaml)
+          chmod +x gradlew
+          $COMMAND
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.APP_NAME }}-apk-debug
-          path: ${{ env.APK_DEBUG_PATH }}
+          name: ${{ needs.prepare.outputs.app_name }}-apk-debug
+          path: app/build/outputs/apk/debug/*.apk
 
   deploy-firebase:
+    needs: [prepare, build]
+    if: needs.prepare.outputs.deploy_enabled == 'true' && needs.build.result == 'success'
     runs-on: ubuntu-24.04
     name: Deploy to Firebase App Distribution
-    needs: [build]
     steps:
+      - name: Download Workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: workspace
+
       - name: Download APK Artifact
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.APP_NAME }}-apk-debug
+          name: ${{ needs.prepare.outputs.app_name }}-apk-debug
           path: app/build/outputs/apk/release/
 
       - name: Install Firebase CLI
@@ -165,7 +159,12 @@ jobs:
 
       - name: Upload APK to Firebase App Distribution
         run: |
-          firebase appdistribution:distribute ${{ env.APK_RELEASE_PATH }} \
-            --app "${{ env.FIREBASE_APP_ID }}" \
-            --release-notes "release automatica" \
-            --token "${{ env.FIREBASE_AUTH_TOKEN }}"
+          APK_PATH=$(yq '.stages.deploy_firebase.artifact_path' .github/pipeline-config.yaml)
+          APP_ID="${{ secrets.FIREBASE_APP_ID }}"
+          TOKEN="${{ secrets.FIREBASE_AUTH_TOKEN }}"
+          NOTES=$(yq '.stages.deploy_firebase.release_notes' .github/pipeline-config.yaml)
+          
+          firebase appdistribution:distribute $APK_PATH \
+            --app "$APP_ID" \
+            --release-notes "$NOTES" \
+            --token "$TOKEN"
