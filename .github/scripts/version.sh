@@ -8,8 +8,15 @@ set -euo pipefail
 # Move para o diretório raiz do projeto
 cd "$(dirname "$0")/../.."
 
-GRADLE_FILE="app/build.gradle.kts"
-CHANGELOG_FILE="CHANGELOG.md"
+CONFIG_FILE=".github/pipeline-config.yaml"
+
+# Função para ler do pipeline-config.yaml usando yq
+get_config() {
+    yq "$1" "$CONFIG_FILE"
+}
+
+GRADLE_FILE=$(get_config '.paths.gradle_file')
+CHANGELOG_FILE=$(get_config '.paths.changelog')
 
 # 1️⃣ Pega a última tag (se houver)
 latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")

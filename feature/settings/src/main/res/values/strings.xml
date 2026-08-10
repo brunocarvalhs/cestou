@@ -1,0 +1,100 @@
+<resources>
+    <!-- Feature: Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_general">General</string>
+    <string name="settings_section_ai">AI</string>
+    <string name="settings_section_shopping">Shopping</string>
+    <string name="settings_section_data">Data</string>
+    <string name="settings_section_notifications">Notifications</string>
+    <string name="settings_section_support">Support</string>
+    <string name="settings_section_about">About</string>
+
+    <string name="settings_item_theme">Theme</string>
+    <string name="settings_item_language">Language</string>
+    <string name="settings_item_currency">Currency</string>
+    <string name="settings_item_ai_model">AI Model</string>
+    <string name="settings_item_default_list">Default List</string>
+    <string name="settings_item_delete_all">Delete all data</string>
+    <string name="settings_item_delete_all_desc">Removes lists and settings</string>
+    <string name="settings_item_notifications">Notifications</string>
+    <string name="settings_item_contact">Contact Us</string>
+    <string name="settings_item_bug_report">Report a Problem</string>
+    <string name="settings_item_bug_report_desc">Found a bug?</string>
+    <string name="settings_item_feedback">Send Suggestion</string>
+    <string name="settings_item_feedback_desc">Help improve the app</string>
+    <string name="settings_item_rate">Rate App</string>
+    <string name="settings_item_rate_desc">Leave your review</string>
+    <string name="settings_item_terms">Terms of Use</string>
+    <string name="settings_item_privacy">Privacy Policy</string>
+    <string name="settings_item_licenses">Open Source Licenses</string>
+    <string name="settings_item_release_notes">Version News</string>
+    <string name="settings_item_release_notes_desc">See what\'s changed</string>
+    <string name="settings_item_version">Version</string>
+
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_select">Select Theme</string>
+
+    <string name="settings_language_pt">Portuguese (Brazil)</string>
+    <string name="settings_language_en">English (United States)</string>
+    <string name="settings_language_es">Spanish (Spain)</string>
+
+    <string name="settings_currency_brl">Brazilian Real (R$)</string>
+    <string name="settings_currency_usd">US Dollar ($)</string>
+    <string name="settings_currency_eur">Euro (€)</string>
+
+    <string name="settings_notifications_enable">Enable notifications</string>
+    <string name="settings_notifications_desc">Receive reminders of pending lists</string>
+    <string name="settings_notifications_reminder_time">Reminder Time</string>
+    <string name="settings_notifications_enabled">Enabled</string>
+    <string name="settings_notifications_disabled">Disabled</string>
+
+    <string name="settings_shopping_preferences">Shopping Preferences</string>
+    <string name="settings_shopping_default_sorting">Default list sorting</string>
+    <string name="settings_shopping_sort_category">By Category</string>
+    <string name="settings_shopping_sort_name">By Name</string>
+    <string name="settings_shopping_reminders">Shopping Reminders</string>
+    <string name="settings_shopping_reminders_desc">Notify when there are pending lists</string>
+    <string name="settings_shopping_none_selected">None selected</string>
+
+    <string name="settings_placeholder_soon">Feature for %s coming soon</string>
+
+    <string name="settings_title_ai">AI</string>
+    <string name="settings_title_data">Data</string>
+    <string name="settings_ai_header">Artificial Intelligence Settings</string>
+    <string name="settings_ai_label_model">AI Model (Free)</string>
+    <string name="settings_ai_label_custom_prompt">Custom Prompt</string>
+    <string name="settings_ai_placeholder_custom_prompt">Using the app default</string>
+    <string name="settings_ai_label_creativity">Creativity (Temperature): %1$.1f</string>
+    <string name="settings_ai_button_save">Save Preferences</string>
+    <string name="settings_data_clear_cache">Clear cache</string>
+    <string name="settings_data_clear_cache_hint">Frees up occupied space</string>
+    <string name="settings_data_delete_all">Delete all data</string>
+    <string name="settings_data_delete_all_hint">Permanently removes lists and settings</string>
+    <string name="settings_data_delete_confirmation_title">Delete all data?</string>
+    <string name="settings_data_delete_confirmation_message">This action cannot be undone. All your lists and local settings will be permanently removed.</string>
+    <string name="settings_data_delete_button">Yes, delete everything</string>
+
+    <string name="settings_terms_content">
+        By using Cestou, you agree to the following terms: \n\n
+        1. App Use: Cestou is a tool for managing shopping lists.\n
+        2. AI: The AI assistant is provided \"as is\" and may generate inaccurate information.\n
+        3. Data: Your lists are securely synced via Firestore.\n
+        4. Responsibility: We are not responsible for data loss due to device misuse.\n\n
+        Version: 1.0.0
+    </string>
+
+    <string name="settings_privacy_content">
+        Your privacy is our priority:\n\n
+        1. Data Collection: We only collect your anonymous user ID and your shopping lists for synchronization.\n
+        2. Sharing: We do not share your personal data with third parties for advertising purposes.\n
+        3. Cookies: We do not use tracking cookies.\n
+        4. Security: We use AES encryption to protect sensitive data on the device.\n\n
+        Questions? Contact us at suporte@cestou.com.br
+    </string>
+
+    <string name="action_confirm">Confirm</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_select_time">Select Time</string>
+</resources>

@@ -1,0 +1,58 @@
+name: 'Setup Android Environment'
+description: 'Standard setup for Android CI'
+
+inputs:
+  jdk-version:
+    description: 'JDK Version'
+    required: true
+    default: '17'
+  dotenv:
+    description: 'Content for .env file'
+    required: false
+  google-services-json:
+    description: 'Base64 encoded google-services.json'
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create .env
+      shell: bash
+      run: |
+        if [ "${{ inputs.dotenv }}" != "" ]; then
+          echo "${{ inputs.dotenv }}" > .env
+          cp .env .env.example
+        else
+          echo "DOTENV is missing! Creating dummy files to avoid build failure."
+          touch .env
+          touch .env.example
+        fi
+
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: ${{ inputs.jdk-version }}
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+
+    - name: Create local.properties
+      shell: bash
+      run: |
+        echo "sdk.dir=${{ env.ANDROID_HOME }}" > local.properties
+
+    - name: Create google-services.json
+      shell: bash
+      run: |
+        if [ "${{ inputs.google-services-json }}" != "" ]; then
+          echo "${{ inputs.google-services-json }}" | base64 --decode > app/google-services.json
+        fi
+
+    - name: Cache Gradle
+      uses: actions/cache@v3
+      with:
+        path: ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
