@@ -2,22 +2,31 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.brunocarvalhs.howmuch.feature.shopping.R
+import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.entity.User
+import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
+import br.com.brunocarvalhs.howmuch.core.domain.service.AuthService
+import br.com.brunocarvalhs.howmuch.core.extensions.toMonthYearString
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
+import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.products.domain.model.ChatMessage
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.CartAssistantUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductsFlow
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.state.AiDockState
-import br.com.brunocarvalhs.howmuch.core.domain.service.AuthService
-import br.com.brunocarvalhs.howmuch.core.domain.entity.User
-import br.com.brunocarvalhs.howmuch.core.extensions.toMonthYearString
-import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
-import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.*
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
-import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.*
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.GetShoppingSuggestionsUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShareShoppingUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingCreateUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDeleteUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDuplicateUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingGetAllUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingGetByIdUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingReopenUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingUpdateUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.EditShopping
+import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.JoinList
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.ShoppingListIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingListUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -53,70 +62,98 @@ internal class ShoppingListViewModel @Inject constructor(
 
     val intent = ShoppingListIntent(
         onFetchAll = { fetchAll() },
-        onCreate = { create() },
+        onCreate = { _uiState.update { it.copy(isCreateSheetVisible = true) } },
         onOpen = { id -> open(id) },
         onPromptChanged = { value -> _uiState.update { it.copy(prompt = value) } },
-        onFilter = { value -> 
+        onFilter = { value ->
             _uiState.update { it.copy(selectedFilter = value) }
             applyFilters()
         },
-        onQueryChange = { value -> 
+        onQueryChange = { value ->
             _uiState.update { it.copy(searchQuery = value) }
             applyFilters()
         },
-        onSearch = { value -> 
+        onSearch = { value ->
             _uiState.update { it.copy(searchQuery = value) }
             applyFilters()
         },
         onSendPrompt = { sendPrompt() },
         onToggleAi = { toggleAi() },
-        onOpenAi = { 
+        onOpenAi = {
             _uiState.update { it.copy(aiDockState = AiDockState.EXPANDED) }
             loadAiSuggestions()
         },
         onCloseAi = { _uiState.update { it.copy(aiDockState = AiDockState.COLLAPSED) } },
-        onToggleFavorite = { shopping -> toggleFavorite(shopping) },
-        onDuplicate = { shopping -> duplicate(shopping) },
-        onShare = { shopping -> share(shopping) },
-        onDelete = { id -> 
+        onToggleFavorite = { shopping ->
+            handleShoppingAction(ShoppingAction.ToggleFavorite(shopping))
+        },
+        onDuplicate = { shopping ->
+            handleShoppingAction(ShoppingAction.Duplicate(shopping))
+        },
+        onShare = { shopping ->
+            handleShoppingAction(ShoppingAction.Share(shopping))
+        },
+        onDelete = { id ->
             viewModelScope.launch {
                 val shopping = repository.getById(id)
                 if (isOwner(shopping)) {
-                    delete(id)
+                    handleShoppingAction(ShoppingAction.Delete(id))
                 } else {
-                    _uiState.update { it.copy(error = UiText.StringResource(R.string.shopping_management_error_only_owner_delete)) }
+                    _uiState.update {
+                        it.copy(
+                            error = UiText.StringResource(
+                                R.string.shopping_management_error_only_owner_delete
+                            )
+                        )
+                    }
                 }
             }
         },
-        onEdit = { shopping -> 
+        onEdit = { shopping ->
             if (isOwner(shopping)) {
                 _navigator?.navigate(EditShopping(shopping))
             } else {
-                _uiState.update { it.copy(error = UiText.StringResource(R.string.shopping_management_error_only_owner_edit)) }
+                _uiState.update {
+                    it.copy(
+                        error = UiText.StringResource(
+                            R.string.shopping_management_error_only_owner_edit
+                        )
+                    )
+                }
             }
         },
-        onUpdate = { shopping -> update(shopping) },
-        onReopen = { shopping -> reopen(shopping) },
+        onUpdate = { shopping ->
+            handleShoppingAction(ShoppingAction.Update(shopping))
+        },
+        onReopen = { shopping ->
+            handleShoppingAction(ShoppingAction.Reopen(shopping))
+        },
         onShowJoinDialog = { _navigator?.navigate(JoinList) },
         onMove = { from, to -> moveShopping(from, to) },
         onShowCreateSheet = { visible -> _uiState.update { it.copy(isCreateSheetVisible = visible) } },
         onCreateConfirmed = { title, description -> createConfirmed(title, description) },
-        onSuggestionClick = { suggestion -> 
+        onSuggestionClick = { suggestion ->
             _uiState.update { it.copy(prompt = suggestion) }
             sendPrompt()
         }
     )
 
     init {
-        observeAll()
-        observeSettings()
+        observeData()
     }
 
     fun setNavigator(navigator: Navigator) {
         _navigator = navigator
     }
 
-    private fun observeSettings() {
+    private fun observeData() {
+        _uiState.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+            repository.observeAll().collect { list ->
+                _uiState.update { it.copy(list = StableList(list), isLoading = false) }
+                applyFilters()
+            }
+        }
         viewModelScope.launch {
             getSettingsUseCase().collect { settings ->
                 _uiState.update { it.copy(sortingMode = settings.sortingMode) }
@@ -125,12 +162,25 @@ internal class ShoppingListViewModel @Inject constructor(
         }
     }
 
-    private fun observeAll() {
-        _uiState.update { it.copy(isLoading = true) }
+    private fun handleShoppingAction(action: ShoppingAction) {
         viewModelScope.launch {
-            repository.observeAll().collect { list ->
-                _uiState.update { it.copy(list = StableList(list), isLoading = false) }
-                applyFilters()
+            val result = when (action) {
+                is ShoppingAction.Delete -> shoppingDeleteUseCase(action.id)
+                is ShoppingAction.Share -> {
+                    shareShoppingUseCase(action.shopping)
+                    Result.success(Unit)
+                }
+                is ShoppingAction.Duplicate -> shoppingDuplicateUseCase(action.shopping)
+                is ShoppingAction.ToggleFavorite -> {
+                    val shopping = action.shopping
+                    val updated = shopping.copy(isFavorite = !shopping.isFavorite)
+                    shoppingUpdateUseCase(shopping.id, updated)
+                }
+                is ShoppingAction.Update -> shoppingUpdateUseCase(action.shopping.id, action.shopping)
+                is ShoppingAction.Reopen -> shoppingReopenUseCase(action.shopping)
+            }
+            result.onSuccess {
+                if (action !is ShoppingAction.Share) fetchAll()
             }
         }
     }
@@ -144,43 +194,12 @@ internal class ShoppingListViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isAiSuggestionsLoading = true) }
             getShoppingSuggestionsUseCase().collect { suggestions ->
-                _uiState.update { 
+                _uiState.update {
                     it.copy(
                         aiSuggestions = StableList(suggestions),
                         isAiSuggestionsLoading = false
-                    ) 
+                    )
                 }
-            }
-        }
-    }
-
-    private fun delete(id: String) {
-        viewModelScope.launch {
-            shoppingDeleteUseCase(id).onSuccess {
-                fetchAll()
-            }
-        }
-    }
-
-    private fun share(shopping: Shopping) {
-        viewModelScope.launch {
-            shareShoppingUseCase(shopping)
-        }
-    }
-
-    private fun duplicate(shopping: Shopping) {
-        viewModelScope.launch {
-            shoppingDuplicateUseCase(shopping).onSuccess {
-                fetchAll()
-            }
-        }
-    }
-
-    private fun toggleFavorite(shopping: Shopping) {
-        viewModelScope.launch {
-            val updated = shopping.copy(isFavorite = !shopping.isFavorite)
-            shoppingUpdateUseCase(shopping.id, updated).onSuccess {
-                fetchAll()
             }
         }
     }
@@ -222,10 +241,12 @@ internal class ShoppingListViewModel @Inject constructor(
             it.copy(
                 prompt = "",
                 aiDockState = AiDockState.CHAT,
-                aiMessages = StableList(it.aiMessages + ChatMessage(
-                    text = text,
-                    sender = ChatMessage.Sender.USER
-                )),
+                aiMessages = StableList(
+                    it.aiMessages + ChatMessage(
+                        text = text,
+                        sender = ChatMessage.Sender.USER
+                    )
+                ),
                 isAiLoading = true
             )
         }
@@ -235,17 +256,18 @@ internal class ShoppingListViewModel @Inject constructor(
                 assistantUseCase(text, _uiState.value).collect { response ->
                     _uiState.update {
                         it.copy(
-                            aiMessages = StableList(it.aiMessages + ChatMessage(
-                                text = response,
-                                sender = ChatMessage.Sender.ASSISTANT
-                            )),
+                            aiMessages = StableList(
+                                it.aiMessages + ChatMessage(
+                                    text = response,
+                                    sender = ChatMessage.Sender.ASSISTANT
+                                )
+                            ),
                             isAiLoading = false
                         )
                     }
                 }
-            } catch (_: kotlinx.coroutines.CancellationException) {
-                _uiState.update { it.copy(isAiLoading = false) }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
                 _uiState.update { it.copy(isAiLoading = false) }
             }
         }
@@ -267,19 +289,11 @@ internal class ShoppingListViewModel @Inject constructor(
 
         if (!closeConfirmation) {
             closeConfirmation = true
-            _uiState.update {
-                it.copy(
-                    aiDockState = AiDockState.EXPANDED
-                )
-            }
+            _uiState.update { it.copy(aiDockState = AiDockState.EXPANDED) }
             return
         }
         closeConfirmation = false
-        _uiState.update {
-            it.copy(
-                aiDockState = AiDockState.COLLAPSED
-            )
-        }
+        _uiState.update { it.copy(aiDockState = AiDockState.COLLAPSED) }
     }
 
     private fun fetchAll() {
@@ -295,19 +309,13 @@ internal class ShoppingListViewModel @Inject constructor(
         }
     }
 
-    private fun create() {
-        _uiState.update { it.copy(isCreateSheetVisible = true) }
-    }
-
     private fun createConfirmed(title: String, description: String) {
         _uiState.update { it.copy(isCreateSheetVisible = false) }
         viewModelScope.launch {
             shoppingCreateUseCase.invoke(title = title, description = description)
                 .onSuccess { data ->
                     _navigator?.navigate(route = ProductsFlow(data))
-                }.onFailure {
-
-                }
+                }.onFailure { }
         }
     }
 
@@ -316,25 +324,7 @@ internal class ShoppingListViewModel @Inject constructor(
             shoppingGetByIdUseCase.invoke(id)
                 .onSuccess {
                     _navigator?.navigate(route = ProductsFlow(it))
-                }.onFailure {
-
-                }
-        }
-    }
-
-    private fun update(shopping: Shopping) {
-        viewModelScope.launch {
-            shoppingUpdateUseCase(shopping.id, shopping).onSuccess {
-                fetchAll()
-            }
-        }
-    }
-
-    private fun reopen(shopping: Shopping) {
-        viewModelScope.launch {
-            shoppingReopenUseCase(shopping).onSuccess {
-                fetchAll()
-            }
+                }.onFailure { }
         }
     }
 
@@ -345,15 +335,22 @@ internal class ShoppingListViewModel @Inject constructor(
         val movedItem = list.removeAt(fromIndex)
         list.add(toIndex, movedItem)
 
-        // Update positions locally first for immediate feedback
         val updatedList = list.mapIndexed { index, shopping ->
             shopping.copy(position = index)
         }
         _uiState.update { it.copy(filteredList = StableList(updatedList)) }
 
-        // Persist to repository
         viewModelScope.launch {
             repository.updatePositions(updatedList)
         }
+    }
+
+    private sealed class ShoppingAction {
+        data class Delete(val id: String) : ShoppingAction()
+        data class Share(val shopping: Shopping) : ShoppingAction()
+        data class Duplicate(val shopping: Shopping) : ShoppingAction()
+        data class ToggleFavorite(val shopping: Shopping) : ShoppingAction()
+        data class Update(val shopping: Shopping) : ShoppingAction()
+        data class Reopen(val shopping: Shopping) : ShoppingAction()
     }
 }

@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.data.mapper
 
-import br.com.brunocarvalhs.howmuch.feature.shopping.data.model.ShoppingModel
 import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.feature.shopping.data.model.ShoppingModel
 
 internal fun ShoppingModel.toDomain(): Shopping = Shopping(
     id = id,

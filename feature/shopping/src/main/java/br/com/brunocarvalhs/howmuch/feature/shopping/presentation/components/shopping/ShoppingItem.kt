@@ -50,6 +50,14 @@ private const val STATUS_FINISH_ALPHA = 0.4f
 private const val STATUS_IN_PROGRESS_ALPHA = 0.6f
 private const val STATUS_DEFAULT_ALPHA = 0.4f
 private const val LOADING_CONTAINER_ALPHA = 0.3f
+private const val SHIMMER_ALPHA_INITIAL = 0.3f
+private const val SHIMMER_ALPHA_TARGET = 0.7f
+private const val SHIMMER_DURATION = 1_000
+private const val LOADING_TITLE_WIDTH_FRACTION = 0.6f
+private const val LOADING_DESC_WIDTH_FRACTION = 0.4f
+private val FINISHED_SURFACE_ELEVATION = 1.dp
+private val DEFAULT_CARD_ELEVATION = 2.dp
+private val FINISHED_CARD_ELEVATION = 0.dp
 
 @Composable
 internal fun ShoppingItem(
@@ -72,7 +80,9 @@ internal fun ShoppingItem(
     var expanded by remember { mutableStateOf(false) }
     val backgroundColor by animateColorAsState(
         targetValue = when (status) {
-            Shopping.Status.FINISH -> MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
+            Shopping.Status.FINISH -> MaterialTheme.colorScheme.surfaceColorAtElevation(
+                FINISHED_SURFACE_ELEVATION
+            )
             else -> MaterialTheme.colorScheme.surface
         },
         label = "bgColor"
@@ -85,7 +95,11 @@ internal fun ShoppingItem(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (status == Shopping.Status.FINISH) 0.dp else 2.dp
+            defaultElevation = if (status == Shopping.Status.FINISH) {
+                FINISHED_CARD_ELEVATION
+            } else {
+                DEFAULT_CARD_ELEVATION
+            }
         ),
         onClick = onClick
     ) {
@@ -315,9 +329,12 @@ internal fun ShoppingItem(
 internal fun ShoppingItemLoading(modifier: Modifier = Modifier) {
     val infiniteTransition = rememberInfiniteTransition(label = "shimmer")
     val alpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.7f,
-        animationSpec = infiniteRepeatable(animation = tween(1000), repeatMode = RepeatMode.Reverse),
+        initialValue = SHIMMER_ALPHA_INITIAL,
+        targetValue = SHIMMER_ALPHA_TARGET,
+        animationSpec = infiniteRepeatable(
+            animation = tween(SHIMMER_DURATION),
+            repeatMode = RepeatMode.Reverse
+        ),
         label = "alpha"
     )
 
@@ -345,7 +362,7 @@ internal fun ShoppingItemLoading(modifier: Modifier = Modifier) {
             Column(modifier = Modifier.weight(1f)) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(0.6f)
+                        .fillMaxWidth(LOADING_TITLE_WIDTH_FRACTION)
                         .height(20.dp)
                         .clip(RoundedCornerShape(4.dp))
                         .background(MaterialTheme.colorScheme.outlineVariant)
@@ -353,7 +370,7 @@ internal fun ShoppingItemLoading(modifier: Modifier = Modifier) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(0.4f)
+                        .fillMaxWidth(LOADING_DESC_WIDTH_FRACTION)
                         .height(16.dp)
                         .clip(RoundedCornerShape(4.dp))
                         .background(MaterialTheme.colorScheme.outlineVariant)

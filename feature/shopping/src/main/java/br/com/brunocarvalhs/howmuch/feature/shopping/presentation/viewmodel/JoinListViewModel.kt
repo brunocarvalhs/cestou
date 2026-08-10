@@ -2,13 +2,13 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingJoinUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.Scanner
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.JoinListIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.JoinListUiState
-import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

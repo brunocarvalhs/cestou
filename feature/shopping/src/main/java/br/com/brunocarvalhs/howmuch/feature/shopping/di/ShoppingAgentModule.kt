@@ -1,15 +1,15 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.di
 
 import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingClearPurchasedUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingCreateUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDeleteUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingGetAllUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingGetByIdUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingMultiDeleteUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingUpdateUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingReopenUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingClearPurchasedUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingGetDetailsUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingMultiDeleteUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingReopenUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingUpdateUseCase
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

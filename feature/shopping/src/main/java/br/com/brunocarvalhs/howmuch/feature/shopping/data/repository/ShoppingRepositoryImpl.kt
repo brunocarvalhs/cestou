@@ -1,5 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.data.repository
 
+import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.service.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.service.NetworkService
 import br.com.brunocarvalhs.howmuch.core.domain.service.make
@@ -7,11 +9,10 @@ import br.com.brunocarvalhs.howmuch.core.domain.service.observe
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.mapper.toDomain
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.mapper.toModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.model.ShoppingModel
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
-import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton

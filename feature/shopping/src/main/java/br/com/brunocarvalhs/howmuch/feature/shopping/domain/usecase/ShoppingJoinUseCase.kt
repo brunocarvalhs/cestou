@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
-import br.com.brunocarvalhs.howmuch.core.domain.service.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
+import br.com.brunocarvalhs.howmuch.core.domain.service.AuthService
 import timber.log.Timber
 import javax.inject.Inject
 
