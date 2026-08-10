@@ -1,0 +1,176 @@
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+  weights:
+  # complexity: 2
+  # LongParameterList: 1
+  # style: 1
+  # comments: 1
+
+config:
+  validation: true
+  warningsAsErrors: false
+  checkExhaustiveness: false
+  # exclude:
+  #   - 'build/**/*'
+  #   - '.*/test/.*'
+
+complexity:
+  active: true
+
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 15
+    ignoreAnnotated:
+      - Composable
+      - androidx.compose.runtime.Composable
+
+  LongParameterList:
+    active: true
+    functionThreshold: 6
+    constructorThreshold: 6
+    ignoreDataClasses: true
+    ignoreAnnotated:
+      - Composable
+      - androidx.compose.runtime.Composable
+      - Inject
+      - javax.inject.Inject
+      - HiltViewModel
+    ignoreAnnotatedParameter: []
+
+  LargeClass:
+    active: true
+    threshold: 600
+
+  LongMethod:
+    active: true
+    threshold: 60
+    ignoreAnnotated:
+      - Composable
+      - androidx.compose.runtime.Composable
+
+  TooManyFunctions:
+    active: true
+    thresholdInClasses: 12
+
+style:
+  active: true
+
+  MagicNumber:
+    active: true
+    ignoreNumbers:
+      - '-1'
+      - '0'
+      - '1'
+      - '2'
+      - '0xFF'
+    ignoreHashCodeFunction: true
+    ignorePropertyDeclaration: true
+    ignoreLocalVariableDeclaration: false
+    ignoreConstantDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreAnnotation: true
+    ignoreEnums: true
+    ignoreRanges: false
+
+  UnusedPrivateMember:
+    active: true
+    allowedNames: '(_|ignored|expected|serialVersionUID|.*Preview)'
+
+naming:
+  active: true
+
+  FunctionNaming:
+    active: true
+    functionPattern: '[a-z][a-zA-Z0-9]*'
+    excludeClassPattern: '.*'
+    ignoreAnnotated:
+      - Composable
+      - androidx.compose.runtime.Composable
+
+performance:
+  active: true
+
+comments:
+  active: true
+
+coroutines:
+  active: true
+
+empty-blocks:
+  active: true
+
+  EmptyFunctionBlock:
+    active: true
+    ignoreAnnotated:
+      - Composable
+      - androidx.compose.runtime.Composable
+
+exceptions:
+  active: true
+
+formatting:
+  active: true
+  android: true
+  autoCorrect: true
+
+  NoWildcardImports:
+    active: true
+
+  Filename:
+    active: true
+
+  FinalNewline:
+    active: true
+
+  ImportOrdering:
+    active: true
+
+  Indentation:
+    active: true
+
+  MaximumLineLength:
+    active: true
+    maxLineLength: 120
+
+  NoEmptyClassBody:
+    active: true
+
+  ParameterListWrapping:
+    active: true
+
+  SpacingAroundComma:
+    active: true
+
+  SpacingAroundCurly:
+    active: true
+
+  SpacingAroundDot:
+    active: true
+
+  SpacingAroundKeyword:
+    active: true
+
+  SpacingAroundOperators:
+    active: true
+
+  SpacingAroundParens:
+    active: true
+
+  SpacingAroundRangeOperator:
+    active: true
+
+Compose:
+  active: true
+
+  ComposeNaming:
+    active: true
+
+  ComposeComposableModifier:
+    active: true
+
+  ComposeModifierOrder:
+    active: true
+
+  ComposeLambdaOffset:
+    active: true

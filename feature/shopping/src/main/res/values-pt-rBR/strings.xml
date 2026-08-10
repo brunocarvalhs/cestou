@@ -1,0 +1,108 @@
+<resources>
+    <!-- Feature: Shopping Management -->
+    <string name="shopping_management_search_placeholder">Pesquisar listas&#8230;</string>
+    <string name="shopping_management_summary_spent">Gasto Total</string>
+    <string name="shopping_management_summary_budget">Orçamento: %s</string>
+    <string name="shopping_management_summary_finished_lists">listas finalizadas</string>
+    <string name="shopping_management_empty_title">Nenhuma lista encontrada</string>
+    <string name="shopping_management_empty_description">Crie uma nova lista de compras ou tente pesquisar por outro termo.</string>
+    <string name="shopping_management_new_list_title">Nova Lista</string>
+    <string name="shopping_management_new_list_description">Dê um nome para sua nova lista de compras</string>
+    <string name="shopping_management_label_list_title">Título da Lista</string>
+    <string name="shopping_management_placeholder_list_title">Ex: Churrasco no Domingo</string>
+    <string name="shopping_management_label_description_optional">Descrição (Opcional)</string>
+    <string name="shopping_management_placeholder_description_new">Ex: Mercado da esquina</string>
+    <string name="shopping_management_button_create">Criar</string>
+
+    <string name="shopping_filter_all">Todos</string>
+    <string name="shopping_filter_active">Compras</string>
+    <string name="shopping_filter_favorites">Favoritos</string>
+    <string name="shopping_management_edit_list_title">Editar Lista</string>
+    <string name="shopping_management_label_description">Descrição / Local</string>
+    <string name="shopping_management_placeholder_description">Ex: Compras do mês</string>
+    <string name="shopping_management_label_total_paid">Valor Total Pago</string>
+    <string name="shopping_management_label_budget">Orçamento (Opcional)</string>
+    <string name="shopping_management_budget_hint">Defina um limite de gastos para esta lista.</string>
+    <string name="shopping_management_label_categorize">Categorizar Produtos</string>
+    <string name="shopping_management_categorize_hint">Agrupar itens por categoria automaticamente</string>
+    <string name="shopping_management_label_members">Membros</string>
+    <string name="shopping_management_button_generate_token">Gerar Token de Convite</string>
+    <string name="shopping_management_token_title">Token de Convite</string>
+    <string name="shopping_management_token_hint">Compartilhe este código ou o QR Code com quem você deseja convidar.</string>
+    <string name="shopping_management_join_title">Entrar em uma lista</string>
+    <string name="shopping_management_join_description">Peça o código ou QR Code para o proprietário da lista.</string>
+    <string name="shopping_management_label_token">Código da lista</string>
+    <string name="shopping_management_placeholder_token">Ex: A1B2C3</string>
+    <string name="shopping_management_join_error_invalid">Token inválido ou expirado</string>
+    <string name="shopping_management_button_join">Entrar na Lista</string>
+    <string name="shopping_management_button_scan_qr">Escanear QR Code</string>
+    <string name="shopping_management_invite_members_title">Convidar Membros</string>
+    <string name="shopping_management_qr_code_hint">Escaneie o código acima ou use the token abaixo para entrar na lista.</string>
+    <string name="shopping_management_button_share_invite">Compartilhar Link de Convite</string>
+    <string name="shopping_management_error_only_owner_delete">Apenas o proprietário pode excluir esta lista</string>
+    <string name="shopping_management_error_only_owner_edit">Apenas o proprietário pode editar esta lista</string>
+
+
+    <string name="shopping_management_error_join">Erro ao entrar na lista</string>
+    <string name="shopping_management_token_copy">Copiar</string>
+
+    <string name="shopping_management_share_chooser_title">Compartilhar lista</string>
+
+    <string name="shopping_list_copy_suffix">(Cópia)</string>
+    <string name="shopping_list_new_title">Nova Lista</string>
+    <string name="shopping_list_new_description">Lista de compras padrão</string>
+
+    <string name="shopping_suggestion_expensive">Qual é a minha lista mais cara?</string>
+    <string name="shopping_suggestion_breakfast">Sugerir itens para um café da manhã</string>
+    <string name="shopping_suggestion_pending">Quais listas estão pendentes?</string>
+    <string name="shopping_suggestion_barbecue">Crie uma lista de churrasco para 5 pessoas</string>
+    <string name="shopping_suggestion_spent_month">Qual o total gasto este mês?</string>
+
+    <string name="action_duplicate">Duplicar</string>
+    <string name="action_reopen">Reabrir</string>
+    <string name="action_add_favorite">Adicionar aos Favoritos</string>
+    <string name="action_remove_favorite">Remover dos Favoritos</string>
+
+    <string name="shopping_status_finished">Concluída</string>
+    <string name="shopping_status_in_progress">Em andamento</string>
+    <string name="shopping_status_new">Novo</string>
+
+    <string name="shopping_list_updated">Lista atualizada!</string>
+    <string name="shopping_list_default_title">Lista de produtos</string>
+    <string name="shopping_list_members_collaborating">%d membros colaborando</string>
+    <string name="shopping_list_menu_clear_purchased">Limpar comprados</string>
+    <string name="shopping_list_move_to">Mover para&#8230;</string>
+    <string name="shopping_list_finish_title">Finalizar Compra</string>
+    <string name="shopping_list_finish_description">Informe o valor total pago e o local da compra.</string>
+    <string name="shopping_list_label_total_value">Valor Total</string>
+    <string name="shopping_list_label_establishment">Estabelecimento (Opcional)</string>
+    <string name="shopping_list_placeholder_establishment">Ex: Supermercado X</string>
+    <string name="shopping_list_confirm_save">Confirmar e Salvar</string>
+    <string name="shopping_list_confirm_item_title">Confirmar Item</string>
+    <string name="shopping_list_label_unit_price">Preço Unitário</string>
+    <string name="shopping_list_label_quantity">Quantidade</string>
+    <string name="shopping_list_edit_title">Editar Produto</string>
+    <string name="shopping_list_label_product_name">Nome do Produto</string>
+    <string name="shopping_list_label_category">Categoria</string>
+    <string name="shopping_list_label_unit">Un.</string>
+    <string name="shopping_list_save_changes">Salvar Alterações</string>
+    <string name="shopping_list_locked_title">Lista Finalizada</string>
+    <string name="shopping_list_locked_description">Esta lista está bloqueada para alterações.</string>
+    <string name="shopping_list_summary_over_budget">Limite Excedido!</string>
+    <string name="shopping_list_summary_in_cart">No Carrinho</string>
+    <string name="shopping_list_summary_total">Total: %s</string>
+    <string name="shopping_list_summary_items_count">%1$d de %2$d</string>
+    <string name="shopping_list_summary_items_in_cart">itens no carrinho</string>
+    <string name="shopping_list_empty_title">Sua lista está vazia</string>
+    <string name="shopping_list_empty_description">Adicione produtos ou peça ajuda à IA!</string>
+    <string name="shopping_list_share_options_title">Como deseja compartilhar?</string>
+    <string name="shopping_list_share_invite_member">Convidar para Colaborar</string>
+    <string name="shopping_list_share_invite_member_desc">Outro usuário poderá editar a lista em tempo real</string>
+    <string name="shopping_list_share_text">Enviar como Texto</string>
+    <string name="shopping_list_share_text_desc">Envie a lista de itens via WhatsApp, e-mail, etc.</string>
+
+
+
+    <string name="state_description_in_cart">No carrinho</string>
+    <string name="state_description_not_in_cart">Fora do carrinho</string>
+</resources>

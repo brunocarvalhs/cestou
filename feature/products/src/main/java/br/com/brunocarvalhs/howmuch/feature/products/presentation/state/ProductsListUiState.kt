@@ -1,0 +1,32 @@
+package br.com.brunocarvalhs.howmuch.feature.products.presentation.state
+
+import androidx.compose.runtime.Stable
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
+import br.com.brunocarvalhs.howmuch.core.domain.entity.Product
+import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
+import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
+import br.com.brunocarvalhs.howmuch.feature.products.domain.model.ChatMessage
+
+@Stable
+internal data class ProductsListUiState(
+    val shopping: Shopping? = null,
+    val products: StableList<Product> = StableList(),
+    val aiSuggestions: StableList<String> = StableList(),
+    val isAiSuggestionsLoading: Boolean = false,
+    val sortingMode: String = "CATEGORY",
+    val prompt: String = "",
+    val aiDockState: AiDockState = AiDockState.COLLAPSED,
+    val aiMessages: StableList<ChatMessage> = StableList(),
+    val allShoppings: StableList<Shopping> = StableList(),
+    val isAiLoading: Boolean = false,
+    val isLoading: Boolean = false,
+    val error: UiText? = null
+) : AiAgentContext {
+    override fun toMetadata(): Map<String, Any?> =
+        mapOf(
+            "shopping_id" to (shopping?.id ?: ""),
+            "products" to products.map { it.name }
+        )
+}
+

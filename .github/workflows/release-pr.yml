@@ -3,22 +3,6 @@ name: Release to Master
 on:
   workflow_dispatch:
 
-env:
-  # Branches
-  DEVELOP_BRANCH: develop
-  MASTER_BRANCH: master
-
-  # Arquivos de versão
-  FILE_KTS: app/build.gradle.kts
-  FILE_GRADLE: app/build.gradle
-
-  # GitHub Bot
-  GIT_USER: github-actions[bot]
-  GIT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
-
-  # 🔑 Secrets
-  GITHUB_TOKEN: ${{ secrets.TOKEN }}
-
 jobs:
   version_manager:
     name: Version Manager
@@ -32,159 +16,108 @@ jobs:
       breaking: ${{ steps.count_breaking.outputs.breaking }}
     steps:
       - name: Checkout develop
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ env.DEVELOP_BRANCH }}
 
-      - name: Count feat commits
-        id: count_feat
+      - name: Load Config
+        id: config
         run: |
-          FEAT=$(git log origin/${{ env.MASTER_BRANCH }}..${{ env.DEVELOP_BRANCH }} --pretty=%s | grep -E '^feat' | wc -l || echo 0)
-          FEAT=${FEAT// /}
-          echo "feat=${FEAT:-0}" >> $GITHUB_OUTPUT
+          echo "main_branch=$(yq '.git.branches.main' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "dev_branch=$(yq '.git.branches.develop' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "gradle_file=$(yq '.paths.gradle_file' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
-      - name: Count fix/revert/perf/refactor commits
-        id: count_fix
+      - name: Count commits
+        id: counts
         run: |
-          FIX=$(git log origin/${{ env.MASTER_BRANCH }}..${{ env.DEVELOP_BRANCH }} --pretty=%s | grep -E '^(fix|revert|perf|refactor)' | wc -l || echo 0)
-          FIX=${FIX// /}
-          echo "fix=${FIX:-0}" >> $GITHUB_OUTPUT
-
-      - name: Count BREAKING CHANGE commits
-        id: count_breaking
-        run: |
-          BREAKING=$(git log origin/${{ env.MASTER_BRANCH }}..${{ env.DEVELOP_BRANCH }} --pretty=%b | grep -c 'BREAKING CHANGE' || true)
-          BREAKING=${BREAKING// /}
-          echo "breaking=${BREAKING:-0}" >> $GITHUB_OUTPUT
+          FEAT=$(git log origin/${{ steps.config.outputs.main_branch }}..origin/${{ steps.config.outputs.dev_branch }} --pretty=%s | grep -E '^feat' | wc -l || echo 0)
+          FIX=$(git log origin/${{ steps.config.outputs.main_branch }}..origin/${{ steps.config.outputs.dev_branch }} --pretty=%s | grep -E '^(fix|revert|perf|refactor)' | wc -l || echo 0)
+          BREAKING=$(git log origin/${{ steps.config.outputs.main_branch }}..origin/${{ steps.config.outputs.dev_branch }} --pretty=%b | grep -c 'BREAKING CHANGE' || echo 0)
+          echo "feat=$FEAT" >> $GITHUB_OUTPUT
+          echo "fix=$FIX" >> $GITHUB_OUTPUT
+          echo "breaking=$BREAKING" >> $GITHUB_OUTPUT
 
       - name: Get current version
         id: version
         run: |
-          if [ -f "${{ env.FILE_KTS }}" ]; then
-            FILE=${{ env.FILE_KTS }}
-            VERSION_NAME=$(grep "versionName" "$FILE" | sed 's/.*"\(.*\)"/\1/')
-            VERSION_CODE=$(grep "versionCode" "$FILE" | awk '{print $2}' | tr -d '()')
-          elif [ -f "${{ env.FILE_GRADLE }}" ]; then
-            FILE=${{ env.FILE_GRADLE }}
-            VERSION_NAME=$(grep "versionName" "$FILE" | sed 's/versionName "\(.*\)"/\1/')
-            VERSION_CODE=$(grep "versionCode" "$FILE" | awk '{print $2}')
-          else
-            echo "⚠️ Nenhum build.gradle(.kts) encontrado!"
-            VERSION_NAME="0.0.0"
-            VERSION_CODE="0"
-          fi
+          FILE="${{ steps.config.outputs.gradle_file }}"
+          VERSION_NAME=$(grep "versionName = " "$FILE" | sed 's/.*versionName = "\(.*\)"/\1/')
+          VERSION_CODE=$(grep "versionCode = " "$FILE" | sed 's/.*versionCode = \([0-9]*\).*/\1/')
           echo "name=$VERSION_NAME" >> $GITHUB_OUTPUT
           echo "code=$VERSION_CODE" >> $GITHUB_OUTPUT
 
       - name: Bump version
         id: bump
         run: |
-          FEAT=${{ steps.count_feat.outputs.feat }}
-          FIX=${{ steps.count_fix.outputs.fix }}
-          BREAKING=${{ steps.count_breaking.outputs.breaking }}
+          FEAT=${{ steps.counts.outputs.feat }}
+          FIX=${{ steps.counts.outputs.fix }}
+          BREAKING=${{ steps.counts.outputs.breaking }}
           VERSION=${{ steps.version.outputs.name }}
           CODE=${{ steps.version.outputs.code }}
           
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-          MAJOR=${MAJOR:-0}
-          MINOR=${MINOR:-0}
-          PATCH=${PATCH:-0}
-
+          
           if [ $((FEAT + FIX + BREAKING)) -eq 0 ]; then
-            NEW_VERSION="$VERSION"
-            NEW_CODE="$CODE"
             echo "updated=false" >> $GITHUB_OUTPUT
           else
             if [ $BREAKING -gt 0 ]; then
-              MAJOR=$((MAJOR + 1))
-              MINOR=0
-              PATCH=0
+              MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
+            elif [ $FEAT -gt 0 ]; then
+              MINOR=$((MINOR + 1)); PATCH=0
             else
-              MINOR=$((MINOR + FEAT))
-              PATCH=$((PATCH + FIX))
+              PATCH=$((PATCH + 1))
             fi
-            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-            NEW_CODE=$((CODE + 1))
+            echo "new_name=$MAJOR.$MINOR.$PATCH" >> $GITHUB_OUTPUT
+            echo "new_code=$((CODE + 1))" >> $GITHUB_OUTPUT
             echo "updated=true" >> $GITHUB_OUTPUT
           fi
 
-          echo "new_name=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "new_code=$NEW_CODE" >> $GITHUB_OUTPUT
-
   update_version:
-    name: Update Version
-    needs: version_manager
+    needs: [version_manager]
+    if: needs.version_manager.outputs.updated == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout develop
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ env.DEVELOP_BRANCH }}
 
-      - name: Update build.gradle(.kts) if version updated
-        if: ${{ needs.version_manager.outputs.updated == 'true' }}
+      - name: Update Version File
         run: |
-          FILE=""
-          if [ -f "${{ env.FILE_KTS }}" ]; then
-            FILE=${{ env.FILE_KTS }}
-          elif [ -f "${{ env.FILE_GRADLE }}" ]; then
-            FILE=${{ env.FILE_GRADLE }}
-          else
-            echo "⚠️ Nenhum build.gradle(.kts) encontrado!"
-            exit 0
-          fi
-
-          echo "Atualizando $FILE..."
-          if [[ "$FILE" == *.kts ]]; then
-            sed -i "s/versionCode .*/versionCode(${{ needs.version_manager.outputs.new_code }})/" "$FILE"
-            sed -i "s/versionName \".*\"/versionName(\"${{ needs.version_manager.outputs.new_name }}\")/" "$FILE"
-          else
-            sed -i "s/versionCode .*/versionCode ${{ needs.version_manager.outputs.new_code }}/" "$FILE"
-            sed -i "s/versionName \".*\"/versionName \"${{ needs.version_manager.outputs.new_name }}\"/" "$FILE"
-          fi
-
-          git config user.name "${{ env.GIT_USER }}"
-          git config user.email "${{ env.GIT_EMAIL }}"
-          git remote set-url origin https://x-access-token:${{ env.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          FILE=$(yq '.paths.gradle_file' .github/pipeline-config.yaml)
+          BOT_NAME=$(yq '.git.bot_name' .github/pipeline-config.yaml)
+          BOT_EMAIL=$(yq '.git.bot_email' .github/pipeline-config.yaml)
+          DEV_BRANCH=$(yq '.git.branches.develop' .github/pipeline-config.yaml)
+          
+          sed -i "s/versionCode = .*/versionCode = ${{ needs.version_manager.outputs.new_code }}/" "$FILE"
+          sed -i "s/versionName = .*/versionName = \"${{ needs.version_manager.outputs.new_name }}\"/" "$FILE"
+          
+          git config user.name "$BOT_NAME"
+          git config user.email "$BOT_EMAIL"
           git add "$FILE"
-          git commit -m "chore: bump version to ${{ needs.version_manager.outputs.new_name }} (${{ needs.version_manager.outputs.new_code }})" || echo "Nenhuma alteração"
-          git push origin ${{ env.DEVELOP_BRANCH }}
+          git commit -m "chore: bump version to ${{ needs.version_manager.outputs.new_name }}"
+          git push origin $DEV_BRANCH
 
-  pr_release_create:
-    name: PR Release Create
-    needs: update_version
-    if: ${{ needs.version_manager.outputs.updated == 'true' }}
+  pr_release:
+    needs: [version_manager, update_version]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout develop
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: ${{ env.DEVELOP_BRANCH }}
-
-      - name: Set release branch name
-        run: echo "RELEASE_BRANCH=release-$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-
-      - name: Create release branch and push
+        uses: actions/checkout@v4
+      
+      - name: Create PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         run: |
-          git config user.name "${{ env.GIT_USER }}"
-          git config user.email "${{ env.GIT_EMAIL }}"
-          git remote set-url origin https://x-access-token:${{ env.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          MAIN_BRANCH=$(yq '.git.branches.main' .github/pipeline-config.yaml)
+          DEV_BRANCH=$(yq '.git.branches.develop' .github/pipeline-config.yaml)
+          RELEASE_BRANCH="release-$(date +'%Y-%m-%d')"
+          
           git checkout -b $RELEASE_BRANCH
           git push origin $RELEASE_BRANCH
-
-      - name: Create Pull Request via GH CLI
-        env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-        run: |
-          gh auth login --with-token <<< "$GITHUB_TOKEN"
+          
           gh pr create \
             --title "Release ${{ needs.version_manager.outputs.new_name }}" \
-            --body "Release ${{ needs.version_manager.outputs.new_name }}:
-              - Feats: ${{ needs.version_manager.outputs.feat }}
-              - Fix/Refactor/Perf/Revert: ${{ needs.version_manager.outputs.fix }}
-              - Breaking Changes: ${{ needs.version_manager.outputs.breaking }}" \
-            --base ${{ env.MASTER_BRANCH }} \
+            --body "Automated release preparation." \
+            --base $MAIN_BRANCH \
             --head $RELEASE_BRANCH
