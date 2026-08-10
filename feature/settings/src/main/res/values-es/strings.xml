@@ -93,4 +93,8 @@
         4. Seguridad: Utilizamos el cifrado AES para proteger los datos sensibles en el dispositivo.\n\n
         ¿Preguntas? Contáctenos a través de suporte@cestou.com.br
     </string>
+
+    <string name="action_confirm">Confirmar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_select_time">Seleccionar Hora</string>
 </resources>

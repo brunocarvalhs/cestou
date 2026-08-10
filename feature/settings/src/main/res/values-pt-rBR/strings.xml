@@ -93,4 +93,8 @@
         4. Segurança: Utilizamos criptografia AES para proteger dados sensíveis no dispositivo.\n\n
         Dúvidas? Entre em contato via suporte@cestou.com.br
     </string>
+
+    <string name="action_confirm">Confirmar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_select_time">Selecionar Horário</string>
 </resources>
