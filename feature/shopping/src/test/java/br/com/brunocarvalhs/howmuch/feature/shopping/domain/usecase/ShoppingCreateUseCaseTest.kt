@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
+import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.domain.entity.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.service.AuthService
@@ -13,9 +14,10 @@ import org.junit.Test
 
 class ShoppingCreateUseCaseTest {
 
+    private val context = mockk<Context>(relaxed = true)
     private val repository = mockk<ShoppingRepository>(relaxed = true)
     private val authService = mockk<AuthService>()
-    private val useCase = ShoppingCreateUseCase(repository, authService)
+    private val useCase = ShoppingCreateUseCase(context, repository, authService)
 
     @Test
     fun `invoke should create shopping list with current user as owner`() = runTest {
