@@ -45,7 +45,11 @@ internal fun ReleaseNotesScreen(
             items(notes) { note ->
                 Text(
                     text = note,
-                    style = if (note.startsWith("Novidades")) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyLarge,
+                    style = if (note.startsWith("Novidades")) {
+                        MaterialTheme.typography.titleLarge
+                    } else {
+                        MaterialTheme.typography.bodyLarge
+                    },
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
                 if (note.startsWith("Novidades")) {

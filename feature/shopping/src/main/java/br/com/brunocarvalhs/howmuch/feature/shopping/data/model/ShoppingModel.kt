@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.data.model
 
-import br.com.brunocarvalhs.howmuch.feature.products.data.model.ProductModel
 import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.feature.products.data.model.ProductModel
 import kotlinx.serialization.Serializable
 import java.util.UUID
 

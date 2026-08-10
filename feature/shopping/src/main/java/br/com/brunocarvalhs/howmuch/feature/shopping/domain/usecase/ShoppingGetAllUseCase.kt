@@ -5,7 +5,6 @@ import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
 import br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentSession
 import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
-
 import javax.inject.Inject
 
 @AiAgentAction(

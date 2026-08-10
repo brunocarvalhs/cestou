@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import br.com.brunocarvalhs.howmuch.core.domain.entity.Product
 import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
@@ -128,7 +129,10 @@ internal class ProductsListViewModel @Inject constructor(
         }
     }
 
-    private fun togglePurchased(product: br.com.brunocarvalhs.howmuch.core.domain.entity.Product, isPurchased: Boolean) {
+    private fun togglePurchased(
+        product: Product,
+        isPurchased: Boolean
+    ) {
         if (isPurchased) {
             if (product.price <= 0) {
                 _navigator?.navigate(ConfirmItemRoute(product, shopping.id))
@@ -144,19 +148,19 @@ internal class ProductsListViewModel @Inject constructor(
         }
     }
 
-    private fun deleteProduct(product: br.com.brunocarvalhs.howmuch.core.domain.entity.Product) {
+    private fun deleteProduct(product: Product) {
         viewModelScope.launch {
             useCase.delete(product.id, shopping.id)
         }
     }
 
-    private fun moveProduct(product: br.com.brunocarvalhs.howmuch.core.domain.entity.Product, targetId: String) {
+    private fun moveProduct(product: Product, targetId: String) {
         viewModelScope.launch {
             useCase.move(product, shopping.id, targetId)
         }
     }
 
-    private fun updateQuantity(product: br.com.brunocarvalhs.howmuch.core.domain.entity.Product, quantity: Double) {
+    private fun updateQuantity(product: Product, quantity: Double) {
         if (quantity <= 0.0) {
             deleteProduct(product)
             return

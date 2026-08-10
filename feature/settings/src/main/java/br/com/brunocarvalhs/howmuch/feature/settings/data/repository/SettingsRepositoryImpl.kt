@@ -3,7 +3,11 @@ package br.com.brunocarvalhs.howmuch.feature.settings.data.repository
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import br.com.brunocarvalhs.howmuch.core.domain.entity.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.entity.ThemeMode
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.repository.SettingsRepository

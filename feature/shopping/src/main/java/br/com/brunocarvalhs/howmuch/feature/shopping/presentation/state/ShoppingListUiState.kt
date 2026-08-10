@@ -2,11 +2,11 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state
 
 import androidx.compose.runtime.Stable
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
+import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.products.domain.model.ChatMessage
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.state.AiDockState
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
 
 @Stable
 internal data class ShoppingListUiState(

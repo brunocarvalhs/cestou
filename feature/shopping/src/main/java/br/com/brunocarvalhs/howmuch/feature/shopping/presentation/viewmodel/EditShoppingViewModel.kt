@@ -4,9 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
+import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingUpdateUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.EditShopping
 import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.QrCode

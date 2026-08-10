@@ -1,8 +1,24 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.presentation.screen
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -17,15 +33,23 @@ internal fun ShoppingSettingsScreen(
     state: ShoppingSettingsUiState,
     intent: ShoppingSettingsIntent
 ) {
-    var sortingMode by remember(state.sortingMode) { mutableStateOf(state.sortingMode) }
-    var remindersEnabled by remember(state.remindersEnabled) { mutableStateOf(state.remindersEnabled) }
+    var sortingMode by remember(state.sortingMode) {
+        mutableStateOf(state.sortingMode)
+    }
+    var remindersEnabled by remember(state.remindersEnabled) {
+        mutableStateOf(state.remindersEnabled)
+    }
 
     Scaffold(
         topBar = {
             SettingsHeader(
                 title = stringResource(R.string.settings_section_shopping),
                 onBack = { 
-                    intent.onUpdateShoppingPreferences(state.defaultListId, sortingMode, remindersEnabled)
+                    intent.onUpdateShoppingPreferences(
+                        state.defaultListId,
+                        sortingMode,
+                        remindersEnabled
+                    )
                     intent.onBack() 
                 }
             )
@@ -43,13 +67,19 @@ internal fun ShoppingSettingsScreen(
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            Text(stringResource(R.string.settings_shopping_default_sorting), style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = stringResource(R.string.settings_shopping_default_sorting),
+                style = MaterialTheme.typography.bodyMedium
+            )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(
                     selected = sortingMode == "CATEGORY",
                     onClick = { sortingMode = "CATEGORY" }
                 )
-                Text(stringResource(R.string.settings_shopping_sort_category), modifier = Modifier.padding(start = 8.dp))
+                Text(
+                    text = stringResource(R.string.settings_shopping_sort_category),
+                    modifier = Modifier.padding(start = 8.dp)
+                )
                 
                 Spacer(modifier = Modifier.width(16.dp))
                 
@@ -57,7 +87,10 @@ internal fun ShoppingSettingsScreen(
                     selected = sortingMode == "NAME",
                     onClick = { sortingMode = "NAME" }
                 )
-                Text(stringResource(R.string.settings_shopping_sort_name), modifier = Modifier.padding(start = 8.dp))
+                Text(
+                    text = stringResource(R.string.settings_shopping_sort_name),
+                    modifier = Modifier.padding(start = 8.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -67,9 +100,12 @@ internal fun ShoppingSettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(stringResource(R.string.settings_shopping_reminders), style = MaterialTheme.typography.bodyLarge)
                     Text(
-                        stringResource(R.string.settings_shopping_reminders_desc),
+                        text = stringResource(R.string.settings_shopping_reminders),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_shopping_reminders_desc),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
@@ -83,11 +119,15 @@ internal fun ShoppingSettingsScreen(
 
             Button(
                 onClick = { 
-                    intent.onUpdateShoppingPreferences(state.defaultListId, sortingMode, remindersEnabled)
+                    intent.onUpdateShoppingPreferences(
+                        state.defaultListId,
+                        sortingMode,
+                        remindersEnabled
+                    )
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(stringResource(R.string.settings_ai_button_save))
+                Text(text = stringResource(R.string.settings_ai_button_save))
             }
         }
     }

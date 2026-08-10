@@ -87,6 +87,7 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.Shopping
 private const val SCROLL_THRESHOLD_UP = -15f
 private const val SCROLL_THRESHOLD_DOWN = 15f
 private const val HOVER_ALPHA = 0.5f
+private const val LOADING_ITEMS_COUNT = 5
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -229,63 +230,80 @@ private fun LazyGridScope.shoppingSearchAndFilters(
 ) {
     item(span = { GridItemSpan(maxLineSpan) }) {
         Column {
-            SearchBar(
-                inputField = {
-                    SearchBarDefaults.InputField(
-                        query = uiState.searchQuery,
-                        onQueryChange = { intent.onQueryChange(it) },
-                        onSearch = { intent.onSearch(it) },
-                        expanded = false,
-                        onExpandedChange = {},
-                        enabled = true,
-                        placeholder = { Text(stringResource(R.string.shopping_management_search_placeholder)) },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Search,
-                                contentDescription = null
-                            )
-                        },
-                        trailingIcon = null,
-                        colors = SearchBarDefaults.colors().inputFieldColors,
-                        interactionSource = null,
-                    )
-                },
+            ShoppingSearchBar(uiState, intent)
+            Spacer(modifier = Modifier.height(12.dp))
+            ShoppingFilterChips(uiState, intent)
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ShoppingSearchBar(
+    uiState: ShoppingListUiState,
+    intent: ShoppingListIntent
+) {
+    SearchBar(
+        inputField = {
+            SearchBarDefaults.InputField(
+                query = uiState.searchQuery,
+                onQueryChange = { intent.onQueryChange(it) },
+                onSearch = { intent.onSearch(it) },
                 expanded = false,
                 onExpandedChange = {},
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                shape = SearchBarDefaults.inputFieldShape,
-                colors = SearchBarDefaults.colors(),
-                tonalElevation = SearchBarDefaults.TonalElevation,
-                shadowElevation = SearchBarDefaults.ShadowElevation,
-                windowInsets = SearchBarDefaults.windowInsets,
-            ) { }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(uiState.filters) { filter ->
-                    FilterChip(
-                        selected = filter == uiState.selectedFilter,
-                        onClick = { intent.onFilter(filter) },
-                        label = {
-                            val label = when (filter) {
-                                "Todos" -> stringResource(R.string.shopping_filter_all)
-                                "Compras" -> stringResource(R.string.shopping_filter_active)
-                                "Favoritos" -> stringResource(R.string.shopping_filter_favorites)
-                                else -> filter
-                            }
-                            Text(label)
-                        }
+                enabled = true,
+                placeholder = {
+                    Text(stringResource(R.string.shopping_management_search_placeholder))
+                },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = null
                     )
-                }
-            }
+                },
+                trailingIcon = null,
+                colors = SearchBarDefaults.colors().inputFieldColors,
+                interactionSource = null,
+            )
+        },
+        expanded = false,
+        onExpandedChange = {},
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = SearchBarDefaults.inputFieldShape,
+        colors = SearchBarDefaults.colors(),
+        tonalElevation = SearchBarDefaults.TonalElevation,
+        shadowElevation = SearchBarDefaults.ShadowElevation,
+        windowInsets = SearchBarDefaults.windowInsets,
+    ) { }
+}
 
-            Spacer(modifier = Modifier.height(12.dp))
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ShoppingFilterChips(
+    uiState: ShoppingListUiState,
+    intent: ShoppingListIntent
+) {
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(uiState.filters) { filter ->
+            FilterChip(
+                selected = filter == uiState.selectedFilter,
+                onClick = { intent.onFilter(filter) },
+                label = {
+                    val label = when (filter) {
+                        "Todos" -> stringResource(R.string.shopping_filter_all)
+                        "Compras" -> stringResource(R.string.shopping_filter_active)
+                        "Favoritos" -> stringResource(R.string.shopping_filter_favorites)
+                        else -> filter
+                    }
+                    Text(label)
+                }
+            )
         }
     }
 }
@@ -295,7 +313,7 @@ private fun LazyGridScope.shoppingListContent(
     intent: ShoppingListIntent
 ) {
     if (uiState.isLoading) {
-        items(5) {
+        items(LOADING_ITEMS_COUNT) {
             ShoppingItemLoading(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
@@ -305,70 +323,86 @@ private fun LazyGridScope.shoppingListContent(
             ShoppingEmptyState()
         }
     } else {
-        uiState.groupedList.forEach { (month, shoppings) ->
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Text(
-                    text = month,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(
-                        horizontal = 24.dp,
-                        vertical = 8.dp
-                    )
-                )
-            }
-            items(shoppings, key = { it.id }) { shopping ->
-                val globalIndex = uiState.filteredList.indexOf(shopping)
-                DropTarget(
-                    onDataDropped = { data ->
-                        if (data is Shopping) {
-                            val fromIndex = uiState.filteredList.indexOf(data)
-                            if (fromIndex != -1 && globalIndex != -1) {
-                                intent.onMove(fromIndex, globalIndex)
-                            }
-                        }
-                    }
-                ) { isHovered, _ ->
-                    val dragAlpha by animateFloatAsState(
-                        targetValue = if (isHovered) HOVER_ALPHA else 1.0f,
-                        label = "dragAlpha"
-                    )
+        shoppingListItems(uiState, intent)
+    }
+}
 
-                    DragTarget(
-                        modifier = Modifier.alpha(dragAlpha),
-                        dataToDrop = shopping
-                    ) {
-                        ShoppingItem(
-                            modifier = Modifier.padding(
-                                horizontal = 16.dp,
-                                vertical = 8.dp
-                            ),
-                            onClick = { intent.onOpen(shopping.id) },
-                            title = shopping.title,
-                            description = shopping.description,
-                            price = shopping.price,
-                            budget = shopping.budget,
-                            status = shopping.status,
-                            isFavorite = shopping.isFavorite,
-                            onFavoriteClick = { intent.onToggleFavorite(shopping) },
-                            onDeleteClick = { intent.onDelete(shopping.id) },
-                            onDuplicateClick = { intent.onDuplicate(shopping) },
-                            onShareClick = { intent.onShare(shopping) },
-                            onEditClick = { intent.onEdit(shopping) },
-                            onFinishClick = {
-                                if (shopping.status == Shopping.Status.FINISH) {
-                                    intent.onReopen(shopping)
-                                } else {
-                                    intent.onUpdate(
-                                        shopping.copy(status = Shopping.Status.FINISH)
-                                    )
-                                }
-                            }
+private fun LazyGridScope.shoppingListItems(
+    uiState: ShoppingListUiState,
+    intent: ShoppingListIntent
+) {
+    uiState.groupedList.forEach { (month, shoppings) ->
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Text(
+                text = month,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(
+                    horizontal = 24.dp,
+                    vertical = 8.dp
+                )
+            )
+        }
+        items(shoppings, key = { it.id }) { shopping ->
+            ShoppingListItemWrapper(shopping, uiState, intent)
+        }
+    }
+}
+
+@Composable
+private fun ShoppingListItemWrapper(
+    shopping: Shopping,
+    uiState: ShoppingListUiState,
+    intent: ShoppingListIntent
+) {
+    val globalIndex = uiState.filteredList.indexOf(shopping)
+    DropTarget(
+        onDataDropped = { data ->
+            if (data is Shopping) {
+                val fromIndex = uiState.filteredList.indexOf(data)
+                if (fromIndex != -1 && globalIndex != -1) {
+                    intent.onMove(fromIndex, globalIndex)
+                }
+            }
+        }
+    ) { isHovered, _ ->
+        val dragAlpha by animateFloatAsState(
+            targetValue = if (isHovered) HOVER_ALPHA else 1.0f,
+            label = "dragAlpha"
+        )
+
+        DragTarget(
+            modifier = Modifier.alpha(dragAlpha),
+            dataToDrop = shopping
+        ) {
+            ShoppingItem(
+                modifier = Modifier.padding(
+                    horizontal = 16.dp,
+                    vertical = 8.dp
+                ),
+                onClick = { intent.onOpen(shopping.id) },
+                title = shopping.title,
+                description = shopping.description,
+                price = shopping.price,
+                budget = shopping.budget,
+                status = shopping.status,
+                isFavorite = shopping.isFavorite,
+                onFavoriteClick = { intent.onToggleFavorite(shopping) },
+                onDeleteClick = { intent.onDelete(shopping.id) },
+                onDuplicateClick = { intent.onDuplicate(shopping) },
+                onShareClick = { intent.onShare(shopping) },
+                onEditClick = { intent.onEdit(shopping) },
+                onFinishClick = {
+                    if (shopping.status == Shopping.Status.FINISH) {
+                        intent.onReopen(shopping)
+                    } else {
+                        intent.onUpdate(
+                            shopping.copy(status = Shopping.Status.FINISH)
                         )
                     }
                 }
-            }
+            )
         }
     }
 }

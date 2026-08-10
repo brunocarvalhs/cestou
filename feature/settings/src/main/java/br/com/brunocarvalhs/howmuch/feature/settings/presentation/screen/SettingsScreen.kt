@@ -17,8 +17,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
+import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.components.SettingsHeader
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.SettingsIntent
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.state.SettingsUiState

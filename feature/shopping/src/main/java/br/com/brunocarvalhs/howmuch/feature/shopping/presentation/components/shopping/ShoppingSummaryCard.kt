@@ -1,8 +1,18 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -11,9 +21,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatPrice
 import br.com.brunocarvalhs.howmuch.core.ui.utils.LocalCurrency
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
 
 @Composable
 internal fun ShoppingSummaryCard(
@@ -49,16 +59,27 @@ internal fun ShoppingSummaryCard(
                 )
                 if (totalBudget > 0) {
                     Text(
-                        text = stringResource(R.string.shopping_management_summary_budget, totalBudget.formatPrice(currency)),
+                        text = stringResource(
+                            R.string.shopping_management_summary_budget,
+                            totalBudget.formatPrice(currency)
+                        ),
                         style = MaterialTheme.typography.labelSmall,
-                        color = if (totalAmount > totalBudget) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                        color = if (totalAmount > totalBudget) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                        }
                     )
                 }
             }
 
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = stringResource(R.string.shopping_list_summary_items_count, completedLists, totalLists),
+                    text = stringResource(
+                        R.string.shopping_list_summary_items_count,
+                        completedLists,
+                        totalLists
+                    ),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.secondary
                 )
