@@ -1,0 +1,100 @@
+<resources>
+    <!-- Feature: Settings -->
+    <string name="settings_title">Configuraciones</string>
+    <string name="settings_section_general">General</string>
+    <string name="settings_section_ai">IA</string>
+    <string name="settings_section_shopping">Compras</string>
+    <string name="settings_section_data">Datos</string>
+    <string name="settings_section_notifications">Notificaciones</string>
+    <string name="settings_section_support">Soporte</string>
+    <string name="settings_section_about">Sobre</string>
+
+    <string name="settings_item_theme">Tema</string>
+    <string name="settings_item_language">Idioma</string>
+    <string name="settings_item_currency">Moneda</string>
+    <string name="settings_item_ai_model">Modelo de IA</string>
+    <string name="settings_item_default_list">Lista Predeterminada</string>
+    <string name="settings_item_delete_all">Eliminar todos los datos</string>
+    <string name="settings_item_delete_all_desc">Elimina listas y configuraciones</string>
+    <string name="settings_item_notifications">Notificaciones</string>
+    <string name="settings_item_contact">Contáctenos</string>
+    <string name="settings_item_bug_report">Reportar Problema</string>
+    <string name="settings_item_bug_report_desc">¿Encontró algún error?</string>
+    <string name="settings_item_feedback">Enviar Sugerencia</string>
+    <string name="settings_item_feedback_desc">Ayude a mejorar la aplicación</string>
+    <string name="settings_item_rate">Calificar Aplicación</string>
+    <string name="settings_item_rate_desc">Deje su reseña</string>
+    <string name="settings_item_terms">Términos de Uso</string>
+    <string name="settings_item_privacy">Política de Privacidad</string>
+    <string name="settings_item_licenses">Licencias de Código Abierto</string>
+    <string name="settings_item_release_notes">Novedades de la Versión</string>
+    <string name="settings_item_release_notes_desc">Vea qué ha cambiado</string>
+    <string name="settings_item_version">Versión</string>
+
+    <string name="settings_theme_system">Sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Oscuro</string>
+    <string name="settings_theme_select">Seleccione el Tema</string>
+
+    <string name="settings_language_pt">Portugués (Brasil)</string>
+    <string name="settings_language_en">Inglés (Estados Unidos)</string>
+    <string name="settings_language_es">Español (España)</string>
+
+    <string name="settings_currency_brl">Real brasileño (R$)</string>
+    <string name="settings_currency_usd">Dólar estadounidense ($)</string>
+    <string name="settings_currency_eur">Euro (€)</string>
+
+    <string name="settings_notifications_enable">Activar notificaciones</string>
+    <string name="settings_notifications_desc">Recibir recordatorios de listas pendientes</string>
+    <string name="settings_notifications_reminder_time">Horario del recordatorio</string>
+    <string name="settings_notifications_enabled">Activadas</string>
+    <string name="settings_notifications_disabled">Desactivadas</string>
+
+    <string name="settings_shopping_preferences">Preferências de Compra</string>
+    <string name="settings_shopping_default_sorting">Orden predeterminado de las listas</string>
+    <string name="settings_shopping_sort_category">Por Categoría</string>
+    <string name="settings_shopping_sort_name">Por Nombre</string>
+    <string name="settings_shopping_reminders">Recordatorios de compras</string>
+    <string name="settings_shopping_reminders_desc">Notificar cuando haya listas pendientes</string>
+    <string name="settings_shopping_none_selected">Ninguna seleccionada</string>
+
+    <string name="settings_placeholder_soon">Funcionalidad de %s próximamente</string>
+
+    <string name="settings_title_ai">IA</string>
+    <string name="settings_title_data">Datos</string>
+    <string name="settings_ai_header">Configuración de Inteligencia Artificial</string>
+    <string name="settings_ai_label_model">Modelo de IA (Gratis)</string>
+    <string name="settings_ai_label_custom_prompt">Prompt Personalizado</string>
+    <string name="settings_ai_placeholder_custom_prompt">Usando el predeterminado de la aplicación</string>
+    <string name="settings_ai_label_creativity">Creatividad (Temperatura): %1$.1f</string>
+    <string name="settings_ai_button_save">Guardar Preferencias</string>
+    <string name="settings_data_clear_cache">Limpiar caché</string>
+    <string name="settings_data_clear_cache_hint">Libera espacio ocupado</string>
+    <string name="settings_data_delete_all">Eliminar todos los datos</string>
+    <string name="settings_data_delete_all_hint">Elimina listas y configuraciones permanentemente</string>
+    <string name="settings_data_delete_confirmation_title">¿Eliminar todos los datos?</string>
+    <string name="settings_data_delete_confirmation_message">Esta action no se puede deshacer. Todas sus listas y configuraciones locales se eliminarán permanentemente.</string>
+    <string name="settings_data_delete_button">Sí, eliminar todo</string>
+
+    <string name="settings_terms_content">
+        Al utilizar Cestou, usted acepta los siguientes términos: \n\n
+        1. Uso de la Aplicación: Cestou es una herramienta para la gestión de listas de compras.\n
+        2. IA: O asistente de IA se proporciona \"tal cual\" y puede generar información inexacta.\n
+        3. Datos: Sus listas se sincronizan de forma segura a través de Firestore.\n
+        4. Responsabilidad: No somos responsables de la pérdida de datos debido al mal uso del dispositivo.\n\n
+        Versión: 1.0.0
+    </string>
+
+    <string name="settings_privacy_content">
+        Su privacidad es nuestra prioridad:\n\n
+        1. Recopilación de Datos: Solo recopilamos su ID de usuario anónimo y sus listas de compras para la sincronización.\n
+        2. Compartir: No compartimos sus datos personales con terceros con fines publicitarios.\n
+        3. Cookies: No utilizamos cookies de seguimiento.\n
+        4. Seguridad: Utilizamos el cifrado AES para proteger los datos sensibles en el dispositivo.\n\n
+        ¿Preguntas? Contáctenos a través de suporte@cestou.com.br
+    </string>
+
+    <string name="action_confirm">Confirmar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_select_time">Seleccionar Hora</string>
+</resources>

@@ -1,0 +1,51 @@
+<resources>
+    <string name="app_name">Cestou</string>
+
+    <!-- Common Actions -->
+    <string name="action_close">Close</string>
+    <string name="action_search">Search</string>
+    <string name="action_finish">Finish</string>
+    <string name="action_select_time">Select Time</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_add">Add</string>
+    <string name="action_save">Save</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_share">Share</string>
+    <string name="action_gallery">Gallery</string>
+    <string name="action_take_photo">Take Photo</string>
+
+    <!-- Accessibility / Content Descriptions -->
+    <string name="content_description_back">Back</string>
+    <string name="content_description_settings">Settings</string>
+    <string name="content_description_more_options">More options</string>
+    <string name="content_description_flash">Flash</string>
+    <string name="content_description_preview">Preview</string>
+    <string name="content_description_ai_icon">AI Assistant icon</string>
+    <string name="content_description_send_message">Send message</string>
+    <string name="content_description_add_manually">Add manually</string>
+    <string name="content_description_share_list">Share list</string>
+    <string name="content_description_join_list">Join a list</string>
+    <string name="content_description_remove_unit">Remove quantity</string>
+    <string name="content_description_add_unit">Add quantity</string>
+
+    <string name="action_retry">Retry</string>
+
+    <!-- Error State -->
+    <string name="error_state_title">Oops! Something went wrong</string>
+
+    <!-- Categories -->
+    <string name="category_hortifruti">Produce</string>
+    <string name="category_carnes">Meats</string>
+    <string name="category_laticinios">Dairy</string>
+    <string name="category_bebidas">Beverages</string>
+    <string name="category_limpeza">Cleaning</string>
+    <string name="category_higiene">Hygiene</string>
+    <string name="category_mercearia">Grocery</string>
+    <string name="category_legumes">Vegetables</string>
+    <string name="category_pereciveis">Perishables</string>
+    <string name="category_congelados">Frozen</string>
+    <string name="category_padaria">Bakery</string>
+    <string name="category_outros">Others</string>
+</resources>

@@ -1,0 +1,67 @@
+# Configuration for GitHub Actions Pipeline
+
+project:
+  name: "HowMuch"
+  jdk_version: 21
+  gradle_opts: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
+  build_tools_version: "35.0.0"
+  package_name: "br.com.brunocarvalhs.howmuch"
+
+git:
+  bot_name: "github-actions[bot]"
+  bot_email: "41898282+github-actions[bot]@users.noreply.github.com"
+  branches:
+    main: "master"
+    develop: "develop"
+
+paths:
+  gradle_file: "app/build.gradle.kts"
+  changelog: "CHANGELOG.md"
+  keystore: "app/release.keystore"
+  apk_debug: "app/build/outputs/apk/debug/*.apk"
+  apk_release: "app/build/outputs/apk/release/*.apk"
+  aab_release: "app/build/outputs/bundle/release/*.aab"
+
+stages:
+  unit_tests:
+    enabled: true
+    command: "./gradlew testDebug"
+  lint:
+    enabled: true
+    command: "./gradlew lintDebug"
+  detekt:
+    enabled: true
+    command: "./gradlew detekt"
+  build:
+    enabled: true
+    variants:
+      - name: "debug"
+        command: "./gradlew assembleDebug"
+        path: "app/build/outputs/apk/debug/*.apk"
+        artifact_name: "FriendsSecrets-apk-debug"
+      - name: "release"
+        command: "./gradlew assembleRelease"
+        path: "app/build/outputs/apk/release/*.apk"
+        artifact_name: "FriendsSecrets-apk-release"
+  deploy_firebase:
+    enabled: true
+    release_notes: "release automatica"
+    variants:
+      - name: "debug"
+        label: "DEBUG"
+      - name: "release"
+        label: "RELEASE"
+  release:
+    enabled: true
+    command_aab: "./gradlew bundleRelease"
+    github_release:
+      draft: false
+      prerelease: false
+    google_play:
+      track: "production"
+      status: "completed"
+      user_fraction: 0.5
+
+danger:
+  enabled: true
+  node_version: 24
