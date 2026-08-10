@@ -1,4 +1,4 @@
-name: Build and Release Application
+name: Build and Release Application (Google Play)
 
 on:
   push:
@@ -12,12 +12,16 @@ jobs:
       gradle_opts: ${{ steps.config.outputs.gradle_opts }}
       app_name: ${{ steps.config.outputs.app_name }}
       package_name: ${{ steps.config.outputs.package_name }}
-      aab_path: ${{ steps.config.outputs.aab_path }}
+      aab_pattern: ${{ steps.config.outputs.aab_pattern }}
       keystore_path: ${{ steps.config.outputs.keystore_path }}
       ut_enabled: ${{ steps.config.outputs.ut_enabled }}
       lint_enabled: ${{ steps.config.outputs.lint_enabled }}
       detekt_enabled: ${{ steps.config.outputs.detekt_enabled }}
       release_enabled: ${{ steps.config.outputs.release_enabled }}
+      github_draft: ${{ steps.config.outputs.github_draft }}
+      github_prerelease: ${{ steps.config.outputs.github_prerelease }}
+      play_track: ${{ steps.config.outputs.play_track }}
+      play_status: ${{ steps.config.outputs.play_status }}
     steps:
       - uses: actions/checkout@v4
       - id: config
@@ -26,12 +30,16 @@ jobs:
           echo "gradle_opts=$(yq '.project.gradle_opts' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "app_name=$(yq '.project.name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "package_name=$(yq '.project.package_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "aab_path=$(yq '.paths.aab_release' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "aab_pattern=$(yq '.paths.aab_release' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "keystore_path=$(yq '.paths.keystore' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "ut_enabled=$(yq '.stages.unit_tests.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "lint_enabled=$(yq '.stages.lint.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "detekt_enabled=$(yq '.stages.detekt.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "release_enabled=$(yq '.stages.release.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "github_draft=$(yq '.stages.release.github_release.draft' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "github_prerelease=$(yq '.stages.release.github_release.prerelease' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "play_track=$(yq '.stages.release.google_play.track' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "play_status=$(yq '.stages.release.google_play.status' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
   unit-tests:
     needs: [prepare]
@@ -136,11 +144,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ needs.prepare.outputs.app_name }}-aab
-          path: ${{ needs.prepare.outputs.aab_path }}
+          path: ${{ needs.prepare.outputs.aab_pattern }}
 
   release:
     runs-on: ubuntu-24.04
-    name: Create and Upload Release
+    name: Create GitHub Release
     needs: [prepare, build]
     steps:
       - name: Checkout code
@@ -176,8 +184,8 @@ jobs:
         with:
           tag_name: ${{ steps.versioning.outputs.new_version }}
           name: v${{ steps.versioning.outputs.new_version }}
-          draft: false
-          prerelease: false
+          draft: ${{ needs.prepare.outputs.github_draft }}
+          prerelease: ${{ needs.prepare.outputs.github_prerelease }}
           token: ${{ secrets.TOKEN }}
 
   deploy:
@@ -192,13 +200,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ needs.prepare.outputs.app_name }}-aab
-          path: app/build/outputs/bundle/release/
+          path: output/
 
       - name: Upload to Google Play
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ needs.prepare.outputs.package_name }}
-          releaseFiles: ${{ needs.prepare.outputs.aab_path }}
-          track: production
-          status: completed
+          releaseFiles: output/**/*.aab
+          track: ${{ needs.prepare.outputs.play_track }}
+          status: ${{ needs.prepare.outputs.play_status }}
