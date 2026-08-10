@@ -2,9 +2,9 @@
 
 project:
   name: "HowMuch"
-  jdk_version: 17
+  jdk_version: 21
   gradle_opts: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
-  build_tools_version: "34.0.0"
+  build_tools_version: "35.0.0"
   package_name: "br.com.brunocarvalhs.howmuch"
 
 git:
@@ -34,18 +34,34 @@ stages:
     command: "./gradlew detekt"
   build:
     enabled: true
-    command: "./gradlew assembleDebug"
-    artifact_name: "HowMuch-apk-debug"
+    variants:
+      - name: "debug"
+        command: "./gradlew assembleDebug"
+        path: "app/build/outputs/apk/debug/*.apk"
+        artifact_name: "FriendsSecrets-apk-debug"
+      - name: "release"
+        command: "./gradlew assembleRelease"
+        path: "app/build/outputs/apk/release/*.apk"
+        artifact_name: "FriendsSecrets-apk-release"
   deploy_firebase:
     enabled: true
     release_notes: "release automatica"
+    variants:
+      - name: "debug"
+        label: "DEBUG"
+      - name: "release"
+        label: "RELEASE"
   release:
     enabled: true
     command_aab: "./gradlew bundleRelease"
+    github_release:
+      draft: false
+      prerelease: false
     google_play:
-      tracks: ["production", "beta", "internal"]
+      track: "production"
+      status: "completed"
       user_fraction: 0.5
 
 danger:
   enabled: true
-  node_version: 20
+  node_version: 24

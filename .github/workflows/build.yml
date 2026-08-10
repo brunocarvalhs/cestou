@@ -1,4 +1,4 @@
-name: Build Application Debug
+name: Build Application Variants (Firebase)
 
 on:
   push:
@@ -11,6 +11,7 @@ jobs:
       jdk_version: ${{ steps.config.outputs.jdk_version }}
       gradle_opts: ${{ steps.config.outputs.gradle_opts }}
       app_name: ${{ steps.config.outputs.app_name }}
+      variants: ${{ steps.config.outputs.variants }}
       ut_enabled: ${{ steps.config.outputs.ut_enabled }}
       lint_enabled: ${{ steps.config.outputs.lint_enabled }}
       detekt_enabled: ${{ steps.config.outputs.detekt_enabled }}
@@ -23,6 +24,7 @@ jobs:
           echo "jdk_version=$(yq '.project.jdk_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "gradle_opts=$(yq '.project.gradle_opts' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "app_name=$(yq '.project.name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "variants=$(yq -o=json '.stages.build.variants' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
           echo "ut_enabled=$(yq '.stages.unit_tests.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "lint_enabled=$(yq '.stages.lint.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "detekt_enabled=$(yq '.stages.detekt.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
@@ -109,8 +111,11 @@ jobs:
       (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped') &&
       (needs.lint-check.result == 'success' || needs.lint-check.result == 'skipped') &&
       (needs.detekt-check.result == 'success' || needs.detekt-check.result == 'skipped')
+    strategy:
+      matrix:
+        variant: ${{ fromJson(needs.prepare.outputs.variants) }}
     runs-on: ubuntu-24.04
-    name: Build
+    name: Build ${{ matrix.variant.name }} APK
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -122,46 +127,72 @@ jobs:
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
-      - name: Build APK Debug
+      - name: Build APK
         run: |
-          COMMAND=$(yq '.stages.build.command' .github/pipeline-config.yaml)
           chmod +x gradlew
-          $COMMAND
+          ${{ matrix.variant.command }}
         env:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: Upload Debug APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ needs.prepare.outputs.app_name }}-apk-debug
-          path: app/build/outputs/apk/debug/*.apk
+          name: ${{ matrix.variant.artifact_name }}
+          path: ${{ matrix.variant.path }}
 
   deploy-firebase:
     needs: [prepare, build]
-    if: needs.prepare.outputs.deploy_enabled == 'true' && needs.build.result == 'success'
+    if: needs.prepare.outputs.deploy_enabled == 'true'
+    strategy:
+      matrix:
+        variant: ${{ fromJson(needs.prepare.outputs.variants) }}
     runs-on: ubuntu-24.04
-    name: Deploy to Firebase App Distribution
+    name: Deploy ${{ matrix.variant.name }} to Firebase
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Check Deployment and Get Label
+        id: firebase_config
+        run: |
+          VARIANT='${{ matrix.variant.name }}'
+          LABEL=$(yq ".stages.deploy_firebase.variants[] | select(.name == \"$VARIANT\") | .label" .github/pipeline-config.yaml)
+          if [ -n "$LABEL" ] && [ "$LABEL" != "null" ]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "label=$LABEL" >> $GITHUB_OUTPUT
+          else
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Download APK Artifact
+        if: steps.firebase_config.outputs.should_deploy == 'true'
         uses: actions/download-artifact@v4
         with:
-          name: ${{ needs.prepare.outputs.app_name }}-apk-debug
-          path: app/build/outputs/apk/release/
+          name: ${{ matrix.variant.artifact_name }}
+          path: output/
 
       - name: Install Firebase CLI
+        if: steps.firebase_config.outputs.should_deploy == 'true'
         run: curl -sL https://firebase.tools | bash
 
       - name: Upload APK to Firebase App Distribution
+        if: steps.firebase_config.outputs.should_deploy == 'true'
         run: |
-          APK_PATH=$(yq '.stages.deploy_firebase.artifact_path' .github/pipeline-config.yaml)
           APP_ID="${{ secrets.FIREBASE_APP_ID }}"
           TOKEN="${{ secrets.FIREBASE_AUTH_TOKEN }}"
-          NOTES=$(yq '.stages.deploy_firebase.release_notes' .github/pipeline-config.yaml)
+          RAW_NOTES=$(yq '.stages.deploy_firebase.release_notes' .github/pipeline-config.yaml)
           
-          firebase appdistribution:distribute $APK_PATH \
+          # Prefix notes with variant label
+          LABEL="${{ steps.firebase_config.outputs.label }}"
+          NOTES="[$LABEL] $RAW_NOTES"
+          
+          # Find the APK file
+          APK_FILE=$(find output/ -name "*.apk" | head -n 1)
+          
+          firebase appdistribution:distribute "$APK_FILE" \
             --app "$APP_ID" \
             --release-notes "$NOTES" \
             --token "$TOKEN"
