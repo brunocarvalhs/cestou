@@ -63,7 +63,11 @@ internal class ShoppingListViewModel @Inject constructor(
     val intent = ShoppingListIntent(
         onFetchAll = { fetchAll() },
         onCreate = { _uiState.update { it.copy(isCreateSheetVisible = true) } },
-        onOpen = { id -> open(id) },
+        onOpen = { id ->
+            viewModelScope.launch {
+                shoppingGetByIdUseCase.invoke(id).onSuccess { navigateToProducts(it) }
+            }
+        },
         onPromptChanged = { value -> _uiState.update { it.copy(prompt = value) } },
         onFilter = { value ->
             _uiState.update { it.copy(selectedFilter = value) }
@@ -93,24 +97,10 @@ internal class ShoppingListViewModel @Inject constructor(
         onShare = { shopping ->
             handleShoppingAction(ShoppingAction.Share(shopping))
         },
-        onDelete = { id ->
-            viewModelScope.launch {
-                val shopping = repository.getById(id)
-                if (isOwner(shopping)) {
-                    handleShoppingAction(ShoppingAction.Delete(id))
-                } else {
-                    _uiState.update {
-                        it.copy(
-                            error = UiText.StringResource(
-                                R.string.shopping_management_error_only_owner_delete
-                            )
-                        )
-                    }
-                }
-            }
-        },
+        onDelete = { id -> handleShoppingAction(ShoppingAction.Delete(id)) },
         onEdit = { shopping ->
-            if (isOwner(shopping)) {
+            val userId = authService.currentUser?.id
+            if (shopping.roles[userId] == User.Role.OWNER.name) {
                 _navigator?.navigate(EditShopping(shopping))
             } else {
                 _uiState.update {
@@ -131,7 +121,13 @@ internal class ShoppingListViewModel @Inject constructor(
         onShowJoinDialog = { _navigator?.navigate(JoinList) },
         onMove = { from, to -> moveShopping(from, to) },
         onShowCreateSheet = { visible -> _uiState.update { it.copy(isCreateSheetVisible = visible) } },
-        onCreateConfirmed = { title, description -> createConfirmed(title, description) },
+        onCreateConfirmed = { title, description ->
+            _uiState.update { it.copy(isCreateSheetVisible = false) }
+            viewModelScope.launch {
+                shoppingCreateUseCase.invoke(title = title, description = description)
+                    .onSuccess { navigateToProducts(it) }
+            }
+        },
         onSuggestionClick = { suggestion ->
             _uiState.update { it.copy(prompt = suggestion) }
             sendPrompt()
@@ -165,7 +161,22 @@ internal class ShoppingListViewModel @Inject constructor(
     private fun handleShoppingAction(action: ShoppingAction) {
         viewModelScope.launch {
             val result = when (action) {
-                is ShoppingAction.Delete -> shoppingDeleteUseCase(action.id)
+                is ShoppingAction.Delete -> {
+                    val shopping = repository.getById(action.id)
+                    val userId = authService.currentUser?.id
+                    if (shopping?.roles?.get(userId) == User.Role.OWNER.name) {
+                        shoppingDeleteUseCase(action.id)
+                    } else {
+                        _uiState.update {
+                            it.copy(
+                                error = UiText.StringResource(
+                                    R.string.shopping_management_error_only_owner_delete
+                                )
+                            )
+                        }
+                        Result.failure(Exception("Not owner"))
+                    }
+                }
                 is ShoppingAction.Share -> {
                     shareShoppingUseCase(action.shopping)
                     Result.success(Unit)
@@ -183,11 +194,6 @@ internal class ShoppingListViewModel @Inject constructor(
                 if (action !is ShoppingAction.Share) fetchAll()
             }
         }
-    }
-
-    private fun isOwner(shopping: Shopping?): Boolean {
-        val userId = authService.currentUser?.id ?: return false
-        return shopping?.roles?.get(userId) == User.Role.OWNER.name
     }
 
     private fun loadAiSuggestions() {
@@ -210,7 +216,7 @@ internal class ShoppingListViewModel @Inject constructor(
 
         val filtered = _uiState.value.list.filter { shopping ->
             val matchesQuery = shopping.title.lowercase().contains(query) ||
-                    shopping.description.lowercase().contains(query)
+                shopping.description.lowercase().contains(query)
 
             val matchesFilter = when (filter) {
                 "Compras" -> shopping.status != Shopping.Status.FINISH
@@ -309,23 +315,8 @@ internal class ShoppingListViewModel @Inject constructor(
         }
     }
 
-    private fun createConfirmed(title: String, description: String) {
-        _uiState.update { it.copy(isCreateSheetVisible = false) }
-        viewModelScope.launch {
-            shoppingCreateUseCase.invoke(title = title, description = description)
-                .onSuccess { data ->
-                    _navigator?.navigate(route = ProductsFlow(data))
-                }.onFailure { }
-        }
-    }
-
-    private fun open(id: String) {
-        viewModelScope.launch {
-            shoppingGetByIdUseCase.invoke(id)
-                .onSuccess {
-                    _navigator?.navigate(route = ProductsFlow(it))
-                }.onFailure { }
-        }
+    private fun navigateToProducts(shopping: Shopping) {
+        _navigator?.navigate(route = ProductsFlow(shopping))
     }
 
     private fun moveShopping(fromIndex: Int, toIndex: Int) {

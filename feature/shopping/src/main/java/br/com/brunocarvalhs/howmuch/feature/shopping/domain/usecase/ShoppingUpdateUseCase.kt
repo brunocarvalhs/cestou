@@ -43,9 +43,12 @@ class ShoppingUpdateUseCase @Inject constructor(
         val shopping = Shopping(
             id = id,
             title = arguments.getString("title") ?: throw Exception("Shopping title is required"),
-            description = arguments.getString("description") ?: throw Exception("Shopping description is required"),
+            description = arguments.getString("description")
+                ?: throw Exception("Shopping description is required"),
             price = arguments.getDouble("price") ?: throw Exception("Shopping price is required"),
-            status = Shopping.Status.valueOf(arguments.getString("status") ?: throw Exception("Shopping status is required")),
+            status = Shopping.Status.valueOf(
+                arguments.getString("status") ?: throw Exception("Shopping status is required")
+            ),
             users = arguments.getList("users"),
             roles = arguments.getMap("roles"),
         )

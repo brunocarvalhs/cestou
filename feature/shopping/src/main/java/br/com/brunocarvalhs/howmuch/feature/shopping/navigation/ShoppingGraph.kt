@@ -48,11 +48,12 @@ fun NavGraphBuilder.shoppingGraph(
         )
     }
 
-    shoppingDialogs(navigator)
+    shoppingEditDialog(navigator)
+    shoppingOtherDialogs(navigator)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-private fun NavGraphBuilder.shoppingDialogs(navigator: Navigator) {
+private fun NavGraphBuilder.shoppingEditDialog(navigator: Navigator) {
     dialog<EditShopping>(
         typeMap = EditShopping.typeMap
     ) {
@@ -79,7 +80,10 @@ private fun NavGraphBuilder.shoppingDialogs(navigator: Navigator) {
             }
         }
     }
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+private fun NavGraphBuilder.shoppingOtherDialogs(navigator: Navigator) {
     dialog<QrCode> { backStackEntry ->
         val route: QrCode = backStackEntry.toRoute()
         QrCodeBottomSheet(
