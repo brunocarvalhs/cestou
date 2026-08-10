@@ -183,17 +183,19 @@ jobs:
         run: |
           APP_ID="${{ secrets.FIREBASE_APP_ID }}"
           RAW_NOTES=$(yq '.stages.deploy_firebase.release_notes' .github/pipeline-config.yaml)
-          echo '${{ env.FIREBASE_SERVICE_ACCOUNT_JSON }}' > service-account.json
+
+          # Create service account file from secret
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > service-account.json
           export GOOGLE_APPLICATION_CREDENTIALS=$PWD/service-account.json
 
           # Prefix notes with variant label
           LABEL="${{ steps.firebase_config.outputs.label }}"
           NOTES="[$LABEL] $RAW_NOTES"
-          
+
           # Find the APK file
           APK_FILE=$(find output/ -name "*.apk" | head -n 1)
-          
+
+          # Distribute using service account credentials (via GOOGLE_APPLICATION_CREDENTIALS)
           firebase appdistribution:distribute "$APK_FILE" \
             --app "$APP_ID" \
-            --release-notes "$NOTES" \
-            --token "$TOKEN"
+            --release-notes "$NOTES"
