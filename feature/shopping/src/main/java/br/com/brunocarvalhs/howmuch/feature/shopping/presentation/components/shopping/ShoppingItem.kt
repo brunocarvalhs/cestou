@@ -7,7 +7,16 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -21,7 +30,17 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ShoppingBag
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,19 +51,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.stringResource
-import br.com.brunocarvalhs.howmuch.feature.shopping.R
-import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
+import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatPrice
 import br.com.brunocarvalhs.howmuch.core.ui.utils.LocalCurrency
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
+
 
 private const val STATUS_FINISH_ALPHA = 0.4f
 private const val STATUS_IN_PROGRESS_ALPHA = 0.6f
@@ -83,6 +101,7 @@ internal fun ShoppingItem(
             Shopping.Status.FINISH -> MaterialTheme.colorScheme.surfaceColorAtElevation(
                 FINISHED_SURFACE_ELEVATION
             )
+
             else -> MaterialTheme.colorScheme.surface
         },
         label = "bgColor"
@@ -118,9 +137,11 @@ internal fun ShoppingItem(
                             Shopping.Status.FINISH -> MaterialTheme.colorScheme.primaryContainer.copy(
                                 alpha = STATUS_FINISH_ALPHA
                             )
+
                             Shopping.Status.IN_PROGRESS -> MaterialTheme.colorScheme.tertiaryContainer.copy(
                                 alpha = STATUS_IN_PROGRESS_ALPHA
                             )
+
                             else -> MaterialTheme.colorScheme.secondaryContainer.copy(
                                 alpha = STATUS_DEFAULT_ALPHA
                             )
@@ -224,15 +245,23 @@ internal fun ShoppingItem(
             Box {
                 IconButton(onClick = { expanded = true }) {
                     Icon(
-                        Icons.Default.MoreVert,
-                        stringResource(CoreR.string.content_description_more_options),
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = stringResource(
+                            id = br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_more_options
+                        ),
                         tint = MaterialTheme.colorScheme.outline
                     )
                 }
 
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     DropdownMenuItem(
-                        text = { Text(stringResource(CoreR.string.action_edit)) },
+                        text = {
+                            Text(
+                                text = stringResource(
+                                    id = br.com.brunocarvalhs.howmuch.core.ui.R.string.action_edit
+                                )
+                            )
+                        },
                         leadingIcon = { Icon(Icons.Default.Edit, null) },
                         onClick = {
                             expanded = false
@@ -251,9 +280,11 @@ internal fun ShoppingItem(
                         text = {
                             Text(
                                 if (status == Shopping.Status.FINISH) {
-                                    stringResource(R.string.action_reopen)
+                                    stringResource(id = R.string.action_reopen)
                                 } else {
-                                    stringResource(CoreR.string.action_finish)
+                                    stringResource(
+                                        id = br.com.brunocarvalhs.howmuch.core.ui.R.string.action_finish
+                                    )
                                 }
                             )
                         },
@@ -284,9 +315,11 @@ internal fun ShoppingItem(
                         },
                         leadingIcon = {
                             Icon(
-                                if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                null,
-                                tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurface
+                                imageVector = if (isFavorite) Icons.Default.Favorite
+                                else Icons.Default.FavoriteBorder,
+                                contentDescription = null,
+                                tint = if (isFavorite) Color.Red
+                                else MaterialTheme.colorScheme.onSurface
                             )
                         },
                         onClick = {
@@ -296,8 +329,17 @@ internal fun ShoppingItem(
                     )
                     HorizontalDivider()
                     DropdownMenuItem(
-                        text = { Text(stringResource(CoreR.string.action_share)) },
-                        leadingIcon = { Icon(Icons.Default.Share, null) },
+                        text = {
+                            Text(
+                                text = stringResource(
+                                    id = br.com.brunocarvalhs.howmuch.core.ui.R.string.action_share
+                                )
+                            )
+                        },
+                        leadingIcon = { Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = null
+                        ) },
                         onClick = {
                             expanded = false
                             onShareClick()
@@ -307,12 +349,18 @@ internal fun ShoppingItem(
                     DropdownMenuItem(
                         text = {
                             Text(
-                                stringResource(CoreR.string.action_delete),
+                                text = stringResource(
+                                    id = br.com.brunocarvalhs.howmuch.core.ui.R.string.action_delete
+                                ),
                                 color = MaterialTheme.colorScheme.error
                             )
                         },
                         leadingIcon = {
-                            Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error)
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
                         },
                         onClick = {
                             expanded = false
@@ -379,4 +427,3 @@ internal fun ShoppingItemLoading(modifier: Modifier = Modifier) {
         }
     }
 }
-
