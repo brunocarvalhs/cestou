@@ -7,6 +7,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
@@ -15,6 +16,7 @@ import androidx.navigation.compose.dialog
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.cart.ConfirmItemContent
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.cart.EditItemContent
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.cart.FinishPurchaseContent
@@ -183,6 +185,6 @@ private fun NavGraphBuilder.qrCodeDestination() {
         //     onDismissRequest = { navigator.goBack() },
         //     onShare = { listViewModel.intent.onShareShopping() }
         // )
-        Text("QR Code not available")
+        Text(stringResource(R.string.product_error_qr_not_available))
     }
 }

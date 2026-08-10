@@ -21,7 +21,11 @@
     <string name="product_empty_description">Find your products using search,\nbarcode or create a new product.</string>
     <string name="product_error_loading_image">Error loading image</string>
 
+    <string name="product_error_qr_not_available">QR Code not available</string>
+    <string name="product_error_load_image">Error loading image</string>
+
     <!-- Feature: Product Search & Recipes -->
+
     <string name="product_search_products_label">Products</string>
     <string name="product_search_recipes_label">Recipes</string>
     <string name="product_search_placeholder">Search product</string>

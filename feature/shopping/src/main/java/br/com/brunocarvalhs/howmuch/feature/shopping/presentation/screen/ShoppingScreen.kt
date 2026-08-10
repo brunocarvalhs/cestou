@@ -295,13 +295,7 @@ private fun ShoppingFilterChips(
                 selected = filter == uiState.selectedFilter,
                 onClick = { intent.onFilter(filter) },
                 label = {
-                    val label = when (filter) {
-                        "Todos" -> stringResource(R.string.shopping_filter_all)
-                        "Compras" -> stringResource(R.string.shopping_filter_active)
-                        "Favoritos" -> stringResource(R.string.shopping_filter_favorites)
-                        else -> filter
-                    }
-                    Text(label)
+                    Text(filter.title.asString())
                 }
             )
         }

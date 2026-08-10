@@ -43,6 +43,21 @@
     <string name="shopping_management_error_only_owner_edit">Only the owner can edit this list</string>
 
 
+    <string name="shopping_management_error_join">Error joining list</string>
+    <string name="shopping_management_token_copy">Copy</string>
+
+    <string name="shopping_management_share_chooser_title">Share list</string>
+
+    <string name="shopping_list_copy_suffix">(Copy)</string>
+    <string name="shopping_list_new_title">New List</string>
+    <string name="shopping_list_new_description">Default shopping list</string>
+
+    <string name="shopping_suggestion_expensive">What is my most expensive list?</string>
+    <string name="shopping_suggestion_breakfast">Suggest items for a breakfast</string>
+    <string name="shopping_suggestion_pending">Which lists are pending?</string>
+    <string name="shopping_suggestion_barbecue">Create a barbecue list for 5 people</string>
+    <string name="shopping_suggestion_spent_month">How much was spent this month?</string>
+
     <string name="action_duplicate">Duplicate</string>
     <string name="action_reopen">Reopen</string>
     <string name="action_add_favorite">Add to Favorites</string>

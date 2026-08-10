@@ -30,6 +30,11 @@
     <string name="content_description_remove_unit">Eliminar cantidad</string>
     <string name="content_description_add_unit">Añadir cantidad</string>
 
+    <string name="action_retry">Reintentar</string>
+
+    <!-- Error State -->
+    <string name="error_state_title">¡Oops! Algo salió mal</string>
+
     <!-- Categories -->
     <string name="category_hortifruti">Frutas y Verduras</string>
     <string name="category_carnes">Carnes</string>

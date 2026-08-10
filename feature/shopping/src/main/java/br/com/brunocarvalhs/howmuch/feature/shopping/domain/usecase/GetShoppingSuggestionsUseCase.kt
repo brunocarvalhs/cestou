@@ -1,17 +1,22 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
+import android.content.Context
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
-internal class GetShoppingSuggestionsUseCase @Inject constructor() {
+internal class GetShoppingSuggestionsUseCase @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
     operator fun invoke(): Flow<List<String>> = flowOf(
         listOf(
-            "Qual é a minha lista mais cara?",
-            "Sugerir itens para um café da manhã",
-            "Quais listas estão pendentes?",
-            "Crie uma lista de churrasco para 5 pessoas",
-            "Qual o total gasto este mês?"
+            context.getString(R.string.shopping_suggestion_expensive),
+            context.getString(R.string.shopping_suggestion_breakfast),
+            context.getString(R.string.shopping_suggestion_pending),
+            context.getString(R.string.shopping_suggestion_barbecue),
+            context.getString(R.string.shopping_suggestion_spent_month)
         )
     )
 }
