@@ -2,21 +2,22 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.domain.entity.ThemeMode
+import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateThemeUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.ThemeSettingsIntent
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.state.ThemeSettingsUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 internal class ThemeSettingsViewModel @Inject constructor(
@@ -42,8 +43,7 @@ internal class ThemeSettingsViewModel @Inject constructor(
         getSettingsUseCase()
             .onEach { settings ->
                 _uiState.update { it.copy(themeMode = settings.themeMode) }
-            }
-            .launchIn(viewModelScope)
+            }.catch { e -> throw e }.launchIn(viewModelScope)
     }
 
     private fun updateTheme(themeMode: ThemeMode) {
