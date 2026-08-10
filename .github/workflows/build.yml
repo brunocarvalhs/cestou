@@ -182,9 +182,10 @@ jobs:
         if: steps.firebase_config.outputs.should_deploy == 'true'
         run: |
           APP_ID="${{ secrets.FIREBASE_APP_ID }}"
-          TOKEN="${{ secrets.FIREBASE_AUTH_TOKEN }}"
           RAW_NOTES=$(yq '.stages.deploy_firebase.release_notes' .github/pipeline-config.yaml)
-          
+          echo '${{ env.FIREBASE_SERVICE_ACCOUNT_JSON }}' > service-account.json
+          export GOOGLE_APPLICATION_CREDENTIALS=$PWD/service-account.json
+
           # Prefix notes with variant label
           LABEL="${{ steps.firebase_config.outputs.label }}"
           NOTES="[$LABEL] $RAW_NOTES"
