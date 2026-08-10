@@ -35,6 +35,12 @@
     <string name="product_action_retake">Repetir</string>
     <string name="product_action_analyze">Analisar</string>
 
+    <!-- Common Actions -->
+    <string name="action_edit">Editar</string>
+    <string name="action_delete">Excluir</string>
+    <string name="action_confirm">Confirmar</string>
+    <string name="action_cancel">Cancelar</string>
+
     <!-- Feature: Shopping List (Products) -->
     <string name="product_item_mark_purchased">Marcar como comprado</string>
     <string name="product_item_more_options">Mais opções</string>
@@ -75,4 +81,8 @@
 
     <string name="state_description_in_cart">No carrinho</string>
     <string name="state_description_not_in_cart">Fora do carrinho</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_description_remove_unit">Remover quantidade</string>
+    <string name="content_description_add_unit">Adicionar quantidade</string>
 </resources>
