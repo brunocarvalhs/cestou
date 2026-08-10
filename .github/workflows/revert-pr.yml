@@ -8,38 +8,32 @@ on:
         required: true
         type: number
 
-env:
-  # Branch alvo onde o PR original foi mesclado
-  TARGET_BRANCH: develop
-
-  # Bot config
-  GIT_USER: github-actions[bot]
-  GIT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
-
-  # 🔑 Secrets
-  GITHUB_TOKEN: ${{ secrets.TOKEN }}
-
 jobs:
   revert:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout target branch
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ env.TARGET_BRANCH }}
+
+      - name: Load Config
+        id: config
+        run: |
+          echo "target_branch=$(yq '.git.branches.develop' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "bot_name=$(yq '.git.bot_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "bot_email=$(yq '.git.bot_email' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
       - name: Configurar Git
         run: |
-          git config user.name "${{ env.GIT_USER }}"
-          git config user.email "${{ env.GIT_EMAIL }}"
+          git config user.name "${{ steps.config.outputs.bot_name }}"
+          git config user.email "${{ steps.config.outputs.bot_email }}"
 
       - name: Buscar PR
         id: pr
         uses: actions-ecosystem/action-get-merged-pull-request@v1
         with:
-          github_token: ${{ env.GITHUB_TOKEN }}
+          github_token: ${{ secrets.TOKEN }}
           pull_request_number: ${{ github.event.inputs.pr_number }}
 
       - name: Criar branch de revert
@@ -53,8 +47,8 @@ jobs:
       - name: Criar PR de revert
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ env.GITHUB_TOKEN }}
+          token: ${{ secrets.TOKEN }}
           branch: ${{ env.branch_name }}
-          base: ${{ env.TARGET_BRANCH }}
+          base: ${{ steps.config.outputs.target_branch }}
           title: "Revert PR #${{ github.event.inputs.pr_number }}"
           body: "Este PR reverte as mudanças do PR #${{ github.event.inputs.pr_number }}"

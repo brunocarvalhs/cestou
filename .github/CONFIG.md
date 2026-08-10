@@ -227,6 +227,19 @@ keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -valid
 
 ---
 
+### 9. `DOTENV` (Arquivo de Variáveis de Ambiente)
+
+- **Descrição:** Conteúdo completo do arquivo `.env`, necessário para as configurações do aplicativo e chaves de API.
+- **Como configurar:**
+    1. Copie o conteúdo do seu arquivo `.env`.
+    2. Vá em **Settings > Secrets and variables > Actions**.
+    3. Recomenda-se criar um **Secret** (para segurança) chamado `DOTENV`.
+    4. Cole o conteúdo diretamente.
+
+> ⚠️ **Importante:** O arquivo `.env` contém chaves de API sensíveis. Use **Secrets** em vez de **Variables** para proteger seus dados.
+
+---
+
 Certifique-se de que todos os secrets estejam configurados corretamente antes de executar os
 workflows. Para mais informações, consulte
 a [documentação oficial do GitHub Actions](https://docs.github.com/en/actions).
