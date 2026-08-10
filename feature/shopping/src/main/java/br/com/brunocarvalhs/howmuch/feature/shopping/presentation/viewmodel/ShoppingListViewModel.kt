@@ -28,6 +28,7 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingUpda
 import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.EditShopping
 import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.JoinList
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.ShoppingListIntent
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingFilter
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingListUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -219,8 +220,8 @@ internal class ShoppingListViewModel @Inject constructor(
                 shopping.description.lowercase().contains(query)
 
             val matchesFilter = when (filter) {
-                "Compras" -> shopping.status != Shopping.Status.FINISH
-                "Favoritos" -> shopping.isFavorite
+                ShoppingFilter.SHOPPING -> shopping.status != Shopping.Status.FINISH
+                ShoppingFilter.FAVORITES -> shopping.isFavorite
                 else -> true
             }
 

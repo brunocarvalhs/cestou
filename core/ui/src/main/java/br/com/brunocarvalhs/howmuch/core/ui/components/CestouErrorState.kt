@@ -17,14 +17,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.ui.R
 
 @Composable
 fun CestouErrorState(
     message: String,
     modifier: Modifier = Modifier,
-    title: String = "Oops! Algo deu errado",
+    title: String = stringResource(R.string.error_state_title),
     icon: ImageVector = Icons.Default.ErrorOutline,
     onRetry: (() -> Unit)? = null
 ) {
@@ -62,7 +64,7 @@ fun CestouErrorState(
         if (onRetry != null) {
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onRetry) {
-                Text("Tentar Novamente")
+                Text(stringResource(R.string.action_retry))
             }
         }
     }

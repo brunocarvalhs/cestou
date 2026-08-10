@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
+import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentAction
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentParameter
 import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
@@ -9,6 +10,8 @@ import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.entity.User
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.service.AuthService
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,21 +32,22 @@ import javax.inject.Singleton
 )
 @Singleton
 class ShoppingCreateUseCase @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val repository: ShoppingRepository,
     private val authService: AuthService,
 ) : AgentActionUseCase<Shopping>() {
 
     suspend operator fun invoke(
-        title: String = "Lista de compras",
-        description: String = "Lista de compras padrão"
+        title: String? = null,
+        description: String? = null
     ): Result<Shopping> = runCatching {
         val user = authService.getOrCreateUserId()
         val userId = user.id
 
         val shopping = Shopping(
             id = UUID.randomUUID().toString(),
-            title = title,
-            description = description,
+            title = title ?: context.getString(R.string.shopping_list_new_title),
+            description = description ?: context.getString(R.string.shopping_list_new_description),
             price = 0.0,
             status = Shopping.Status.NEW,
             users = listOf(userId),
@@ -61,8 +65,8 @@ class ShoppingCreateUseCase @Inject constructor(
         session: AiAgentSession,
         metadata: Map<String, Any?>
     ): Result<Shopping> {
-        val title = arguments.getString("title") ?: "Nova Lista"
-        val description = arguments.getString("description") ?: "Lista de compras padrão"
+        val title = arguments.getString("title")
+        val description = arguments.getString("description")
         return invoke(title, description)
     }
 }

@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.domain.entity.Product
+import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductAnalyzeImageUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute
@@ -59,7 +60,12 @@ internal class ProductPhotoViewModel @Inject constructor(
             
             val bitmap = loadBitmapFromUri(uri)
             if (bitmap == null) {
-                _uiState.update { it.copy(isAnalyzing = false, errorMessage = "Erro ao carregar a imagem") }
+                _uiState.update { 
+                    it.copy(
+                        isAnalyzing = false, 
+                        errorMessage = context.getString(R.string.product_error_load_image)
+                    ) 
+                }
                 return@launch
             }
 

@@ -54,7 +54,12 @@ internal class JoinListViewModel @Inject constructor(
                         error = if (error.message?.contains("invalid", true) == true) {
                             UiText.StringResource(R.string.shopping_management_join_error_invalid)
                         } else {
-                            UiText.DynamicString(error.message ?: "Erro ao entrar na lista")
+                            val message = error.message
+                            if (message != null) {
+                                UiText.DynamicString(message)
+                            } else {
+                                UiText.StringResource(R.string.shopping_management_error_join)
+                            }
                         }
                     ) }
                 }

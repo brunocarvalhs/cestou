@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -34,7 +35,8 @@ internal class ShareShoppingUseCase @Inject constructor(
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         
-        context.startActivity(Intent.createChooser(shareIntent, "Compartilhar lista").apply {
+        val chooserTitle = context.getString(R.string.shopping_management_share_chooser_title)
+        context.startActivity(Intent.createChooser(shareIntent, chooserTitle).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         })
     }

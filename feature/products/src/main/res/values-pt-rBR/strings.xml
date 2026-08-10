@@ -21,7 +21,11 @@
     <string name="product_empty_description">Encontre seus produtos utilizando a busca,\no código de barras ou crie um novo produto.</string>
     <string name="product_error_loading_image">Erro ao carregar a imagem</string>
 
+    <string name="product_error_qr_not_available">QR Code não disponível</string>
+    <string name="product_error_load_image">Erro ao carregar a imagem</string>
+
     <!-- Feature: Product Search & Recipes -->
+
     <string name="product_search_products_label">Produtos</string>
     <string name="product_search_recipes_label">Receitas</string>
     <string name="product_search_placeholder">Buscar produto</string>

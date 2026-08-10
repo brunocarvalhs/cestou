@@ -38,10 +38,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.ui.utils.QrCodeGenerator
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import kotlinx.coroutines.launch
 
 private const val QR_CODE_SIZE_PX = 512
@@ -75,12 +77,15 @@ fun QrCodeBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Convidar Membros",
+                    text = stringResource(R.string.shopping_management_invite_members_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
                 IconButton(onClick = onDismissRequest) {
-                    Icon(Icons.Default.Close, contentDescription = "Fechar")
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = stringResource(br.com.brunocarvalhs.howmuch.core.ui.R.string.action_close)
+                    )
                 }
             }
 
@@ -108,7 +113,7 @@ fun QrCodeBottomSheet(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Escaneie o código acima ou use o token abaixo para entrar na lista.",
+                text = stringResource(R.string.shopping_management_qr_code_hint),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -139,7 +144,7 @@ fun QrCodeBottomSheet(
                     )
                     Icon(
                         imageVector = Icons.Default.ContentCopy,
-                        contentDescription = "Copiar",
+                        contentDescription = stringResource(R.string.shopping_management_token_copy),
                         modifier = Modifier.size(20.dp),
                         tint = MaterialTheme.colorScheme.primary
                     )
@@ -155,7 +160,7 @@ fun QrCodeBottomSheet(
             ) {
                 Icon(Icons.Default.Share, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Compartilhar Link de Convite")
+                Text(stringResource(R.string.shopping_management_button_share_invite))
             }
         }
     }
