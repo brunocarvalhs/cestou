@@ -2,9 +2,6 @@
 
 project:
   name: "HowMuch"
-  jdk_version: 21
-  gradle_opts: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
-  build_tools_version: "35.0.0"
   package_name: "br.com.brunocarvalhs.howmuch"
 
 git:
@@ -22,45 +19,61 @@ paths:
   apk_release: "app/build/outputs/apk/release/*.apk"
   aab_release: "app/build/outputs/bundle/release/*.aab"
 
-stages:
-  unit_tests:
+build:
+  java-distribution: "temurin"
+  java-version: "17"
+  gradle-version: "8.3.1"
+  gradle_opts: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
+  ignore-cache: false
+  flavors:
+    - name: "debug"
+      gradle_task: "assembleDebug"
+      enabled: true
+      path: "app/build/outputs/apk/debug/*.apk"
+      artifact_name: "FriendsSecrets-apk-debug"
+      deploy:
+        firebase:
+          label: "DEBUG"
+          app_id: "1:1234567890:android:abcdef123456"
+    - name: "release"
+      gradle_task: "assembleRelease"
+      enabled: true
+      path: "app/build/outputs/apk/release/*.apk"
+      artifact_name: "FriendsSecrets-apk-release"
+      deploy:
+        firebase:
+          label: "RELEASE"
+          app_id: "1:1234567890:android:abcdef123456"
+
+test:
+  - name: "unit_tests"
     enabled: true
     command: "./gradlew testDebug"
+    path: 
+      - "app/build/reports/tests/testDebugUnitTest/index.html"
+    gradlew-path: "."
+    build-path: "app/build/reports/tests/testDebugUnitTest/index.html"
+    reporter-type: "html"
+    reporter-path: "app/build/reports/tests/testDebugUnitTest/index.html"
+
+linters:
   lint:
     enabled: true
     command: "./gradlew lintDebug"
   detekt:
     enabled: true
     command: "./gradlew detekt"
-  build:
-    enabled: true
-    variants:
-      - name: "debug"
-        command: "./gradlew assembleDebug"
-        path: "app/build/outputs/apk/debug/*.apk"
-        artifact_name: "FriendsSecrets-apk-debug"
-      - name: "release"
-        command: "./gradlew assembleRelease"
-        path: "app/build/outputs/apk/release/*.apk"
-        artifact_name: "FriendsSecrets-apk-release"
-  deploy_firebase:
-    enabled: true
-    release_notes: "release automatica"
-    variants:
-      - name: "debug"
-        label: "DEBUG"
-      - name: "release"
-        label: "RELEASE"
-  release:
-    enabled: true
-    command_aab: "./gradlew bundleRelease"
-    github_release:
-      draft: false
-      prerelease: false
-    google_play:
-      track: "production"
-      status: "completed"
-      user_fraction: 0.5
+
+release:
+  enabled: true
+  command_aab: "./gradlew bundleRelease"
+  github_release:
+    draft: false
+    prerelease: false
+  google_play:
+    track: "production"
+    status: "completed"
+    user_fraction: 0.5
 
 danger:
   enabled: true
