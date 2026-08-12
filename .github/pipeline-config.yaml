@@ -42,7 +42,6 @@ build:
       deploy:
         firebase:
           label: "DEBUG"
-          app_id: "1:1234567890:android:abcdef123456"
           
     - name: "release"
       description: "Production Ready APK"
@@ -53,7 +52,6 @@ build:
       deploy:
         firebase:
           label: "RELEASE"
-          app_id: "1:1234567890:android:abcdef123456"
 
 # Test Suites
 test:
