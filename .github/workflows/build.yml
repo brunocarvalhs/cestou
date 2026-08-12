@@ -1,4 +1,4 @@
-name: Build Application Variants (Firebase)
+name: Continuous Integration - Build & Distribute
 
 on:
   push:
@@ -35,7 +35,7 @@ jobs:
     needs: [prepare]
     if: needs.prepare.outputs.ut_enabled == 'true'
     runs-on: ubuntu-24.04
-    name: Run Unit Tests
+    name: 🧪 Unit Testing
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -59,7 +59,7 @@ jobs:
     needs: [prepare]
     if: needs.prepare.outputs.lint_enabled == 'true'
     runs-on: ubuntu-24.04
-    name: Run Lint Check
+    name: 🧹 Code Style (Lint)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -83,7 +83,7 @@ jobs:
     needs: [prepare]
     if: needs.prepare.outputs.detekt_enabled == 'true'
     runs-on: ubuntu-24.04
-    name: Run Detekt Check
+    name: 🔍 Static Analysis (Detekt)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -115,7 +115,7 @@ jobs:
       matrix:
         variant: ${{ fromJson(needs.prepare.outputs.variants) }}
     runs-on: ubuntu-24.04
-    name: Build ${{ matrix.variant.name }} APK
+    name: 📦 Build APK - ${{ matrix.variant.deploy.firebase.label }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -150,7 +150,7 @@ jobs:
       matrix:
         variant: ${{ fromJson(needs.prepare.outputs.variants) }}
     runs-on: ubuntu-24.04
-    name: Deploy ${{ matrix.variant.name }} to Firebase
+    name: 🚀 Firebase Dist - ${{ matrix.variant.deploy.firebase.label }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

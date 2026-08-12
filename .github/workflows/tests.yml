@@ -1,4 +1,4 @@
-name: Android Tests
+name: Continuous Integration - Pull Request Validation
 
 on:
   pull_request:
@@ -27,7 +27,7 @@ jobs:
     needs: [prepare]
     if: needs.prepare.outputs.ut_enabled == 'true'
     runs-on: ubuntu-24.04
-    name: Run Unit Tests
+    name: 🧪 Unit Testing
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -67,7 +67,7 @@ jobs:
     needs: [prepare]
     if: needs.prepare.outputs.lint_enabled == 'true'
     runs-on: ubuntu-24.04
-    name: Run Lint Check
+    name: 🧹 Code Style (Lint)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -107,7 +107,7 @@ jobs:
     needs: [prepare]
     if: needs.prepare.outputs.detekt_enabled == 'true'
     runs-on: ubuntu-24.04
-    name: Run Detekt Check
+    name: 🔍 Static Analysis (Detekt)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

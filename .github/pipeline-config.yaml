@@ -1,9 +1,12 @@
-# Configuration for GitHub Actions Pipeline
+# CI/CD Centralized Configuration
+# This file is the source of truth for all pipeline behaviors.
 
 project:
   name: "HowMuch"
+  display_name: "HowMuch"
   package_name: "br.com.brunocarvalhs.howmuch"
 
+# Git bot configuration for automated commits
 git:
   bot_name: "github-actions[bot]"
   bot_email: "41898282+github-actions[bot]@users.noreply.github.com"
@@ -11,6 +14,7 @@ git:
     main: "master"
     develop: "develop"
 
+# File paths used across the pipeline
 paths:
   gradle_file: "app/build.gradle.kts"
   changelog: "CHANGELOG.md"
@@ -19,14 +23,18 @@ paths:
   apk_release: "app/build/outputs/apk/release/*.apk"
   aab_release: "app/build/outputs/bundle/release/*.aab"
 
+# Global Build Settings
 build:
   java-distribution: "temurin"
   java-version: "17"
   gradle-version: "8.3.1"
   gradle_opts: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
   ignore-cache: false
+  
+  # Build variants (flavors)
   flavors:
     - name: "debug"
+      description: "Development / Internal Testing"
       gradle_task: "assembleDebug"
       enabled: true
       path: "app/build/outputs/apk/debug/*.apk"
@@ -35,7 +43,9 @@ build:
         firebase:
           label: "DEBUG"
           app_id: "1:1234567890:android:abcdef123456"
+          
     - name: "release"
+      description: "Production Ready APK"
       gradle_task: "assembleRelease"
       enabled: true
       path: "app/build/outputs/apk/release/*.apk"
@@ -45,8 +55,10 @@ build:
           label: "RELEASE"
           app_id: "1:1234567890:android:abcdef123456"
 
+# Test Suites
 test:
   - name: "unit_tests"
+    description: "Business Logic & Unit Testing"
     enabled: true
     command: "./gradlew testDebug"
     path: 
@@ -56,14 +68,20 @@ test:
     reporter-type: "html"
     reporter-path: "app/build/reports/tests/testDebugUnitTest/index.html"
 
+# Static Analysis & Linters
 linters:
   lint:
+    name: "Android Lint"
+    description: "Android Layout & Performance Checks"
     enabled: true
     command: "./gradlew lintDebug"
   detekt:
+    name: "Detekt"
+    description: "Kotlin Static Code Analysis"
     enabled: true
     command: "./gradlew detekt"
 
+# Store & GitHub Release Settings
 release:
   enabled: true
   command_aab: "./gradlew bundleRelease"
@@ -75,6 +93,25 @@ release:
     status: "completed"
     user_fraction: 0.5
 
+# Danger JS Rules and Settings
 danger:
   enabled: true
   node_version: 24
+  rules:
+    pr_size_limit: 500
+    jira_pattern: "\\[?[A-Z]{2,}-\\d+\\]?"
+    naming:
+      resource_prefixes:
+        'feature:products': 'feature_products_'
+        'feature:shopping': 'feature_shopping_'
+        'feature:settings': 'feature_settings_'
+      suffixes:
+        ViewModel: 'ViewModel'
+        Repository: 'Repository'
+        RepositoryImpl: 'RepositoryImpl'
+    architecture:
+      rules:
+        feature: ['core', 'domain']
+        core: ['core', 'domain']
+        domain: ['domain']
+        data: ['domain', 'core']

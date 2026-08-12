@@ -1,11 +1,8 @@
-name: Danger
+name: Automation - Code Analysis (Danger)
 
 on:
   pull_request:
     types: [opened, edited, reopened, synchronize]
-    branches:
-      - develop
-      - master
 
 jobs:
   danger:
@@ -14,11 +11,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Load Config
+      - name: Export Config
         id: config
         run: |
           echo "enabled=$(yq '.danger.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "node_version=$(yq '.danger.node_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          # Export YAML to JSON for Danger scripts to read
+          yq -o=json . .github/pipeline-config.yaml > .github/pipeline-config.json
 
       - name: Set up Node.js
         if: steps.config.outputs.enabled == 'true'
@@ -44,10 +43,10 @@ jobs:
         if: steps.config.outputs.enabled == 'true' && success() && !failure()
         run: |
           if [[ "${{ github.actor }}" == "${{ github.event.pull_request.user.login }}" ]]; then
-            echo "Você não pode aprovar seu próprio PR. Por favor, peça a um revisor para aprovar."
+            echo "Self-approval is not allowed. Please ask a reviewer to approve."
           else
-            echo "Aprovação automática do PR"
-            gh pr review "${{ github.event.pull_request.number }}" --approve --body "Aprovado automaticamente pelo DangerJS."
+            echo "Automatic PR approval"
+            gh pr review "${{ github.event.pull_request.number }}" --approve --body "Approved automatically by CI."
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
