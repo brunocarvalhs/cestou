@@ -203,6 +203,12 @@ jobs:
 
           # Create service account file from secret
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > service-account.json
+          
+          if [ ! -s "service-account.json" ]; then
+            echo "❌ Error: FIREBASE_SERVICE_ACCOUNT_JSON secret is empty or not set."
+            exit 1
+          fi
+
           export GOOGLE_APPLICATION_CREDENTIALS=$PWD/service-account.json
 
           # Prefix notes with variant label
@@ -212,10 +218,27 @@ jobs:
           # Find the APK file
           APK_FILE=$(find output/ -name "*.apk" | head -n 1)
 
+          # Ensure APK exists
+          if [ -z "$APK_FILE" ] || [ ! -f "$APK_FILE" ]; then
+            echo "❌ Error: APK file not found in 'output/'"
+            echo "Listing contents of 'output/':"
+            ls -R output/ || echo "output/ directory does not exist."
+            exit 1
+          fi
+
+          # Correct Notification Logic
+          if [ "$NOTIFICATIONS" = "false" ]; then
+            NOTIFICATION_FLAG="--no-notifications"
+          else
+            NOTIFICATION_FLAG=""
+          fi
+
+          echo "🚀 Distributing $APK_FILE to Firebase App ID: $APP_ID"
+
           # Distribute using service account credentials
           firebase appdistribution:distribute "$APK_FILE" \
             --app "$APP_ID" \
             --release-notes "$NOTES" \
             ${GROUPS:+--groups "$GROUPS"} \
             ${TESTERS:+--testers "$TESTERS"} \
-            ${NOTIFICATIONS:+ } ${NOTIFICATIONS:- --no-notifications}
+            $NOTIFICATION_FLAG
