@@ -22,8 +22,8 @@ jobs:
       - uses: actions/checkout@v4
       - id: config
         run: |
-          echo "jdk_version=$(yq '.build.java-version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "java_distribution=$(yq '.build.java-distribution // \"temurin\"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "jdk_version=$(yq '.build.\"java-version\"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "java_distribution=$(yq '.build.\"java-distribution\" // \"temurin\"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "gradle_opts=$(yq '.build.gradle_opts' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "app_name=$(yq '.project.name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "variants=$(yq -o=json '.build.flavors' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
