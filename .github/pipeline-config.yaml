@@ -38,7 +38,7 @@ build:
       gradle_task: "assembleDebug"
       enabled: true
       path: "app/build/outputs/apk/debug/*.apk"
-      artifact_name: "FriendsSecrets-apk-debug"
+      artifact_name: "HowMuch-apk-debug"
       deploy:
         firebase:
           label: "DEBUG"
@@ -49,7 +49,7 @@ build:
       gradle_task: "assembleRelease"
       enabled: true
       path: "app/build/outputs/apk/release/*.apk"
-      artifact_name: "FriendsSecrets-apk-release"
+      artifact_name: "HowMuch-apk-release"
       deploy:
         firebase:
           label: "RELEASE"
