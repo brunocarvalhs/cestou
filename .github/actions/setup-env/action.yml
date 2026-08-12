@@ -6,6 +6,10 @@ inputs:
     description: 'JDK Version'
     required: true
     default: '17'
+  java-distribution:
+    description: 'Java Distribution (e.g., temurin, zulu, corretto)'
+    required: true
+    default: 'temurin'
   dotenv:
     description: 'Content for .env file'
     required: false
@@ -31,7 +35,7 @@ runs:
     - name: Set up JDK
       uses: actions/setup-java@v3
       with:
-        distribution: 'temurin'
+        distribution: ${{ inputs.java-distribution }}
         java-version: ${{ inputs.jdk-version }}
 
     - name: Setup Android SDK

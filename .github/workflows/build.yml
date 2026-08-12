@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       jdk_version: ${{ steps.config.outputs.jdk_version }}
+      java_distribution: ${{ steps.config.outputs.java_distribution }}
       gradle_opts: ${{ steps.config.outputs.gradle_opts }}
       app_name: ${{ steps.config.outputs.app_name }}
       variants: ${{ steps.config.outputs.variants }}
@@ -22,6 +23,7 @@ jobs:
       - id: config
         run: |
           echo "jdk_version=$(yq '.build.java-version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "java_distribution=$(yq '.build.java-distribution // \"temurin\"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "gradle_opts=$(yq '.build.gradle_opts' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "app_name=$(yq '.project.name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "variants=$(yq -o=json '.build.flavors' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
@@ -29,7 +31,7 @@ jobs:
           echo "lint_enabled=$(yq '.linters.lint.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "detekt_enabled=$(yq '.linters.detekt.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "build_enabled=true" >> $GITHUB_OUTPUT
-          echo "deploy_enabled=true" >> $GITHUB_OUTPUT
+          echo "deploy_enabled=$(yq '.release.firebase.enabled // false' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
   unit-tests:
     needs: [prepare]
@@ -44,6 +46,7 @@ jobs:
         uses: ./.github/actions/setup-env
         with:
           jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
@@ -68,6 +71,7 @@ jobs:
         uses: ./.github/actions/setup-env
         with:
           jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
@@ -92,6 +96,7 @@ jobs:
         uses: ./.github/actions/setup-env
         with:
           jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
@@ -124,6 +129,7 @@ jobs:
         uses: ./.github/actions/setup-env
         with:
           jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
@@ -158,12 +164,15 @@ jobs:
       - name: Check Deployment and Get Label
         id: firebase_config
         run: |
-          VARIANT='${{ matrix.variant.name }}'
-          LABEL=$(yq ".build.flavors[] | select(.name == \"$VARIANT\") | .deploy.firebase.label" .github/pipeline-config.yaml)
-          APP_ID=$(yq ".build.flavors[] | select(.name == \"$VARIANT\") | .deploy.firebase.app_id" .github/pipeline-config.yaml)
+          # Use data directly from the matrix variant (agnostic approach)
+          LABEL="${{ matrix.variant.deploy.firebase.label }}"
+          APP_ID="${{ matrix.variant.deploy.firebase.app_id }}"
+          
           if [ -z "$APP_ID" ] || [ "$APP_ID" == "null" ]; then
+            # Fallback to secret if not defined in flavor
             APP_ID="${{ secrets.FIREBASE_APP_ID }}"
           fi
+          
           if [ -n "$APP_ID" ] && [ "$APP_ID" != "null" ]; then
             echo "should_deploy=true" >> $GITHUB_OUTPUT
             echo "label=$LABEL" >> $GITHUB_OUTPUT
@@ -187,7 +196,10 @@ jobs:
         if: steps.firebase_config.outputs.should_deploy == 'true'
         run: |
           APP_ID="${{ steps.firebase_config.outputs.app_id }}"
-          RAW_NOTES=$(yq '.release.github_release.release_notes // "release automatica"' .github/pipeline-config.yaml)
+          RAW_NOTES=$(yq '.release.firebase.release_notes // "release automatica"' .github/pipeline-config.yaml)
+          GROUPS=$(yq '.release.firebase.groups // ""' .github/pipeline-config.yaml)
+          TESTERS=$(yq '.release.firebase.testers // ""' .github/pipeline-config.yaml)
+          NOTIFICATIONS=$(yq '.release.firebase.notifications // true' .github/pipeline-config.yaml)
 
           # Create service account file from secret
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > service-account.json
@@ -200,7 +212,10 @@ jobs:
           # Find the APK file
           APK_FILE=$(find output/ -name "*.apk" | head -n 1)
 
-          # Distribute using service account credentials (via GOOGLE_APPLICATION_CREDENTIALS)
+          # Distribute using service account credentials
           firebase appdistribution:distribute "$APK_FILE" \
             --app "$APP_ID" \
-            --release-notes "$NOTES"
+            --release-notes "$NOTES" \
+            ${GROUPS:+--groups "$GROUPS"} \
+            ${TESTERS:+--testers "$TESTERS"} \
+            ${NOTIFICATIONS:+ } ${NOTIFICATIONS:- --no-notifications}
