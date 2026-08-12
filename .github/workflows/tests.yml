@@ -18,10 +18,10 @@ jobs:
       - uses: actions/checkout@v4
       - id: config
         run: |
-          echo "jdk_version=$(yq '.build.\"java-version\"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "java_distribution=$(yq '.build.\"java-distribution\" // \"temurin\"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "jdk_version=$(yq '.build."java-version"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "java_distribution=$(yq '.build."java-distribution" // "temurin"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "gradle_opts=$(yq '.build.gradle_opts' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "ut_enabled=$(yq '.test[] | select(.name == \"unit_tests\") | .enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "ut_enabled=$(yq '.test[] | select(.name == "unit_tests") | .enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "lint_enabled=$(yq '.linters.lint.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "detekt_enabled=$(yq '.linters.detekt.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
@@ -44,7 +44,7 @@ jobs:
 
       - name: Run Unit Tests
         run: |
-          COMMAND=$(yq '.test[] | select(.name == \"unit_tests\") | .command' .github/pipeline-config.yaml)
+          COMMAND=$(yq '.test[] | select(.name == "unit_tests") | .command' .github/pipeline-config.yaml)
           chmod +x gradlew
           $COMMAND
         env:
