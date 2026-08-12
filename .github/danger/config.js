@@ -1,6 +1,23 @@
+const fs = require('fs');
+const path = require('path');
+
+// Load project-specific configuration exported by the workflow
+let projectConfig = {};
+const configPath = path.join(__dirname, '../pipeline-config.json');
+
+try {
+  if (fs.existsSync(configPath)) {
+    projectConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  }
+} catch (e) {
+  console.warn('Could not load pipeline-config.json, using defaults.');
+}
+
+const dangerRules = projectConfig.danger?.rules || {};
+
 module.exports = {
   limits: {
-    prSize: 500, // lines of code
+    prSize: dangerRules.pr_size_limit || 500,
   },
   ignoredDirectories: [
     '.github/',
@@ -32,27 +49,15 @@ module.exports = {
     'android.permission.WRITE_CONTACTS',
   ],
   jira: {
-    pattern: /\[?[A-Z]{2,}-\d+\]?/, // Matches [PROJ-123] or PROJ-123
+    pattern: new RegExp(dangerRules.jira_pattern || '\\[?[A-Z]{2,}-\\d+\\]?'),
   },
   architecture: {
-    // Rules: moduleType: [allowedDependenciesTypes]
-    // Types identified by directory name
-    rules: {
-      feature: ['core', 'domain'],
-      core: ['core', 'domain'],
-      domain: ['domain'],
-      data: ['domain', 'core'], // data can depend on core (common/network) and domain (interfaces)
-    },
-    // Pattern to identify module type from path
+    rules: dangerRules.architecture?.rules || {},
     typeExtractor: /([^:]+):([^:]+)/,
   },
   naming: {
-    resourcePrefixes: {
-      'feature:products': 'feature_products_',
-      'feature:shopping': 'feature_shopping_',
-      'feature:settings': 'feature_settings_',
-    },
-    suffixes: {
+    resourcePrefixes: dangerRules.naming?.resource_prefixes || {},
+    suffixes: dangerRules.naming?.suffixes || {
       ViewModel: 'ViewModel',
       Repository: 'Repository',
       RepositoryImpl: 'RepositoryImpl',
@@ -67,9 +72,9 @@ module.exports = {
   },
   hygiene: {
     forbiddenPatterns: [
-      { regex: /println\(|System\.out\.print/, message: 'Não use println ou System.out. Use o logger do projeto.', level: 'fail' },
-      { regex: /Log\.[dv]\(/, message: 'Evite usar Log.d ou Log.v em produção.', level: 'warn' },
-      { regex: /TODO/, message: 'Existem TODOs pendentes neste PR.', level: 'warn' },
+      { regex: /println\(|System\.out\.print/, message: 'Do not use println or System.out. Use the project logger.', level: 'fail' },
+      { regex: /Log\.[dv]\(/, message: 'Avoid using Log.d or Log.v in production.', level: 'warn' },
+      { regex: /TODO/, message: 'Pending TODOs found in this PR.', level: 'warn' },
     ]
   }
 };

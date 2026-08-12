@@ -1,4 +1,4 @@
-name: Build and Release Application (Google Play)
+name: Continuous Integration - Store Release
 
 on:
   push:
@@ -45,7 +45,7 @@ jobs:
     needs: [prepare]
     if: needs.prepare.outputs.ut_enabled == 'true'
     runs-on: ubuntu-24.04
-    name: Unit Tests
+    name: 🧪 Unit Testing
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -59,7 +59,7 @@ jobs:
 
       - name: Run Unit Tests
         run: |
-          COMMAND=$(yq '.stages.unit_tests.command' .github/pipeline-config.yaml)
+          COMMAND=$(yq '.test[] | select(.name == \"unit_tests\") | .command' .github/pipeline-config.yaml)
           chmod +x gradlew
           $COMMAND
         env:
@@ -69,7 +69,7 @@ jobs:
     needs: [prepare]
     if: needs.prepare.outputs.lint_enabled == 'true'
     runs-on: ubuntu-24.04
-    name: Lint Check
+    name: 🧹 Code Style (Lint)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -83,7 +83,7 @@ jobs:
 
       - name: Run Lint
         run: |
-          COMMAND=$(yq '.stages.lint.command' .github/pipeline-config.yaml)
+          COMMAND=$(yq '.linters.lint.command' .github/pipeline-config.yaml)
           chmod +x gradlew
           $COMMAND
         env:
@@ -93,7 +93,7 @@ jobs:
     needs: [prepare]
     if: needs.prepare.outputs.detekt_enabled == 'true'
     runs-on: ubuntu-24.04
-    name: Run Detekt Check
+    name: 🔍 Static Analysis (Detekt)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -107,7 +107,7 @@ jobs:
 
       - name: Run Detekt
         run: |
-          COMMAND=$(yq '.stages.detekt.command' .github/pipeline-config.yaml)
+          COMMAND=$(yq '.linters.detekt.command' .github/pipeline-config.yaml)
           chmod +x gradlew
           $COMMAND
         env:
@@ -117,7 +117,7 @@ jobs:
     needs: [prepare, unit-tests, lint-check, detekt-check]
     if: needs.prepare.outputs.release_enabled == 'true'
     runs-on: ubuntu-24.04
-    name: Build AAB
+    name: 📦 Build Bundle (AAB)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -148,7 +148,7 @@ jobs:
 
   release:
     runs-on: ubuntu-24.04
-    name: Create GitHub Release
+    name: 🏷️ GitHub Release & Versioning
     needs: [prepare, build]
     steps:
       - name: Checkout code
@@ -190,7 +190,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-24.04
-    name: Deploy to Google Play
+    name: 🏁 Google Play Deployment
     needs: [prepare, release]
     steps:
       - name: Checkout code
