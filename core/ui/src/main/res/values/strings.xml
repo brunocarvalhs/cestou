@@ -16,6 +16,12 @@
     <string name="action_gallery">Gallery</string>
     <string name="action_take_photo">Take Photo</string>
 
+    <!-- Navigation -->
+    <string name="nav_lists">Lists</string>
+    <string name="nav_partner">Partner</string>
+    <string name="nav_ai_chat">IA Chat</string>
+    <string name="nav_profile">Profile</string>
+
     <!-- Accessibility / Content Descriptions -->
     <string name="content_description_back">Back</string>
     <string name="content_description_settings">Settings</string>

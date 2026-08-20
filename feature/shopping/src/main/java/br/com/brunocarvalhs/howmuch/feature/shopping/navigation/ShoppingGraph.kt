@@ -17,15 +17,26 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.core.navigation.AiChat
+import br.com.brunocarvalhs.howmuch.core.navigation.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.Notifications
+import br.com.brunocarvalhs.howmuch.core.navigation.Partner
+import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.feature.settings.navigation.Settings
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.EditShoppingContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.JoinListContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.scanner.QrCodeBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.scanner.QrCodeScanner
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.AiChatScreen
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.NotificationsScreen
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.PartnerScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.ShoppingScreen
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.AiChatViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.EditShoppingViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.JoinListViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.NotificationsViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.PartnerViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ScannerViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingListViewModel
 
@@ -45,6 +56,37 @@ fun NavGraphBuilder.shoppingGraph(
             windowSizeClass = windowSizeClass,
             intent = viewModel.intent,
             onSettings = { navigator.navigate(route = Settings) },
+        )
+    }
+
+    composable<Notifications> {
+        val viewModel: NotificationsViewModel = hiltViewModel()
+        viewModel.onBack = { navigator.goBack() }
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+        NotificationsScreen(
+            state = uiState,
+            intent = viewModel.intent
+        )
+    }
+
+    composable<Partner> {
+        val viewModel: PartnerViewModel = hiltViewModel()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        
+        PartnerScreen(
+            state = uiState,
+            intent = viewModel.intent
+        )
+    }
+
+    composable<AiChat> {
+        val viewModel: AiChatViewModel = hiltViewModel()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        
+        AiChatScreen(
+            state = uiState,
+            intent = viewModel.intent
         )
     }
 

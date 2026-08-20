@@ -7,7 +7,9 @@ import br.com.brunocarvalhs.howmuch.core.domain.entity.User
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.service.AuthService
 import br.com.brunocarvalhs.howmuch.core.extensions.toMonthYearString
+import br.com.brunocarvalhs.howmuch.core.navigation.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.products.domain.model.ChatMessage
@@ -26,7 +28,6 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingGetB
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingReopenUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingUpdateUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.EditShopping
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.JoinList
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.ShoppingListIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingFilter
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingListUiState
@@ -215,7 +216,7 @@ internal class ShoppingListViewModel @Inject constructor(
         val query = _uiState.value.searchQuery.lowercase()
         val filter = _uiState.value.selectedFilter
 
-        val filtered = _uiState.value.list.filter { shopping ->
+        val filtered = _uiState.value.list.items.filter { shopping ->
             val matchesQuery = shopping.title.lowercase().contains(query) ||
                 shopping.description.lowercase().contains(query)
 
@@ -249,7 +250,7 @@ internal class ShoppingListViewModel @Inject constructor(
                 prompt = "",
                 aiDockState = AiDockState.CHAT,
                 aiMessages = StableList(
-                    it.aiMessages + ChatMessage(
+                    it.aiMessages.items + ChatMessage(
                         text = text,
                         sender = ChatMessage.Sender.USER
                     )
@@ -264,7 +265,7 @@ internal class ShoppingListViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             aiMessages = StableList(
-                                it.aiMessages + ChatMessage(
+                                it.aiMessages.items + ChatMessage(
                                     text = response,
                                     sender = ChatMessage.Sender.ASSISTANT
                                 )
@@ -281,7 +282,7 @@ internal class ShoppingListViewModel @Inject constructor(
     }
 
     private fun toggleAi() {
-        if (_uiState.value.aiMessages.isEmpty()) {
+        if (_uiState.value.aiMessages.items.isEmpty()) {
             _uiState.update {
                 it.copy(
                     aiDockState =

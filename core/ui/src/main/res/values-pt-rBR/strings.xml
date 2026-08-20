@@ -16,6 +16,12 @@
     <string name="action_gallery">Galeria</string>
     <string name="action_take_photo">Tirar Foto</string>
 
+    <!-- Navigation -->
+    <string name="nav_lists">Listas</string>
+    <string name="nav_partner">Parceiro</string>
+    <string name="nav_ai_chat">IA Chat</string>
+    <string name="nav_profile">Perfil</string>
+
     <!-- Accessibility / Content Descriptions -->
     <string name="content_description_back">Voltar</string>
     <string name="content_description_settings">Configurações</string>

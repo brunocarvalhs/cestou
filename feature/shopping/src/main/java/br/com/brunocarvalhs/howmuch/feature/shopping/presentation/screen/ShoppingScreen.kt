@@ -22,20 +22,21 @@ import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -57,7 +58,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -72,6 +75,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragTarget
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DropTarget
+import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouTextPrimary
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.ai.CartAssistantDock
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.state.AiDockState
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
@@ -154,6 +158,19 @@ internal fun ShoppingScreen(
                     onSettingsClick = onSettings
                 )
             },
+            floatingActionButton = {
+                if (isUiVisible && !isExpanded) {
+                    ExtendedFloatingActionButton(
+                        onClick = { intent.onCreate() },
+                        icon = { Icon(Icons.Default.Add, null) },
+                        text = { Text("Nova Lista") },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = Color.White,
+                        shape = RoundedCornerShape(24.dp),
+                        elevation = FloatingActionButtonDefaults.elevation(8.dp)
+                    )
+                }
+            },
             snackbarHost = { SnackbarHost(snackbarHostState) },
             containerColor = MaterialTheme.colorScheme.background
         ) { padding ->
@@ -177,8 +194,6 @@ internal fun ShoppingScreen(
                             },
                         contentPadding = PaddingValues(bottom = 120.dp)
                     ) {
-                        shoppingSearchAndFilters(uiState, intent)
-
                         item(span = { GridItemSpan(maxLineSpan) }) {
                             ShoppingSummaryCard(
                                 totalAmount = totalSpent,
@@ -186,6 +201,21 @@ internal fun ShoppingScreen(
                                 completedLists = completedLists,
                                 totalBudget = totalBudget
                             )
+                        }
+
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            Column {
+                                ShoppingSearchBar(uiState, intent)
+                                Spacer(modifier = Modifier.height(32.dp))
+                                Text(
+                                    text = "Minhas Listas",
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    color = CestouTextPrimary,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
                         }
 
                         shoppingListContent(uiState, intent)
@@ -223,20 +253,6 @@ internal fun ShoppingScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-private fun LazyGridScope.shoppingSearchAndFilters(
-    uiState: ShoppingListUiState,
-    intent: ShoppingListIntent
-) {
-    item(span = { GridItemSpan(maxLineSpan) }) {
-        Column {
-            ShoppingSearchBar(uiState, intent)
-            Spacer(modifier = Modifier.height(12.dp))
-            ShoppingFilterChips(uiState, intent)
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -254,16 +270,23 @@ private fun ShoppingSearchBar(
                 onExpandedChange = {},
                 enabled = true,
                 placeholder = {
-                    Text(stringResource(R.string.shopping_management_search_placeholder))
+                    Text(
+                        "Buscar listas ou itens...",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
                 },
                 leadingIcon = {
                     Icon(
                         Icons.Default.Search,
-                        contentDescription = null
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 },
                 trailingIcon = null,
-                colors = SearchBarDefaults.colors().inputFieldColors,
+                colors = SearchBarDefaults.colors().inputFieldColors.copy(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                ),
                 interactionSource = null,
             )
         },
@@ -271,36 +294,18 @@ private fun ShoppingSearchBar(
         onExpandedChange = {},
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        shape = SearchBarDefaults.inputFieldShape,
-        colors = SearchBarDefaults.colors(),
-        tonalElevation = SearchBarDefaults.TonalElevation,
-        shadowElevation = SearchBarDefaults.ShadowElevation,
+            .padding(horizontal = 16.dp)
+            .shadow(4.dp, RoundedCornerShape(24.dp)),
+        shape = RoundedCornerShape(24.dp),
+        colors = SearchBarDefaults.colors(
+            containerColor = Color.White,
+        ),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
         windowInsets = SearchBarDefaults.windowInsets,
     ) { }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ShoppingFilterChips(
-    uiState: ShoppingListUiState,
-    intent: ShoppingListIntent
-) {
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(uiState.filters) { filter ->
-            FilterChip(
-                selected = filter == uiState.selectedFilter,
-                onClick = { intent.onFilter(filter) },
-                label = {
-                    Text(filter.title.asString())
-                }
-            )
-        }
-    }
-}
 
 private fun LazyGridScope.shoppingListContent(
     uiState: ShoppingListUiState,

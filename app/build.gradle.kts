@@ -81,6 +81,7 @@ dependencies {
     implementation(project(":feature:shopping"))
     implementation(project(":feature:products"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:auth"))
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)

@@ -10,26 +10,41 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -47,13 +62,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -65,6 +83,11 @@ import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.LocalDragTargetInfo
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.CurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
+import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouBrightGreen
+import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouDarkGreen
+import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouSoftGreen
+import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouTextPrimary
+import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouTextSecondary
 import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.ai.CartAssistantDock
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.cart.CartDetailHeader
@@ -81,7 +104,6 @@ import br.com.brunocarvalhs.howmuch.feature.products.presentation.state.Products
 private const val SCROLL_THRESHOLD = 15f
 private val GRID_CELLS_ADAPTIVE_EXPANDED = 400.dp
 private val GRID_CELLS_ADAPTIVE_COMPACT = 300.dp
-private val GRID_BOTTOM_PADDING = 120.dp
 private val ASSISTANT_EXPANDED_WIDTH = 400.dp
 
 private data class ProductsSummary(
@@ -172,17 +194,59 @@ internal fun ProductsScreen(
     DragAndDropContainer {
         Scaffold(
             topBar = {
-                ProductsTopBar(
-                    visible = isUiVisible,
-                    title = uiState.shopping?.title ?: stringResource(R.string.shopping_list_default_title),
-                    usersCount = uiState.shopping?.users?.size ?: 0,
-                    showFinish = uiState.products.isNotEmpty() && !isLocked,
-                    isLocked = isLocked,
-                    onBack = onBack,
-                    onFinish = { intent.onToggleFinishPurchaseSheet() },
-                    onShare = { intent.onShowShareOptions() },
-                    onClearPurchased = { intent.onClearPurchased() }
-                )
+                if (isUiVisible) {
+                    ProductsTopBar(
+                        title = uiState.shopping?.title ?: stringResource(R.string.shopping_list_default_title),
+                        usersCount = uiState.shopping?.users?.size ?: 0,
+                        showFinish = uiState.products.isNotEmpty() && !isLocked,
+                        isLocked = isLocked,
+                        onBack = onBack,
+                        onFinish = { intent.onToggleFinishPurchaseSheet() },
+                        onShare = { intent.onShowShareOptions() },
+                        onClearPurchased = { intent.onClearPurchased() }
+                    )
+                }
+            },
+            bottomBar = {
+                if (!isLocked && !isExpanded) {
+                    Column(
+                        modifier = Modifier
+                            .background(Color.White)
+                            .navigationBarsPadding()
+                            .padding(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Total estimado:",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = CestouTextSecondary
+                            )
+                            Text(
+                                text = currencyFormatter.format(productsSummary.totalAmount),
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = CestouTextPrimary,
+                                fontWeight = FontWeight.Black
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { intent.onToggleProductPicker() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = CestouBrightGreen)
+                        ) {
+                            Icon(Icons.Default.Add, null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Adicionar Item", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { padding ->
@@ -207,8 +271,12 @@ internal fun ProductsScreen(
                                     focusManager.clearFocus()
                                 }
                             },
-                        contentPadding = PaddingValues(bottom = GRID_BOTTOM_PADDING)
+                        contentPadding = PaddingValues(bottom = if (!isLocked) 160.dp else 16.dp)
                     ) {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            EditingStatusBar()
+                        }
+
                         productsListContent(
                             uiState = uiState,
                             intent = intent,
@@ -248,8 +316,32 @@ internal fun ProductsScreen(
 }
 
 @Composable
+private fun EditingStatusBar() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(CestouBrightGreen.copy(alpha = 0.1f))
+            .padding(vertical = 8.dp, horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(CestouBrightGreen)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = "João está editando... Batata Inglesa",
+            style = MaterialTheme.typography.labelSmall,
+            color = CestouBrightGreen,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
 private fun ProductsTopBar(
-    visible: Boolean,
     title: String,
     usersCount: Int,
     showFinish: Boolean,
@@ -257,30 +349,26 @@ private fun ProductsTopBar(
     onBack: () -> Unit,
     onFinish: () -> Unit,
     onShare: () -> Unit,
-    onClearPurchased: () -> Unit
+    onClearPurchased: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    AnimatedVisibility(
-        visible = visible,
-        enter = expandVertically() + fadeIn(),
-        exit = shrinkVertically() + fadeOut()
-    ) {
-        CartDetailHeader(
-            title = title,
-            usersCount = usersCount,
-            onBack = onBack,
-            showFinish = showFinish,
-            onFinish = onFinish,
-            onShare = onShare,
-            actionsMore = {
-                if (!isLocked) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.shopping_list_menu_clear_purchased)) },
-                        onClick = onClearPurchased
-                    )
-                }
+    CartDetailHeader(
+        title = title,
+        onBack = onBack,
+        onShare = onShare,
+        onEdit = { },
+        usersCount = usersCount,
+        showFinish = showFinish,
+        onFinish = onFinish,
+        actionsMore = {
+            if (!isLocked) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.shopping_list_menu_clear_purchased)) },
+                    onClick = onClearPurchased
+                )
             }
-        )
-    }
+        }
+    )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -296,17 +384,6 @@ private fun LazyGridScope.productsListContent(
         }
     }
 
-    item(span = { GridItemSpan(maxLineSpan) }) {
-        SummaryCard(
-            totalAmount = summary.totalAmount,
-            cartAmount = summary.cartAmount,
-            itemCount = uiState.products.size,
-            purchasedCount = summary.purchasedCount,
-            currencyFormatter = summary.currencyFormatter,
-            budget = uiState.shopping?.budget
-        )
-    }
-
     if (uiState.products.isEmpty()) {
         item(span = { GridItemSpan(maxLineSpan) }) {
             EmptyState()
@@ -318,18 +395,29 @@ private fun LazyGridScope.productsListContent(
             CategoryHeader(category = category)
         }
 
-        items(products, key = { it.id }) { product ->
-            ProductListItem(
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Card(
                 modifier = Modifier
-                    .animateItem()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                product = product,
-                enabled = !isLocked,
-                onDelete = { intent.onDeleteProduct(product) },
-                onEdit = { intent.onEditProduct(product) },
-                onQuantityChange = { intent.onUpdateQuantity(product, it) },
-                onTogglePurchased = { intent.onTogglePurchased(product, it) }
-            )
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.2f))
+            ) {
+                Column {
+                    products.forEachIndexed { index, product ->
+                        ProductListItem(
+                            product = product,
+                            enabled = !isLocked,
+                            onDelete = { intent.onDeleteProduct(product) },
+                            onEdit = { intent.onEditProduct(product) },
+                            onQuantityChange = { intent.onUpdateQuantity(product, it) },
+                            onTogglePurchased = { intent.onTogglePurchased(product, it) },
+                            showDivider = index < products.size - 1
+                        )
+                    }
+                }
+            }
         }
     }
 }

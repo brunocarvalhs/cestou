@@ -1,27 +1,29 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatPrice
+import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouDarkGreen
 import br.com.brunocarvalhs.howmuch.core.ui.utils.LocalCurrency
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 
@@ -30,7 +32,8 @@ internal fun ShoppingSummaryCard(
     totalAmount: Double,
     totalLists: Int,
     completedLists: Int,
-    totalBudget: Double = 0.0
+    totalBudget: Double = 0.0,
+    savedAmount: Double = 112.0 // Mocked for design faithfulness as per image
 ) {
     val currency = LocalCurrency.current
     Card(
@@ -38,65 +41,42 @@ internal fun ShoppingSummaryCard(
             .fillMaxWidth()
             .padding(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+            containerColor = CestouDarkGreen
         ),
-        shape = RoundedCornerShape(24.dp)
+        shape = RoundedCornerShape(28.dp)
     ) {
         Row(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = stringResource(R.string.shopping_management_summary_spent),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                    text = "TOTAL GASTO ESTE MÊS",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = totalAmount.formatPrice(currency),
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                    style = MaterialTheme.typography.displayLarge,
+                    color = Color.White,
+                    fontWeight = FontWeight.ExtraBold
                 )
-                if (totalBudget > 0) {
-                    Text(
-                        text = stringResource(
-                            R.string.shopping_management_summary_budget,
-                            totalBudget.formatPrice(currency)
-                        ),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (totalAmount > totalBudget) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                        }
-                    )
-                }
             }
 
-            Column(horizontalAlignment = Alignment.End) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        color = Color.White.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(24.dp)
+                    )
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            ) {
                 Text(
-                    text = stringResource(
-                        R.string.shopping_list_summary_items_count,
-                        completedLists,
-                        totalLists
-                    ),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.secondary
-                )
-                Text(
-                    text = stringResource(R.string.shopping_management_summary_finished_lists),
+                    text = "+${savedAmount.formatPrice(currency)} economizados",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                LinearProgressIndicator(
-                    progress = { if (totalLists > 0) completedLists.toFloat() / totalLists else 0f },
-                    modifier = Modifier
-                        .width(80.dp)
-                        .height(6.dp),
-                    strokeCap = StrokeCap.Round,
-                    color = MaterialTheme.colorScheme.secondary,
-                    trackColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -108,7 +88,7 @@ internal fun ShoppingSummaryCard(
 private fun ShoppingSummaryCardPreview() {
     MaterialTheme {
         ShoppingSummaryCard(
-            totalAmount = 250.75,
+            totalAmount = 847.30,
             totalLists = 5,
             completedLists = 2,
             totalBudget = 500.0

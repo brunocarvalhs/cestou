@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="welcome_title">Suas compras, mais inteligentes</string>
+    <string name="welcome_description">Crie listas dinâmicas, divida em tempo real com seu parceiro e use nossa inteligência artificial para economizar.</string>
+    <string name="welcome_button">Começar</string>
+    <string name="welcome_footer">Versão %1$s • Feito com ❤️ no Brasil</string>
+
+    <string name="login_title">Acessar Conta</string>
+    <string name="login_welcome">Que bom te ver de volta!</string>
+    <string name="login_description">Faça login para gerenciar suas listas.</string>
+    <string name="login_email_label">E-mail</string>
+    <string name="login_email_placeholder">exemplo@email.com</string>
+    <string name="login_password_label">Senha</string>
+    <string name="login_forgot_password">Esqueci minha senha</string>
+    <string name="login_button">Entrar</string>
+    <string name="login_create_account">Criar nova conta</string>
+    <string name="login_social_continue">ou continue com</string>
+    <string name="login_google">Google</string>
+    <string name="login_apple">Apple</string>
+</resources>

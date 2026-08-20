@@ -16,6 +16,12 @@
     <string name="action_gallery">Galería</string>
     <string name="action_take_photo">Tomar Foto</string>
 
+    <!-- Navigation -->
+    <string name="nav_lists">Listas</string>
+    <string name="nav_partner">Socio</string>
+    <string name="nav_ai_chat">IA Chat</string>
+    <string name="nav_profile">Perfil</string>
+
     <!-- Accessibility / Content Descriptions -->
     <string name="content_description_back">Volver</string>
     <string name="content_description_settings">Configuraciones</string>

@@ -30,12 +30,6 @@
             android:exported="false"
             tools:node="merge" />
 
-        <provider
-            android:name="com.google.firebase.provider.FirebaseInitProvider"
-            android:authorities="${applicationId}.firebaseinitprovider"
-            android:exported="false"
-            tools:node="remove" />
-
         <activity
             android:name=".MainActivity"
             android:exported="true"
