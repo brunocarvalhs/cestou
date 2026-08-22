@@ -3,7 +3,7 @@ package br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentAction
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentParameter
 import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
-import br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentSession
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getString
 import javax.inject.Inject
 
@@ -20,7 +20,7 @@ class PriceComparisonUseCase @Inject constructor() : AgentActionUseCase<List<Map
 
     override suspend fun execute(
         arguments: Map<String, Any?>,
-        session: AiAgentSession,
+        session: AiSession,
         metadata: Map<String, Any?>
     ): Result<List<Map<String, Any>>> {
         val productName = arguments.getString("productName") ?: return Result.failure(Exception("productName missing"))

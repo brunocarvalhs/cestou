@@ -17,7 +17,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
-import br.com.brunocarvalhs.howmuch.core.navigation.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.Notifications
@@ -28,11 +27,9 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.form.JoinListContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.scanner.QrCodeBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.scanner.QrCodeScanner
-import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.screen.AiChatScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.screen.NotificationsScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.screen.PartnerScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.screen.ShoppingScreen
-import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel.AiChatViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel.EditShoppingViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel.JoinListViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel.NotificationsViewModel
@@ -75,16 +72,6 @@ fun NavGraphBuilder.shoppingGraph(
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         
         PartnerScreen(
-            state = uiState,
-            intent = viewModel.intent
-        )
-    }
-
-    composable<AiChat> {
-        val viewModel: AiChatViewModel = hiltViewModel()
-        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        
-        AiChatScreen(
             state = uiState,
             intent = viewModel.intent
         )

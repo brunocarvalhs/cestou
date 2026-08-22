@@ -1,7 +1,6 @@
 package br.com.brunocarvalhs.howmuch.core.ai.contract
 
 import br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentParameter
-import br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentSession
 
 /**
  * Contrato base para qualquer ação que a IA possa executar.
@@ -13,7 +12,7 @@ interface AgentAction<R> {
 
     suspend fun execute(
         arguments: Map<String, Any?>,
-        session: AiAgentSession,
+        session: AiSession,
         metadata: Map<String, Any?> = emptyMap()
     ): Result<R>
 }

@@ -23,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatPrice
-import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouDarkGreen
+import br.com.brunocarvalhs.howmuch.core.theme.CestouDarkGreen
 import br.com.brunocarvalhs.howmuch.core.ui.utils.LocalCurrency
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 

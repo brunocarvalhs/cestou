@@ -26,7 +26,7 @@ private const val BANNER_ALPHA = 0.7f
 private const val TEXT_ALPHA = 0.8f
 
 @Composable
-internal fun LockedBanner() {
+fun LockedBanner() {
     Surface(
         modifier = Modifier
             .fillMaxWidth()

@@ -26,8 +26,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouTextPrimary
-import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouTextSecondary
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTextPrimary
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTextSecondary
 
 @Composable
 internal fun ShoppingHeader(

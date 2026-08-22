@@ -4,7 +4,7 @@ import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentAction
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentParameter
 import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
-import br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentSession
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getString
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.User
@@ -62,7 +62,7 @@ class ShoppingCreateUseCase @Inject constructor(
 
     override suspend fun execute(
         arguments: Map<String, Any?>,
-        session: AiAgentSession,
+        session: AiSession,
         metadata: Map<String, Any?>
     ): Result<Shopping> {
         val title = arguments.getString("title")

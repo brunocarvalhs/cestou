@@ -33,7 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
-import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import coil.compose.AsyncImage
 

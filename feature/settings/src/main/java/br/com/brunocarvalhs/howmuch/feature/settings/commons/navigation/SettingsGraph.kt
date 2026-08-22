@@ -7,7 +7,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.core.navigation.Profile
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.screen.AiSettingsScreen
 import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.screen.DataSettingsScreen
@@ -15,7 +14,6 @@ import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.screen.Leg
 import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.screen.NotificationSettingsScreen
 import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.screen.OpenSourceLicensesScreen
 import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.screen.PlaceholderSettingsScreen
-import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.screen.ProfileScreen
 import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.screen.ReleaseNotesScreen
 import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.screen.SettingsScreen
 import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.screen.ShoppingSettingsScreen
@@ -23,7 +21,6 @@ import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.screen.The
 import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.viewmodel.AiSettingsViewModel
 import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.viewmodel.DataSettingsViewModel
 import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.viewmodel.NotificationSettingsViewModel
-import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.viewmodel.ProfileViewModel
 import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.viewmodel.SettingsViewModel
 import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.viewmodel.ShoppingSettingsViewModel
 import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.viewmodel.ThemeSettingsViewModel
@@ -31,23 +28,10 @@ import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.viewmodel.
 fun NavGraphBuilder.settingsGraph(
     navigator: Navigator
 ) {
-    profileGraph(navigator)
     generalSettings(navigator)
     advancedSettings(navigator)
     supportSettings(navigator)
     legalSettings(navigator)
-}
-
-private fun NavGraphBuilder.profileGraph(navigator: Navigator) {
-    composable<Profile> {
-        val viewModel: ProfileViewModel = hiltViewModel()
-        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-        ProfileScreen(
-            state = uiState,
-            intent = viewModel.intent
-        )
-    }
 }
 
 private fun NavGraphBuilder.generalSettings(navigator: Navigator) {

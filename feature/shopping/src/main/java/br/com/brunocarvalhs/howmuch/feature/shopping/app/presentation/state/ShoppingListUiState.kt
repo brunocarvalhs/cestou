@@ -5,8 +5,7 @@ import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.model.ChatMessage
-import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.state.AiDockState
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
 
 @Stable
 internal data class ShoppingListUiState(
@@ -18,7 +17,6 @@ internal data class ShoppingListUiState(
     val filters: StableList<ShoppingFilter> = StableList(ShoppingFilter.entries),
     val sortingMode: String = "CATEGORY",
     val prompt: String = "",
-    val aiDockState: AiDockState = AiDockState.COLLAPSED,
     val aiMessages: StableList<ChatMessage> = StableList(),
     val aiSuggestions: StableList<String> = StableList(),
     val isAiLoading: Boolean = false,

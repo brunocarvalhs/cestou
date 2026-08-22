@@ -12,10 +12,9 @@ import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.model.ChatMessage
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.CartAssistantUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.commons.navigation.ProductsFlow
-import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.state.AiDockState
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
+import br.com.brunocarvalhs.howmuch.feature.cart.navigation.CartFlow
 import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.GetShoppingSuggestionsUseCase
@@ -84,12 +83,9 @@ internal class ShoppingListViewModel @Inject constructor(
             applyFilters()
         },
         onSendPrompt = { sendPrompt() },
-        onToggleAi = { toggleAi() },
         onOpenAi = {
-            _uiState.update { it.copy(aiDockState = AiDockState.EXPANDED) }
             loadAiSuggestions()
         },
-        onCloseAi = { _uiState.update { it.copy(aiDockState = AiDockState.COLLAPSED) } },
         onToggleFavorite = { shopping ->
             handleShoppingAction(ShoppingAction.ToggleFavorite(shopping))
         },
@@ -248,7 +244,6 @@ internal class ShoppingListViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 prompt = "",
-                aiDockState = AiDockState.CHAT,
                 aiMessages = StableList(
                     it.aiMessages.items + ChatMessage(
                         text = text,
@@ -281,29 +276,6 @@ internal class ShoppingListViewModel @Inject constructor(
         }
     }
 
-    private fun toggleAi() {
-        if (_uiState.value.aiMessages.items.isEmpty()) {
-            _uiState.update {
-                it.copy(
-                    aiDockState =
-                    if (it.aiDockState == AiDockState.COLLAPSED)
-                        AiDockState.EXPANDED
-                    else
-                        AiDockState.COLLAPSED
-                )
-            }
-            return
-        }
-
-        if (!closeConfirmation) {
-            closeConfirmation = true
-            _uiState.update { it.copy(aiDockState = AiDockState.EXPANDED) }
-            return
-        }
-        closeConfirmation = false
-        _uiState.update { it.copy(aiDockState = AiDockState.COLLAPSED) }
-    }
-
     private fun fetchAll() {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
@@ -318,7 +290,7 @@ internal class ShoppingListViewModel @Inject constructor(
     }
 
     private fun navigateToProducts(shopping: Shopping) {
-        _navigator?.navigate(route = ProductsFlow(shopping))
+        _navigator?.navigate(route = CartFlow(shopping))
     }
 
     private fun moveShopping(fromIndex: Int, toIndex: Int) {

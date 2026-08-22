@@ -42,6 +42,7 @@ dependencies {
     implementation(project(":core:auth"))
     implementation(project(":core:ai"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:chat"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

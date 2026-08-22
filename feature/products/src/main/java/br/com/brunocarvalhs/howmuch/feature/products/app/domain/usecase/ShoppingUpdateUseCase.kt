@@ -3,7 +3,7 @@ package br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentAction
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentParameter
 import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
-import br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentSession
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getDouble
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getList
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getMap
@@ -36,7 +36,7 @@ class ShoppingUpdateUseCase @Inject constructor(
 
     override suspend fun execute(
         arguments: Map<String, Any?>,
-        session: AiAgentSession,
+        session: AiSession,
         metadata: Map<String, Any?>
     ): Result<Unit> {
         val id = arguments.getString("shopping_id") ?: throw Exception("Shopping ID is required")

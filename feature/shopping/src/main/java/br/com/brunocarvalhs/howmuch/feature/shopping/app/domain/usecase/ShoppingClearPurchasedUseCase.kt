@@ -3,7 +3,7 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentAction
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentParameter
 import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
-import br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentSession
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getString
 import br.com.brunocarvalhs.howmuch.feature.products.app.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.first
@@ -33,7 +33,7 @@ internal class ShoppingClearPurchasedUseCase @Inject constructor(
 
     override suspend fun execute(
         arguments: Map<String, Any?>,
-        session: AiAgentSession,
+        session: AiSession,
         metadata: Map<String, Any?>
     ): Result<Unit> {
         val shoppingId = arguments.getString("shopping_id") ?: throw Exception("Shopping ID is required")

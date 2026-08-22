@@ -12,11 +12,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.ui.entity.ProductCategory
-import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouTextSecondary
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTextSecondary
 import java.util.Locale
 
 @Composable
-internal fun CategoryHeader(category: String) {
+fun CategoryHeader(category: String) {
     val productCategory = remember(category) { ProductCategory.fromString(category) }
 
     Text(

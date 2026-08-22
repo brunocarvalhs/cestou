@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiModel
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.repository.SettingsRepository
@@ -27,6 +28,7 @@ internal class SettingsRepositoryImpl @Inject constructor(
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
         val REMINDER_TIME = stringPreferencesKey("reminder_time")
+        val AI_PROVIDER = stringPreferencesKey("ai_provider")
         val AI_MODEL = stringPreferencesKey("ai_model")
         val CUSTOM_PROMPT = stringPreferencesKey("custom_prompt")
         val CREATIVITY_LEVEL = floatPreferencesKey("creativity_level")
@@ -54,6 +56,7 @@ internal class SettingsRepositoryImpl @Inject constructor(
 
             AppSettings(
                 themeMode = themeMode,
+                aiProvider = preferences[PreferencesKeys.AI_PROVIDER] ?: "gemini",
                 aiModel = preferences[PreferencesKeys.AI_MODEL] ?: "google/gemini-2.0-flash-001",
                 customPrompt = preferences[PreferencesKeys.CUSTOM_PROMPT],
                 creativityLevel = preferences[PreferencesKeys.CREATIVITY_LEVEL] ?: 0.7f,
@@ -81,6 +84,10 @@ internal class SettingsRepositoryImpl @Inject constructor(
     override suspend fun updateAiSettings(model: String, prompt: String?, creativity: Float) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.AI_MODEL] = model
+            // Determine provider based on model or list
+            val provider = AiModel.freeModels.find { it.id == model }?.provider?.lowercase() ?: "openrouter"
+            preferences[PreferencesKeys.AI_PROVIDER] = if (model.contains("gemini")) "gemini" else provider
+            
             if (prompt != null) {
                 preferences[PreferencesKeys.CUSTOM_PROMPT] = prompt
             } else {

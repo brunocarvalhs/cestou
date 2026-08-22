@@ -50,7 +50,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragTarget
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DropTarget
-import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.common.ShoppingEmptyState
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.form.CreateShoppingContent

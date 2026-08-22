@@ -23,7 +23,7 @@ private const val ICON_ALPHA = 0.3f
 private const val TEXT_ALPHA = 0.7f
 
 @Composable
-internal fun EmptyState() {
+fun EmptyState() {
     Column(
         modifier = Modifier
             .fillMaxWidth()

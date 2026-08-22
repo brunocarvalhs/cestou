@@ -34,7 +34,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.Profile
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.rememberNavigator
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouBottomNavigation
-import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.feature.auth.commons.navigation.Welcome
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject

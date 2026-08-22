@@ -12,6 +12,6 @@ internal class ProductsInitializerImpl @Inject constructor() : ProductsInitializ
         navigator: Navigator,
         windowSizeClass: WindowSizeClass
     ) {
-        navGraphBuilder.productsGraph(navigator, windowSizeClass)
+        navGraphBuilder.productsGraph(navigator)
     }
 }
