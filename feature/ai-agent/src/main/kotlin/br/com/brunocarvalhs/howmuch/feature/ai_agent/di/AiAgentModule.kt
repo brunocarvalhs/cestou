@@ -22,10 +22,14 @@ internal abstract class AiAgentModule {
     @Singleton
     abstract fun bindAiAgentFactory(impl: AiAgentFactoryImpl): AiAgentFactory
 
+    @Binds
+    @Singleton
+    abstract fun bindAiSession(impl: AiAgentSession): AiSession
+
     companion object {
         @Provides
         @Singleton
-        fun provideAiAgentSession(authService: AuthService): AiSession {
+        fun provideAiAgentSession(authService: AuthService): AiAgentSession {
             val userId = authService.currentUser?.id
             return AiAgentSession(
                 userId = userId,

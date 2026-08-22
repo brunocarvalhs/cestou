@@ -4,14 +4,14 @@ import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AiAgentSession
 import javax.inject.Inject
 
 /**
  * Factory para criação de instâncias de AiAgent baseadas nas configurações do usuário.
  */
 internal class AiAgentFactoryImpl @Inject constructor(
-    private val session: AiSession,
+    private val session: AiAgentSession,
     private val registry: AgentRegistry
 ) : AiAgentFactory {
 

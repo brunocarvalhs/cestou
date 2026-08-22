@@ -2,7 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.ai_agent
 
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AiAgentSession
 import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -18,7 +18,7 @@ import javax.inject.Singleton
 class AiAgentOrchestrator @Inject constructor(
     private val factory: AiAgentFactory,
     private val getSettingsUseCase: GetSettingsUseCase,
-    val session: AiSession
+    val session: AiAgentSession
 ) {
     /**
      * Envia uma mensagem para o assistente e recebe o fluxo de resposta.
