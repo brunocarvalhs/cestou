@@ -1,28 +1,15 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.screen
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.isImeVisible
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -30,53 +17,45 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragTarget
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DropTarget
-import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouTextPrimary
-import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.ai.CartAssistantDock
-import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.state.AiDockState
+import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.common.ShoppingEmptyState
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.form.CreateShoppingContent
-import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.shopping.ShoppingHeader
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.shopping.ShoppingItem
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.shopping.ShoppingItemLoading
-import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.shopping.ShoppingSummaryCard
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.intent.ShoppingListIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.state.ShoppingListUiState
 
@@ -92,11 +71,9 @@ internal fun ShoppingScreen(
     modifier: Modifier = Modifier,
     onSettings: () -> Unit = {},
 ) {
-    val focusManager = LocalFocusManager.current
     val context = LocalContext.current
-    val isKeyboardVisible = WindowInsets.isImeVisible
-
     val snackbarHostState = remember { SnackbarHostState() }
+    val listState = rememberLazyGridState()
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
@@ -106,46 +83,33 @@ internal fun ShoppingScreen(
         }
     }
 
-    val listState = rememberLazyGridState()
-    var isUiVisible by remember { mutableStateOf(true) }
-
-    val isExpanded = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
-
     LaunchedEffect(Unit) {
         intent.onFetchAll()
-    }
-
-    val totalSpent = remember(uiState.list) {
-        uiState.list.sumOf { it.price }
-    }
-    val completedLists = remember(uiState.list) {
-        uiState.list.count { it.status == Shopping.Status.FINISH }
-    }
-    val totalBudget = remember(uiState.list) {
-        uiState.list.sumOf { it.budget ?: 0.0 }
     }
 
     DragAndDropContainer {
         Scaffold(
             topBar = {
-                ShoppingHeader(
-                    onAdd = { intent.onCreate() },
-                    onJoin = { intent.onShowJoinDialog() },
-                    onSettingsClick = onSettings
-                )
-            },
-            floatingActionButton = {
-                if (isUiVisible && !isExpanded) {
-                    ExtendedFloatingActionButton(
-                        onClick = { intent.onCreate() },
-                        icon = { Icon(Icons.Default.Add, null) },
-                        text = { Text("Nova Lista") },
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = Color.White,
-                        shape = RoundedCornerShape(24.dp),
-                        elevation = FloatingActionButtonDefaults.elevation(8.dp)
+                CenterAlignedTopAppBar(
+                    actions = {
+                        IconButton(onClick = intent.onCreate) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Settings"
+                            )
+                        }
+                    },
+                    title = {
+                        Text(
+                            text = "Shopping lists",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
                     )
-                }
+                )
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
             containerColor = MaterialTheme.colorScheme.background
@@ -153,60 +117,33 @@ internal fun ShoppingScreen(
             Box(
                 modifier = modifier
                     .fillMaxSize()
-                    .padding(top = padding.calculateTopPadding())
+                    .padding(padding)
             ) {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(if (isExpanded) 400.dp else 300.dp),
-                        state = listState,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxSize()
-                            .pointerInput(Unit) {
-                                detectTapGestures {
-                                    focusManager.clearFocus()
-                                }
-                            },
-                        contentPadding = PaddingValues(bottom = 120.dp)
-                    ) {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            ShoppingSummaryCard(
-                                totalAmount = totalSpent,
-                                totalLists = uiState.list.size,
-                                completedLists = completedLists,
-                                totalBudget = totalBudget
-                            )
-                        }
-
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            Column {
-                                ShoppingSearchBar(uiState, intent)
-                                Spacer(modifier = Modifier.height(32.dp))
-                                Text(
-                                    text = "Minhas Listas",
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    color = CestouTextPrimary,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 16.dp)
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                            }
-                        }
-
-                        shoppingListContent(uiState, intent)
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(1),
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    item {
+                        SectionHeader("Our recommendations")
+                    }
+                    item {
+                        ShoppingItem(
+                            title = "Often purchased",
+                            description = "",
+                            price = 0.0,
+                            itemCount = 10,
+                            iconBackgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                            onClick = { /* Recommendation click */ }
+                        )
                     }
 
-                    if (isExpanded) {
-                        ShoppingAssistantExpanded(uiState, intent, padding)
+                    item {
+                        SectionHeader("Recently created")
                     }
-                }
 
-                if (!isExpanded) {
-                    ShoppingAssistantCompact(
-                        uiState = uiState,
-                        intent = intent,
-                        isVisible = isUiVisible || uiState.aiDockState != AiDockState.COLLAPSED || isKeyboardVisible
-                    )
+                    shoppingListContent(uiState, intent)
                 }
             }
         }
@@ -216,11 +153,15 @@ internal fun ShoppingScreen(
                 onDismissRequest = { intent.onShowCreateSheet(false) },
                 sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                containerColor = MaterialTheme.colorScheme.surface,
-                dragHandle = { BottomSheetDefaults.DragHandle() }
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 CreateShoppingContent(
-                    onConfirm = { title, description -> intent.onCreateConfirmed(title, description) },
+                    onConfirm = { title, description ->
+                        intent.onCreateConfirmed(
+                            title,
+                            description
+                        )
+                    },
                     onCancel = { intent.onShowCreateSheet(false) }
                 )
             }
@@ -228,72 +169,16 @@ internal fun ShoppingScreen(
     }
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ShoppingSearchBar(
-    uiState: ShoppingListUiState,
-    intent: ShoppingListIntent
-) {
-    SearchBar(
-        inputField = {
-            SearchBarDefaults.InputField(
-                query = uiState.searchQuery,
-                onQueryChange = { intent.onQueryChange(it) },
-                onSearch = { intent.onSearch(it) },
-                expanded = false,
-                onExpandedChange = {},
-                enabled = true,
-                placeholder = {
-                    Text(
-                        "Buscar listas ou itens...",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
-                trailingIcon = null,
-                colors = SearchBarDefaults.colors().inputFieldColors.copy(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                ),
-                interactionSource = null,
-            )
-        },
-        expanded = false,
-        onExpandedChange = {},
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .shadow(4.dp, RoundedCornerShape(24.dp)),
-        shape = RoundedCornerShape(24.dp),
-        colors = SearchBarDefaults.colors(
-            containerColor = Color.White,
-        ),
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        windowInsets = SearchBarDefaults.windowInsets,
-    ) { }
-}
-
-
 private fun LazyGridScope.shoppingListContent(
     uiState: ShoppingListUiState,
     intent: ShoppingListIntent
 ) {
     if (uiState.isLoading) {
         items(LOADING_ITEMS_COUNT) {
-            ShoppingItemLoading(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
+            ShoppingItemLoading()
         }
     } else if (uiState.filteredList.isEmpty()) {
-        item(span = { GridItemSpan(maxLineSpan) }) {
+        item {
             ShoppingEmptyState()
         }
     } else {
@@ -305,23 +190,19 @@ private fun LazyGridScope.shoppingListItems(
     uiState: ShoppingListUiState,
     intent: ShoppingListIntent
 ) {
-    uiState.groupedList.forEach { (month, shoppings) ->
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            Text(
-                text = month,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(
-                    horizontal = 24.dp,
-                    vertical = 8.dp
-                )
-            )
-        }
-        items(shoppings, key = { it.id }) { shopping ->
-            ShoppingListItemWrapper(shopping, uiState, intent)
-        }
+    items(uiState.filteredList, key = { it.id }) { shopping ->
+        ShoppingListItemWrapper(shopping, uiState, intent)
     }
+}
+
+@Composable
+private fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
+    )
 }
 
 @Composable
@@ -351,17 +232,15 @@ private fun ShoppingListItemWrapper(
             dataToDrop = shopping
         ) {
             ShoppingItem(
-                modifier = Modifier.padding(
-                    horizontal = 16.dp,
-                    vertical = 8.dp
-                ),
+                modifier = Modifier.padding(vertical = 4.dp),
                 onClick = { intent.onOpen(shopping.id) },
                 title = shopping.title,
                 description = shopping.description,
                 price = shopping.price,
                 budget = shopping.budget,
+                itemCount = 8,
+                users = shopping.users,
                 status = shopping.status,
-                isFavorite = shopping.isFavorite,
                 onFavoriteClick = { intent.onToggleFavorite(shopping) },
                 onDeleteClick = { intent.onDelete(shopping.id) },
                 onDuplicateClick = { intent.onDuplicate(shopping) },
@@ -381,83 +260,50 @@ private fun ShoppingListItemWrapper(
     }
 }
 
-@Composable
-private fun ShoppingAssistantExpanded(
-    uiState: ShoppingListUiState,
-    intent: ShoppingListIntent,
-    padding: PaddingValues
-) {
-    Box(
-        modifier = Modifier
-            .width(400.dp)
-            .padding(padding)
-            .imePadding()
-    ) {
-        CartAssistantDock(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            state = AiDockState.CHAT, // Sempre Chat se expandido
-            messages = uiState.aiMessages,
-            loading = uiState.isAiLoading,
-            value = uiState.prompt,
-            onValueChange = { intent.onPromptChanged(it) },
-            onSendClick = { intent.onSendPrompt() },
-            onFocused = { },
-            onNotFocused = { },
-            onAddClick = { intent.onCreate() },
-            onToggleClick = { },
-            suggestions = uiState.aiSuggestions,
-            isSuggestionsLoading = uiState.isAiSuggestionsLoading,
-            onSuggestionClick = { intent.onSuggestionClick(it) }
-        )
-    }
-}
-
-@Composable
-private fun BoxScope.ShoppingAssistantCompact(
-    uiState: ShoppingListUiState,
-    intent: ShoppingListIntent,
-    isVisible: Boolean
-) {
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = slideInVertically { it },
-        exit = slideOutVertically { it },
-        modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .imePadding()
-    ) {
-        CartAssistantDock(
-            modifier = Modifier
-                .navigationBarsPadding()
-                .padding(
-                    horizontal = 20.dp,
-                    vertical = 24.dp
-                ),
-            state = uiState.aiDockState,
-            messages = uiState.aiMessages,
-            loading = uiState.isAiLoading,
-            value = uiState.prompt,
-            onValueChange = { intent.onPromptChanged(it) },
-            onSendClick = { intent.onSendPrompt() },
-            onFocused = { intent.onOpenAi() },
-            onNotFocused = {
-                intent.onFetchAll()
-                intent.onCloseAi()
-            },
-            onAddClick = { intent.onCreate() },
-            onToggleClick = { intent.onToggleAi() },
-            suggestions = uiState.aiSuggestions,
-            isSuggestionsLoading = uiState.isAiSuggestionsLoading,
-            onSuggestionClick = { intent.onSuggestionClick(it) }
-        )
-    }
-}
-
-@Preview
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(showBackground = true)
 @Composable
 private fun ShoppingPreview() {
-    // ShoppingScreen(
-    //    uiState = ShoppingListUiState(), intent = ShoppingListIntent())
+    CestouTheme {
+        val list = listOf(
+            Shopping(
+                id = "1",
+                title = "Morning breakfast",
+                description = "",
+                price = 150.0,
+                budget = 500.0,
+                status = Shopping.Status.IN_PROGRESS,
+                users = listOf("user1", "user2"),
+                roles = emptyMap()
+            ),
+            Shopping(
+                id = "2",
+                title = "Dinner by Sarah",
+                description = "",
+                price = 80.0,
+                budget = 200.0,
+                status = Shopping.Status.NEW,
+                users = listOf("user3"),
+                roles = emptyMap()
+            ),
+            Shopping(
+                id = "3",
+                title = "Pizza day!",
+                description = "",
+                price = 0.0,
+                status = Shopping.Status.NEW,
+                users = listOf("user1"),
+                roles = emptyMap()
+            )
+        )
+
+        ShoppingScreen(
+            uiState = ShoppingListUiState(
+                list = StableList(list),
+                filteredList = StableList(list)
+            ),
+            windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(400.dp, 800.dp)),
+            intent = ShoppingListIntent()
+        )
+    }
 }

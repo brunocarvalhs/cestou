@@ -1,13 +1,14 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.shopping
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,10 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,17 +27,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
-import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouSoftGreen
-import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouSoftOrange
-import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouTextPrimary
-import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouTextSecondary
+import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
+import coil.compose.AsyncImage
 
 @Composable
 internal fun ShoppingItem(
@@ -46,12 +43,13 @@ internal fun ShoppingItem(
     title: String,
     description: String,
     price: Double,
-    itemCount: Int = 12, // Mocked for design faithfulness
-    isShared: Boolean = false,
+    itemCount: Int = 0,
     users: List<String> = emptyList(),
     status: Shopping.Status = Shopping.Status.NEW,
+    iconUrl: String? = null,
+    iconBackgroundColor: Color = Color(0xFFF0F0F0),
     onClick: () -> Unit = {},
-    // Keeping internal parameters for compatibility with screen
+    // Parametros mantidos para compatibilidade
     onEditClick: () -> Unit = {},
     onDuplicateClick: () -> Unit = {},
     onFinishClick: () -> Unit = {},
@@ -61,97 +59,100 @@ internal fun ShoppingItem(
     onFavoriteClick: () -> Unit = {},
     budget: Double? = null
 ) {
-    val backgroundColor = if (title.contains("Churrasco", ignoreCase = true)) {
-        CestouSoftOrange
-    } else {
-        CestouSoftGreen
-    }
-
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        onClick = onClick
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(
-            modifier = Modifier.padding(24.dp)
+        // Icon Box
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(iconBackgroundColor),
+            contentAlignment = Alignment.Center
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = CestouTextPrimary,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = if (isShared) "compartilhada com João" else "Privada",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = CestouTextSecondary
-                    )
+            if (iconUrl != null) {
+                AsyncImage(
+                    model = iconUrl,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp)
+                )
+            } else {
+                val (emoji, bgColor) = when {
+                    title.contains("breakfast", true) || title.contains("café", true) -> "🍳" to Color(0xFFFEF9E7)
+                    title.contains("dinner", true) || title.contains("jantar", true) -> "🍏" to Color(0xFFE8F8F5)
+                    title.contains("pizza", true) -> "🍕" to Color(0xFFFEF5E7)
+                    title.contains("spaghetti", true) || title.contains("massa", true) -> "🍝" to Color(0xFFFBEEE6)
+                    title.contains("drinks", true) || title.contains("bebidas", true) -> "🍺" to Color(0xFFF5EEF8)
+                    title.contains("purchased", true) -> "🍉" to Color(0xFFFCE4EC)
+                    else -> "🛒" to iconBackgroundColor
                 }
-
                 Box(
                     modifier = Modifier
-                        .background(Color.White, RoundedCornerShape(16.dp))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .fillMaxSize()
+                        .background(bgColor),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "$itemCount itens",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = CestouTextPrimary,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text(text = emoji, style = MaterialTheme.typography.headlineSmall)
                 }
             }
+        }
 
-            Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.width(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                UserAvatars(count = if (isShared) 2 else 1)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "$itemCount products",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
 
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = CestouTextPrimary
-                )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (users.size > 1) {
+                UserAvatars(users = users)
+                Spacer(modifier = Modifier.width(8.dp))
             }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = Color.LightGray
+            )
         }
     }
 }
 
 @Composable
-private fun UserAvatars(count: Int) {
-    Row {
-        repeat(count) { index ->
+private fun UserAvatars(users: List<String>) {
+    val displayCount = users.take(2)
+    Row(horizontalArrangement = Arrangement.spacedBy((-8).dp)) {
+        displayCount.forEach { _ ->
             Box(
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(28.dp)
                     .clip(CircleShape)
-                    .background(Color.LightGray)
-                    .border(2.dp, Color.White, CircleShape),
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .border(1.dp, MaterialTheme.colorScheme.surface, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = Color.Gray
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            }
-            if (index < count - 1) {
-                Spacer(modifier = Modifier.width((-12).dp)) // Overlap
             }
         }
     }
@@ -159,11 +160,70 @@ private fun UserAvatars(count: Int) {
 
 @Composable
 internal fun ShoppingItemLoading(modifier: Modifier = Modifier) {
-    // Basic loading state
-    Box(
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(140.dp)
-            .background(Color.LightGray.copy(alpha = 0.3f), RoundedCornerShape(28.dp))
-    )
+            .padding(vertical = 12.dp, horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(Color.LightGray.copy(alpha = 0.3f))
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Box(
+                modifier = Modifier
+                    .width(120.dp)
+                    .height(16.dp)
+                    .background(Color.LightGray.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(12.dp)
+                    .background(Color.LightGray.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ShoppingItemPreview() {
+    CestouTheme {
+        Column {
+            ShoppingItem(
+                title = "Morning breakfast",
+                description = "",
+                price = 0.0,
+                itemCount = 8,
+                users = listOf("1", "2")
+            )
+            ShoppingItem(
+                title = "Pizza day!",
+                description = "",
+                price = 0.0,
+                itemCount = 4
+            )
+            ShoppingItem(
+                title = "Often purchased",
+                description = "",
+                price = 0.0,
+                itemCount = 10,
+                iconBackgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ShoppingItemLoadingPreview() {
+    CestouTheme {
+        ShoppingItemLoading()
+    }
 }
