@@ -1,10 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.cart.presentation.screen
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -32,7 +28,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,6 +46,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
@@ -79,26 +75,24 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.theme.CestouBrightGreen
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTextPrimary
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTextSecondary
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.LocalDragTargetInfo
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.CurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
-import br.com.brunocarvalhs.howmuch.core.theme.CestouBrightGreen
-import br.com.brunocarvalhs.howmuch.core.theme.CestouDarkGreen
-import br.com.brunocarvalhs.howmuch.core.theme.CestouSoftGreen
-import br.com.brunocarvalhs.howmuch.core.theme.CestouTextPrimary
-import br.com.brunocarvalhs.howmuch.core.theme.CestouTextSecondary
-import br.com.brunocarvalhs.howmuch.feature.products.R
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.ai.CartAssistantDock
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.CartDetailHeader
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.MoveToBar
-import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.common.CategoryHeader
-import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.common.EmptyState
-import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.common.LockedBanner
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.ProductListItem
+import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.ai.CartAssistantDock
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.intent.CartIntent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.AiDockState
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.CartUiState
+import br.com.brunocarvalhs.howmuch.feature.products.R
+import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.common.CategoryHeader
+import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.common.EmptyState
+import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.common.LockedBanner
 
 private const val SCROLL_THRESHOLD = 15f
 private val GRID_CELLS_ADAPTIVE_EXPANDED = 400.dp
@@ -121,7 +115,7 @@ private data class CartSummary(
 @Composable
 internal fun CartScreen(
     uiState: CartUiState,
-    windowSizeClass: WindowSizeClass,
+    windowSizeClass: WindowSizeClass? = null,
     intent: CartIntent = CartIntent(),
     onBack: () -> Unit = {}
 ) {
@@ -133,7 +127,7 @@ internal fun CartScreen(
     val listState = rememberLazyGridState()
     var isUiVisible by remember { mutableStateOf(true) }
 
-    val isExpanded = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
+    val isExpanded = windowSizeClass?.widthSizeClass == WindowWidthSizeClass.Expanded
 
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
@@ -194,15 +188,21 @@ internal fun CartScreen(
         Scaffold(
             topBar = {
                 if (isUiVisible) {
-                    CartTopBar(
+                    CartDetailHeader(
                         title = uiState.shopping?.title ?: stringResource(R.string.shopping_list_default_title),
                         usersCount = uiState.shopping?.users?.size ?: 0,
                         showFinish = uiState.products.isNotEmpty() && !isLocked,
-                        isLocked = isLocked,
                         onBack = onBack,
                         onFinish = { intent.onToggleFinishPurchaseSheet() },
                         onShare = { intent.onShowShareOptions() },
-                        onClearPurchased = { intent.onClearPurchased() }
+                        actionsMore = {
+                            if (!isLocked) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.shopping_list_menu_clear_purchased)) },
+                                    onClick = { intent.onClearPurchased() }
+                                )
+                            }
+                        }
                     )
                 }
             },
@@ -351,23 +351,7 @@ private fun CartTopBar(
     onClearPurchased: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    CartDetailHeader(
-        title = title,
-        onBack = onBack,
-        onShare = onShare,
-        onEdit = { },
-        usersCount = usersCount,
-        showFinish = showFinish,
-        onFinish = onFinish,
-        actionsMore = {
-            if (!isLocked) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.shopping_list_menu_clear_purchased)) },
-                    onClick = onClearPurchased
-                )
-            }
-        }
-    )
+
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -489,10 +473,11 @@ private fun BoxScope.CartAssistantCompact(
     }
 }
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Preview
 @Composable
 private fun CartPreview() {
-    // CartScreen(
-    //    uiState = CartUiState(shopping = null)
-    // )
+     CartScreen(
+        uiState = CartUiState(shopping = null),
+     )
 }

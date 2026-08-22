@@ -1,13 +1,10 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.screen
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
@@ -17,9 +14,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -27,6 +21,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -40,7 +35,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -125,20 +119,6 @@ internal fun ShoppingScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
-                    item {
-                        SectionHeader("Our recommendations")
-                    }
-                    item {
-                        ShoppingItem(
-                            title = "Often purchased",
-                            description = "",
-                            price = 0.0,
-                            itemCount = 10,
-                            iconBackgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-                            onClick = { /* Recommendation click */ }
-                        )
-                    }
-
                     item {
                         SectionHeader("Recently created")
                     }
@@ -235,8 +215,6 @@ private fun ShoppingListItemWrapper(
                 modifier = Modifier.padding(vertical = 4.dp),
                 onClick = { intent.onOpen(shopping.id) },
                 title = shopping.title,
-                description = shopping.description,
-                price = shopping.price,
                 budget = shopping.budget,
                 itemCount = 8,
                 users = shopping.users,
