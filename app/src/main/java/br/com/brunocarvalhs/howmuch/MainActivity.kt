@@ -57,6 +57,7 @@ class MainActivity : ComponentActivity() {
             val windowSizeClass = calculateWindowSizeClass(this)
             val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
             val language by viewModel.language.collectAsStateWithLifecycle()
+            val photoUrl by viewModel.photoUrl.collectAsStateWithLifecycle()
 
             LaunchedEffect(language) {
                 val appLocales = LocaleListCompat.forLanguageTags(language)
@@ -76,17 +77,20 @@ class MainActivity : ComponentActivity() {
                 val currentDestination = navBackStackEntry?.destination
                 val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
 
-                val rootRoutes = listOf(ShoppingList::class, Partner::class, AiChat::class, Profile::class)
+                val rootRoutes = remember { listOf(ShoppingList, Partner, AiChat, Profile) }
 
-                val showBottomBar = currentDestination?.hierarchy?.any { dest ->
-                    rootRoutes.any { route -> dest.hasRoute(route) }
-                } == true
+                val currentRoute = rootRoutes.find { route ->
+                    currentDestination?.hierarchy?.any { it.hasRoute(route::class) } == true
+                }
+
+                val showBottomBar = currentRoute != null
 
                 Scaffold(
                     bottomBar = {
                         if (showBottomBar) {
                             CestouBottomNavigation(
-                                currentRoute = null, // TODO: Obter a rota atual como objeto
+                                currentRoute = currentRoute,
+                                photoUrl = photoUrl,
                                 onNavigate = { route ->
                                     navigator.navigate(route) {
                                         popUpTo(navController.graph.startDestinationId) {

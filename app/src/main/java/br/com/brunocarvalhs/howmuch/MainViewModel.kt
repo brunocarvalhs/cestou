@@ -48,4 +48,12 @@ internal class MainViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = "pt"
         )
+
+    val photoUrl: StateFlow<String?> = authService.authState
+        .map { it?.photoUrl }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = authService.currentUser?.photoUrl
+        )
 }

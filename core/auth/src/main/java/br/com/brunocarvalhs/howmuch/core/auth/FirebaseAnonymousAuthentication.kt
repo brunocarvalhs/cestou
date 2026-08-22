@@ -72,7 +72,8 @@ class FirebaseAnonymousAuthentication @Inject constructor(
         id = uid,
         email = email,
         displayName = displayName,
-        phoneNumber = phoneNumber
+        phoneNumber = phoneNumber,
+        photoUrl = photoUrl?.toString()
     )
 
     private fun FirebaseCrashlytics.setUser(user: FirebaseUser?) {
