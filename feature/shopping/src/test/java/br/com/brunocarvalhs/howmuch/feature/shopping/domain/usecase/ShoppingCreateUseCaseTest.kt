@@ -1,9 +1,9 @@
-package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
+package br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase
 
 import android.content.Context
-import br.com.brunocarvalhs.howmuch.core.domain.entity.AuthenticatedUser
+import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
-import br.com.brunocarvalhs.howmuch.core.domain.service.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

@@ -1,6 +1,6 @@
 package br.com.brunocarvalhs.howmuch.core.domain.repository
 
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import kotlinx.coroutines.flow.Flow
 
 interface ShoppingRepository {

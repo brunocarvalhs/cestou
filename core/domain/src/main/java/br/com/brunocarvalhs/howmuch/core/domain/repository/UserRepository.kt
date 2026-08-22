@@ -1,6 +1,6 @@
 package br.com.brunocarvalhs.howmuch.core.domain.repository
 
-import br.com.brunocarvalhs.howmuch.core.domain.entity.UserProfile
+import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {

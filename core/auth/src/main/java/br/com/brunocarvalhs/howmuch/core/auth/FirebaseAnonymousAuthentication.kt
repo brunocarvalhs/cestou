@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.core.auth
 
-import br.com.brunocarvalhs.howmuch.core.domain.entity.AuthenticatedUser
-import br.com.brunocarvalhs.howmuch.core.domain.service.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.crashlytics.FirebaseCrashlytics

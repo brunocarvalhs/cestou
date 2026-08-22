@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.core.auth.di
 
 import br.com.brunocarvalhs.howmuch.core.auth.FirebaseAnonymousAuthentication
-import br.com.brunocarvalhs.howmuch.core.domain.service.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth

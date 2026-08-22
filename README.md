@@ -32,11 +32,17 @@ Este projeto foi desenvolvido utilizando as tecnologias e práticas mais recente
 
 ### Arquitetura do Projeto
 
-O projeto é dividido nos seguintes módulos:
+O projeto segue uma arquitetura **Domain-Centric** distribuída em múltiplos módulos:
 
-*   `:app`: Contém a camada de UI, incluindo todas as telas (Composables), `MainActivity`, e a lógica de navegação.
-*   `:data`: Responsável pelas fontes de dados, como banco de dados local e serviços de rede. Implementa os repositórios definidos no módulo de domínio.
-*   `:domain`: Contém a lógica de negócios principal do aplicativo, incluindo casos de uso (use cases), entidades e as interfaces dos repositórios.
+*   `:core:*`: Módulos transversais que contêm componentes compartilhados (UI, Domain, Data, Navigation).
+*   `:feature:*`: Módulos de funcionalidade independentes, cada um seguindo a anatomia `app/` (Presentation, Domain, Data) e `commons/` (DI, Navigation).
+*   `:app`: Ponto de entrada do aplicativo que orquestra os módulos de feature via `FeatureInitializer`.
+
+A estrutura detalhada de cada módulo de feature segue o padrão:
+- `app/presentation/`: Camada de UI (MVI/MVVM com Compose).
+- `app/domain/`: Camada de negócio pura (Modelos, Repositórios, UseCases).
+- `app/data/`: Camada de infraestrutura (Implementações, DTOs, Mappers).
+- `commons/`: Configurações de injeção de dependência e navegação.
 
 ## 🚀 Como Compilar
 

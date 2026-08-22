@@ -3,7 +3,7 @@ package br.com.brunocarvalhs.howmuch.core.ai.service
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
 import br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentSession
-import br.com.brunocarvalhs.howmuch.core.domain.entity.AppSettings
+import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import javax.inject.Inject
 
 class AiAgentFactoryImpl @Inject constructor(

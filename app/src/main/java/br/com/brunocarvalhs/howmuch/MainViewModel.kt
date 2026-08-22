@@ -2,10 +2,10 @@ package br.com.brunocarvalhs.howmuch
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.brunocarvalhs.howmuch.core.domain.entity.AppSettings
-import br.com.brunocarvalhs.howmuch.core.domain.entity.ThemeMode
-import br.com.brunocarvalhs.howmuch.core.domain.service.AuthService
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
+import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
+import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

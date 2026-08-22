@@ -10,7 +10,7 @@ import br.com.brunocarvalhs.howmuch.core.data.repository.NotificationRepositoryI
 import br.com.brunocarvalhs.howmuch.core.data.repository.UserRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
-import br.com.brunocarvalhs.howmuch.core.domain.service.NetworkService
+import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Binds
 import dagger.Module

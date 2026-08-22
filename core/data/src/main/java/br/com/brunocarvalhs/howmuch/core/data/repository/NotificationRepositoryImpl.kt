@@ -1,12 +1,12 @@
 package br.com.brunocarvalhs.howmuch.core.data.repository
 
-import br.com.brunocarvalhs.howmuch.core.data.mapper.toDomain
+import br.com.brunocarvalhs.howmuch.core.data.extensions.toDomain
 import br.com.brunocarvalhs.howmuch.core.data.model.NotificationModel
 import br.com.brunocarvalhs.howmuch.core.domain.repository.Notification
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
-import br.com.brunocarvalhs.howmuch.core.domain.service.NetworkService
-import br.com.brunocarvalhs.howmuch.core.domain.service.make
-import br.com.brunocarvalhs.howmuch.core.domain.service.observe
+import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
+import br.com.brunocarvalhs.howmuch.core.domain.services.make
+import br.com.brunocarvalhs.howmuch.core.domain.services.observe
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject

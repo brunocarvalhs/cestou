@@ -1,16 +1,16 @@
-package br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel
+package br.com.brunocarvalhs.howmuch.feature.products.app.presentation.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.CartAssistantUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.GetQuestionSuggestionsUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShoppingClearPurchasedUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.SortProductsUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductsFlow
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.CartAssistantUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.GetQuestionSuggestionsUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductsUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ShoppingClearPurchasedUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.SortProductsUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.commons.navigation.ProductsFlow
+import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers

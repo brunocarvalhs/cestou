@@ -3,7 +3,7 @@ package br.com.brunocarvalhs.howmuch.core.ai.di
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
 import br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentSession
 import br.com.brunocarvalhs.howmuch.core.ai.service.AiAgentFactoryImpl
-import br.com.brunocarvalhs.howmuch.core.domain.service.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

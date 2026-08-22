@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.4.0] - 2026-08-21
+
+### Changed
+- **arch**: Full module refactoring following the Domain-Centric Multi-module Anatomy.
+- **arch**: Introduced `FeatureInitializer` pattern for decoupled navigation registration.
+- **arch**: Standardized feature module structure with `app/` and `commons/` taxonomy.
+- **core**: Renamed `entity` to `model` and `service` to `services` in `:core:domain`.
+- **core**: Renamed `mapper` to `extensions` in `:core:data`.
+- **sdd**: Initialized Spec-Driven Development (SDD) infrastructure in `.specs/`.
+- **sdd**: Reverse-engineered formal specifications for `products`, `shopping`, `settings`, and `ai`.
+
 ## [1.3.0] - 2025-10-21
 
 * feat: detekt ajustes

@@ -26,24 +26,25 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import br.com.brunocarvalhs.howmuch.core.domain.entity.ThemeMode
+import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.Partner
 import br.com.brunocarvalhs.howmuch.core.navigation.Profile
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.rememberNavigator
+import br.com.brunocarvalhs.howmuch.core.navigation.FeatureInitializer
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouBottomNavigation
 import br.com.brunocarvalhs.howmuch.core.ui.theme.CestouTheme
-import br.com.brunocarvalhs.howmuch.feature.auth.navigation.Welcome
-import br.com.brunocarvalhs.howmuch.feature.auth.navigation.authGraph
-import br.com.brunocarvalhs.howmuch.feature.products.navigation.productsGraph
-import br.com.brunocarvalhs.howmuch.feature.settings.navigation.settingsGraph
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.shoppingGraph
+import br.com.brunocarvalhs.howmuch.feature.auth.commons.navigation.Welcome
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var featureInitializers: Set<@JvmSuppressWildcards FeatureInitializer>
 
     private val viewModel: MainViewModel by viewModels()
 
@@ -113,14 +114,9 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             startDestination = if (isAuthenticated) ShoppingList else Welcome
                         ) {
-                            authGraph(navigator) {
-                                navigator.navigate(ShoppingList) {
-                                    popUpTo(Welcome) { inclusive = true }
-                                }
+                            featureInitializers.forEach { 
+                                it.registerGraph(this, navigator, windowSizeClass)
                             }
-                            shoppingGraph(navigator, windowSizeClass)
-                            productsGraph(navigator, windowSizeClass)
-                            settingsGraph(navigator)
                         }
                     }
                 }
