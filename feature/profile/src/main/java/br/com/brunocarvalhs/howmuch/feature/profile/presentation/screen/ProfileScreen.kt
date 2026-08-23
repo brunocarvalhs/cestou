@@ -41,6 +41,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.intent.ProfileIntent
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.state.PartnerInfo
@@ -241,13 +242,44 @@ private fun ProfileMenuOption(
     }
 }
 
-@Preview
+private val previewUser = AuthenticatedUser(
+    id = "1",
+    email = "isabella@example.com",
+    displayName = "Isabella Carvalho"
+)
+
+@Preview(showBackground = true, name = "Com parceiro")
 @Composable
-private fun ProfileScreenPreview() {
-    ProfileScreen(
-        state = ProfileUiState(
-            partner = PartnerInfo("João Souza")
-        ),
-        intent = ProfileIntent()
-    )
+private fun ProfileScreenWithPartnerPreview() {
+    MaterialTheme {
+        ProfileScreen(
+            state = ProfileUiState(
+                user = previewUser,
+                partner = PartnerInfo("João Souza")
+            ),
+            intent = ProfileIntent()
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Sem parceiro")
+@Composable
+private fun ProfileScreenWithoutPartnerPreview() {
+    MaterialTheme {
+        ProfileScreen(
+            state = ProfileUiState(user = previewUser),
+            intent = ProfileIntent()
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Sem usuário logado")
+@Composable
+private fun ProfileScreenNoUserPreview() {
+    MaterialTheme {
+        ProfileScreen(
+            state = ProfileUiState(),
+            intent = ProfileIntent()
+        )
+    }
 }

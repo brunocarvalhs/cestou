@@ -13,7 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouTextField
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.intent.PartnerIntent
@@ -74,5 +76,29 @@ internal fun PartnerScreen(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "Sem parceiro")
+@Composable
+private fun PartnerScreenUnlinkedPreview() {
+    MaterialTheme {
+        PartnerScreen(
+            state = PartnerUiState(),
+            intent = PartnerIntent()
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Com parceiro")
+@Composable
+private fun PartnerScreenLinkedPreview() {
+    MaterialTheme {
+        PartnerScreen(
+            state = PartnerUiState(
+                partner = UserProfile(id = "1", name = "João Souza", email = "joao@example.com")
+            ),
+            intent = PartnerIntent()
+        )
     }
 }

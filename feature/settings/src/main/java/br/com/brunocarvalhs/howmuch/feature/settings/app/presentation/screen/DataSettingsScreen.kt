@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.components.SettingsHeader
@@ -117,5 +118,16 @@ internal fun DataSettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun DataSettingsScreenPreview() {
+    MaterialTheme {
+        DataSettingsScreen(
+            state = DataSettingsUiState(),
+            intent = DataSettingsIntent()
+        )
     }
 }

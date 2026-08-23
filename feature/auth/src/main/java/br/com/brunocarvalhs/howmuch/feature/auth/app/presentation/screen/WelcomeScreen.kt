@@ -97,11 +97,13 @@ internal fun WelcomeScreen(
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun WelcomeScreenPreview() {
-    WelcomeScreen(
-        state = WelcomeUiState(),
-        intent = WelcomeIntent()
-    )
+    MaterialTheme {
+        WelcomeScreen(
+            state = WelcomeUiState(version = "1.2.0"),
+            intent = WelcomeIntent()
+        )
+    }
 }

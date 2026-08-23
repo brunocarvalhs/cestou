@@ -238,48 +238,74 @@ private fun ShoppingListItemWrapper(
     }
 }
 
+private val previewShoppingLists = listOf(
+    Shopping(
+        id = "1",
+        title = "Morning breakfast",
+        description = "",
+        price = 150.0,
+        budget = 500.0,
+        status = Shopping.Status.IN_PROGRESS,
+        users = listOf("user1", "user2"),
+        roles = emptyMap()
+    ),
+    Shopping(
+        id = "2",
+        title = "Dinner by Sarah",
+        description = "",
+        price = 80.0,
+        budget = 200.0,
+        status = Shopping.Status.NEW,
+        users = listOf("user3"),
+        roles = emptyMap()
+    ),
+    Shopping(
+        id = "3",
+        title = "Pizza day!",
+        description = "",
+        price = 0.0,
+        status = Shopping.Status.NEW,
+        users = listOf("user1"),
+        roles = emptyMap()
+    )
+)
+
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Com listas")
 @Composable
 private fun ShoppingPreview() {
     CestouTheme {
-        val list = listOf(
-            Shopping(
-                id = "1",
-                title = "Morning breakfast",
-                description = "",
-                price = 150.0,
-                budget = 500.0,
-                status = Shopping.Status.IN_PROGRESS,
-                users = listOf("user1", "user2"),
-                roles = emptyMap()
-            ),
-            Shopping(
-                id = "2",
-                title = "Dinner by Sarah",
-                description = "",
-                price = 80.0,
-                budget = 200.0,
-                status = Shopping.Status.NEW,
-                users = listOf("user3"),
-                roles = emptyMap()
-            ),
-            Shopping(
-                id = "3",
-                title = "Pizza day!",
-                description = "",
-                price = 0.0,
-                status = Shopping.Status.NEW,
-                users = listOf("user1"),
-                roles = emptyMap()
-            )
-        )
-
         ShoppingScreen(
             uiState = ShoppingListUiState(
-                list = StableList(list),
-                filteredList = StableList(list)
+                list = StableList(previewShoppingLists),
+                filteredList = StableList(previewShoppingLists)
             ),
+            windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(400.dp, 800.dp)),
+            intent = ShoppingListIntent()
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(showBackground = true, name = "Carregando")
+@Composable
+private fun ShoppingLoadingPreview() {
+    CestouTheme {
+        ShoppingScreen(
+            uiState = ShoppingListUiState(isLoading = true),
+            windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(400.dp, 800.dp)),
+            intent = ShoppingListIntent()
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(showBackground = true, name = "Vazio")
+@Composable
+private fun ShoppingEmptyPreview() {
+    CestouTheme {
+        ShoppingScreen(
+            uiState = ShoppingListUiState(),
             windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(400.dp, 800.dp)),
             intent = ShoppingListIntent()
         )

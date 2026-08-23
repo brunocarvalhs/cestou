@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.feature.settings.R
@@ -113,5 +114,38 @@ private fun ThemeOption(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(label)
+    }
+}
+
+@Preview(showBackground = true, name = "Sistema")
+@Composable
+private fun ThemeSettingsScreenSystemPreview() {
+    MaterialTheme {
+        ThemeSettingsScreen(
+            state = ThemeSettingsUiState(themeMode = ThemeMode.SYSTEM),
+            intent = ThemeSettingsIntent()
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Claro")
+@Composable
+private fun ThemeSettingsScreenLightPreview() {
+    MaterialTheme {
+        ThemeSettingsScreen(
+            state = ThemeSettingsUiState(themeMode = ThemeMode.LIGHT),
+            intent = ThemeSettingsIntent()
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Escuro")
+@Composable
+private fun ThemeSettingsScreenDarkPreview() {
+    MaterialTheme {
+        ThemeSettingsScreen(
+            state = ThemeSettingsUiState(themeMode = ThemeMode.DARK),
+            intent = ThemeSettingsIntent()
+        )
     }
 }

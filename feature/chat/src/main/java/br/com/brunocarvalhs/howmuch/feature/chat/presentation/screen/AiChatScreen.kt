@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouTextField
@@ -114,5 +115,54 @@ private fun Box(
 ) {
     androidx.compose.foundation.layout.Box(modifier = modifier) {
         content()
+    }
+}
+
+private val previewMessages = listOf(
+    ChatMessage(id = 1, text = "Quanto vou gastar nessa lista?", sender = ChatMessage.Sender.USER),
+    ChatMessage(
+        id = 2,
+        text = "Com base nos itens adicionados, o total estimado é de R$ 87,40.",
+        sender = ChatMessage.Sender.ASSISTANT
+    ),
+    ChatMessage(id = 3, text = "Consegue sugerir algo mais barato?", sender = ChatMessage.Sender.USER)
+)
+
+@Preview(showBackground = true, name = "Vazio")
+@Composable
+private fun AiChatScreenEmptyPreview() {
+    MaterialTheme {
+        AiChatScreen(
+            state = AiChatUiState(),
+            intent = AiChatIntent()
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Conversa")
+@Composable
+private fun AiChatScreenConversationPreview() {
+    MaterialTheme {
+        AiChatScreen(
+            state = AiChatUiState(
+                messages = previewMessages,
+                input = "Consegue sugerir algo mais barato?"
+            ),
+            intent = AiChatIntent()
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Carregando resposta")
+@Composable
+private fun AiChatScreenLoadingPreview() {
+    MaterialTheme {
+        AiChatScreen(
+            state = AiChatUiState(
+                messages = previewMessages,
+                isLoading = true
+            ),
+            intent = AiChatIntent()
+        )
     }
 }

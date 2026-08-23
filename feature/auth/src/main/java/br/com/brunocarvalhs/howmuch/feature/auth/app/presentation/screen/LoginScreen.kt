@@ -138,11 +138,24 @@ fun SocialButton(
     }
 }
 
-@Preview
+@Preview(showBackground = true, name = "Default")
 @Composable
-private fun LoginScreenPreview() {
-    LoginScreen(
-        state = LoginUiState(),
-        intent = LoginIntent()
-    )
+private fun LoginScreenDefaultPreview() {
+    MaterialTheme {
+        LoginScreen(
+            state = LoginUiState(),
+            intent = LoginIntent()
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Loading")
+@Composable
+private fun LoginScreenLoadingPreview() {
+    MaterialTheme {
+        LoginScreen(
+            state = LoginUiState(isLoading = true),
+            intent = LoginIntent()
+        )
+    }
 }

@@ -53,6 +53,7 @@ import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.CurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
+import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.CartBottomBar
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.CartDetailHeader
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.ProductListItem
@@ -271,14 +272,58 @@ private fun LazyGridScope.cartListContent(
     }
 }
 
+private val previewShopping = Shopping(
+    id = "1",
+    title = "Compras do mês",
+    description = "Supermercado",
+    price = 0.0,
+    status = Shopping.Status.IN_PROGRESS,
+    users = listOf("user-1"),
+    roles = emptyMap()
+)
+
+private val previewProducts = listOf(
+    Product(id = "1", name = "Arroz", quantity = 2.0, price = 25.0, category = "Mercearia"),
+    Product(id = "2", name = "Feijão", quantity = 1.0, price = 8.5, category = "Mercearia", isPurchased = true),
+    Product(id = "3", name = "Leite", quantity = 6.0, price = 4.5, category = "Laticínios"),
+    Product(id = "4", name = "Sabão em pó", quantity = 1.0, price = 18.9, category = "Limpeza")
+)
+
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Preview
+@Preview(showBackground = true, name = "Vazio")
 @Composable
-private fun CartPreview() {
+private fun CartPreviewEmpty() {
     CestouTheme {
         CartScreen(
-            uiState = CartUiState(shopping = null),
+            uiState = CartUiState(shopping = previewShopping),
         )
     }
+}
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(showBackground = true, name = "Com produtos")
+@Composable
+private fun CartPreviewWithProducts() {
+    CestouTheme {
+        CartScreen(
+            uiState = CartUiState(
+                shopping = previewShopping,
+                products = StableList(previewProducts)
+            ),
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(showBackground = true, name = "Lista finalizada (bloqueada)")
+@Composable
+private fun CartPreviewLocked() {
+    CestouTheme {
+        CartScreen(
+            uiState = CartUiState(
+                shopping = previewShopping.copy(status = Shopping.Status.FINISH),
+                products = StableList(previewProducts)
+            ),
+        )
+    }
 }

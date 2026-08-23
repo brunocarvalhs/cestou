@@ -67,10 +67,18 @@ internal fun ProductBarcodeForm(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Flash desligado")
 @Composable
 private fun ProductBarcodeFormPreview() {
     ProductBarcodeForm(
         uiState = ProductBarcodeUiState()
+    )
+}
+
+@Preview(showBackground = true, name = "Flash ligado")
+@Composable
+private fun ProductBarcodeFormFlashOnPreview() {
+    ProductBarcodeForm(
+        uiState = ProductBarcodeUiState(isFlashOn = true)
     )
 }

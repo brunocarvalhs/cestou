@@ -158,7 +158,7 @@ private fun NotificationCard(
     }
 }
 
-@Preview
+@Preview(showBackground = true, name = "Com notificações")
 @Composable
 private fun NotificationsPreview() {
     NotificationsScreen(
@@ -171,9 +171,34 @@ private fun NotificationsPreview() {
                     time = "Há 5 min",
                     type = NotificationType.ACTION,
                     isRead = false
+                ),
+                NotificationItem(
+                    id = "2",
+                    title = "Lembrete de compras",
+                    description = "Você tem uma lista pendente para hoje à noite.",
+                    time = "Há 2 h",
+                    type = NotificationType.REMINDER,
+                    isRead = true
+                ),
+                NotificationItem(
+                    id = "3",
+                    title = "Nova funcionalidade disponível",
+                    description = "Agora você pode escanear notas fiscais para adicionar produtos automaticamente.",
+                    time = "Ontem",
+                    type = NotificationType.FEATURE,
+                    isRead = true
                 )
             )
         ),
+        intent = NotificationsIntent()
+    )
+}
+
+@Preview(showBackground = true, name = "Vazio")
+@Composable
+private fun NotificationsEmptyPreview() {
+    NotificationsScreen(
+        state = NotificationsUiState(),
         intent = NotificationsIntent()
     )
 }

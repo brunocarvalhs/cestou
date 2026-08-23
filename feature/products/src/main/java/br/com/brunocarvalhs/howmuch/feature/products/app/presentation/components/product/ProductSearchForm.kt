@@ -48,6 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.app.domain.model.Recipe
 import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.intent.ProductSearchIntent
@@ -320,10 +321,67 @@ private fun RecipeDetailsDialog(
     }
 }
 
-@Preview
+private val previewSearchResults = listOf(
+    Product(id = "1", name = "Arroz Branco 5kg", quantity = 1.0, price = 25.9),
+    Product(id = "2", name = "Feijão Carioca 1kg", quantity = 1.0, price = 8.5)
+)
+
+private val previewRecipe = Recipe(
+    id = "1",
+    name = "Arroz com feijão",
+    description = "Prato tradicional brasileiro",
+    instructions = "Cozinhe o arroz e o feijão separadamente e sirva juntos.",
+    ingredients = previewSearchResults
+)
+
+@Preview(showBackground = true, name = "Vazio - Produtos")
 @Composable
-private fun ProductSearchFormPreview() {
+private fun ProductSearchFormEmptyPreview() {
     ProductSearchForm(
         uiState = ProductSearchUiState()
+    )
+}
+
+@Preview(showBackground = true, name = "Vazio - Receitas")
+@Composable
+private fun ProductSearchFormEmptyRecipesPreview() {
+    ProductSearchForm(
+        uiState = ProductSearchUiState(searchMode = ProductSearchUiState.SearchMode.RECIPE)
+    )
+}
+
+@Preview(showBackground = true, name = "Resultados - Produtos")
+@Composable
+private fun ProductSearchFormResultsPreview() {
+    ProductSearchForm(
+        uiState = ProductSearchUiState(
+            query = "arroz",
+            results = previewSearchResults
+        )
+    )
+}
+
+@Preview(showBackground = true, name = "Resultados - Receitas")
+@Composable
+private fun ProductSearchFormRecipesPreview() {
+    ProductSearchForm(
+        uiState = ProductSearchUiState(
+            query = "arroz com feijão",
+            searchMode = ProductSearchUiState.SearchMode.RECIPE,
+            recipes = listOf(previewRecipe)
+        )
+    )
+}
+
+@Preview(showBackground = true, name = "Detalhes da receita")
+@Composable
+private fun ProductSearchFormRecipeDetailsPreview() {
+    ProductSearchForm(
+        uiState = ProductSearchUiState(
+            query = "arroz com feijão",
+            searchMode = ProductSearchUiState.SearchMode.RECIPE,
+            recipes = listOf(previewRecipe),
+            selectedRecipe = previewRecipe
+        )
     )
 }
