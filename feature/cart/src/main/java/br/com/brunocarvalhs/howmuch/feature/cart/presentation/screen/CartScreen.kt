@@ -9,15 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyGridScope
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,7 +33,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,6 +43,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCategoryHeader
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouEmptyState
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouLockedBanner
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.CurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
@@ -61,9 +57,6 @@ import br.com.brunocarvalhs.howmuch.feature.cart.presentation.intent.CartIntent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.AiDockState
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.CartUiState
 import br.com.brunocarvalhs.howmuch.feature.products.R
-import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.common.CategoryHeader
-import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.common.EmptyState
-import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.common.LockedBanner
 import kotlin.collections.component1
 import kotlin.collections.component2
 
@@ -157,7 +150,9 @@ internal fun CartScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
-                                contentDescription = null
+                                contentDescription = stringResource(
+                                    br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_more_options
+                                )
                             )
                         }
                         DropdownMenu(
@@ -189,19 +184,19 @@ internal fun CartScreen(
             ) {
                 if (isLocked) {
                     item {
-                        LockedBanner()
+                        CestouLockedBanner()
                     }
                 }
 
                 if (uiState.products.isEmpty()) {
                     item {
-                        EmptyState()
+                        CestouEmptyState()
                     }
                 }
 
                 cartSummary.groupedProducts.forEach { (category, products) ->
                     item {
-                        CategoryHeader(category = category)
+                        CestouCategoryHeader(category = category)
                     }
 
                     itemsIndexed(products) { index, product ->
@@ -221,56 +216,6 @@ internal fun CartScreen(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
-private fun LazyGridScope.cartListContent(
-    uiState: CartUiState,
-    intent: CartIntent,
-    isLocked: Boolean,
-    summary: CartSummary
-) {
-    if (isLocked) {
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            LockedBanner()
-        }
-    }
-
-    if (uiState.products.isEmpty()) {
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            EmptyState()
-        }
-    }
-
-    summary.groupedProducts.forEach { (category, products) ->
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            CategoryHeader(category = category)
-        }
-
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.2f))
-            ) {
-                Column {
-                    products.forEachIndexed { index, product ->
-                        ProductListItem(
-                            product = product,
-                            enabled = !isLocked,
-                            onDelete = { intent.onDeleteProduct(product) },
-                            onEdit = { intent.onEditProduct(product) },
-                            onQuantityChange = { intent.onUpdateQuantity(product, it) },
-                            onTogglePurchased = { intent.onTogglePurchased(product, it) },
-                            showDivider = index < products.size - 1
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
 
 private val previewShopping = Shopping(
     id = "1",

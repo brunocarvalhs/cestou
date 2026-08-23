@@ -30,7 +30,6 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureInitializer
 import br.com.brunocarvalhs.howmuch.core.navigation.JoinList
-import br.com.brunocarvalhs.howmuch.core.navigation.Partner
 import br.com.brunocarvalhs.howmuch.core.navigation.Profile
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.rememberNavigator
@@ -77,7 +76,7 @@ class MainActivity : ComponentActivity() {
                 val currentDestination = navBackStackEntry?.destination
                 val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
 
-                val rootRoutes = remember { listOf(ShoppingList, Partner, AiChat, Profile) }
+                val rootRoutes = remember { listOf(ShoppingList, AiChat, Profile) }
 
                 val currentRoute = rootRoutes.find { route ->
                     currentDestination?.hierarchy?.any { it.hasRoute(route::class) } == true

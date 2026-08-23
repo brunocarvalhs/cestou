@@ -44,7 +44,7 @@ internal fun ShoppingItem(
     users: List<String> = emptyList(),
     status: Shopping.Status = Shopping.Status.NEW,
     iconUrl: String? = null,
-    iconBackgroundColor: Color = Color(0xFFF0F0F0),
+    iconBackgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     onClick: () -> Unit = {},
     // Parametros mantidos para compatibilidade
     onEditClick: () -> Unit = {},
@@ -96,7 +96,7 @@ internal fun ShoppingItem(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
                 modifier = Modifier.size(20.dp),
-                tint = Color.LightGray
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -138,7 +138,7 @@ internal fun ShoppingItemLoading(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .size(56.dp)
                 .clip(RoundedCornerShape(20.dp))
-                .background(Color.LightGray.copy(alpha = 0.3f))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         )
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -146,14 +146,14 @@ internal fun ShoppingItemLoading(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .width(120.dp)
                     .height(16.dp)
-                    .background(Color.LightGray.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(4.dp))
             )
             Spacer(modifier = Modifier.height(8.dp))
             Box(
                 modifier = Modifier
                     .width(80.dp)
                     .height(12.dp)
-                    .background(Color.LightGray.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(4.dp))
             )
         }
     }

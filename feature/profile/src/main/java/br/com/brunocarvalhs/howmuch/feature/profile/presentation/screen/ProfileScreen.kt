@@ -1,10 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.profile.presentation.screen
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,12 +21,14 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,115 +36,103 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
+import br.com.brunocarvalhs.howmuch.feature.profile.R
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.intent.ProfileIntent
-import br.com.brunocarvalhs.howmuch.feature.profile.presentation.state.PartnerInfo
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.state.ProfileUiState
+import coil.compose.AsyncImage
+import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ProfileScreen(
     state: ProfileUiState,
     intent: ProfileIntent
 ) {
-    Scaffold { paddingValues ->
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.profile_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+                .padding(horizontal = 20.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Perfil",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Start),
-                color = MaterialTheme.colorScheme.primary
-            )
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // User Info Header
             UserInfoHeader(
-                name = state.user?.displayName ?: "Usuário",
-                email = state.user?.email ?: "email@exemplo.com"
+                name = state.user?.displayName ?: stringResource(R.string.profile_default_name),
+                email = state.user?.email ?: stringResource(R.string.profile_default_email),
+                photoUrl = state.user?.photoUrl
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Partner Card
-            state.partner?.let { partner ->
-                PartnerCard(
-                    partner = partner,
-                    onDisconnect = { intent.onDisconnectPartner() }
+            ProfileMenuGroup {
+                ProfileMenuOption(
+                    title = stringResource(R.string.profile_menu_notification_preferences),
+                    icon = Icons.Default.Notifications,
+                    onClick = { intent.onNavigate(Unit) }
+                )
+                ProfileMenuDivider()
+                ProfileMenuOption(
+                    title = stringResource(R.string.profile_menu_theme_currency_language),
+                    icon = Icons.Default.Language,
+                    onClick = { intent.onNavigate(Unit) }
+                )
+                ProfileMenuDivider()
+                ProfileMenuOption(
+                    title = stringResource(R.string.profile_menu_about),
+                    icon = Icons.Default.Info,
+                    onClick = { intent.onNavigate(Unit) }
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Menu Options
-            ProfileMenuOption(
-                title = "Preferências de Notificação",
-                icon = Icons.Default.Notifications,
-                onClick = { /* TODO */ }
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            ProfileMenuOption(
-                title = "Tema, Moeda e Idioma",
-                icon = Icons.Default.Language,
-                onClick = { /* TODO */ }
-            )
+            ProfileMenuGroup {
+                ProfileMenuOption(
+                    title = stringResource(R.string.profile_menu_sign_out),
+                    icon = Icons.AutoMirrored.Filled.ExitToApp,
+                    onClick = { intent.onSignOut() },
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ProfileMenuOption(
-                title = "Sobre o App",
-                icon = Icons.Default.Info,
-                onClick = { /* TODO */ }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ProfileMenuOption(
-                title = "Sair",
-                icon = Icons.AutoMirrored.Filled.ExitToApp,
-                onClick = { intent.onSignOut() },
-                contentColor = MaterialTheme.colorScheme.error
-            )
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
 @Composable
-private fun UserInfoHeader(name: String, email: String) {
+private fun UserInfoHeader(name: String, email: String, photoUrl: String?) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(100.dp)
-                .border(4.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                .padding(4.dp)
-        ) {
-            Image(
-                painter = painterResource(id = android.R.drawable.ic_menu_gallery), // Mock
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape)
-            )
-        }
+        ProfileAvatar(name = name, photoUrl = photoUrl)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = name,
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
         Text(
@@ -156,53 +143,52 @@ private fun UserInfoHeader(name: String, email: String) {
     }
 }
 
+private const val AVATAR_SIZE_DP = 88
+
 @Composable
-private fun PartnerCard(partner: PartnerInfo, onDisconnect: () -> Unit) {
-    CestouCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(id = android.R.drawable.ic_menu_myplaces), // Mock
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text(
-                        text = "Parceiro Vinculado",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = partner.name,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            
-            TextButton(
-                onClick = onDisconnect,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                ),
+private fun ProfileAvatar(name: String, photoUrl: String?) {
+    Box(
+        modifier = Modifier
+            .size(AVATAR_SIZE_DP.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primaryContainer),
+        contentAlignment = Alignment.Center
+    ) {
+        if (photoUrl != null) {
+            AsyncImage(
+                model = photoUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .background(
-                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
-                        shape = MaterialTheme.shapes.small
-                    )
-            ) {
-                Text(text = "Desconectar")
-            }
+                    .fillMaxSize()
+                    .clip(CircleShape)
+            )
+        } else {
+            Text(
+                text = name.trim().take(1).uppercase(Locale.getDefault()),
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         }
     }
+}
+
+@Composable
+private fun ProfileMenuGroup(content: @Composable () -> Unit) {
+    CestouCard(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            content()
+        }
+    }
+}
+
+@Composable
+private fun ProfileMenuDivider() {
+    HorizontalDivider(
+        modifier = Modifier.padding(vertical = 4.dp),
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+    )
 }
 
 @Composable
@@ -212,33 +198,31 @@ private fun ProfileMenuOption(
     onClick: () -> Unit,
     contentColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
-    CestouCard(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 14.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = contentColor,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = contentColor,
-                modifier = Modifier.weight(1f)
-            )
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = contentColor,
+            modifier = Modifier.size(22.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            color = contentColor,
+            modifier = Modifier.weight(1f)
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -248,23 +232,9 @@ private val previewUser = AuthenticatedUser(
     displayName = "Isabella Carvalho"
 )
 
-@Preview(showBackground = true, name = "Com parceiro")
+@Preview(showBackground = true, name = "Padrão")
 @Composable
-private fun ProfileScreenWithPartnerPreview() {
-    MaterialTheme {
-        ProfileScreen(
-            state = ProfileUiState(
-                user = previewUser,
-                partner = PartnerInfo("João Souza")
-            ),
-            intent = ProfileIntent()
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Sem parceiro")
-@Composable
-private fun ProfileScreenWithoutPartnerPreview() {
+private fun ProfileScreenPreview() {
     MaterialTheme {
         ProfileScreen(
             state = ProfileUiState(user = previewUser),

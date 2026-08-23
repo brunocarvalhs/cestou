@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
@@ -46,6 +48,7 @@ import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragTarget
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DropTarget
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.common.ShoppingEmptyState
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.form.CreateShoppingContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.shopping.ShoppingItem
@@ -86,16 +89,26 @@ internal fun ShoppingScreen(
             topBar = {
                 CenterAlignedTopAppBar(
                     actions = {
+                        IconButton(onClick = intent.onShowJoinDialog) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Login,
+                                contentDescription = stringResource(
+                                    R.string.shopping_management_button_join
+                                )
+                            )
+                        }
                         IconButton(onClick = intent.onCreate) {
                             Icon(
                                 imageVector = Icons.Default.Add,
-                                contentDescription = "Settings"
+                                contentDescription = stringResource(
+                                    R.string.shopping_management_content_description_create_list
+                                )
                             )
                         }
                     },
                     title = {
                         Text(
-                            text = "Shopping lists",
+                            text = stringResource(R.string.shopping_management_lists_title),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -120,7 +133,7 @@ internal fun ShoppingScreen(
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
                     item {
-                        SectionHeader("Recently created")
+                        SectionHeader(stringResource(R.string.shopping_management_section_recent))
                     }
 
                     shoppingListContent(uiState, intent)

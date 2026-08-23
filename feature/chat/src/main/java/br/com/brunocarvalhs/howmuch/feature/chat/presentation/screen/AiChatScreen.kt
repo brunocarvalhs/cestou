@@ -20,11 +20,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouTextField
+import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatIntent
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiChatUiState
@@ -42,7 +44,7 @@ internal fun AiChatScreen(
                 .padding(16.dp)
         ) {
             Text(
-                text = "IA Assistente",
+                text = stringResource(R.string.ai_chat_title),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -82,39 +84,19 @@ internal fun AiChatScreen(
                 CestouTextField(
                     value = state.input,
                     onValueChange = { intent.onInputChange(it) },
-                    label = "Mensagem",
+                    label = stringResource(R.string.ai_chat_input_label),
                     modifier = Modifier.weight(1f)
                 )
                 IconButton(onClick = { intent.onSendMessage() }) {
-                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null)
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send,
+                        contentDescription = stringResource(
+                            br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_send_message
+                        )
+                    )
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun CestouCard(
-    containerColor: androidx.compose.ui.graphics.Color,
-    content: @Composable () -> Unit
-) {
-    androidx.compose.material3.Card(
-        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = containerColor),
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Box(modifier = Modifier.padding(12.dp)) {
-            content()
-        }
-    }
-}
-
-@Composable
-private fun Box(
-    modifier: Modifier,
-    content: @Composable () -> Unit
-) {
-    androidx.compose.foundation.layout.Box(modifier = modifier) {
-        content()
     }
 }
 

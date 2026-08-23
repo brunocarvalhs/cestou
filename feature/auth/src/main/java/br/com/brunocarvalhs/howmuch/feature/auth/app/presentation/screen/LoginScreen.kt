@@ -44,7 +44,12 @@ internal fun LoginScreen(
                 onClick = { intent.onBack() },
                 modifier = Modifier.padding(8.dp)
             ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(
+                        br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_back
+                    )
+                )
             }
         }
     ) { paddingValues ->

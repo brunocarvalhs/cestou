@@ -68,15 +68,11 @@
     <string name="shopping_list_label_category">Categoria</string>
     <string name="shopping_list_label_unit">Un.</string>
     <string name="shopping_list_save_changes">Salvar Alterações</string>
-    <string name="shopping_list_locked_title">Lista Finalizada</string>
-    <string name="shopping_list_locked_description">Esta lista está bloqueada para alterações.</string>
     <string name="shopping_list_summary_over_budget">Limite Excedido!</string>
     <string name="shopping_list_summary_in_cart">No Carrinho</string>
     <string name="shopping_list_summary_total">Total: %s</string>
     <string name="shopping_list_summary_items_count">%1$d de %2$d</string>
     <string name="shopping_list_summary_items_in_cart">itens no carrinho</string>
-    <string name="shopping_list_empty_title">Sua lista está vazia</string>
-    <string name="shopping_list_empty_description">Adicione produtos ou peça ajuda à IA!</string>
     <string name="shopping_list_share_options_title">Como deseja compartilhar?</string>
     <string name="shopping_list_share_invite_member">Convidar para Colaborar</string>
     <string name="shopping_list_share_invite_member_desc">Outro usuário poderá editar a lista em tempo real</string>

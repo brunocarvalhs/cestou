@@ -7,9 +7,6 @@ import kotlinx.serialization.Serializable
 data object ShoppingList : NavKey
 
 @Serializable
-data object Partner : NavKey
-
-@Serializable
 data object AiChat : NavKey
 
 @Serializable

@@ -32,10 +32,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.intent.NotificationsIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.state.NotificationItem
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.state.NotificationType
@@ -52,14 +54,19 @@ internal fun NotificationsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Notificações",
+                        text = stringResource(R.string.shopping_management_notifications_title),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { intent.onBack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(
+                                br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_back
+                            )
+                        )
                     }
                 }
             )

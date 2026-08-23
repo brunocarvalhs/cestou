@@ -40,16 +40,6 @@ class UserRepositoryImpl @Inject constructor(
         Unit
     }
 
-    override suspend fun linkPartner(partnerId: String): Result<Unit> {
-        // TODO: Implementar lógica de link real (pode precisar de uma nuvem function ou lógica bidirecional)
-        return Result.success(Unit)
-    }
-
-    override suspend fun unlinkPartner(): Result<Unit> {
-        // TODO: Implementar logic real
-        return Result.success(Unit)
-    }
-
     companion object {
         private const val ENDPOINT = "users"
     }

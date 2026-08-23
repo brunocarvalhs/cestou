@@ -1,10 +1,14 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.state
 
+import androidx.compose.runtime.Stable
+
+@Stable
 internal data class NotificationsUiState(
     val notifications: List<NotificationItem> = emptyList(),
     val isLoading: Boolean = false
 )
 
+@Stable
 internal data class NotificationItem(
     val id: String,
     val title: String,

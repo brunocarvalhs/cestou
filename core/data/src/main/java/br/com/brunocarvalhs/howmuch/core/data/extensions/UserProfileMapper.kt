@@ -7,22 +7,19 @@ fun UserProfileModel.toDomain() = UserProfile(
     id = id,
     name = name,
     email = email,
-    photoUrl = photoUrl,
-    partnerId = partnerId
+    photoUrl = photoUrl
 )
 
 fun UserProfile.toModel() = UserProfileModel(
     id = id,
     name = name,
     email = email,
-    photoUrl = photoUrl,
-    partnerId = partnerId
+    photoUrl = photoUrl
 )
 
 fun UserProfileModel.toMap(): Map<String, Any?> = mapOf(
     "id" to id,
     "name" to name,
     "email" to email,
-    "photoUrl" to photoUrl,
-    "partnerId" to partnerId
+    "photoUrl" to photoUrl
 )

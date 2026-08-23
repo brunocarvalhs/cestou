@@ -13,6 +13,7 @@ import br.com.brunocarvalhs.howmuch.feature.profile.presentation.viewmodel.Profi
 fun NavGraphBuilder.profileGraph(navigator: Navigator) {
     composable<Profile> {
         val viewModel: ProfileViewModel = hiltViewModel()
+        viewModel.setNavigator(navigator)
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
         ProfileScreen(

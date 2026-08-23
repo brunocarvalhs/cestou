@@ -49,7 +49,7 @@ fun AiInputBar(
             .fillMaxWidth()
             .height(56.dp)
             .shadow(4.dp, RoundedCornerShape(28.dp))
-            .background(Color.White, RoundedCornerShape(28.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(28.dp))
             .padding(horizontal = 8.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -76,12 +76,14 @@ fun AiInputBar(
                         }
                     },
                 singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.Black),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
                 decorationBox = { innerTextField ->
                     if (value.isEmpty()) {
                         Text(
                             text = "Mensagem para o Cestou...",
-                            color = Color.Gray.copy(alpha = 0.5f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     innerTextField()
@@ -92,7 +94,7 @@ fun AiInputBar(
                 Icon(
                     imageVector = Icons.Default.MicNone,
                     contentDescription = null,
-                    tint = Color.Gray
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 

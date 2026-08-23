@@ -1,5 +1,9 @@
 <resources>
     <!-- Feature: Shopping Management -->
+    <string name="shopping_management_lists_title">Listas de compras</string>
+    <string name="shopping_management_notifications_title">Notificaciones</string>
+    <string name="shopping_management_section_recent">Creadas recientemente</string>
+    <string name="shopping_management_content_description_create_list">Crear lista</string>
     <string name="shopping_management_search_placeholder">Buscar listas&#8230;</string>
     <string name="shopping_management_summary_spent">Gasto Total</string>
     <string name="shopping_management_summary_budget">Presupuesto: %s</string>
@@ -39,6 +43,7 @@
     <string name="shopping_management_invite_members_title">Invitar Miembros</string>
     <string name="shopping_management_qr_code_hint">Escanea el código de arriba o usa el token de abajo para unirte a la lista.</string>
     <string name="shopping_management_button_share_invite">Compartir Enlace de Invitación</string>
+    <string name="shopping_management_invite_share_text">¡Únete a mi lista de compras en Cestou! Usa el código %s en la app para participar.</string>
     <string name="shopping_management_error_only_owner_delete">Solo el propietario puede eliminar esta lista</string>
     <string name="shopping_management_error_only_owner_edit">Solo el propietario puede editar esta lista</string>
 

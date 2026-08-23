@@ -23,11 +23,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.theme.CestouBrightGreen
-import br.com.brunocarvalhs.howmuch.core.theme.CestouDarkGreen
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
 
 @Composable
@@ -68,14 +66,26 @@ fun AiMessageBubble(
                 bottomStart = 20.dp,
                 bottomEnd = 20.dp
             ),
-            color = if (isUser) CestouDarkGreen else Color.White,
-            border = if (!isUser) BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.2f)) else null
+            color = if (isUser) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            },
+            border = if (!isUser) {
+                BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            } else {
+                null
+            }
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     text = message.text,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = if (isUser) Color.White else Color.Black
+                    color = if (isUser) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
                 )
             }
         }

@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.commons.navigation
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material3.BottomSheetDefaults
@@ -10,6 +11,8 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
@@ -17,10 +20,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.core.navigation.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.Notifications
-import br.com.brunocarvalhs.howmuch.core.navigation.Partner
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.feature.settings.commons.navigation.Settings
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.form.EditShoppingContent
@@ -28,12 +31,10 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.scanner.QrCodeBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.scanner.QrCodeScanner
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.screen.NotificationsScreen
-import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.screen.PartnerScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.screen.ShoppingScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel.EditShoppingViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel.JoinListViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel.NotificationsViewModel
-import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel.PartnerViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel.ScannerViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel.ShoppingListViewModel
 
@@ -62,16 +63,6 @@ fun NavGraphBuilder.shoppingGraph(
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
         NotificationsScreen(
-            state = uiState,
-            intent = viewModel.intent
-        )
-    }
-
-    composable<Partner> {
-        val viewModel: PartnerViewModel = hiltViewModel()
-        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        
-        PartnerScreen(
             state = uiState,
             intent = viewModel.intent
         )
@@ -115,10 +106,22 @@ private fun NavGraphBuilder.shoppingEditDialog(navigator: Navigator) {
 private fun NavGraphBuilder.shoppingOtherDialogs(navigator: Navigator) {
     dialog<QrCode> { backStackEntry ->
         val route: QrCode = backStackEntry.toRoute()
+        val context = LocalContext.current
+        val shareText = stringResource(R.string.shopping_management_invite_share_text, route.token)
+
         QrCodeBottomSheet(
             token = route.token,
             onDismissRequest = { navigator.goBack() },
-            onShare = { /* Implement share if needed */ }
+            onShare = {
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, shareText)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(Intent.createChooser(shareIntent, null).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                })
+            }
         )
     }
 

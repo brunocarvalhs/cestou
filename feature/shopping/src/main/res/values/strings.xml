@@ -1,5 +1,9 @@
 <resources>
     <!-- Feature: Shopping Management -->
+    <string name="shopping_management_lists_title">Shopping lists</string>
+    <string name="shopping_management_notifications_title">Notifications</string>
+    <string name="shopping_management_section_recent">Recently created</string>
+    <string name="shopping_management_content_description_create_list">Create list</string>
     <string name="shopping_management_search_placeholder">Search lists&#8230;</string>
     <string name="shopping_management_summary_spent">Total Spent</string>
     <string name="shopping_management_summary_budget">Budget: %s</string>
@@ -39,6 +43,7 @@
     <string name="shopping_management_invite_members_title">Invite Members</string>
     <string name="shopping_management_qr_code_hint">Scan the code above or use the token below to join the list.</string>
     <string name="shopping_management_button_share_invite">Share Invitation Link</string>
+    <string name="shopping_management_invite_share_text">Join my shopping list on Cestou! Use the code %s in the app to join.</string>
     <string name="shopping_management_error_only_owner_delete">Only the owner can delete this list</string>
     <string name="shopping_management_error_only_owner_edit">Only the owner can edit this list</string>
 

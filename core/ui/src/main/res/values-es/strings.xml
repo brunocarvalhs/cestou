@@ -18,7 +18,6 @@
 
     <!-- Navigation -->
     <string name="nav_lists">Listas</string>
-    <string name="nav_partner">Socio</string>
     <string name="nav_ai_chat">IA Chat</string>
     <string name="nav_profile">Perfil</string>
 
@@ -40,6 +39,12 @@
 
     <!-- Error State -->
     <string name="error_state_title">¡Oops! Algo salió mal</string>
+
+    <!-- Empty / Locked States -->
+    <string name="shopping_list_empty_title">Tu lista está vacía</string>
+    <string name="shopping_list_empty_description">¡Añade productos o pide ayuda a la IA!</string>
+    <string name="shopping_list_locked_title">Lista Finalizada</string>
+    <string name="shopping_list_locked_description">Esta lista está bloqueada para cambios.</string>
 
     <!-- Categories -->
     <string name="category_hortifruti">Frutas y Verduras</string>
