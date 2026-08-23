@@ -4,20 +4,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
-import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,17 +38,10 @@ sealed class BottomNavItem(
     val unselectedIcon: ImageVector
 ) {
     object Lists : BottomNavItem(
-        ShoppingList,
-        R.string.nav_lists,
-        Icons.AutoMirrored.Filled.FormatListBulleted,
-        Icons.AutoMirrored.Outlined.FormatListBulleted
-    )
-
-    object PartnerItem : BottomNavItem(
-        Partner,
-        R.string.nav_partner,
-        Icons.Default.Group,
-        Icons.Outlined.Group
+        route = ShoppingList,
+        titleRes = R.string.nav_lists,
+        selectedIcon = Icons.Filled.ShoppingCart,
+        unselectedIcon = Icons.Outlined.ShoppingCart
     )
 
     object AiChatItem : BottomNavItem(
@@ -76,7 +68,6 @@ fun CestouBottomNavigation(
 ) {
     val items = listOf(
         BottomNavItem.Lists,
-        BottomNavItem.PartnerItem,
         BottomNavItem.AiChatItem,
         BottomNavItem.ProfileItem
     )

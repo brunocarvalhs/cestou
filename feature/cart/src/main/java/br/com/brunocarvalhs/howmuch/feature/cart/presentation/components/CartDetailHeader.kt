@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +29,7 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,15 +51,11 @@ internal fun CartDetailHeader(
     title: String = "",
     description: String = "Compartilhada com João",
     onBack: () -> Unit = {},
-    onShare: () -> Unit = {},
-    onEdit: () -> Unit = {},
-    // Keeping for compatibility
-    usersCount: Int = 0,
-    onFinish: () -> Unit = {},
-    showFinish: Boolean = false,
-    actionsMore: @Composable ColumnScope.() -> Unit = {}
+    scrollBehavior: TopAppBarScrollBehavior? = null,
+    actions: @Composable (RowScope.() -> Unit) = {}
 ) {
     LargeTopAppBar(
+        scrollBehavior = scrollBehavior,
         modifier = modifier,
         title = {
             Row {
@@ -101,7 +99,6 @@ internal fun CartDetailHeader(
                     Text(description, style = MaterialTheme.typography.bodyMedium)
                 }
             }
-
         },
         navigationIcon = {
             IconButton(onClick = onBack) {
@@ -111,24 +108,11 @@ internal fun CartDetailHeader(
                 )
             }
         },
-        actions = {
-            IconButton(onClick = onShare) {
-                Icon(
-                    imageVector = Icons.Default.Share,
-                    contentDescription = null,
-                )
-            }
-
-            IconButton(onClick = onEdit) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = null,
-                )
-            }
-        }
+        actions = actions
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 private fun CartDetailHeaderPreview() {
