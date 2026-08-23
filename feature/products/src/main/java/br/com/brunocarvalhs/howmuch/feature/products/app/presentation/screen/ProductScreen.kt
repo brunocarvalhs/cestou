@@ -17,6 +17,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.screen.AiChatScreen
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel.AiChatViewModel
 import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.common.Options
 import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.product.ProductBarcodeForm
 import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.product.ProductHeader
@@ -99,6 +101,15 @@ internal fun ProductScreen(
                     events = viewModel.events,
                     snackbarHostState = snackbarHostState,
                     onBack = onBack
+                )
+            }
+            composable(Options.AI.name) {
+                val viewModel: AiChatViewModel = hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
+                viewModel.setShoppingContext(shopping.id)
+                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                AiChatScreen(
+                    state = uiState,
+                    intent = viewModel.intent
                 )
             }
         }

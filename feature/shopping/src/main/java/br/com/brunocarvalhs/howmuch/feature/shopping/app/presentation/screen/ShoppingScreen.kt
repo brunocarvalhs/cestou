@@ -13,10 +13,11 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -91,24 +92,16 @@ internal fun ShoppingScreen(
                     actions = {
                         IconButton(onClick = intent.onShowJoinDialog) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.Login,
+                                imageVector = Icons.Default.QrCodeScanner,
                                 contentDescription = stringResource(
                                     R.string.shopping_management_button_join
-                                )
-                            )
-                        }
-                        IconButton(onClick = intent.onCreate) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = stringResource(
-                                    R.string.shopping_management_content_description_create_list
                                 )
                             )
                         }
                     },
                     title = {
                         Text(
-                            text = stringResource(R.string.shopping_management_lists_title),
+                            text = stringResource(br.com.brunocarvalhs.howmuch.core.ui.R.string.app_name),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -117,6 +110,16 @@ internal fun ShoppingScreen(
                         containerColor = MaterialTheme.colorScheme.surface
                     )
                 )
+            },
+            floatingActionButton = {
+                FloatingActionButton(onClick = intent.onCreate) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(
+                            R.string.shopping_management_content_description_create_list
+                        )
+                    )
+                }
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
             containerColor = MaterialTheme.colorScheme.background

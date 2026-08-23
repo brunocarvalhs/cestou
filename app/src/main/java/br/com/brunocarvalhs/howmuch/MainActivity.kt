@@ -17,7 +17,9 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.core.os.LocaleListCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -75,6 +77,20 @@ class MainActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
                 val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
+
+                // NavHost only reads startDestination on first composition, so a sign-out
+                // (isAuthenticated flipping to false) wouldn't otherwise route back to Welcome.
+                var wasAuthenticated by remember { mutableStateOf(isAuthenticated) }
+                LaunchedEffect(isAuthenticated) {
+                    if (isAuthenticated) {
+                        wasAuthenticated = true
+                    } else if (wasAuthenticated) {
+                        wasAuthenticated = false
+                        navigator.navigate(Welcome) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                }
 
                 val rootRoutes = remember { listOf(ShoppingList, AiChat, Profile) }
 

@@ -57,12 +57,6 @@
     <string name="shopping_list_new_title">Nova Lista</string>
     <string name="shopping_list_new_description">Lista de compras padrão</string>
 
-    <string name="shopping_suggestion_expensive">Qual é a minha lista mais cara?</string>
-    <string name="shopping_suggestion_breakfast">Sugerir itens para um café da manhã</string>
-    <string name="shopping_suggestion_pending">Quais listas estão pendentes?</string>
-    <string name="shopping_suggestion_barbecue">Crie uma lista de churrasco para 5 pessoas</string>
-    <string name="shopping_suggestion_spent_month">Qual o total gasto este mês?</string>
-
     <string name="action_duplicate">Duplicar</string>
     <string name="action_reopen">Reabrir</string>
     <string name="action_add_favorite">Adicionar aos Favoritos</string>

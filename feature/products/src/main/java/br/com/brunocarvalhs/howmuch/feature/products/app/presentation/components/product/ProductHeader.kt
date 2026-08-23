@@ -70,6 +70,7 @@ internal fun ProductHeader(
                                 Options.SEARCH -> stringResource(R.string.product_option_search)
                                 Options.PHOTO -> stringResource(R.string.product_option_photo)
                                 Options.SUGGESTIONS -> stringResource(R.string.product_option_suggestions)
+                                Options.AI -> stringResource(R.string.product_option_ai)
                             }
                         )
                     },

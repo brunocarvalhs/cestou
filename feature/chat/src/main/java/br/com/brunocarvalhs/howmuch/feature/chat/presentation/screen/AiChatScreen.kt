@@ -32,7 +32,7 @@ import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatInten
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiChatUiState
 
 @Composable
-internal fun AiChatScreen(
+fun AiChatScreen(
     state: AiChatUiState,
     intent: AiChatIntent
 ) {

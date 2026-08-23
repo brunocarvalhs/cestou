@@ -5,4 +5,5 @@ enum class Options {
     SEARCH,
     PHOTO,
     BARCODE,
+    AI,
 }

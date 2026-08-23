@@ -13,12 +13,11 @@ import br.com.brunocarvalhs.howmuch.feature.auth.app.presentation.components.aut
 import br.com.brunocarvalhs.howmuch.feature.auth.app.presentation.components.auth.CustomPhoneContent
 import br.com.brunocarvalhs.howmuch.feature.auth.app.presentation.components.auth.CustomReauthContent
 import br.com.brunocarvalhs.howmuch.feature.auth.app.presentation.screen.WelcomeScreen
-import br.com.brunocarvalhs.howmuch.feature.auth.app.presentation.viewmodel.LoginViewModel
 import br.com.brunocarvalhs.howmuch.feature.auth.app.presentation.viewmodel.WelcomeViewModel
 import com.firebase.ui.auth.ui.method_picker.MethodPickerTermsConfiguration
 import com.firebase.ui.auth.ui.screens.FirebaseAuthScreen
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 fun NavGraphBuilder.authGraph(
     navigator: Navigator,
@@ -26,19 +25,7 @@ fun NavGraphBuilder.authGraph(
 ) {
     composable<Welcome> {
         val viewModel: WelcomeViewModel = hiltViewModel()
-        viewModel.onNavigateToLogin = {
-            navigator.navigate(Login)
-        }
-        
-        val state by viewModel.uiState.collectAsState()
-        WelcomeScreen(
-            state = state,
-            intent = viewModel.intent
-        )
-    }
-
-    composable<Login> {
-        val viewModel: LoginViewModel = hiltViewModel()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         
         FirebaseAuthScreen(
             configuration = viewModel.authConfig.invoke(),
@@ -49,10 +36,12 @@ fun NavGraphBuilder.authGraph(
                 viewModel.onSignInFailure(exception)
             },
             onSignInCancelled = {
-                navigator.goBack()
+
             },
             customMethodPickerLayout = { providers, onProviderSelected ->
-                CustomMethodPickerLayout(providers, onProviderSelected)
+                WelcomeScreen(state = uiState) {
+                    CustomMethodPickerLayout(providers, onProviderSelected)
+                }
             },
             customMethodPickerTermsConfiguration = MethodPickerTermsConfiguration(
                 content = { CustomMethodPickerTerms() }

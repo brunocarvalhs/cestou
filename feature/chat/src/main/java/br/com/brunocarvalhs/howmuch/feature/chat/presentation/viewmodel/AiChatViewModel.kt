@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-internal class AiChatViewModel @Inject constructor(
+class AiChatViewModel @Inject constructor(
     private val assistantUseCase: CartAssistantUseCase
 ) : ViewModel() {
 
@@ -25,6 +25,10 @@ internal class AiChatViewModel @Inject constructor(
         onInputChange = { text -> _uiState.update { it.copy(input = text) } },
         onSendMessage = { sendMessage() }
     )
+
+    fun setShoppingContext(shoppingId: String) {
+        _uiState.update { it.copy(shoppingId = shoppingId) }
+    }
 
     private fun sendMessage() {
         val text = _uiState.value.input

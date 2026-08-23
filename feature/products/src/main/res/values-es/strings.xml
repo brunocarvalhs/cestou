@@ -17,6 +17,7 @@
     <string name="product_option_search">Buscar</string>
     <string name="product_option_photo">Foto</string>
     <string name="product_option_suggestions">Sugerencias</string>
+    <string name="product_option_ai">Chat con IA</string>
     <string name="product_empty_title">No se encontró ningún producto</string>
     <string name="product_empty_description">Encuentra tus productos usando la búsqueda,\nel código de barras o crea un nuevo producto.</string>
     <string name="product_error_loading_image">Error al cargar la imagen</string>

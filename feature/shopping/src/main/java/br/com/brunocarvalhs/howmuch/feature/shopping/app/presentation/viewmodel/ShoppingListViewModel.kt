@@ -12,12 +12,9 @@ import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
-import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
-import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.CartFlow
 import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
-import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.GetShoppingSuggestionsUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShareShoppingUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShoppingCreateUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShoppingDeleteUseCase
@@ -48,9 +45,7 @@ internal class ShoppingListViewModel @Inject constructor(
     private val shoppingDuplicateUseCase: ShoppingDuplicateUseCase,
     private val shoppingDeleteUseCase: ShoppingDeleteUseCase,
     private val shareShoppingUseCase: ShareShoppingUseCase,
-    private val assistantUseCase: CartAssistantUseCase,
     private val shoppingReopenUseCase: ShoppingReopenUseCase,
-    private val getShoppingSuggestionsUseCase: GetShoppingSuggestionsUseCase,
     private val getSettingsUseCase: GetSettingsUseCase,
     private val authService: AuthService
 ) : ViewModel() {
@@ -69,7 +64,6 @@ internal class ShoppingListViewModel @Inject constructor(
                 shoppingGetByIdUseCase.invoke(id).onSuccess { navigateToProducts(it) }
             }
         },
-        onPromptChanged = { value -> _uiState.update { it.copy(prompt = value) } },
         onFilter = { value ->
             _uiState.update { it.copy(selectedFilter = value) }
             applyFilters()
@@ -81,10 +75,6 @@ internal class ShoppingListViewModel @Inject constructor(
         onSearch = { value ->
             _uiState.update { it.copy(searchQuery = value) }
             applyFilters()
-        },
-        onSendPrompt = { sendPrompt() },
-        onOpenAi = {
-            loadAiSuggestions()
         },
         onToggleFavorite = { shopping ->
             handleShoppingAction(ShoppingAction.ToggleFavorite(shopping))
@@ -125,10 +115,6 @@ internal class ShoppingListViewModel @Inject constructor(
                 shoppingCreateUseCase.invoke(title = title, description = description)
                     .onSuccess { navigateToProducts(it) }
             }
-        },
-        onSuggestionClick = { suggestion ->
-            _uiState.update { it.copy(prompt = suggestion) }
-            sendPrompt()
         }
     )
 
@@ -194,20 +180,6 @@ internal class ShoppingListViewModel @Inject constructor(
         }
     }
 
-    private fun loadAiSuggestions() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isAiSuggestionsLoading = true) }
-            getShoppingSuggestionsUseCase().collect { suggestions ->
-                _uiState.update {
-                    it.copy(
-                        aiSuggestions = StableList(suggestions),
-                        isAiSuggestionsLoading = false
-                    )
-                }
-            }
-        }
-    }
-
     private fun applyFilters() {
         val query = _uiState.value.searchQuery.lowercase()
         val filter = _uiState.value.selectedFilter
@@ -235,45 +207,6 @@ internal class ShoppingListViewModel @Inject constructor(
             .mapValues { StableList(it.value) }
 
         _uiState.update { it.copy(filteredList = StableList(filtered), groupedList = grouped) }
-    }
-
-    private fun sendPrompt() {
-        val text = _uiState.value.prompt
-        if (text.isBlank()) return
-
-        _uiState.update {
-            it.copy(
-                prompt = "",
-                aiMessages = StableList(
-                    it.aiMessages.items + ChatMessage(
-                        text = text,
-                        sender = ChatMessage.Sender.USER
-                    )
-                ),
-                isAiLoading = true
-            )
-        }
-
-        viewModelScope.launch {
-            try {
-                assistantUseCase(text, _uiState.value).collect { response ->
-                    _uiState.update {
-                        it.copy(
-                            aiMessages = StableList(
-                                it.aiMessages.items + ChatMessage(
-                                    text = response,
-                                    sender = ChatMessage.Sender.ASSISTANT
-                                )
-                            ),
-                            isAiLoading = false
-                        )
-                    }
-                }
-            } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
-                _uiState.update { it.copy(isAiLoading = false) }
-            }
-        }
     }
 
     private fun fetchAll() {

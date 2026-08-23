@@ -2,6 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.auth.app.presentation.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -23,13 +25,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
 import br.com.brunocarvalhs.howmuch.feature.auth.R
-import br.com.brunocarvalhs.howmuch.feature.auth.app.presentation.intent.WelcomeIntent
 import br.com.brunocarvalhs.howmuch.feature.auth.app.presentation.state.WelcomeUiState
 
 @Composable
 internal fun WelcomeScreen(
     state: WelcomeUiState,
-    intent: WelcomeIntent
+    actions: @Composable RowScope.() -> Unit
 ) {
     Scaffold { paddingValues ->
         Column(
@@ -78,21 +79,11 @@ internal fun WelcomeScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Action Button
-            CestouButton(
-                text = stringResource(R.string.welcome_button),
-                onClick = { intent.onStart() },
-                trailingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight
-            )
+            Row {
+                actions()
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            // Footer
-            Text(
-                text = stringResource(R.string.welcome_footer, state.version),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-            )
         }
     }
 }
@@ -101,9 +92,12 @@ internal fun WelcomeScreen(
 @Composable
 private fun WelcomeScreenPreview() {
     MaterialTheme {
-        WelcomeScreen(
-            state = WelcomeUiState(version = "1.2.0"),
-            intent = WelcomeIntent()
-        )
+        WelcomeScreen(state = WelcomeUiState(version = "1.2.0")) {
+            CestouButton(
+                text = "Começa",
+                onClick = {  },
+                trailingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight
+            )
+        }
     }
 }
