@@ -1,7 +1,9 @@
 package br.com.brunocarvalhs.howmuch.core.common.di
 
+import br.com.brunocarvalhs.howmuch.core.common.contract.AppVersionProvider
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import br.com.brunocarvalhs.howmuch.core.common.service.FirebaseCrashReporter
+import br.com.brunocarvalhs.howmuch.core.common.service.PackageManagerVersionProvider
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.crashlytics.crashlytics
@@ -19,6 +21,10 @@ abstract class CommonModule {
     @Binds
     @Singleton
     abstract fun bindCrashReporter(impl: FirebaseCrashReporter): CrashReporter
+
+    @Binds
+    @Singleton
+    abstract fun bindAppVersionProvider(impl: PackageManagerVersionProvider): AppVersionProvider
 
     companion object {
         @Provides

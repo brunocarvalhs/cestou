@@ -4,6 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.feature.products.app.domain.model.Recipe
 import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductSaveUseCase
@@ -25,12 +28,17 @@ internal class ProductSearchViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val searchUseCase: ProductSearchUseCase,
     private val recipeSearchUseCase: RecipeSearchUseCase,
-    private val saveUseCase: ProductSaveUseCase
+    private val saveUseCase: ProductSaveUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
     private val shopping = savedStateHandle.toRoute<ProductPickerRoute>(ProductPickerRoute.typeMap).shopping
 
     private val _uiState = MutableStateFlow(ProductSearchUiState())
     val uiState = _uiState.asStateFlow()
+
+    init {
+        analyticsTracker.trackScreenView(screenName = "product_search", screenClass = "ProductSearchViewModel")
+    }
 
     val intent = ProductSearchIntent(
         onQueryChange = { onQueryChange(it) },
@@ -57,18 +65,21 @@ internal class ProductSearchViewModel @Inject constructor(
     private fun search() {
         viewModelScope.launch {
             _uiState.update { it.copy(isSearching = true) }
+            val query = _uiState.value.query
             if (_uiState.value.searchMode == ProductSearchUiState.SearchMode.PRODUCT) {
-                searchUseCase(_uiState.value.query)
+                searchUseCase(query)
                     .onSuccess { results ->
                         _uiState.update { it.copy(results = results, isSearching = false) }
+                        trackSearchPerformed(query = query, mode = "product", resultCount = results.size)
                     }
                     .onFailure { e ->
                         _uiState.update { it.copy(isSearching = false, errorMessage = e.message) }
                     }
             } else {
-                recipeSearchUseCase(_uiState.value.query)
+                recipeSearchUseCase(query)
                     .onSuccess { results ->
                         _uiState.update { it.copy(recipes = results, isSearching = false) }
+                        trackSearchPerformed(query = query, mode = "recipe", resultCount = results.size)
                     }
                     .onFailure { e ->
                         _uiState.update { it.copy(isSearching = false, errorMessage = e.message) }
@@ -77,9 +88,24 @@ internal class ProductSearchViewModel @Inject constructor(
         }
     }
 
+    private fun trackSearchPerformed(query: String, mode: String, resultCount: Int) {
+        analyticsTracker.trackEvent(
+            AnalyticsEvents.PRODUCT_SEARCH_PERFORMED,
+            mapOf(
+                AnalyticsParams.SEARCH_MODE to mode,
+                AnalyticsParams.QUERY_LENGTH to query.length,
+                AnalyticsParams.RESULT_COUNT to resultCount
+            )
+        )
+    }
+
     private fun onProductSelected(product: Product) {
         viewModelScope.launch {
             saveUseCase(product = product, shoppingId = shopping.id)
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.PRODUCT_SELECTED,
+                mapOf(AnalyticsParams.SHOPPING_ID to shopping.id, AnalyticsParams.PRODUCT_ID to product.id)
+            )
         }
     }
 

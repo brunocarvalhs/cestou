@@ -2,6 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.profile.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
@@ -18,7 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 internal class ProfileViewModel @Inject constructor(
     private val authService: AuthService,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -27,6 +30,7 @@ internal class ProfileViewModel @Inject constructor(
     private var _navigator: Navigator? = null
 
     init {
+        analyticsTracker.trackScreenView(screenName = "profile", screenClass = "ProfileViewModel")
         observeProfile()
     }
 
@@ -48,6 +52,7 @@ internal class ProfileViewModel @Inject constructor(
     private fun signOut() {
         viewModelScope.launch {
             authService.signOut()
+            analyticsTracker.trackEvent(AnalyticsEvents.PROFILE_SIGN_OUT)
         }
     }
 

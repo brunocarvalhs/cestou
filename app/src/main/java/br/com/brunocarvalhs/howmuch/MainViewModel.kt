@@ -2,6 +2,8 @@ package br.com.brunocarvalhs.howmuch
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
@@ -16,9 +18,14 @@ import javax.inject.Inject
 @HiltViewModel
 internal class MainViewModel @Inject constructor(
     getSettingsUseCase: GetSettingsUseCase,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
-    
+
+    init {
+        analyticsTracker.trackEvent(AnalyticsEvents.APP_OPEN)
+    }
+
     val isAuthenticated: StateFlow<Boolean> = authService.authState
         .map { it != null }
         .stateIn(

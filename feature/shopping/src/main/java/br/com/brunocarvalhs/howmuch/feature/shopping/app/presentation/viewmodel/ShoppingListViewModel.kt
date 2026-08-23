@@ -2,6 +2,9 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.User
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
@@ -13,6 +16,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.CartFlow
+import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.exception.OwnershipRequiredException
 import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShareShoppingUseCase
@@ -47,7 +51,8 @@ internal class ShoppingListViewModel @Inject constructor(
     private val shareShoppingUseCase: ShareShoppingUseCase,
     private val shoppingReopenUseCase: ShoppingReopenUseCase,
     private val getSettingsUseCase: GetSettingsUseCase,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ShoppingListUiState())
@@ -113,12 +118,19 @@ internal class ShoppingListViewModel @Inject constructor(
             _uiState.update { it.copy(isCreateSheetVisible = false) }
             viewModelScope.launch {
                 shoppingCreateUseCase.invoke(title = title, description = description)
-                    .onSuccess { navigateToProducts(it) }
+                    .onSuccess {
+                        analyticsTracker.trackEvent(
+                            AnalyticsEvents.SHOPPING_LIST_CREATED,
+                            mapOf(AnalyticsParams.SHOPPING_ID to it.id)
+                        )
+                        navigateToProducts(it)
+                    }
             }
         }
     )
 
     init {
+        analyticsTracker.trackScreenView(screenName = "shopping_list", screenClass = "ShoppingListViewModel")
         observeData()
     }
 
@@ -149,7 +161,12 @@ internal class ShoppingListViewModel @Inject constructor(
                     val shopping = repository.getById(action.id)
                     val userId = authService.currentUser?.id
                     if (shopping?.roles?.get(userId) == User.Role.OWNER.name) {
-                        shoppingDeleteUseCase(action.id)
+                        shoppingDeleteUseCase(action.id).onSuccess {
+                            analyticsTracker.trackEvent(
+                                AnalyticsEvents.SHOPPING_LIST_DELETED,
+                                mapOf(AnalyticsParams.SHOPPING_ID to action.id)
+                            )
+                        }
                     } else {
                         _uiState.update {
                             it.copy(
@@ -158,11 +175,15 @@ internal class ShoppingListViewModel @Inject constructor(
                                 )
                             )
                         }
-                        Result.failure(Exception("Not owner"))
+                        Result.failure(OwnershipRequiredException("delete"))
                     }
                 }
                 is ShoppingAction.Share -> {
                     shareShoppingUseCase(action.shopping)
+                    analyticsTracker.trackEvent(
+                        AnalyticsEvents.SHOPPING_LIST_SHARED,
+                        mapOf(AnalyticsParams.SHOPPING_ID to action.shopping.id)
+                    )
                     Result.success(Unit)
                 }
                 is ShoppingAction.Duplicate -> shoppingDuplicateUseCase(action.shopping)

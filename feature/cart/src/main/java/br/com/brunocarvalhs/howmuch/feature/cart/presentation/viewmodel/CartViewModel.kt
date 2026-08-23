@@ -4,6 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
@@ -40,7 +43,8 @@ internal class CartViewModel @Inject constructor(
     private val getQuestionSuggestionsUseCase: GetQuestionSuggestionsUseCase,
     private val clearPurchasedUseCase: ShoppingClearPurchasedUseCase,
     private val getSettingsUseCase: GetSettingsUseCase,
-    private val sortProductsUseCase: SortProductsUseCase
+    private val sortProductsUseCase: SortProductsUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val shopping = savedStateHandle.toRoute<CartFlow>(CartFlow.typeMap).shopping
@@ -74,7 +78,13 @@ internal class CartViewModel @Inject constructor(
         onEditProduct = { product -> _navigator?.navigate(EditItemRoute(product, shopping.id)) },
         onUpdateQuantity = { product, quantity -> updateQuantity(product, quantity) },
         onTogglePurchased = { product, isPurchased -> togglePurchased(product, isPurchased) },
-        onToggleFinishPurchaseSheet = { _navigator?.navigate(FinishPurchaseRoute) },
+        onToggleFinishPurchaseSheet = {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.CART_FINISH_PURCHASE_STARTED,
+                mapOf(AnalyticsParams.SHOPPING_ID to shopping.id)
+            )
+            _navigator?.navigate(FinishPurchaseRoute)
+        },
         onClearPurchased = { clearPurchased() },
         onShowShareOptions = { _navigator?.navigate(ShareOptionsRoute) },
         onSuggestionClick = { question ->
@@ -85,6 +95,7 @@ internal class CartViewModel @Inject constructor(
     )
 
     init {
+        analyticsTracker.trackScreenView(screenName = "cart", screenClass = "CartViewModel")
         observeData()
     }
 
@@ -150,6 +161,10 @@ internal class CartViewModel @Inject constructor(
     private fun deleteProduct(product: Product) {
         viewModelScope.launch {
             useCase.delete(product.id, shopping.id)
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.CART_PRODUCT_DELETED,
+                mapOf(AnalyticsParams.SHOPPING_ID to shopping.id, AnalyticsParams.PRODUCT_ID to product.id)
+            )
         }
     }
 

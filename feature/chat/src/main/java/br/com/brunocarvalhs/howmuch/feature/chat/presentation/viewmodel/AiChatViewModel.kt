@@ -2,6 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatIntent
@@ -15,11 +17,16 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AiChatViewModel @Inject constructor(
-    private val assistantUseCase: CartAssistantUseCase
+    private val assistantUseCase: CartAssistantUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AiChatUiState())
     val uiState = _uiState.asStateFlow()
+
+    init {
+        analyticsTracker.trackScreenView(screenName = "ai_chat", screenClass = "AiChatViewModel")
+    }
 
     val intent = AiChatIntent(
         onInputChange = { text -> _uiState.update { it.copy(input = text) } },
@@ -34,8 +41,10 @@ class AiChatViewModel @Inject constructor(
         val text = _uiState.value.input
         if (text.isBlank()) return
 
+        analyticsTracker.trackEvent(AnalyticsEvents.AI_CHAT_MESSAGE_SENT)
+
         val userMessage = ChatMessage(text = text, sender = ChatMessage.Sender.USER)
-        _uiState.update { 
+        _uiState.update {
             it.copy(
                 messages = it.messages + userMessage,
                 input = "",

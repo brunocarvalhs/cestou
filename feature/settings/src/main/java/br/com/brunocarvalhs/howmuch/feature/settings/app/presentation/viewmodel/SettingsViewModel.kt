@@ -20,6 +20,9 @@ import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.common.BuildConfig
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiModel
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
@@ -67,7 +70,8 @@ internal class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val getSettingsUseCase: GetSettingsUseCase,
     private val updateLanguageUseCase: UpdateLanguageUseCase,
-    private val updateCurrencyUseCase: UpdateCurrencyUseCase
+    private val updateCurrencyUseCase: UpdateCurrencyUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -83,15 +87,24 @@ internal class SettingsViewModel @Inject constructor(
         onUpdateLanguage = { language ->
             viewModelScope.launch {
                 updateLanguageUseCase(language)
+                analyticsTracker.trackEvent(
+                    AnalyticsEvents.SETTINGS_LANGUAGE_CHANGED,
+                    mapOf(AnalyticsParams.LANGUAGE to language)
+                )
             }
         },
         onUpdateCurrency = { currency ->
             viewModelScope.launch {
                 updateCurrencyUseCase(currency)
+                analyticsTracker.trackEvent(
+                    AnalyticsEvents.SETTINGS_CURRENCY_CHANGED,
+                    mapOf(AnalyticsParams.CURRENCY to currency)
+                )
             }
         })
 
     init {
+        analyticsTracker.trackScreenView(screenName = "settings", screenClass = "SettingsViewModel")
         observeSettings()
     }
 

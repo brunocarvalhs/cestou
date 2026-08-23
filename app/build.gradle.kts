@@ -78,6 +78,8 @@ dependencies {
     implementation(project(":core:auth"))
     implementation(project(":core:data"))
     implementation(project(":core:ai"))
+    implementation(project(":core:remote-config"))
+    implementation(project(":core:analytics"))
     implementation(project(":feature:shopping"))
     implementation(project(":feature:products"))
     implementation(project(":feature:settings"))
