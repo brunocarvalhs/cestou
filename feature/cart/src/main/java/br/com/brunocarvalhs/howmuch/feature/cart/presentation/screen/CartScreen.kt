@@ -49,6 +49,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.CurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
@@ -274,7 +275,10 @@ private fun LazyGridScope.cartListContent(
 @Preview
 @Composable
 private fun CartPreview() {
-    CartScreen(
-        uiState = CartUiState(shopping = null),
-    )
+    CestouTheme {
+        CartScreen(
+            uiState = CartUiState(shopping = null),
+        )
+    }
+
 }

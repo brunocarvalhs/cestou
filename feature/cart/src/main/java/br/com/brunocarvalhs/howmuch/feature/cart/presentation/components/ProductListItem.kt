@@ -1,5 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.cart.presentation.components
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,45 +24,45 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
-import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.theme.CestouBrightGreen
-import br.com.brunocarvalhs.howmuch.core.theme.CestouTextPrimary
-import br.com.brunocarvalhs.howmuch.core.theme.CestouTextSecondary
+import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
 
 @Composable
 internal fun ProductListItem(
-    product: Product,
-    onDelete: () -> Unit,
-    onEdit: () -> Unit,
-    onQuantityChange: (Double) -> Unit,
-    onTogglePurchased: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    product: Product,
+    onDelete: () -> Unit = {},
+    onEdit: () -> Unit = {},
+    onQuantityChange: (Double) -> Unit = { _ -> },
+    onTogglePurchased: (Boolean) -> Unit = { },
     enabled: Boolean = true,
     showDivider: Boolean = true
 ) {
     val currencyFormatter = rememberCurrencyFormatter()
 
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(modifier = modifier
+        .fillMaxWidth()
+        .combinedClickable(
+            enabled = enabled,
+            onClick = { onTogglePurchased(!product.isPurchased) },
+            onLongClick = { onEdit.invoke() }
+        )
+    ) {
         Row(
             modifier = Modifier
                 .padding(vertical = 12.dp, horizontal = 16.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                onClick = { onTogglePurchased(!product.isPurchased) },
-                enabled = enabled,
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    imageVector = if (product.isPurchased) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
-                    contentDescription = null,
-                    tint = if (product.isPurchased) CestouBrightGreen else Color.LightGray,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            Checkbox(
+                checked = product.isPurchased,
+                onCheckedChange = {
+                    onTogglePurchased(!product.isPurchased)
+                }
+            )
 
             Spacer(modifier = Modifier.width(12.dp))
 
@@ -67,21 +70,18 @@ internal fun ProductListItem(
                 Text(
                     text = product.name,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = if (product.isPurchased) Color.LightGray else CestouTextPrimary,
                     fontWeight = FontWeight.SemiBold,
                     textDecoration = if (product.isPurchased) TextDecoration.LineThrough else TextDecoration.None
                 )
                 Text(
                     text = "${product.quantity} ${product.unit}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.LightGray
                 )
             }
 
             Text(
                 text = currencyFormatter.format(product.total),
                 style = MaterialTheme.typography.bodyLarge,
-                color = CestouTextPrimary,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -93,4 +93,17 @@ internal fun ProductListItem(
             )
         }
     }
+}
+
+@Preview
+@Composable
+private fun ProductListItemPreview() {
+    ProductListItem(
+        product = Product(
+            id = "",
+            name = "Arroz",
+            quantity = 2.0,
+            price = 2.50
+        ),
+    )
 }
