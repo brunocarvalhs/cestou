@@ -22,7 +22,7 @@ internal class AiAgentFactoryImpl @Inject constructor(
         return when (settings.aiProvider) {
             "gemini" -> gemini
             "openrouter" -> openRouter
-            else -> FallbackAiAgent(gemini, openRouter)
+            else -> FallbackAiAgent(openRouter, gemini)
         }
     }
 }
