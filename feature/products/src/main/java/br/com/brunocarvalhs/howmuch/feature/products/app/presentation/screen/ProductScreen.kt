@@ -20,12 +20,11 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.screen.AiChatScreen
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel.AiChatViewModel
 import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.common.Options
-import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.product.ProductBarcodeForm
 import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.product.ProductHeader
 import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.product.ProductPhotoForm
 import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.product.ProductSearchForm
-import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.product.ProductSuggestionForm
-import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.viewmodel.ProductBarcodeViewModel
+import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.product.SuggestionsAndCommonForm
+import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.viewmodel.CommonProductViewModel
 import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.viewmodel.ProductPhotoViewModel
 import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.viewmodel.ProductSearchViewModel
 import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.viewmodel.ProductSuggestionViewModel
@@ -40,7 +39,7 @@ internal fun ProductScreen(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val selectedOption = Options.entries.find { it.name == currentRoute } ?: Options.BARCODE
+    val selectedOption = Options.entries.find { it.name == currentRoute } ?: Options.AI
 
     val viewModelStoreOwner = LocalViewModelStoreOwner.current!!
     val snackbarHostState = remember { SnackbarHostState() }
@@ -48,6 +47,7 @@ internal fun ProductScreen(
     Scaffold(
         topBar = {
             ProductHeader(
+                shoppingTitle = shopping.title,
                 selectedOption = selectedOption,
                 onOptionSelected = { option ->
                     navController.navigate(option.name) {
@@ -65,17 +65,9 @@ internal fun ProductScreen(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Options.SUGGESTIONS.name,
+            startDestination = Options.AI.name,
             modifier = modifier.padding(innerPadding)
         ) {
-            composable(Options.BARCODE.name) {
-                val viewModel: ProductBarcodeViewModel = hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
-                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-                ProductBarcodeForm(
-                    uiState = uiState,
-                    intent = viewModel.intent
-                )
-            }
             composable(Options.SEARCH.name) {
                 val viewModel: ProductSearchViewModel = hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -89,16 +81,23 @@ internal fun ProductScreen(
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
                 ProductPhotoForm(
                     uiState = uiState,
-                    intent = viewModel.intent
+                    intent = viewModel.intent,
+                    snackbarHostState = snackbarHostState
                 )
             }
             composable(Options.SUGGESTIONS.name) {
-                val viewModel: ProductSuggestionViewModel = hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
-                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-                ProductSuggestionForm(
-                    uiState = uiState,
-                    intent = viewModel.intent,
-                    events = viewModel.events,
+                val suggestionViewModel: ProductSuggestionViewModel =
+                    hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
+                val suggestionUiState by suggestionViewModel.uiState.collectAsStateWithLifecycle()
+                val commonViewModel: CommonProductViewModel =
+                    hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
+                val commonUiState by commonViewModel.uiState.collectAsStateWithLifecycle()
+                SuggestionsAndCommonForm(
+                    suggestionUiState = suggestionUiState,
+                    suggestionIntent = suggestionViewModel.intent,
+                    suggestionEvents = suggestionViewModel.events,
+                    commonUiState = commonUiState,
+                    commonIntent = commonViewModel.intent,
                     snackbarHostState = snackbarHostState,
                     onBack = onBack
                 )

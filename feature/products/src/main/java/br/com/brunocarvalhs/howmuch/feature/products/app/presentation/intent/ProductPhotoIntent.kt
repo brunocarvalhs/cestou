@@ -7,5 +7,9 @@ internal data class ProductPhotoIntent(
     val onImageCaptured: (Uri) -> Unit = {},
     val onRetake: () -> Unit = {},
     val onAnalyzeImage: () -> Unit = {},
-    val onProductConfirmed: (Product) -> Unit = {}
+    val onProductConfirmed: (Product) -> Unit = {},
+    val onAnalysisItemUpdated: (Product) -> Unit = {},
+    val onAnalysisItemRemoved: (String) -> Unit = {},
+    val onConfirmAllAnalysisItems: () -> Unit = {},
+    val onConfirmationMessageShown: () -> Unit = {}
 )

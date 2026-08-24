@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,11 +32,19 @@ internal fun ProductPhotoForm(
     modifier: Modifier = Modifier,
     uiState: ProductPhotoUiState,
     intent: ProductPhotoIntent = ProductPhotoIntent(),
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val context = LocalContext.current
     val isInspection = LocalInspectionMode.current
     var hasCameraPermission by remember {
         mutableStateOf(context.hasPermission(Manifest.permission.CAMERA) || isInspection)
+    }
+
+    LaunchedEffect(uiState.confirmationMessage) {
+        uiState.confirmationMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            intent.onConfirmationMessageShown()
+        }
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -74,6 +83,14 @@ internal fun ProductPhotoForm(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
                 }
+            )
+
+            !uiState.isAnalyzing && uiState.analysisResult.isNotEmpty() -> ProductAnalysisConfirmation(
+                products = uiState.analysisResult,
+                onUpdateItem = { intent.onAnalysisItemUpdated(it) },
+                onRemoveItem = { intent.onAnalysisItemRemoved(it) },
+                onConfirmAll = { intent.onConfirmAllAnalysisItems() },
+                onRetake = { intent.onRetake() }
             )
 
             else -> ImagePreviewView(

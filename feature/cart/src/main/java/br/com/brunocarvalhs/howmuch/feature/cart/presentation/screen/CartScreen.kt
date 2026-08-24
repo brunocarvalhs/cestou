@@ -199,7 +199,7 @@ internal fun CartScreen(
                         CestouCategoryHeader(category = category)
                     }
 
-                    itemsIndexed(products) { index, product ->
+                    itemsIndexed(products, key = { _, product -> product.id }) { index, product ->
                         ProductListItem(
                             product = product,
                             enabled = !isLocked,

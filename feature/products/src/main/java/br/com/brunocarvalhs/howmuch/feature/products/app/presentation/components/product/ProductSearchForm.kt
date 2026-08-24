@@ -31,7 +31,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -49,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
 import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.app.domain.model.Recipe
 import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.intent.ProductSearchIntent
@@ -155,28 +155,18 @@ internal fun ProductSearchForm(
             if (uiState.searchMode == ProductSearchUiState.SearchMode.PRODUCT) {
                 items(uiState.results.size) { index ->
                     val product = uiState.results[index]
-                    ListItem(
-                        headlineContent = { Text(product.name) },
-                        trailingContent = {
-                            IconButton(onClick = { intent.onProductSelected(product) }) {
-                                Icon(Icons.Default.ShoppingBag, null)
-                            }
-                        }
+                    ProductItem(
+                        name = product.name,
+                        onClick = { intent.onProductSelected(product) }
                     )
                 }
             } else {
                 items(uiState.recipes.size) { index ->
                     val recipe = uiState.recipes[index]
-                    Card(
-                        onClick = { intent.onRecipeSelected(recipe) },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
-                        ListItem(
-                            headlineContent = { Text(recipe.name) },
-                            supportingContent = { Text(recipe.description, maxLines = 2) }
-                        )
-                    }
+                    RecipeSearchItem(
+                        recipe = recipe,
+                        onClick = { intent.onRecipeSelected(recipe) }
+                    )
                 }
             }
         }
@@ -188,6 +178,45 @@ internal fun ProductSearchForm(
             onDismiss = { intent.onClearRecipeSelection() },
             onConfirm = { intent.onAddRecipeIngredients(uiState.selectedRecipe) }
         )
+    }
+}
+
+@Composable
+private fun RecipeSearchItem(
+    recipe: Recipe,
+    onClick: () -> Unit
+) {
+    CestouCard(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Surface(
+                modifier = Modifier.size(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                AsyncImage(
+                    model = recipe.imageUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop
+                )
+            }
+            Spacer(Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = recipe.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1
+                )
+                Text(
+                    text = recipe.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2
+                )
+            }
+        }
     }
 }
 

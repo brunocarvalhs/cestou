@@ -9,5 +9,6 @@ internal data class ProductPhotoUiState(
     val capturedImageUri: Uri? = null,
     val isAnalyzing: Boolean = false,
     val analysisResult: List<Product> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val confirmationMessage: String? = null
 )

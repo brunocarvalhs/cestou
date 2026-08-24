@@ -13,16 +13,16 @@
     <string name="product_ai_identifying">La IA está identificando los artículos&#8230;</string>
     <string name="product_barcode_instruction">Posicione el código de barras dentro del área</string>
     <string name="product_photo_instruction">Tome una foto de los productos para que la IA los analice</string>
-    <string name="product_option_barcode">Código de Barras</string>
     <string name="product_option_search">Buscar</string>
     <string name="product_option_photo">Foto</string>
     <string name="product_option_suggestions">Sugerencias</string>
     <string name="product_option_ai">Chat con IA</string>
+    <string name="product_option_common">Comunes</string>
+    <string name="product_header_add_to">Añadir a %s</string>
     <string name="product_empty_title">No se encontró ningún producto</string>
-    <string name="product_empty_description">Encuentra tus productos usando la búsqueda,\nel código de barras o crea un nuevo producto.</string>
+    <string name="product_empty_description">Encuentra tus productos usando la búsqueda\no crea un nuevo producto.</string>
     <string name="product_error_loading_image">Error al cargar la imagen</string>
 
-    <string name="product_error_qr_not_available">Código QR no disponible</string>
     <string name="product_error_load_image">Error al cargar la imagen</string>
 
     <!-- Feature: Product Search & Recipes -->
@@ -39,6 +39,33 @@
     <string name="recipe_details_add_to_list">Añadir a la Lista</string>
     <string name="product_action_retake">Repetir</string>
     <string name="product_action_analyze">Analizar</string>
+
+    <!-- Feature: Product Photo Confirmation -->
+    <string name="product_photo_confirm_title">Confirma los productos encontrados</string>
+    <plurals name="product_photo_confirm_subtitle">
+        <item quantity="one">1 artículo encontrado. Revisa antes de añadir.</item>
+        <item quantity="other">%d artículos encontrados. Revisa antes de añadir.</item>
+    </plurals>
+    <string name="product_photo_confirm_add_all">Añadir %d artículos</string>
+    <string name="product_photo_item_remove">Eliminar artículo</string>
+    <string name="product_photo_item_added">%s añadido a la lista</string>
+    <plurals name="product_photo_items_added">
+        <item quantity="one">1 artículo añadido a la lista</item>
+        <item quantity="other">%d artículos añadidos a la lista</item>
+    </plurals>
+
+    <!-- Feature: Common Products (Canasta Básica) -->
+    <string name="common_products_title">Canasta Básica</string>
+    <string name="common_products_subtitle">Tus artículos de siempre, listos para añadir</string>
+    <string name="common_products_add_all">Añadir todo a la lista</string>
+    <string name="common_products_add_placeholder">Añadir artículo a la canasta</string>
+    <string name="common_products_add_item_description">Añadir artículo</string>
+    <string name="common_products_item_add_description">Añadir a la lista</string>
+    <string name="common_products_item_remove_description">Eliminar de la canasta</string>
+    <string name="common_products_item_added">%s añadido a la lista</string>
+    <string name="common_products_all_added">Artículos añadidos a la lista</string>
+    <string name="common_products_empty_title">Tu canasta básica está vacía</string>
+    <string name="common_products_empty_description">Añade los artículos que siempre compras para reutilizarlos rápidamente.</string>
 
     <!-- Common Actions -->
     <string name="action_edit">Editar</string>
@@ -86,4 +113,5 @@
     <!-- Content Descriptions -->
     <string name="content_description_remove_unit">Eliminar cantidad</string>
     <string name="content_description_add_unit">Añadir cantidad</string>
+    <string name="cart_item_delete_description">Eliminar artículo</string>
 </resources>

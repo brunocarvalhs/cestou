@@ -126,31 +126,6 @@ internal class ProductRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getProductByBarcode(barcode: String): Result<Product?> {
-        return runCatching {
-            val response = cloudNetwork.make(
-                request = NetworkService.NetworkRequest(
-                    endpoint = "https://world.openfoodfacts.org/api/v2/product/$barcode.json",
-                    method = NetworkService.Method.GET
-                ),
-                response = JsonObject::class
-            )
-
-            val productJson = response?.get("product")?.jsonObject ?: return@runCatching null
-
-            Product(
-                id = UUID.randomUUID().toString(),
-                name = productJson["product_name"]?.jsonPrimitive?.content ?: "Produto Desconhecido",
-                quantity = 1.0,
-                price = 0.0,
-                category = ProductCategory.fromString(
-                    productJson["categories"]?.jsonPrimitive?.content?.split(",")?.firstOrNull()
-                ).name,
-                barcode = barcode
-            )
-        }
-    }
-
     override suspend fun searchProducts(query: String): Result<List<Product>> {
         return runCatching {
             val response = cloudNetwork.make(

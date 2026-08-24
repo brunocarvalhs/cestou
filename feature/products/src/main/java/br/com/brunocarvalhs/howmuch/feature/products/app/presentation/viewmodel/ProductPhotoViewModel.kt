@@ -41,7 +41,11 @@ internal class ProductPhotoViewModel @Inject constructor(
         onImageCaptured = { uri -> onImageCaptured(uri) },
         onRetake = { retake() },
         onAnalyzeImage = { analyzeImage() },
-        onProductConfirmed = { product -> onProductConfirmed(product) }
+        onProductConfirmed = { product -> onProductConfirmed(product) },
+        onAnalysisItemUpdated = { product -> updateAnalysisItem(product) },
+        onAnalysisItemRemoved = { id -> removeAnalysisItem(id) },
+        onConfirmAllAnalysisItems = { confirmAllAnalysisItems() },
+        onConfirmationMessageShown = { onConfirmationMessageShown() }
     )
 
     private fun onImageCaptured(uri: Uri) {
@@ -96,6 +100,52 @@ internal class ProductPhotoViewModel @Inject constructor(
     private fun onProductConfirmed(product: Product) {
         viewModelScope.launch {
             saveUseCase(product = product, shoppingId = shopping.id)
+            _uiState.update { state ->
+                state.copy(
+                    analysisResult = state.analysisResult.filterNot { it.id == product.id },
+                    confirmationMessage = context.getString(R.string.product_photo_item_added, product.name)
+                )
+            }
         }
+    }
+
+    private fun updateAnalysisItem(product: Product) {
+        _uiState.update { state ->
+            state.copy(analysisResult = state.analysisResult.map { if (it.id == product.id) product else it })
+        }
+    }
+
+    private fun removeAnalysisItem(id: String) {
+        _uiState.update { state ->
+            val remaining = state.analysisResult.filterNot { it.id == id }
+            state.copy(
+                analysisResult = remaining,
+                capturedImageUri = if (remaining.isEmpty()) null else state.capturedImageUri
+            )
+        }
+    }
+
+    private fun confirmAllAnalysisItems() {
+        val items = _uiState.value.analysisResult
+        if (items.isEmpty()) return
+
+        viewModelScope.launch {
+            items.forEach { product -> saveUseCase(product = product, shoppingId = shopping.id) }
+            _uiState.update {
+                it.copy(
+                    analysisResult = emptyList(),
+                    capturedImageUri = null,
+                    confirmationMessage = context.resources.getQuantityString(
+                        R.plurals.product_photo_items_added,
+                        items.size,
+                        items.size
+                    )
+                )
+            }
+        }
+    }
+
+    private fun onConfirmationMessageShown() {
+        _uiState.update { it.copy(confirmationMessage = null) }
     }
 }

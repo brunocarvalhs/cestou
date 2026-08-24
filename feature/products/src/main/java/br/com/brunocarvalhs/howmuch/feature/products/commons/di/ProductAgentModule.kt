@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.products.commons.di
 
 import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.CommonProductAddAllToShoppingUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.PriceComparisonUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductListSaveUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductSaveUseCase
@@ -40,4 +41,10 @@ internal abstract class ProductAgentModule {
     @Binds
     @IntoSet
     abstract fun bindPriceComparison(useCase: PriceComparisonUseCase): AgentActionUseCase<*>
+
+    @Binds
+    @IntoSet
+    abstract fun bindCommonProductAddAllToShopping(
+        useCase: CommonProductAddAllToShoppingUseCase
+    ): AgentActionUseCase<*>
 }
