@@ -41,7 +41,6 @@ dependencies {
 
     // AI
     implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.ai)
     implementation(libs.generative.ai)
 
     // Ktor (for some AI services like OpenRouter)
@@ -54,6 +53,11 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.timber)
     implementation(libs.kotlinx.serialization.json)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
 }
 
 secrets {

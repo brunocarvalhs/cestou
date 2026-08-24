@@ -79,6 +79,15 @@ linters:
     enabled: true
     command: "./gradlew detekt"
 
+# Test Coverage Gate
+coverage:
+  kover:
+    name: "Kover"
+    description: "Minimum aggregated line coverage gate (80%), enforced via kover { reports { total { verify { rule { minBound(80) } } } } } in the root build.gradle.kts"
+    enabled: true
+    command: "./gradlew koverVerify"
+    report_path: "build/reports/kover/html/index.html"
+
 # Store & GitHub Release Settings
 release:
   enabled: true

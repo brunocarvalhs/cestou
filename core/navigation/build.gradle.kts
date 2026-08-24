@@ -43,4 +43,7 @@ dependencies {
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.timber)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
 }
