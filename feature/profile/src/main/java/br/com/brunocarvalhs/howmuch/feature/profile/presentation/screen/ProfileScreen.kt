@@ -21,6 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -106,6 +107,16 @@ internal fun ProfileScreen(
                     title = stringResource(R.string.profile_menu_about),
                     icon = Icons.Default.Info,
                     onClick = { intent.onNavigate(Unit) }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            ProfileMenuGroup {
+                ProfileMenuOption(
+                    title = "Vincular Relógio (Wear OS)",
+                    icon = Icons.Default.Watch,
+                    onClick = { intent.onLinkWearDevice() }
                 )
             }
 

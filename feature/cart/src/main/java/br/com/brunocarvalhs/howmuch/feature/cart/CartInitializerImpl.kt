@@ -14,4 +14,10 @@ internal class CartInitializerImpl @Inject constructor() : CartInitializer {
     ) {
         navGraphBuilder.cartGraph(navigator, windowSizeClass)
     }
+
+    override fun registerWearGraph(
+        navGraphBuilder: NavGraphBuilder,
+        navigator: Navigator
+    ) {
+    }
 }

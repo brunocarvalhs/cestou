@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-08-23T04:01:31.914438Z">
+        <DropdownSelection timestamp="2026-08-24T14:00:31.836106Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="Wireless" identifier="serviceName=adb-RQCW905DH4D-Ri9eWF" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=RXAX3015X7E" />
             </handle>
           </Target>
         </DropdownSelection>
@@ -15,10 +15,10 @@
       </SelectionState>
       <SelectionState runConfigName="wear">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-08-23T04:01:31.914438Z">
+        <DropdownSelection timestamp="2026-08-24T14:23:57.735116Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="Wireless" identifier="serviceName=adb-RQCW905DH4D-Ri9eWF" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=RXAX3015X7E" />
             </handle>
           </Target>
         </DropdownSelection>

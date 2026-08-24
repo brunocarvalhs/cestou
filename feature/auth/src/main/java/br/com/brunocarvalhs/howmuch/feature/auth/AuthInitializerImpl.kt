@@ -20,4 +20,10 @@ internal class AuthInitializerImpl @Inject constructor() : AuthInitializer {
             }
         }
     }
+
+    override fun registerWearGraph(
+        navGraphBuilder: NavGraphBuilder,
+        navigator: Navigator
+    ) {
+    }
 }

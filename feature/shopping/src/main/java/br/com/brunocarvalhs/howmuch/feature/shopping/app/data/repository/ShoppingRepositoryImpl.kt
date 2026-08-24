@@ -26,12 +26,16 @@ class ShoppingRepositoryImpl @Inject constructor(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     override fun observeAll(): Flow<List<Shopping>> = flow {
-        val user = authService.getOrCreateUserId()
+        val userId = runCatching { authService.getOrCreateUserId().id }.getOrNull()
+        if (userId == null) {
+            emit(emptyList())
+            return@flow
+        }
         networkService.observe<List<ShoppingModel>>(
             request = NetworkService.NetworkRequest(
                 endpoint = ENDPOINT,
                 method = NetworkService.Method.GET,
-                query = mapOf("users" to user.id)
+                query = mapOf("users" to userId)
             )
         ).collect { models ->
             emit(models?.map { it.toDomain() } ?: emptyList())
@@ -50,12 +54,13 @@ class ShoppingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAll(): List<Shopping> = withContext(ioDispatcher) {
-        val user = authService.getOrCreateUserId()
+        val userId = runCatching { authService.getOrCreateUserId().id }.getOrNull()
+            ?: return@withContext emptyList()
         val response = networkService.make<List<ShoppingModel>>(
             request = NetworkService.NetworkRequest(
                 endpoint = ENDPOINT,
                 method = NetworkService.Method.GET,
-                query = mapOf("users" to user.id)
+                query = mapOf("users" to userId)
             )
         )
         return@withContext response?.map { it.toDomain() } ?: emptyList()

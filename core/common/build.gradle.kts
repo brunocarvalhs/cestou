@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.timber)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    implementation(libs.play.services.wearable)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

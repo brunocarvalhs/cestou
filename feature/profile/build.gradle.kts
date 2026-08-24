@@ -67,6 +67,13 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coil.compose)
 
+    // Wear OS
+    implementation(libs.androidx.wear.compose.material3)
+    implementation(libs.androidx.wear.compose.foundation)
+    implementation(libs.androidx.compose.navigation)
+    implementation(libs.androidx.wear.compose.navigation3)
+    implementation(libs.androidx.wear.compose.ui.tooling)
+
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)

@@ -18,6 +18,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxDefaults
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -41,18 +42,14 @@ internal fun ProductListItem(
     product: Product,
     onDelete: () -> Unit = {},
     onEdit: () -> Unit = {},
-    onQuantityChange: (Double) -> Unit = { _ -> },
     onTogglePurchased: (Boolean) -> Unit = { },
     enabled: Boolean = true,
     showDivider: Boolean = true
 ) {
+
     val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { value ->
-            if (enabled && value != SwipeToDismissBoxValue.Settled) {
-                onDelete()
-            }
-            false
-        }
+        initialValue = SwipeToDismissBoxValue.Settled,
+        positionalThreshold = SwipeToDismissBoxDefaults.positionalThreshold
     )
 
     SwipeToDismissBox(
@@ -60,6 +57,11 @@ internal fun ProductListItem(
         state = dismissState,
         enableDismissFromStartToEnd = enabled,
         enableDismissFromEndToStart = enabled,
+        onDismiss = { swipe ->
+            if (enabled && swipe != SwipeToDismissBoxValue.Settled) {
+                onDelete()
+            }
+        },
         backgroundContent = { DeleteSwipeBackground(direction = dismissState.dismissDirection) }
     ) {
         Column(

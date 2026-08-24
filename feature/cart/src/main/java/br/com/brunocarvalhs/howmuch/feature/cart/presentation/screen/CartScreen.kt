@@ -5,7 +5,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -205,7 +204,6 @@ internal fun CartScreen(
                             enabled = !isLocked,
                             onDelete = { intent.onDeleteProduct(product) },
                             onEdit = { intent.onEditProduct(product) },
-                            onQuantityChange = { intent.onUpdateQuantity(product, it) },
                             onTogglePurchased = { intent.onTogglePurchased(product, it) },
                             showDivider = index < uiState.products.size - 1
                         )

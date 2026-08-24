@@ -14,4 +14,10 @@ internal class SettingsInitializerImpl @Inject constructor() : SettingsInitializ
     ) {
         navGraphBuilder.settingsGraph(navigator)
     }
+
+    override fun registerWearGraph(
+        navGraphBuilder: NavGraphBuilder,
+        navigator: Navigator
+    ) {
+    }
 }

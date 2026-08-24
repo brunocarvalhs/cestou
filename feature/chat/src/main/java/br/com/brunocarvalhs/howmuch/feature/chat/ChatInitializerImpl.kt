@@ -14,4 +14,10 @@ internal class ChatInitializerImpl @Inject constructor() : ChatInitializer {
     ) {
         navGraphBuilder.chatGraph(navigator)
     }
+
+    override fun registerWearGraph(
+        navGraphBuilder: NavGraphBuilder,
+        navigator: Navigator
+    ) {
+    }
 }

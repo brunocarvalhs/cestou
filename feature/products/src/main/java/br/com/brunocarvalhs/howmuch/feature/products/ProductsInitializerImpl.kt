@@ -14,4 +14,10 @@ internal class ProductsInitializerImpl @Inject constructor() : ProductsInitializ
     ) {
         navGraphBuilder.productsGraph(navigator)
     }
+
+    override fun registerWearGraph(
+        navGraphBuilder: NavGraphBuilder,
+        navigator: Navigator
+    ) {
+    }
 }

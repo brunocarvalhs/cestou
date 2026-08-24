@@ -32,9 +32,9 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureInitializer
 import br.com.brunocarvalhs.howmuch.core.navigation.JoinList
+import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.Profile
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
-import br.com.brunocarvalhs.howmuch.core.navigation.rememberNavigator
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouBottomNavigation
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.feature.auth.commons.navigation.Welcome
@@ -46,6 +46,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var featureInitializers: Set<@JvmSuppressWildcards FeatureInitializer>
+
+    @Inject
+    lateinit var navigator: Navigator
 
     private val viewModel: MainViewModel by viewModels()
 
@@ -73,7 +76,12 @@ class MainActivity : ComponentActivity() {
 
             CestouTheme(darkTheme = darkTheme) {
                 val navController = rememberNavController()
-                val navigator = rememberNavigator(navController)
+                
+                // Bind the injected singleton Navigator to the local NavController
+                LaunchedEffect(navController) {
+                    navigator.bind(navController)
+                }
+
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
                 val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()

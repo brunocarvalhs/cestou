@@ -65,7 +65,6 @@ internal class CommonProductRepositoryImpl @Inject constructor(
                 payload = item.toModel().toMap()
             )
         )
-        Unit
     }
 
     override suspend fun remove(id: String): Result<Unit> = runCatching {
@@ -76,7 +75,6 @@ internal class CommonProductRepositoryImpl @Inject constructor(
                 method = NetworkService.Method.DELETE
             )
         )
-        Unit
     }
 
     private fun endpoint(userId: String): String = "users/$userId/common-products"

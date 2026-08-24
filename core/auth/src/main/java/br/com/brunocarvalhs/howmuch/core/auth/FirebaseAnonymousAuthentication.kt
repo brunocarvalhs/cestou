@@ -36,7 +36,10 @@ class FirebaseAnonymousAuthentication @Inject constructor(
             return user.toAuthenticatedUser()
         }
 
-        return signInAnonymously().getOrThrow()
+        return signInAnonymously().getOrElse {
+            Timber.tag(TAG).w("Fallback para usuário guest devido a falha na autenticação")
+            AuthenticatedUser(id = GUEST_ID)
+        }
     }
 
     override suspend fun signInAnonymously(): Result<AuthenticatedUser> = try {
@@ -85,5 +88,6 @@ class FirebaseAnonymousAuthentication @Inject constructor(
 
     companion object {
         private const val TAG = "FirebaseAnonymousAuthentication"
+        private const val GUEST_ID = "guest"
     }
 }
