@@ -3,12 +3,18 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.commons.navigation
 import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -80,22 +86,36 @@ private fun NavGraphBuilder.shoppingEditDialog(navigator: Navigator) {
         val viewModel: EditShoppingViewModel = hiltViewModel()
         viewModel.setNavigator(navigator)
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = remember { SnackbarHostState() }
+
+        LaunchedEffect(uiState.error) {
+            uiState.error?.let {
+                snackbarHostState.showSnackbar(it)
+                viewModel.intent.onErrorShown()
+            }
+        }
 
         ModalBottomSheet(
             onDismissRequest = { navigator.goBack() },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {
-            uiState.shopping?.let { shopping ->
-                EditShoppingContent(
-                    shopping = shopping,
-                    onSave = { updated: Shopping ->
-                        viewModel.intent.onUpdate(updated)
-                    },
-                    onCancel = { viewModel.intent.onCancel() },
-                    onShareToken = {
-                        viewModel.intent.onShareToken(shopping.id)
-                    },
-                    sharingToken = uiState.sharingToken
+            Box(modifier = Modifier.fillMaxWidth()) {
+                uiState.shopping?.let { shopping ->
+                    EditShoppingContent(
+                        shopping = shopping,
+                        onSave = { updated: Shopping ->
+                            viewModel.intent.onUpdate(updated)
+                        },
+                        onCancel = { viewModel.intent.onCancel() },
+                        onShareToken = {
+                            viewModel.intent.onShareToken(shopping.id)
+                        },
+                        sharingToken = uiState.sharingToken
+                    )
+                }
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }
         }
@@ -157,6 +177,7 @@ private fun NavGraphBuilder.shoppingOtherDialogs(navigator: Navigator) {
                 onDismiss = { viewModel.intent.onDismiss() },
                 onJoin = { token -> viewModel.intent.onJoinByToken(token) },
                 onScan = { viewModel.intent.onScanQrCode() },
+                initialToken = uiState.initialToken ?: "",
                 error = uiState.error,
                 isLoading = uiState.isLoading
             )

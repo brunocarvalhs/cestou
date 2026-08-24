@@ -12,7 +12,7 @@
     <!-- Feature: Product -->
     <string name="product_ai_identifying">AI is identifying items&#8230;</string>
     <string name="product_barcode_instruction">Position the barcode within the area</string>
-    <string name="product_photo_instruction">Take a photo of the products for the AI to analyze</string>
+    <string name="product_photo_instruction">Frame the product\'s price tag inside the box</string>
     <string name="product_option_search">Search</string>
     <string name="product_option_photo">Photo</string>
     <string name="product_option_suggestions">Suggestions</string>
@@ -53,6 +53,9 @@
         <item quantity="one">1 item added to the list</item>
         <item quantity="other">%d items added to the list</item>
     </plurals>
+    <string name="product_photo_quantity_label">Quantity</string>
+    <string name="product_photo_error_no_products_found">No products identified. Try a clearer, well-lit photo.</string>
+    <string name="product_photo_error_analysis_failed">Couldn\'t analyze the photo. Please try again.</string>
 
     <!-- Feature: Common Products (Basic Basket) -->
     <string name="common_products_title">Basic Basket</string>

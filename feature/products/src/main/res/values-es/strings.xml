@@ -12,7 +12,7 @@
     <!-- Feature: Product -->
     <string name="product_ai_identifying">La IA está identificando los artículos&#8230;</string>
     <string name="product_barcode_instruction">Posicione el código de barras dentro del área</string>
-    <string name="product_photo_instruction">Tome una foto de los productos para que la IA los analice</string>
+    <string name="product_photo_instruction">Encuadra la etiqueta de precio del producto dentro del recuadro</string>
     <string name="product_option_search">Buscar</string>
     <string name="product_option_photo">Foto</string>
     <string name="product_option_suggestions">Sugerencias</string>
@@ -53,6 +53,9 @@
         <item quantity="one">1 artículo añadido a la lista</item>
         <item quantity="other">%d artículos añadidos a la lista</item>
     </plurals>
+    <string name="product_photo_quantity_label">Cantidad</string>
+    <string name="product_photo_error_no_products_found">No se identificó ningún producto. Intenta con una foto más nítida y bien iluminada.</string>
+    <string name="product_photo_error_analysis_failed">No se pudo analizar la foto. Inténtalo de nuevo.</string>
 
     <!-- Feature: Common Products (Canasta Básica) -->
     <string name="common_products_title">Canasta Básica</string>

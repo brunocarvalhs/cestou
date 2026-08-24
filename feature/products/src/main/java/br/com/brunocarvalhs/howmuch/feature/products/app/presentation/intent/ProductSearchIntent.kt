@@ -10,5 +10,6 @@ internal data class ProductSearchIntent(
     val onSearchModeChange: (ProductSearchUiState.SearchMode) -> Unit = {},
     val onRecipeSelected: (Recipe) -> Unit = {},
     val onClearRecipeSelection: () -> Unit = {},
-    val onAddRecipeIngredients: (Recipe) -> Unit = {}
+    val onAddRecipeIngredients: (Recipe) -> Unit = {},
+    val onErrorShown: () -> Unit = {}
 )

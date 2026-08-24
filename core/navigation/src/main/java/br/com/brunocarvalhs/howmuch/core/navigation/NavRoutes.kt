@@ -13,7 +13,7 @@ data object AiChat : NavKey
 data object Profile : NavKey
 
 @Serializable
-data object JoinList : NavKey
+data class JoinList(val token: String? = null) : NavKey
 
 @Serializable
 data object Notifications : NavKey

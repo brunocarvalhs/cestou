@@ -36,7 +36,8 @@ internal class EditShoppingViewModel @Inject constructor(
     val intent = EditShoppingIntent(
         onUpdate = { shopping -> update(shopping) },
         onShareToken = { id -> shareToken(id) },
-        onCancel = { _navigator?.goBack() }
+        onCancel = { _navigator?.goBack() },
+        onErrorShown = { _uiState.update { it.copy(error = null) } }
     )
 
     fun setNavigator(navigator: Navigator) {

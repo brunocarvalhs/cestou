@@ -111,7 +111,7 @@ internal class ShoppingListViewModel @Inject constructor(
         onReopen = { shopping ->
             handleShoppingAction(ShoppingAction.Reopen(shopping))
         },
-        onShowJoinDialog = { _navigator?.navigate(JoinList) },
+        onShowJoinDialog = { _navigator?.navigate(JoinList()) },
         onMove = { from, to -> moveShopping(from, to) },
         onShowCreateSheet = { visible -> _uiState.update { it.copy(isCreateSheetVisible = visible) } },
         onCreateConfirmed = { title, description ->

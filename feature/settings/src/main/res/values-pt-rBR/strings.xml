@@ -75,6 +75,10 @@
     <string name="settings_data_delete_confirmation_title">Apagar todos os dados?</string>
     <string name="settings_data_delete_confirmation_message">Esta ação não pode ser desfeita. Todas as suas listas e configurações locais serão removidas permanentemente.</string>
     <string name="settings_data_delete_button">Sim, apagar tudo</string>
+    <string name="settings_data_clear_cache_success">Cache limpo</string>
+    <string name="settings_data_clear_cache_error">Não foi possível limpar o cache. Tente novamente.</string>
+    <string name="settings_data_delete_all_success">Todos os dados foram apagados</string>
+    <string name="settings_data_delete_all_error">Não foi possível apagar seus dados. Tente novamente.</string>
 
     <string name="settings_terms_content">
         Ao utilizar o Cestou, você concorda com os seguintes termos: \n\n

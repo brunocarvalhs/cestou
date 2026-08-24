@@ -48,7 +48,8 @@ internal class ProductSearchViewModel @Inject constructor(
         },
         onRecipeSelected = { recipe -> _uiState.update { it.copy(selectedRecipe = recipe) } },
         onClearRecipeSelection = { _uiState.update { it.copy(selectedRecipe = null) } },
-        onAddRecipeIngredients = { recipe -> onAddRecipeIngredients(recipe) }
+        onAddRecipeIngredients = { recipe -> onAddRecipeIngredients(recipe) },
+        onErrorShown = { _uiState.update { it.copy(errorMessage = null) } }
     )
 
     private fun onQueryChange(newQuery: String) {

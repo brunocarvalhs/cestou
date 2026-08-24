@@ -11,6 +11,7 @@ import br.com.brunocarvalhs.howmuch.core.ui.entity.ProductCategory
 import br.com.brunocarvalhs.howmuch.feature.products.app.data.extensions.toDomain
 import br.com.brunocarvalhs.howmuch.feature.products.app.data.extensions.toModel
 import br.com.brunocarvalhs.howmuch.feature.products.app.data.model.ProductModel
+import br.com.brunocarvalhs.howmuch.feature.products.app.data.services.ProductImageTextRecognizer
 import br.com.brunocarvalhs.howmuch.feature.products.app.domain.repository.ProductRepository
 import com.google.ai.client.generativeai.GenerativeModel
 import kotlinx.coroutines.flow.Flow
@@ -24,6 +25,7 @@ import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Named
@@ -34,12 +36,13 @@ internal class ProductRepositoryImpl @Inject constructor(
     private val networkService: NetworkService,
     @Named("CloudNetwork")
     private val cloudNetwork: NetworkService,
-    private val shoppingRepository: ShoppingRepository
+    private val shoppingRepository: ShoppingRepository,
+    private val imageTextRecognizer: ProductImageTextRecognizer
 ) : ProductRepository {
 
     private val generativeModel by lazy {
         GenerativeModel(
-            modelName = "gemini-1.5-flash",
+            modelName = BuildConfig.GEMINI_AGENT,
             apiKey = BuildConfig.GEMINI_API_KEY
         )
     }
@@ -192,44 +195,65 @@ internal class ProductRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Tries on-device ML Kit text recognition first (free, offline): it reads the
+     * product name and price straight off the shelf price tag. Only falls back to the
+     * paid Gemini vision call when OCR finds nothing (e.g. produce with no printed
+     * tag in frame), so the AI cost is only paid when it's actually needed.
+     */
     override suspend fun analyzeImage(bitmap: Bitmap): Result<List<Product>> {
         return runCatching {
-            val prompt = """
-                Analise esta imagem e identifique todos os produtos de supermercado presentes nela.
-                Para cada produto encontrado, extraia: nome, quantidade estimada, unidade de medida (un, kg, L, pct, etc) e a categoria mais provável.
-                Responda apenas com um array JSON válido no formato: [{"name": "...", "quantity": 0.0, "unit": "...", "category": "..."}]
-                Categorias válidas: Hortifruti, Carnes, Laticínios, Bebidas, Limpeza, Higiene, Mercearia, Legumes, Perecíveis, Congelados, Padaria, Outros.
-                Não inclua nenhuma outra explicação ou formatação markdown além do JSON.
-            """.trimIndent()
-
-            val content = com.google.ai.client.generativeai.type.content {
-                image(bitmap)
-                text(prompt)
-            }
-
-            val response = generativeModel.generateContent(content)
-            val fullText = response.text ?: return@runCatching emptyList()
-
-            val startIndex = fullText.indexOf("[")
-            val endIndex = fullText.lastIndexOf("]")
-
-            if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
-                val jsonText = fullText.substring(startIndex, endIndex + 1)
-                val jsonArray = Json.parseToJsonElement(jsonText).jsonArray
-                jsonArray.map { element ->
-                    val obj = element.jsonObject
+            val tag = imageTextRecognizer.recognizePriceTag(bitmap)
+            if (tag.nameCandidates.isNotEmpty()) {
+                tag.nameCandidates.map { name ->
                     Product(
                         id = UUID.randomUUID().toString(),
-                        name = obj["name"]?.jsonPrimitive?.content ?: "Produto Desconhecido",
-                        quantity = obj["quantity"]?.jsonPrimitive?.doubleOrNull ?: 1.0,
-                        price = 0.0,
-                        category = obj["category"]?.jsonPrimitive?.content ?: "Outros",
-                        unit = obj["unit"]?.jsonPrimitive?.content ?: "un"
+                        name = name,
+                        quantity = 1.0,
+                        price = tag.price ?: 0.0
                     )
                 }
             } else {
-                emptyList()
+                analyzeImageWithGemini(bitmap)
             }
+        }.onFailure {
+            Timber.e(it, "Falha ao analisar imagem")
+        }
+    }
+
+    private suspend fun analyzeImageWithGemini(bitmap: Bitmap): List<Product> {
+        val prompt = """
+            Analise esta imagem e identifique todos os produtos de supermercado presentes nela.
+            Para cada produto encontrado, extraia: nome, quantidade estimada, unidade de medida (un, kg, L, pct, etc) e a categoria mais provável.
+            Responda apenas com um array JSON válido no formato: [{"name": "...", "quantity": 0.0, "unit": "...", "category": "..."}]
+            Categorias válidas: Hortifruti, Carnes, Laticínios, Bebidas, Limpeza, Higiene, Mercearia, Legumes, Perecíveis, Congelados, Padaria, Outros.
+            Não inclua nenhuma outra explicação ou formatação markdown além do JSON.
+        """.trimIndent()
+
+        val content = com.google.ai.client.generativeai.type.content {
+            image(bitmap)
+            text(prompt)
+        }
+
+        val response = generativeModel.generateContent(content)
+        val fullText = response.text ?: return emptyList()
+
+        val startIndex = fullText.indexOf("[")
+        val endIndex = fullText.lastIndexOf("]")
+
+        if (startIndex == -1 || endIndex == -1 || endIndex <= startIndex) return emptyList()
+
+        val jsonArray = Json.parseToJsonElement(fullText.substring(startIndex, endIndex + 1)).jsonArray
+        return jsonArray.map { element ->
+            val obj = element.jsonObject
+            Product(
+                id = UUID.randomUUID().toString(),
+                name = obj["name"]?.jsonPrimitive?.content ?: "Produto Desconhecido",
+                quantity = obj["quantity"]?.jsonPrimitive?.doubleOrNull ?: 1.0,
+                price = 0.0,
+                category = obj["category"]?.jsonPrimitive?.content ?: "Outros",
+                unit = obj["unit"]?.jsonPrimitive?.content ?: "un"
+            )
         }
     }
 

@@ -73,7 +73,8 @@ internal fun ProductScreen(
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
                 ProductSearchForm(
                     uiState = uiState,
-                    intent = viewModel.intent
+                    intent = viewModel.intent,
+                    snackbarHostState = snackbarHostState
                 )
             }
             composable(Options.PHOTO.name) {

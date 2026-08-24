@@ -1,7 +1,10 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
+import br.com.brunocarvalhs.howmuch.core.navigation.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
@@ -19,22 +22,29 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class JoinListViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val shoppingJoinUseCase: ShoppingJoinUseCase
 ) : ViewModel() {
 
     private var _navigator: Navigator? = null
 
-    private val _uiState = MutableStateFlow(JoinListUiState())
+    private val initialToken = savedStateHandle.toRoute<JoinList>().token
+
+    private val _uiState = MutableStateFlow(JoinListUiState(initialToken = initialToken))
     val uiState: StateFlow<JoinListUiState> = _uiState.asStateFlow()
 
     val intent = JoinListIntent(
         onJoinByToken = { token -> joinByToken(token) },
-        onScanQrCode = { 
+        onScanQrCode = {
             _navigator?.goBack()
-            _navigator?.navigate(Scanner) 
+            _navigator?.navigate(Scanner)
         },
         onDismiss = { _navigator?.goBack() }
     )
+
+    init {
+        initialToken?.takeIf { it.isNotBlank() }?.let { joinByToken(it) }
+    }
 
     fun setNavigator(navigator: Navigator) {
         _navigator = navigator

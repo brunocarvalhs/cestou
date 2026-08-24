@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.generative.ai)
     implementation(libs.google.mlkit.barcode.scanning)
     implementation(libs.mlkit.image.labeling)
+    implementation(libs.mlkit.text.recognition)
 
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)

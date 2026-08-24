@@ -8,6 +8,5 @@ internal data class ProductSuggestionUiState(
     val suggestions: List<Product> = emptyList(),
     val selectedProducts: List<Product> = emptyList(),
     val searchQuery: String = "",
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val isLoading: Boolean = false
 )

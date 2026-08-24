@@ -27,7 +27,7 @@ internal class RecipeRepositoryImpl @Inject constructor(
 
     private val generativeModel by lazy {
         GenerativeModel(
-            modelName = "gemini-1.5-flash",
+            modelName = BuildConfig.GEMINI_AGENT,
             apiKey = BuildConfig.GEMINI_API_KEY
         )
     }

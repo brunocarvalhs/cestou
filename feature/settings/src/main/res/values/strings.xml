@@ -75,6 +75,10 @@
     <string name="settings_data_delete_confirmation_title">Delete all data?</string>
     <string name="settings_data_delete_confirmation_message">This action cannot be undone. All your lists and local settings will be permanently removed.</string>
     <string name="settings_data_delete_button">Yes, delete everything</string>
+    <string name="settings_data_clear_cache_success">Cache cleared</string>
+    <string name="settings_data_clear_cache_error">Couldn\'t clear the cache. Please try again.</string>
+    <string name="settings_data_delete_all_success">All data deleted</string>
+    <string name="settings_data_delete_all_error">Couldn\'t delete your data. Please try again.</string>
 
     <string name="settings_terms_content">
         By using Cestou, you agree to the following terms: \n\n

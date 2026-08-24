@@ -11,5 +11,6 @@ internal data class ProductPhotoIntent(
     val onAnalysisItemUpdated: (Product) -> Unit = {},
     val onAnalysisItemRemoved: (String) -> Unit = {},
     val onConfirmAllAnalysisItems: () -> Unit = {},
-    val onConfirmationMessageShown: () -> Unit = {}
+    val onConfirmationMessageShown: () -> Unit = {},
+    val onErrorMessageShown: () -> Unit = {}
 )

@@ -52,9 +52,8 @@ internal class ProductSuggestionViewModel @Inject constructor(
         viewModelScope.launch {
             getProductSuggestionsUseCase(shopping.id)
                 .catch { error ->
-                    _uiState.update {
-                        it.copy(errorMessage = error.message)
-                    }
+                    _uiState.update { it.copy(isLoading = false) }
+                    _events.send(ProductSuggestionEvent.Error(error.message.orEmpty()))
                 }
                 .collect { products ->
                     _uiState.update {

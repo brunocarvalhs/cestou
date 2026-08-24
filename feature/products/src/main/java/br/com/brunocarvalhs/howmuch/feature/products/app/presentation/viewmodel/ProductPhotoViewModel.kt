@@ -45,7 +45,8 @@ internal class ProductPhotoViewModel @Inject constructor(
         onAnalysisItemUpdated = { product -> updateAnalysisItem(product) },
         onAnalysisItemRemoved = { id -> removeAnalysisItem(id) },
         onConfirmAllAnalysisItems = { confirmAllAnalysisItems() },
-        onConfirmationMessageShown = { onConfirmationMessageShown() }
+        onConfirmationMessageShown = { onConfirmationMessageShown() },
+        onErrorMessageShown = { onErrorMessageShown() }
     )
 
     private fun onImageCaptured(uri: Uri) {
@@ -75,10 +76,25 @@ internal class ProductPhotoViewModel @Inject constructor(
 
             analyzeImageUseCase(bitmap)
                 .onSuccess { products ->
-                    _uiState.update { it.copy(isAnalyzing = false, analysisResult = products) }
+                    _uiState.update {
+                        it.copy(
+                            isAnalyzing = false,
+                            analysisResult = products,
+                            errorMessage = if (products.isEmpty()) {
+                                context.getString(R.string.product_photo_error_no_products_found)
+                            } else {
+                                null
+                            }
+                        )
+                    }
                 }
-                .onFailure { e ->
-                    _uiState.update { it.copy(isAnalyzing = false, errorMessage = e.message) }
+                .onFailure {
+                    _uiState.update {
+                        it.copy(
+                            isAnalyzing = false,
+                            errorMessage = context.getString(R.string.product_photo_error_analysis_failed)
+                        )
+                    }
                 }
         }
     }
@@ -147,5 +163,9 @@ internal class ProductPhotoViewModel @Inject constructor(
 
     private fun onConfirmationMessageShown() {
         _uiState.update { it.copy(confirmationMessage = null) }
+    }
+
+    private fun onErrorMessageShown() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 }

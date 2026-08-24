@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShoppingJoinUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.commons.navigation.Scanner
@@ -24,7 +25,7 @@ class JoinListViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private val shoppingJoinUseCase = mockk<ShoppingJoinUseCase>()
     private val navigator = mockk<Navigator>(relaxed = true)
-    private val viewModel = JoinListViewModel(shoppingJoinUseCase)
+    private val viewModel = JoinListViewModel(SavedStateHandle(), shoppingJoinUseCase)
 
     @Before
     fun setup() {

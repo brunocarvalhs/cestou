@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatQuantity
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyVisualTransformation
 import br.com.brunocarvalhs.howmuch.feature.products.R
@@ -44,7 +45,7 @@ internal fun ConfirmItemContent(
 ) {
     val currencyFormatter = rememberCurrencyFormatter()
     var price by remember { mutableStateOf((product.price * CURRENCY_DIVISOR).toLong().toString()) }
-    var quantity by remember { mutableStateOf(product.quantity.toString()) }
+    var quantity by remember { mutableStateOf(product.quantity.formatQuantity()) }
     val visualTransformation = rememberCurrencyVisualTransformation()
 
     Column(

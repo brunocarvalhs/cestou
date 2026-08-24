@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
+import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatQuantity
 import br.com.brunocarvalhs.howmuch.feature.products.R
 
 private const val QUANTITY_STEP = 1.0
@@ -149,25 +150,32 @@ private fun AnalysisResultItem(
                     )
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(
-                        modifier = Modifier.size(32.dp),
-                        onClick = {
-                            val newQuantity = (product.quantity - QUANTITY_STEP).coerceAtLeast(MIN_QUANTITY)
-                            onUpdate(product.copy(quantity = newQuantity))
-                        }
-                    ) {
-                        Icon(Icons.Default.Remove, contentDescription = null)
-                    }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "${product.quantity} ${product.unit}",
-                        style = MaterialTheme.typography.titleSmall
+                        text = stringResource(R.string.product_photo_quantity_label),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    IconButton(
-                        modifier = Modifier.size(32.dp),
-                        onClick = { onUpdate(product.copy(quantity = product.quantity + QUANTITY_STEP)) }
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(
+                            modifier = Modifier.size(32.dp),
+                            onClick = {
+                                val newQuantity = (product.quantity - QUANTITY_STEP).coerceAtLeast(MIN_QUANTITY)
+                                onUpdate(product.copy(quantity = newQuantity))
+                            }
+                        ) {
+                            Icon(Icons.Default.Remove, contentDescription = null)
+                        }
+                        Text(
+                            text = "${product.quantity.formatQuantity()} ${product.unit}",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        IconButton(
+                            modifier = Modifier.size(32.dp),
+                            onClick = { onUpdate(product.copy(quantity = product.quantity + QUANTITY_STEP)) }
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = null)
+                        }
                     }
                 }
             }

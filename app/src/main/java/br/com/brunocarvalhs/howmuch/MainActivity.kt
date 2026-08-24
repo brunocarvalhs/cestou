@@ -125,7 +125,8 @@ class MainActivity : ComponentActivity() {
                             if (intent?.action == Intent.ACTION_VIEW) {
                                 val data = intent.data
                                 if (data?.host == "cestou.app" && data.path?.startsWith("/join") == true) {
-                                    navigator.navigate(JoinList)
+                                    val token = data.lastPathSegment?.takeIf { it != "join" }
+                                    navigator.navigate(JoinList(token = token))
                                 }
                             }
                         }
