@@ -42,11 +42,16 @@ graph TD
 ## Documentation Structure
 
 ### 1. Project Memory (`STATE.md`)
-- **Decisions:** Document the core architectural choices (Clean Arch, Compose, Hilt, MVVM).
+- **Decisions:** Document the core architectural choices (Clean Arch, Compose, Hilt, MVI with Intents, Navigation 3).
 - **Handoff:** Current state of the SDD initialization feature.
 
 ### 2. Feature Specifications (`.specs/features/`)
-Each core feature will have a `spec.md` mapping its current functionality using EARS notation.
+Each core feature will have a `spec.md` mapping its current functionality using EARS notation. Features follow the structure:
+- `domain/`: Business logic (Entities, UseCases).
+- `data/`: Data persistence and network (Repositories, Mappers).
+- `presentation/`: UI state management (MVI State/Intent, Screens, ViewModels).
+- `navigation/`: Feature routes and graph definitions (Navigation 3).
+- `di/`: Hilt modules.
 
 | Feature | Scope | Key Use Cases |
 | ------- | ----- | ------------- |

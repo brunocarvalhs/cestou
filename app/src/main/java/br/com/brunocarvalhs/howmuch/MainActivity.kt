@@ -136,7 +136,7 @@ class MainActivity : ComponentActivity() {
                             startDestination = if (isAuthenticated) ShoppingList else Welcome
                         ) {
                             featureInitializers.forEach { 
-                                it.registerGraph(this, navigator, windowSizeClass)
+                                it.registerMobileGraph(this, navigator, windowSizeClass)
                             }
                         }
                     }

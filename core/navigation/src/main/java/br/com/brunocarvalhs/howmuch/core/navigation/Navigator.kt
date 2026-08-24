@@ -8,7 +8,15 @@ import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.rememberNavController
 
 @Stable
-class Navigator(val navController: NavController) {
+class Navigator {
+    private var _navController: NavController? = null
+    val navController: NavController
+        get() = _navController ?: throw IllegalStateException("Navigator not bound to a NavController")
+
+    fun bind(navController: NavController) {
+        _navController = navController
+    }
+
     fun navigate(route: Any, builder: NavOptionsBuilder.() -> Unit = {}) {
         navController.navigate(route, builder)
     }
@@ -20,5 +28,7 @@ class Navigator(val navController: NavController) {
 
 @Composable
 fun rememberNavigator(navController: NavController = rememberNavController()): Navigator {
-    return remember(navController) { Navigator(navController) }
+    return remember(navController) { 
+        Navigator().apply { bind(navController) } 
+    }
 }

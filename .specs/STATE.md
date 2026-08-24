@@ -27,19 +27,35 @@
 - **Status**: active
 
 ### AD-004
-- **Decision**: MVVM/MVI presentation pattern.
-- **Reason**: Decouples UI from business logic; facilitates state management in Compose.
-- **Trade-off**: Complexity in managing ViewState objects for very simple screens.
-- **Scope**: :app, :feature presentation layers.
-- **Date**: 2026-08-20
+- **Decision**: MVI (Model-View-Intent) presentation pattern with Data Class Intent.
+- **Reason**: Decouples UI from business logic using a unidirectional data flow. Data class intents (lambdas) in the ViewModel simplify communication and state management in Compose.
+- **Trade-off**: Requires boilerplate for State and Intent classes for simple screens.
+- **Scope**: :app, :feature modules.
+- **Date**: 2026-08-24
 - **Status**: active
 
 ### AD-005
-- **Decision**: Domain-Centric Multi-module Anatomy.
-- **Reason**: Enforce strict isolation of business logic and standardization of feature module structures as per `architecture-and-layers` spec.
-- **Trade-off**: Requires significant refactoring of existing modules to follow the new directory and package taxonomy.
-- **Scope**: All feature modules and core modules.
-- **Date**: 2026-08-21
+- **Decision**: Modular Feature Anatomy with Internal Visibility.
+- **Reason**: Enforce strict isolation and standardization. Features follow a flat structure: `data/`, `di/`, `domain/`, `presentation/`, and `navigation/`. All implementation details MUST be `internal`.
+- **Trade-off**: Requires careful management of public API surface (usually just the Navigation entry point).
+- **Scope**: All feature modules.
+- **Date**: 2026-08-24
+- **Status**: active
+
+### AD-006
+- **Decision**: Navigation 3 with NavKey (Kotlinx Serialization).
+- **Reason**: Type-safe navigation, multi-backstack support, and better integration with Compose and ViewModels.
+- **Trade-off**: Requires serialization boilerplate for all routes.
+- **Scope**: Entire project.
+- **Date**: 2026-08-24
+- **Status**: active
+
+### AD-007
+- **Decision**: AI Integration via AgentActionUseCase.
+- **Reason**: Expose app workflows to the internal AI agent in a structured way, enabling voice commands and system shortcuts.
+- **Trade-off**: Requires registering use cases in Hilt modules with specific annotations.
+- **Scope**: Core and Feature modules providing user-executable actions.
+- **Date**: 2026-08-24
 - **Status**: active
 
 ## Handoff

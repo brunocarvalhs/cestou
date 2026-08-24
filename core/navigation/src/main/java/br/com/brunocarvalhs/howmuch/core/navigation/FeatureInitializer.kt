@@ -8,5 +8,10 @@ interface FeatureInitializer {
         navGraphBuilder: NavGraphBuilder,
         navigator: Navigator,
         windowSizeClass: WindowSizeClass
-    )
+    ) {}
+
+    fun registerWearGraph(
+        navGraphBuilder: NavGraphBuilder,
+        navigator: Navigator
+    ) {}
 }
