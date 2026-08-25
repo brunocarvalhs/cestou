@@ -30,6 +30,7 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.core.navigation.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.Notifications
+import br.com.brunocarvalhs.howmuch.core.navigation.QrCode
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.feature.settings.commons.navigation.Settings
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.form.EditShoppingContent
@@ -48,8 +49,7 @@ private const val SCANNER_MAX_HEIGHT_FRACTION = 0.8f
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.shoppingGraph(
-    navigator: Navigator,
-    windowSizeClass: WindowSizeClass
+    navigator: Navigator, windowSizeClass: WindowSizeClass
 ) {
     composable<ShoppingList> {
         val viewModel: ShoppingListViewModel = hiltViewModel()
@@ -69,8 +69,7 @@ fun NavGraphBuilder.shoppingGraph(
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
         NotificationsScreen(
-            state = uiState,
-            intent = viewModel.intent
+            state = uiState, intent = viewModel.intent
         )
     }
 
@@ -102,20 +101,15 @@ private fun NavGraphBuilder.shoppingEditDialog(navigator: Navigator) {
             Box(modifier = Modifier.fillMaxWidth()) {
                 uiState.shopping?.let { shopping ->
                     EditShoppingContent(
-                        shopping = shopping,
-                        onSave = { updated: Shopping ->
-                            viewModel.intent.onUpdate(updated)
-                        },
-                        onCancel = { viewModel.intent.onCancel() },
-                        onShareToken = {
-                            viewModel.intent.onShareToken(shopping.id)
-                        },
-                        sharingToken = uiState.sharingToken
+                        shopping = shopping, onSave = { updated: Shopping ->
+                        viewModel.intent.onUpdate(updated)
+                    }, onCancel = { viewModel.intent.onCancel() }, onShareToken = {
+                        viewModel.intent.onShareToken(shopping.id)
+                    }, sharingToken = uiState.sharingToken
                     )
                 }
                 SnackbarHost(
-                    hostState = snackbarHostState,
-                    modifier = Modifier.align(Alignment.BottomCenter)
+                    hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }
         }
@@ -141,8 +135,7 @@ private fun NavGraphBuilder.shoppingOtherDialogs(navigator: Navigator) {
                 context.startActivity(Intent.createChooser(shareIntent, null).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 })
-            }
-        )
+            })
     }
 
     dialog<Scanner> {
@@ -151,15 +144,11 @@ private fun NavGraphBuilder.shoppingOtherDialogs(navigator: Navigator) {
         ModalBottomSheet(
             onDismissRequest = { navigator.goBack() },
             containerColor = Color.Black,
-            dragHandle = { BottomSheetDefaults.DragHandle(color = Color.White) }
-        ) {
+            dragHandle = { BottomSheetDefaults.DragHandle(color = Color.White) }) {
             Box(modifier = Modifier.fillMaxHeight(SCANNER_MAX_HEIGHT_FRACTION)) {
-                QrCodeScanner(
-                    onTokenScanned = { token ->
-                        viewModel.onTokenScanned(token)
-                    },
-                    onDismiss = { navigator.goBack() }
-                )
+                QrCodeScanner(onTokenScanned = { token ->
+                    viewModel.onTokenScanned(token)
+                }, onDismiss = { navigator.goBack() })
             }
         }
     }

@@ -82,6 +82,7 @@ internal fun ProductListItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(
+                    enabled = enabled,
                     checked = product.isPurchased,
                     onCheckedChange = {
                         onTogglePurchased(!product.isPurchased)
@@ -165,6 +166,18 @@ private fun ProductListItemPreview() {
 @Preview
 @Composable
 private fun ProductListItemEmptyPricePreview() {
+    ProductListItem(
+        product = Product(
+            id = "",
+            name = "Arroz",
+            quantity = 2.0,
+        ),
+    )
+}
+
+@Preview
+@Composable
+private fun ProductListItemLockedPreview() {
     ProductListItem(
         product = Product(
             id = "",

@@ -9,7 +9,10 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -20,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.core.os.LocaleListCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -76,8 +80,7 @@ class MainActivity : ComponentActivity() {
 
             CestouTheme(darkTheme = darkTheme) {
                 val navController = rememberNavController()
-                
-                // Bind the injected singleton Navigator to the local NavController
+
                 LaunchedEffect(navController) {
                     navigator.bind(navController)
                 }
@@ -86,8 +89,6 @@ class MainActivity : ComponentActivity() {
                 val currentDestination = navBackStackEntry?.destination
                 val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
 
-                // NavHost only reads startDestination on first composition, so a sign-out
-                // (isAuthenticated flipping to false) wouldn't otherwise route back to Welcome.
                 var wasAuthenticated by remember { mutableStateOf(isAuthenticated) }
                 LaunchedEffect(isAuthenticated) {
                     if (isAuthenticated) {
@@ -126,9 +127,8 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     },
-                    contentWindowInsets = WindowInsets(0, 0, 0, 0)
                 ) { padding ->
-                    Surface(modifier = androidx.compose.ui.Modifier.padding(padding)) {
+                    Surface(modifier = Modifier.padding(padding)) {
                         LaunchedEffect(intent) {
                             if (intent?.action == Intent.ACTION_VIEW) {
                                 val data = intent.data

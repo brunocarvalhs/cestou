@@ -169,10 +169,17 @@ internal fun CartScreen(
                                 },
                                 onClick = { }
                             )
-                            DropdownMenuItem(
-                                text = { Text(text = stringResource(R.string.shopping_list_menu_clear_purchased)) },
-                                onClick = { intent.onClearPurchased() }
-                            )
+                            if (!isLocked) {
+                                DropdownMenuItem(
+                                    text = { Text(text = stringResource(R.string.shopping_list_menu_clear_purchased)) },
+                                    onClick = { intent.onClearPurchased() }
+                                )
+                            } else {
+                                DropdownMenuItem(
+                                    text = { Text(text = stringResource(R.string.shopping_list_menu_clear_purchased)) },
+                                    onClick = { intent.onClearPurchased() }
+                                )
+                            }
                         }
                     }
                 )
@@ -190,6 +197,7 @@ internal fun CartScreen(
                 }
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
+            contentWindowInsets = WindowInsets(0, 0, 0, 0)
         ) { paddingValues ->
             LazyColumn(
                 modifier = Modifier.padding(paddingValues)

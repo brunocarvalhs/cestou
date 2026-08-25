@@ -1,8 +1,10 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.shopping
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,11 +20,26 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +53,7 @@ import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.common.IconProduct
 import coil.compose.AsyncImage
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun ShoppingItem(
     modifier: Modifier = Modifier,
@@ -46,7 +64,6 @@ internal fun ShoppingItem(
     iconUrl: String? = null,
     iconBackgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     onClick: () -> Unit = {},
-    // Parametros mantidos para compatibilidade
     onEditClick: () -> Unit = {},
     onDuplicateClick: () -> Unit = {},
     onFinishClick: () -> Unit = {},
@@ -56,47 +73,129 @@ internal fun ShoppingItem(
     onFavoriteClick: () -> Unit = {},
     budget: Double? = null
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp, horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconProduct(
-            title = title,
-            iconUrl = iconUrl,
-            iconBackgroundColor
-        )
+    var showMenu by remember { mutableStateOf(false) }
 
-        Spacer(modifier = Modifier.width(16.dp))
+    Box(modifier = modifier) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = { showMenu = true }
+                )
+                .padding(vertical = 12.dp, horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconProduct(
+                title = title,
+                iconUrl = iconUrl,
+                iconBackgroundColor = iconBackgroundColor
+            )
 
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = "$itemCount products",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+
+                    IconButton(
+                        onClick = onFavoriteClick,
+                        modifier = Modifier.size(24.dp).padding(start = 4.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Favorite",
+                            tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "$itemCount products",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // Badge de Budget se existir
+                    budget?.let {
+                        Text(
+                            text = "•  R$ %.2f".format(it),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+
+                    // Status
+                    Text(
+                        text = "•  ${status.name}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (users.size > 1) {
+                    UserAvatars(users = users)
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (users.size > 1) {
-                UserAvatars(users = users)
-                Spacer(modifier = Modifier.width(8.dp))
-            }
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+        // Dropdown Menu ativado pelo Long Press
+        DropdownMenu(
+            expanded = showMenu,
+            onDismissRequest = { showMenu = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Editar") },
+                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                onClick = { showMenu = false; onEditClick() }
+            )
+            DropdownMenuItem(
+                text = { Text("Duplicar") },
+                leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null) },
+                onClick = { showMenu = false; onDuplicateClick() }
+            )
+            DropdownMenuItem(
+                text = { Text("Compartilhar") },
+                leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) },
+                onClick = { showMenu = false; onShareClick() }
+            )
+            DropdownMenuItem(
+                text = { Text("Finalizar") },
+                leadingIcon = { Icon(Icons.Default.CheckCircle, contentDescription = null) },
+                onClick = { showMenu = false; onFinishClick() }
+            )
+            HorizontalDivider()
+            DropdownMenuItem(
+                text = { Text("Deletar", color = MaterialTheme.colorScheme.error) },
+                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                onClick = { showMenu = false; onDeleteClick() }
             )
         }
     }

@@ -29,13 +29,13 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.extensions.openBrowser
 import br.com.brunocarvalhs.howmuch.core.extensions.openEmail
+import br.com.brunocarvalhs.howmuch.core.navigation.AiSettings
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.UpdateCurrencyUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.UpdateLanguageUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.commons.navigation.AiSettings
 import br.com.brunocarvalhs.howmuch.feature.settings.commons.navigation.AppRate
 import br.com.brunocarvalhs.howmuch.feature.settings.commons.navigation.CurrencySettings
 import br.com.brunocarvalhs.howmuch.feature.settings.commons.navigation.DataSettings

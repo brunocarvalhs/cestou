@@ -3,15 +3,22 @@ package br.com.brunocarvalhs.howmuch.feature.chat.presentation.screen
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,27 +38,62 @@ import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatIntent
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiChatUiState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiChatScreen(
-    state: AiChatUiState,
-    intent: AiChatIntent
+    state: AiChatUiState, intent: AiChatIntent
 ) {
-    Scaffold { paddingValues ->
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.ai_chat_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
+                actions = {
+                    IconButton(onClick = intent.onSettings) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = null
+                        )
+                    }
+                }
+            )
+        },
+        bottomBar = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+                    .imePadding()
+            ) {
+                CestouTextField(
+                    value = state.input,
+                    onValueChange = { intent.onInputChange(it) },
+                    label = stringResource(R.string.ai_chat_input_label),
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = { intent.onSendMessage() }) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(
+                            br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_send_message
+                        )
+                    )
+                }
+            }
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            Text(
-                text = stringResource(R.string.ai_chat_title),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 reverseLayout = false
@@ -70,30 +112,11 @@ fun AiChatScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
-                
+
                 if (state.isLoading) {
                     item {
                         CircularProgressIndicator(modifier = Modifier.padding(8.dp))
                     }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                CestouTextField(
-                    value = state.input,
-                    onValueChange = { intent.onInputChange(it) },
-                    label = stringResource(R.string.ai_chat_input_label),
-                    modifier = Modifier.weight(1f)
-                )
-                IconButton(onClick = { intent.onSendMessage() }) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.Send,
-                        contentDescription = stringResource(
-                            br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_send_message
-                        )
-                    )
                 }
             }
         }
@@ -107,7 +130,9 @@ private val previewMessages = listOf(
         text = "Com base nos itens adicionados, o total estimado é de R$ 87,40.",
         sender = ChatMessage.Sender.ASSISTANT
     ),
-    ChatMessage(id = 3, text = "Consegue sugerir algo mais barato?", sender = ChatMessage.Sender.USER)
+    ChatMessage(
+        id = 3, text = "Consegue sugerir algo mais barato?", sender = ChatMessage.Sender.USER
+    )
 )
 
 @Preview(showBackground = true, name = "Vazio")
@@ -115,8 +140,7 @@ private val previewMessages = listOf(
 private fun AiChatScreenEmptyPreview() {
     MaterialTheme {
         AiChatScreen(
-            state = AiChatUiState(),
-            intent = AiChatIntent()
+            state = AiChatUiState(), intent = AiChatIntent()
         )
     }
 }
@@ -127,10 +151,8 @@ private fun AiChatScreenConversationPreview() {
     MaterialTheme {
         AiChatScreen(
             state = AiChatUiState(
-                messages = previewMessages,
-                input = "Consegue sugerir algo mais barato?"
-            ),
-            intent = AiChatIntent()
+                messages = previewMessages, input = "Consegue sugerir algo mais barato?"
+            ), intent = AiChatIntent()
         )
     }
 }
@@ -141,10 +163,8 @@ private fun AiChatScreenLoadingPreview() {
     MaterialTheme {
         AiChatScreen(
             state = AiChatUiState(
-                messages = previewMessages,
-                isLoading = true
-            ),
-            intent = AiChatIntent()
+                messages = previewMessages, isLoading = true
+            ), intent = AiChatIntent()
         )
     }
 }

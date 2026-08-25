@@ -39,7 +39,6 @@ internal fun NavGraphBuilder.cartGraph(
         confirmItemDestination(navigator)
         editItemDestination(navigator)
         shareOptionsDestination(navigator)
-        qrCodeDestination(navigator)
     }
 }
 
@@ -159,19 +158,5 @@ private fun NavGraphBuilder.shareOptionsDestination(navigator: Navigator) {
             onInviteMember = { listUiState.shopping?.let { viewModel.onInviteMember(it) } },
             onShareAsText = { listUiState.shopping?.let { viewModel.onShareAsText(it) } }
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-private fun NavGraphBuilder.qrCodeDestination(navigator: Navigator) {
-    dialog<QrCodeProductsRoute> { backStackEntry ->
-        val route: QrCodeProductsRoute = backStackEntry.toRoute()
-
-        ModalBottomSheet(
-            onDismissRequest = { navigator.goBack() },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ) {
-
-        }
     }
 }

@@ -14,7 +14,4 @@ internal data class EditShopping(val shopping: Shopping) : NavKey {
 }
 
 @Serializable
-internal data class QrCode(val token: String) : NavKey
-
-@Serializable
 internal data object Scanner : NavKey

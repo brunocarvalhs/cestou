@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -122,7 +123,8 @@ internal fun ShoppingScreen(
                 }
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            containerColor = MaterialTheme.colorScheme.background
+            containerColor = MaterialTheme.colorScheme.background,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0)
         ) { padding ->
             Box(
                 modifier = modifier
@@ -207,26 +209,26 @@ private fun ShoppingListItemWrapper(
     uiState: ShoppingListUiState,
     intent: ShoppingListIntent
 ) {
-    val globalIndex = uiState.filteredList.indexOf(shopping)
-    DropTarget(
-        onDataDropped = { data ->
-            if (data is Shopping) {
-                val fromIndex = uiState.filteredList.indexOf(data)
-                if (fromIndex != -1 && globalIndex != -1) {
-                    intent.onMove(fromIndex, globalIndex)
-                }
-            }
-        }
-    ) { isHovered, _ ->
-        val dragAlpha by animateFloatAsState(
-            targetValue = if (isHovered) HOVER_ALPHA else 1.0f,
-            label = "dragAlpha"
-        )
-
-        DragTarget(
-            modifier = Modifier.alpha(dragAlpha),
-            dataToDrop = shopping
-        ) {
+//    val globalIndex = uiState.filteredList.indexOf(shopping)
+//    DropTarget(
+//        onDataDropped = { data ->
+//            if (data is Shopping) {
+//                val fromIndex = uiState.filteredList.indexOf(data)
+//                if (fromIndex != -1 && globalIndex != -1) {
+//                    intent.onMove(fromIndex, globalIndex)
+//                }
+//            }
+//        }
+//    ) { isHovered, _ ->
+//        val dragAlpha by animateFloatAsState(
+//            targetValue = if (isHovered) HOVER_ALPHA else 1.0f,
+//            label = "dragAlpha"
+//        )
+//
+//        DragTarget(
+//            modifier = Modifier.alpha(dragAlpha),
+//            dataToDrop = shopping
+//        ) {
             ShoppingItem(
                 modifier = Modifier.padding(vertical = 4.dp),
                 onClick = { intent.onOpen(shopping.id) },
@@ -250,8 +252,8 @@ private fun ShoppingListItemWrapper(
                     }
                 }
             )
-        }
-    }
+//        }
+//    }
 }
 
 private val previewShoppingLists = listOf(

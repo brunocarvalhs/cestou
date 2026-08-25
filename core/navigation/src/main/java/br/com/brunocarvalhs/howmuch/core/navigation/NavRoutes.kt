@@ -17,3 +17,9 @@ data class JoinList(val token: String? = null) : NavKey
 
 @Serializable
 data object Notifications : NavKey
+
+@Serializable
+data object AiSettings : NavKey
+
+@Serializable
+data class QrCode(val token: String) : NavKey

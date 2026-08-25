@@ -38,6 +38,3 @@ internal data class EditItemRoute(val product: Product, val shoppingId: String) 
 
 @Serializable
 internal data object ShareOptionsRoute : NavKey
-
-@Serializable
-internal data class QrCodeProductsRoute(val token: String) : NavKey
