@@ -22,13 +22,18 @@ internal fun ProfileWearScreen(
     viewModel: ProfileViewModel
 ) {
     val state by viewModel.uiState.collectAsState()
-    ProfileWearContent(state = state, onLogout = { viewModel.intent.onSignOut() })
+    ProfileWearContent(
+        state = state,
+        onLogout = { viewModel.intent.onSignOut() },
+        onLinkAccount = { viewModel.intent.onLinkMobileDevice() }
+    )
 }
 
 @Composable
 private fun ProfileWearContent(
     state: ProfileUiState,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onLinkAccount: () -> Unit
 ) {
     val listState = rememberTransformingLazyColumnState()
     val transformationSpec = rememberTransformationSpec()
@@ -54,6 +59,18 @@ private fun ProfileWearContent(
                     text = state.user?.displayName ?: "Usuário",
                     modifier = Modifier.fillMaxWidth()
                 )
+            }
+
+            item {
+                Button(
+                    onClick = onLinkAccount,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .transformedHeight(this, transformationSpec),
+                    transformation = SurfaceTransformation(transformationSpec)
+                ) {
+                    Text("Vincular Celular")
+                }
             }
 
             item {

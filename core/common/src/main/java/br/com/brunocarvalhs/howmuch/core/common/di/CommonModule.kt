@@ -4,6 +4,8 @@ import br.com.brunocarvalhs.howmuch.core.common.contract.AppVersionProvider
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import br.com.brunocarvalhs.howmuch.core.common.service.FirebaseCrashReporter
 import br.com.brunocarvalhs.howmuch.core.common.service.PackageManagerVersionProvider
+import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
+import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncServiceImpl
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.crashlytics.crashlytics
@@ -25,6 +27,10 @@ abstract class CommonModule {
     @Binds
     @Singleton
     abstract fun bindAppVersionProvider(impl: PackageManagerVersionProvider): AppVersionProvider
+
+    @Binds
+    @Singleton
+    internal abstract fun bindWearableSyncService(impl: WearableSyncServiceImpl): WearableSyncService
 
     companion object {
         @Provides

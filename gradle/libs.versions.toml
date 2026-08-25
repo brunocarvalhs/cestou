@@ -30,6 +30,7 @@ converterMoshi = "3.0.0"
 kotlinxCoroutinesAndroid = "1.11.0"
 kotlinxCoroutinesCore = "1.11.0"
 kotlinxCoroutinesPlayServices = "1.11.0"
+kotlinxCoroutinesGuava = "1.11.0"
 accompanistPermissions = "0.37.3"
 playServicesLocation = "21.4.0"
 cameraCamera2 = "1.6.1"
@@ -73,6 +74,7 @@ robolectric = "4.16"
 playServicesWearable = "20.0.1"
 wearToolingPreview = "1.0.0"
 composeNavigation = "1.6.2"
+wearRemoteInteractions = "1.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -111,6 +113,7 @@ converter-moshi = { group = "com.squareup.retrofit2", name = "converter-moshi", 
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutinesPlayServices" }
+kotlinx-coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version.ref = "kotlinxCoroutinesGuava" }
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanistPermissions" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "cameraCamera2" }
@@ -174,6 +177,7 @@ ktor-client-auth = { group = "io.ktor", name = "ktor-client-auth", version.ref =
 play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
 androidx-wear-tooling-preview = { group = "androidx.wear", name = "wear-tooling-preview", version.ref = "wearToolingPreview" }
 androidx-compose-navigation = { group = "androidx.wear.compose", name = "compose-navigation", version.ref = "composeNavigation" }
+wear-remoteinteractions = { group = "androidx.wear", name = "wear-remote-interactions", version.ref = "wearRemoteInteractions" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

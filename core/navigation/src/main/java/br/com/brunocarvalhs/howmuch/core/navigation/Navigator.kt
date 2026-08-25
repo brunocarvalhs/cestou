@@ -18,7 +18,11 @@ class Navigator {
     }
 
     fun navigate(route: Any, builder: NavOptionsBuilder.() -> Unit = {}) {
-        navController.navigate(route, builder)
+        if (route is String) {
+            navController.navigate(route, builder)
+        } else {
+            navController.navigate(route, builder)
+        }
     }
 
     fun goBack() {

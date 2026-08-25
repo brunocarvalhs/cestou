@@ -11,4 +11,5 @@ interface AuthService {
     suspend fun signOut(): Result<Unit>
     suspend fun signInWithGoogle(): Result<AuthenticatedUser>
     suspend fun signInWithApple(): Result<AuthenticatedUser>
+    suspend fun updateUserId(userId: String)
 }

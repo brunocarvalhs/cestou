@@ -23,3 +23,12 @@ data object AiSettings : NavKey
 
 @Serializable
 data class QrCode(val token: String) : NavKey
+
+@Serializable
+data object PairingCode : NavKey
+
+@Serializable
+data object LinkPhone : NavKey
+
+@Serializable
+data object LinkWearDevice : NavKey

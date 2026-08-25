@@ -8,8 +8,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureInitializer
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.PairingCode
+import br.com.brunocarvalhs.howmuch.core.navigation.LinkPhone
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.wear.presentation.theme.CestouTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -22,14 +25,25 @@ class MainActivity : ComponentActivity() {
     lateinit var navigator: Navigator
 
     @Inject
+    lateinit var authService: AuthService
+
+    @Inject
     lateinit var featureInitializers: Set<@JvmSuppressWildcards FeatureInitializer>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val startDestination = if (authService.currentUser != null && authService.currentUser?.id != "guest") {
+            ShoppingList::class.java.name
+        } else {
+            LinkPhone::class.java.name
+        }
+
         setContent {
             WearApp(
                 navigator = navigator,
-                featureInitializers = featureInitializers
+                featureInitializers = featureInitializers,
+                startDestination = startDestination
             )
         }
     }
@@ -38,7 +52,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun WearApp(
     navigator: Navigator,
-    featureInitializers: Set<FeatureInitializer>
+    featureInitializers: Set<FeatureInitializer>,
+    startDestination: String
 ) {
     CestouTheme {
         AppScaffold {
@@ -50,7 +65,7 @@ fun WearApp(
 
             SwipeDismissableNavHost(
                 navController = navController,
-                startDestination = ShoppingList::class.java.name
+                startDestination = startDestination
             ) {
                 featureInitializers.forEach { initializer ->
                     initializer.registerWearGraph(this, navigator)

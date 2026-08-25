@@ -14,12 +14,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "br.com.brunocarvalhs.howmuch.wear"
+        applicationId = "br.com.brunocarvalhs.howmuch"
         minSdk = 30
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
-
     }
 
     buildTypes {
@@ -43,6 +42,7 @@ android {
 dependencies {
     implementation(project(":core:theme"))
     implementation(project(":core:common"))
+    implementation(project(":core:domain"))
     implementation(project(":core:navigation"))
     implementation(project(":feature:shopping"))
     implementation(project(":feature:profile"))

@@ -64,6 +64,13 @@ dependencies {
     implementation(libs.timber)
     implementation(libs.kotlinx.serialization.json)
 
+    // Wear OS
+    implementation(libs.androidx.wear.compose.material3)
+    implementation(libs.androidx.wear.compose.foundation)
+    implementation(libs.androidx.compose.navigation)
+    implementation(libs.androidx.wear.compose.navigation3)
+    implementation(libs.androidx.wear.compose.ui.tooling)
+
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation("com.firebaseui:firebase-ui-auth:10.0.0-beta03")
