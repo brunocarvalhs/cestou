@@ -12,7 +12,6 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
-import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.GetQuestionSuggestionsUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductsUseCase
@@ -25,7 +24,6 @@ import br.com.brunocarvalhs.howmuch.feature.cart.navigation.FinishPurchaseRoute
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.CartFlow
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.ShareOptionsRoute
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.intent.CartIntent
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.AiDockState
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.CartUiState
 import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,8 +38,6 @@ internal class CartViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: ShoppingRepository,
     private val useCase: ProductsUseCase,
-    private val assistantUseCase: CartAssistantUseCase,
-    private val getQuestionSuggestionsUseCase: GetQuestionSuggestionsUseCase,
     private val clearPurchasedUseCase: ShoppingClearPurchasedUseCase,
     private val getSettingsUseCase: GetSettingsUseCase,
     private val sortProductsUseCase: SortProductsUseCase,
@@ -56,7 +52,6 @@ internal class CartViewModel @Inject constructor(
         )
     )
     val uiState = _uiState.asStateFlow()
-    private var closeConfirmation = false
     private var _navigator: Navigator? = null
 
     val intent = CartIntent(
@@ -67,14 +62,6 @@ internal class CartViewModel @Inject constructor(
             }
         },
         onShareShopping = { _navigator?.navigate(ShareOptionsRoute) },
-        onPromptChanged = { value -> _uiState.update { it.copy(prompt = value) } },
-        onOpenAi = {
-            _uiState.update { it.copy(aiDockState = AiDockState.EXPANDED) }
-            loadAiSuggestions()
-        },
-        onCloseAi = { _uiState.update { it.copy(aiDockState = AiDockState.COLLAPSED) } },
-        onSendPrompt = { sendPrompt() },
-        onToggleAi = { toggleAi() },
         onDeleteProduct = { product -> deleteProduct(product) },
         onEditProduct = { product -> _navigator?.navigate(EditItemRoute(product, shopping.id)) },
         onUpdateQuantity = { product, quantity -> updateQuantity(product, quantity) },
@@ -88,10 +75,6 @@ internal class CartViewModel @Inject constructor(
         },
         onClearPurchased = { clearPurchased() },
         onShowShareOptions = { _navigator?.navigate(ShareOptionsRoute) },
-        onSuggestionClick = { question ->
-            _uiState.update { it.copy(prompt = question) }
-            sendPrompt()
-        },
         onMoveProduct = { product, targetId -> moveProduct(product, targetId) }
     )
 
@@ -182,87 +165,6 @@ internal class CartViewModel @Inject constructor(
         }
         viewModelScope.launch {
             useCase.update(product.copy(quantity = quantity), shopping.id)
-        }
-    }
-
-    private fun sendPrompt() {
-        val text = _uiState.value.prompt
-        if (text.isBlank()) return
-
-        _uiState.update {
-            it.copy(
-                prompt = "",
-                aiDockState = AiDockState.CHAT,
-                aiMessages = StableList(it.aiMessages + ChatMessage(
-                    text = text,
-                    sender = ChatMessage.Sender.USER
-                )),
-                isAiLoading = true
-            )
-        }
-
-        viewModelScope.launch {
-            try {
-                assistantUseCase(text, _uiState.value).collect { response ->
-                    _uiState.update {
-                        it.copy(
-                            aiMessages = StableList(it.aiMessages + ChatMessage(
-                                text = response,
-                                sender = ChatMessage.Sender.ASSISTANT
-                            )),
-                            isAiLoading = false
-                        )
-                    }
-                }
-            } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
-                _uiState.update { it.copy(isAiLoading = false) }
-            }
-        }
-    }
-
-    private fun toggleAi() {
-        if (_uiState.value.aiDockState == AiDockState.COLLAPSED) {
-            loadAiSuggestions()
-        }
-
-        if (_uiState.value.aiMessages.isEmpty()) {
-            _uiState.update {
-                it.copy(
-                    aiDockState =
-                    if (it.aiDockState == AiDockState.COLLAPSED)
-                        AiDockState.EXPANDED
-                    else
-                        AiDockState.COLLAPSED
-                )
-            }
-            return
-        }
-
-        if (!closeConfirmation) {
-            closeConfirmation = true
-            _uiState.update {
-                it.copy(aiDockState = AiDockState.EXPANDED)
-            }
-            return
-        }
-        closeConfirmation = false
-        _uiState.update {
-            it.copy(aiDockState = AiDockState.COLLAPSED)
-        }
-    }
-
-    private fun loadAiSuggestions() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isAiSuggestionsLoading = true) }
-            getQuestionSuggestionsUseCase(shopping.id).collect { questions ->
-                _uiState.update {
-                    it.copy(
-                        aiSuggestions = StableList(questions),
-                        isAiSuggestionsLoading = false
-                    )
-                }
-            }
         }
     }
 }

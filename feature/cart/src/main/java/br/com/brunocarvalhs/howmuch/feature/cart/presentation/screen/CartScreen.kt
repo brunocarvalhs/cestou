@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -138,21 +139,38 @@ internal fun CartScreen(
                     actions = {
                         IconButton(
                             onClick = {
+                                intent.onShareShopping()
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = stringResource(
+                                    br.com.brunocarvalhs.howmuch.core.ui.R.string.action_share
+                                )
+                            )
+                        }
+                        IconButton(
+                            onClick = {
                                 isUiVisible = true
                             }
                         ) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(
-                                    br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_more_options
-                                )
+                                contentDescription = stringResource(br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_more_options)
                             )
                         }
                         DropdownMenu(
                             expanded = isUiVisible,
-                            onDismissRequest = { isUiVisible = false }) {
+                            onDismissRequest = { isUiVisible = false }
+                        ) {
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.shopping_list_menu_clear_purchased)) },
+                                text = {
+                                    Text(text = stringResource(R.string.shopping_list_edit_title))
+                                },
+                                onClick = { }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(text = stringResource(R.string.shopping_list_menu_clear_purchased)) },
                                 onClick = { intent.onClearPurchased() }
                             )
                         }
@@ -165,7 +183,8 @@ internal fun CartScreen(
                         CartBottomBar(
                             currencyFormatter = currencyFormatter,
                             totalAmount = cartSummary.totalAmount,
-                            onClick = { intent.onToggleProductPicker() }
+                            onFinished = { intent.onToggleFinishPurchaseSheet() },
+                            onAdd = { intent.onToggleProductPicker() }
                         )
                     }
                 }
@@ -173,7 +192,7 @@ internal fun CartScreen(
             snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { paddingValues ->
             LazyColumn(
-               modifier = Modifier.padding(paddingValues)
+                modifier = Modifier.padding(paddingValues)
             ) {
                 if (isLocked) {
                     item {
@@ -221,7 +240,14 @@ private val previewShopping = Shopping(
 
 private val previewProducts = listOf(
     Product(id = "1", name = "Arroz", quantity = 2.0, price = 25.0, category = "Mercearia"),
-    Product(id = "2", name = "Feijão", quantity = 1.0, price = 8.5, category = "Mercearia", isPurchased = true),
+    Product(
+        id = "2",
+        name = "Feijão",
+        quantity = 1.0,
+        price = 8.5,
+        category = "Mercearia",
+        isPurchased = true
+    ),
     Product(id = "3", name = "Leite", quantity = 6.0, price = 4.5, category = "Laticínios"),
     Product(id = "4", name = "Sabão em pó", quantity = 1.0, price = 18.9, category = "Limpeza")
 )

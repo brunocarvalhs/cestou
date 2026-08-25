@@ -39,7 +39,8 @@ internal fun CartBottomBar(
     modifier: Modifier = Modifier,
     currencyFormatter: CurrencyFormatter,
     totalAmount: Double,
-    onClick: () -> Unit
+    onFinished: () -> Unit,
+    onAdd: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -51,7 +52,7 @@ internal fun CartBottomBar(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             FilledTonalButton(
-                onClick = onClick,
+                onClick = onFinished,
                 modifier = Modifier.height(56.dp).weight(3f),
                 shape = RoundedCornerShape(16.dp),
             ) {
@@ -71,7 +72,7 @@ internal fun CartBottomBar(
             Spacer(Modifier.width(16.dp))
 
             Button(
-                onClick = onClick,
+                onClick = onAdd,
                 modifier = Modifier.height(56.dp).weight(1f),
                 shape = RoundedCornerShape(16.dp),
             ) {
@@ -84,12 +85,10 @@ internal fun CartBottomBar(
 @Preview
 @Composable
 private fun CartBottomBarPreview() {
-    val currencyFormatter: CurrencyFormatter = rememberCurrencyFormatter()
-
     CartBottomBar(
-        currencyFormatter = currencyFormatter,
-        totalAmount = 0.0
-    ) {
-
-    }
+        currencyFormatter = rememberCurrencyFormatter(),
+        totalAmount = 0.0,
+        onFinished = {},
+        onAdd = {}
+    )
 }
