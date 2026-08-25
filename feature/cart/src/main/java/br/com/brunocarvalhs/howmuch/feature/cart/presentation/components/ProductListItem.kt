@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.domain.extensions.orEmpty
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatQuantity
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
@@ -97,16 +98,18 @@ internal fun ProductListItem(
                         textDecoration = if (product.isPurchased) TextDecoration.LineThrough else TextDecoration.None
                     )
                     Text(
-                        text = "${product.quantity.formatQuantity()} ${product.unit}",
+                        text = product.quantity.formatQuantity(),
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
 
-                Text(
-                    text = currencyFormatter().format(product.total),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
-                )
+                if (product.price.orEmpty() > 0.0) {
+                    Text(
+                        text = currencyFormatter().format(product.total),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
             if (showDivider) {
                 HorizontalDivider(
@@ -155,6 +158,18 @@ private fun ProductListItemPreview() {
             name = "Arroz",
             quantity = 2.0,
             price = 2.50
+        ),
+    )
+}
+
+@Preview
+@Composable
+private fun ProductListItemEmptyPricePreview() {
+    ProductListItem(
+        product = Product(
+            id = "",
+            name = "Arroz",
+            quantity = 2.0,
         ),
     )
 }

@@ -41,10 +41,14 @@ private const val QUANTITY_FIELD_WEIGHT = 0.6f
 @Composable
 internal fun ConfirmItemContent(
     product: Product,
-    onConfirm: (Double, Double) -> Unit
+    onConfirm: (Double?, Double) -> Unit
 ) {
     val currencyFormatter = rememberCurrencyFormatter()
-    var price by remember { mutableStateOf((product.price * CURRENCY_DIVISOR).toLong().toString()) }
+    var price by remember {
+        mutableStateOf(
+            value = ((product.price ?: 0.0) * CURRENCY_DIVISOR).toLong().toString()
+        )
+    }
     var quantity by remember { mutableStateOf(product.quantity.formatQuantity()) }
     val visualTransformation = rememberCurrencyVisualTransformation()
 

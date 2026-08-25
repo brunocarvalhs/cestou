@@ -35,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -58,11 +57,6 @@ import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.CartUiState
 import br.com.brunocarvalhs.howmuch.feature.products.R
 import kotlin.collections.component1
 import kotlin.collections.component2
-
-private const val SCROLL_THRESHOLD = 15f
-private val GRID_CELLS_ADAPTIVE_EXPANDED = 400.dp
-private val GRID_CELLS_ADAPTIVE_COMPACT = 300.dp
-private val ASSISTANT_EXPANDED_WIDTH = 400.dp
 
 private data class CartSummary(
     val totalAmount: Double,

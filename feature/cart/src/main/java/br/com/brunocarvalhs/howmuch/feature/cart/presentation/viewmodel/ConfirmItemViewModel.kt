@@ -25,9 +25,16 @@ internal class ConfirmItemViewModel @Inject constructor(
         _navigator = navigator
     }
 
-    fun onConfirmPurchased(product: Product, price: Double, quantity: Double) {
+    fun onConfirmPurchased(product: Product, price: Double?, quantity: Double) {
         viewModelScope.launch {
-            useCase.update(product.copy(isPurchased = true, price = price, quantity = quantity), shoppingId).onSuccess {
+            useCase.update(
+                shoppingId = shoppingId,
+                product = product.copy(
+                    isPurchased = true,
+                    price = price,
+                    quantity = quantity
+                ),
+            ).onSuccess {
                 _navigator?.goBack()
             }
         }

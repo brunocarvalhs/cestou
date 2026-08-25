@@ -15,11 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -36,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.domain.extensions.orEmpty
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatQuantity
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
@@ -45,20 +42,22 @@ import br.com.brunocarvalhs.howmuch.feature.products.R
 private const val CURRENCY_DIVISOR = 100.0
 private const val MAX_PRICE_LENGTH = 12
 private const val QUANTITY_FIELD_WEIGHT = 0.6f
-private const val UNIT_FIELD_WEIGHT = 0.5f
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun EditItemContent(
     product: Product,
-    onSave: (String, String, Double, Double, String) -> Unit
+    onSave: (String, String, Double?, Double) -> Unit
 ) {
     val currencyFormatter = rememberCurrencyFormatter()
     var name by remember { mutableStateOf(product.name) }
     var category by remember { mutableStateOf(product.category) }
-    var price by remember { mutableStateOf((product.price * CURRENCY_DIVISOR).toLong().toString()) }
+    var price by remember {
+        mutableStateOf(
+            value = (product.price.orEmpty() * CURRENCY_DIVISOR).toLong().toString()
+        )
+    }
     var quantity by remember { mutableStateOf(product.quantity.formatQuantity()) }
-    var unit by remember { mutableStateOf(product.unit) }
     val visualTransformation = rememberCurrencyVisualTransformation()
 
     Column(
@@ -124,44 +123,6 @@ internal fun EditItemContent(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 shape = RoundedCornerShape(12.dp)
             )
-
-            var expanded by remember { mutableStateOf(false) }
-            val units = listOf("un", "kg", "g", "L", "ml", "cx", "pct")
-
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded },
-                modifier = Modifier.weight(UNIT_FIELD_WEIGHT)
-            ) {
-                OutlinedTextField(
-                    value = unit,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text(stringResource(R.string.shopping_list_label_unit)) },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier.menuAnchor(
-                        type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                        enabled = true
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
-                )
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    units.forEach { selectionOption ->
-                        DropdownMenuItem(
-                            text = { Text(selectionOption) },
-                            onClick = {
-                                unit = selectionOption
-                                expanded = false
-                            },
-                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-                        )
-                    }
-                }
-            }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -170,7 +131,7 @@ internal fun EditItemContent(
             onClick = {
                 val finalPrice = price.toDoubleOrNull()?.div(CURRENCY_DIVISOR) ?: product.price
                 val finalQuantity = quantity.toDoubleOrNull() ?: product.quantity
-                onSave(name, category, finalPrice, finalQuantity, unit)
+                onSave(name, category, finalPrice, finalQuantity)
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -194,9 +155,8 @@ private fun EditItemContentPreview() {
                 quantity = 2.0,
                 price = 10.0,
                 category = "Mercearia",
-                unit = "kg"
             ),
-            onSave = { _, _, _, _, _ -> }
+            onSave = { _, _, _, _ -> }
         )
     }
 }

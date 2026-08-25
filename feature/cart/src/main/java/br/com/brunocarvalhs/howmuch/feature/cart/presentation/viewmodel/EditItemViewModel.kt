@@ -25,9 +25,12 @@ internal class EditItemViewModel @Inject constructor(
         _navigator = navigator
     }
 
-    fun onSaveEdit(product: Product, price: Double, quantity: Double, unit: String) {
+    fun onSaveEdit(product: Product, price: Double?, quantity: Double) {
         viewModelScope.launch {
-            useCase.update(product.copy(price = price, quantity = quantity, unit = unit), shoppingId).onSuccess {
+            useCase.update(
+                shoppingId = shoppingId,
+                product = product.copy(price = price, quantity = quantity),
+            ).onSuccess {
                 _navigator?.goBack()
             }
         }

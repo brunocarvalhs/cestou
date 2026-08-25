@@ -11,7 +11,6 @@ internal fun ProductModel.toDomain(): Product = Product(
     isPurchased = isPurchased,
     category = category,
     barcode = barcode,
-    unit = unit
 )
 
 internal fun Product.toModel(): ProductModel = ProductModel(
@@ -22,5 +21,4 @@ internal fun Product.toModel(): ProductModel = ProductModel(
     isPurchased = isPurchased,
     category = category,
     barcode = barcode,
-    unit = unit
 )

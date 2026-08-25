@@ -129,8 +129,15 @@ private fun NavGraphBuilder.editItemDestination(navigator: Navigator) {
         ) {
             EditItemContent(
                 product = route.product,
-                onSave = { name, category, price, quantity, unit ->
-                    viewModel.onSaveEdit(route.product.copy(name = name, category = category), price, quantity, unit)
+                onSave = { name, category, price, quantity ->
+                    viewModel.onSaveEdit(
+                        product = route.product.copy(
+                            name = name,
+                            category = category
+                        ),
+                        price = price,
+                        quantity = quantity,
+                    )
                 }
             )
         }

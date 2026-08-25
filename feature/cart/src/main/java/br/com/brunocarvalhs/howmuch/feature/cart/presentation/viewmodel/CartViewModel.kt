@@ -7,6 +7,7 @@ import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
+import br.com.brunocarvalhs.howmuch.core.domain.extensions.orEmpty
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
@@ -144,7 +145,7 @@ internal class CartViewModel @Inject constructor(
         isPurchased: Boolean
     ) {
         if (isPurchased) {
-            if (product.price <= 0) {
+            if (product.price.orEmpty() <= 0) {
                 _navigator?.navigate(ConfirmItemRoute(product, shopping.id))
             } else {
                 viewModelScope.launch {

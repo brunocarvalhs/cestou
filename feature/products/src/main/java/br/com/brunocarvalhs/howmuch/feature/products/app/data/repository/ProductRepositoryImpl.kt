@@ -252,7 +252,6 @@ internal class ProductRepositoryImpl @Inject constructor(
                 quantity = obj["quantity"]?.jsonPrimitive?.doubleOrNull ?: 1.0,
                 price = 0.0,
                 category = obj["category"]?.jsonPrimitive?.content ?: "Outros",
-                unit = obj["unit"]?.jsonPrimitive?.content ?: "un"
             )
         }
     }
@@ -290,7 +289,6 @@ internal class ProductRepositoryImpl @Inject constructor(
                     quantity = 1.0,
                     price = 0.0,
                     category = obj["category"]?.jsonPrimitive?.content ?: "Outros",
-                    unit = obj["unit"]?.jsonPrimitive?.content ?: "un"
                 )
             }
         }

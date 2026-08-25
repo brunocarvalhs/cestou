@@ -35,7 +35,6 @@ class CommonProductAddAllToShoppingUseCase @Inject constructor(
                     quantity = 1.0,
                     price = 0.0,
                     category = item.category,
-                    unit = item.unit
                 ),
                 shoppingId
             )

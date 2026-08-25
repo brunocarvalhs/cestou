@@ -167,7 +167,7 @@ private fun AnalysisResultItem(
                             Icon(Icons.Default.Remove, contentDescription = null)
                         }
                         Text(
-                            text = "${product.quantity.formatQuantity()} ${product.unit}",
+                            text = product.quantity.formatQuantity(),
                             style = MaterialTheme.typography.titleSmall
                         )
                         IconButton(
@@ -184,8 +184,19 @@ private fun AnalysisResultItem(
 }
 
 private val previewProducts = listOf(
-    Product(id = "1", name = "Tomate", quantity = 3.0, price = 0.0, category = "Hortifruti", unit = "un"),
-    Product(id = "2", name = "Leite Integral", quantity = 1.0, price = 0.0, category = "Laticínios", unit = "L")
+    Product(
+        id = "1", name = "Tomate",
+        quantity = 3.0,
+        price = 0.0,
+        category = "Hortifruti",
+    ),
+    Product(
+        id = "2",
+        name = "Leite Integral",
+        quantity = 1.0,
+        price = 0.0,
+        category = "Laticínios",
+    )
 )
 
 @Preview(showBackground = true)

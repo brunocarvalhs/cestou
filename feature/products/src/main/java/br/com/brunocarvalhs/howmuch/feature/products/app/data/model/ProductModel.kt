@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.products.app.data.model
 
+import br.com.brunocarvalhs.howmuch.core.domain.extensions.orEmpty
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -7,7 +8,7 @@ data class ProductModel(
     val id: String,
     val name: String,
     val quantity: Double,
-    val price: Double,
+    val price: Double? = null,
     val isPurchased: Boolean = false,
     val category: String = "Outros",
     val barcode: String? = null,
@@ -23,7 +24,7 @@ data class ProductModel(
             "category" to category,
             "barcode" to barcode,
             "unit" to unit,
-            "total" to price * quantity
+            "total" to price.orEmpty() * quantity
         )
     }
 

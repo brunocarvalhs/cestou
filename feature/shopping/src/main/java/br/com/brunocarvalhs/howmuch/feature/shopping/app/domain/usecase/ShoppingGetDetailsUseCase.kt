@@ -48,7 +48,6 @@ class ShoppingGetDetailsUseCase @Inject constructor(
                     mapOf(
                         "name" to it.name,
                         "quantity" to it.quantity,
-                        "unit" to it.unit,
                         "price" to it.price,
                         "isPurchased" to it.isPurchased,
                         "category" to it.category
