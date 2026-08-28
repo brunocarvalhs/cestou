@@ -11,8 +11,8 @@ import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureInitializer
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.core.navigation.PairingCode
-import br.com.brunocarvalhs.howmuch.core.navigation.LinkPhone
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingCode
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.LinkPhone
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.wear.presentation.theme.CestouTheme
 import dagger.hilt.android.AndroidEntryPoint

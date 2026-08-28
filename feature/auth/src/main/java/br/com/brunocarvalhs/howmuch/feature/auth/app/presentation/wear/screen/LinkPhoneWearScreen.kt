@@ -8,7 +8,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.*
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.core.navigation.PairingCode
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingCode
 import br.com.brunocarvalhs.howmuch.feature.auth.app.presentation.wear.viewmodel.PairingViewModel
 
 @Composable

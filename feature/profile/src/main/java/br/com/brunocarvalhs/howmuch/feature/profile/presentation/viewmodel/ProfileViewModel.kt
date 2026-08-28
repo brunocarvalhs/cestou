@@ -6,9 +6,9 @@ import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
-import br.com.brunocarvalhs.howmuch.core.navigation.LinkWearDevice
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.LinkWearDevice
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.core.navigation.PairingCode
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingCode
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.intent.ProfileIntent
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.state.ProfileUiState
 import br.com.brunocarvalhs.howmuch.feature.settings.commons.navigation.Settings

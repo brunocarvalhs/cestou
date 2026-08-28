@@ -4,12 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import br.com.brunocarvalhs.howmuch.core.navigation.JoinList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShoppingJoinUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.commons.navigation.Scanner
+import br.com.brunocarvalhs.howmuch.feature.shopping.commons.navigation.mobile.Scanner
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.intent.JoinListIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.state.JoinListUiState
 import dagger.hilt.android.lifecycle.HiltViewModel

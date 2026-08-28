@@ -10,7 +10,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.User
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.extensions.toMonthYearString
-import br.com.brunocarvalhs.howmuch.core.navigation.JoinList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
@@ -27,7 +27,7 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.Shopping
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShoppingGetByIdUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShoppingReopenUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShoppingUpdateUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.commons.navigation.EditShopping
+import br.com.brunocarvalhs.howmuch.feature.shopping.commons.navigation.mobile.EditShopping
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.intent.ShoppingListIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.state.ShoppingFilter
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.state.ShoppingListUiState

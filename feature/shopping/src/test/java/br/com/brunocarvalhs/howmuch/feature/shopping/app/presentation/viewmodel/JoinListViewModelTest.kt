@@ -3,7 +3,7 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShoppingJoinUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.commons.navigation.Scanner
+import br.com.brunocarvalhs.howmuch.feature.shopping.commons.navigation.mobile.Scanner
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.verify

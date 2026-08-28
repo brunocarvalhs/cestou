@@ -5,30 +5,3 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data object ShoppingList : NavKey
-
-@Serializable
-data object AiChat : NavKey
-
-@Serializable
-data object Profile : NavKey
-
-@Serializable
-data class JoinList(val token: String? = null) : NavKey
-
-@Serializable
-data object Notifications : NavKey
-
-@Serializable
-data object AiSettings : NavKey
-
-@Serializable
-data class QrCode(val token: String) : NavKey
-
-@Serializable
-data object PairingCode : NavKey
-
-@Serializable
-data object LinkPhone : NavKey
-
-@Serializable
-data object LinkWearDevice : NavKey

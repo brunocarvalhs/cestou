@@ -27,10 +27,10 @@ import androidx.navigation.compose.dialog
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
-import br.com.brunocarvalhs.howmuch.core.navigation.JoinList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.core.navigation.Notifications
-import br.com.brunocarvalhs.howmuch.core.navigation.QrCode
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.feature.settings.commons.navigation.Settings
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.components.form.EditShoppingContent
@@ -44,6 +44,8 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel.
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel.NotificationsViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel.ScannerViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel.ShoppingListViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.commons.navigation.mobile.EditShopping
+import br.com.brunocarvalhs.howmuch.feature.shopping.commons.navigation.mobile.Scanner
 
 private const val SCANNER_MAX_HEIGHT_FRACTION = 0.8f
 

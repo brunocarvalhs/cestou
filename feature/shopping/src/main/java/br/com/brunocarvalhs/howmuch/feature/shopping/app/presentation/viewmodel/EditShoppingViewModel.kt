@@ -7,9 +7,9 @@ import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.core.navigation.QrCode
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShoppingUpdateUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.commons.navigation.EditShopping
+import br.com.brunocarvalhs.howmuch.feature.shopping.commons.navigation.mobile.EditShopping
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.intent.EditShoppingIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.state.EditShoppingUiState
 import dagger.hilt.android.lifecycle.HiltViewModel

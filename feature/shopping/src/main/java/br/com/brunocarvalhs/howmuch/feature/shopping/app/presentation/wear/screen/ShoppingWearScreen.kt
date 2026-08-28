@@ -20,15 +20,20 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.app.presentation.viewmodel.
 
 @Composable
 internal fun ShoppingWearScreen(
-    viewModel: ShoppingListViewModel
+    viewModel: ShoppingListViewModel,
+    onNavigateToDetail: (String) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
-    ShoppingWearContent(state = state)
+    ShoppingWearContent(
+        state = state,
+        onNavigateToDetail = onNavigateToDetail
+    )
 }
 
 @Composable
 private fun ShoppingWearContent(
-    state: ShoppingListUiState
+    state: ShoppingListUiState,
+    onNavigateToDetail: (String) -> Unit
 ) {
     val listState = rememberTransformingLazyColumnState()
     val transformationSpec = rememberTransformationSpec()
@@ -52,7 +57,7 @@ private fun ShoppingWearContent(
             items(state.list.items.size) { index ->
                 val shopping = state.list.items[index]
                 Button(
-                    onClick = { /* Implement navigation to products */ },
+                    onClick = { onNavigateToDetail(shopping.id) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .transformedHeight(this, transformationSpec),

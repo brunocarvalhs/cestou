@@ -22,8 +22,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import br.com.brunocarvalhs.howmuch.core.navigation.AiChat
-import br.com.brunocarvalhs.howmuch.core.navigation.Profile
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.ui.R
 import coil.compose.AsyncImage
