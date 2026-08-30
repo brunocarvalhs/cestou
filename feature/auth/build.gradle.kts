@@ -76,6 +76,7 @@ dependencies {
     implementation("com.firebaseui:firebase-ui-auth:10.0.0-beta03")
 
     testImplementation(libs.junit)
+    testImplementation(libs.konsist)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)

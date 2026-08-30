@@ -3,9 +3,9 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.UpdateThemeUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.viewmodel.ThemeSettingsViewModel
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateThemeUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.ThemeSettingsViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

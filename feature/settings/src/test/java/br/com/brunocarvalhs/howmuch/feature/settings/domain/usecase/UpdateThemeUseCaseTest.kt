@@ -1,8 +1,8 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.repository.SettingsRepository
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.UpdateThemeUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.repository.SettingsRepository
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateThemeUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

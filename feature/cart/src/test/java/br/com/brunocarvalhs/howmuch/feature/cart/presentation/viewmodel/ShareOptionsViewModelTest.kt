@@ -2,7 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.cart.navigation.QrCodeProductsRoute
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShareShoppingUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -63,13 +63,13 @@ class ShareOptionsViewModelTest {
         viewModel.onInviteMember(shopping)
 
         verify { navigator.goBack() }
-        verify { navigator.navigate(QrCodeProductsRoute("ABC123")) }
+        verify { navigator.navigate(QrCode("ABC123")) }
     }
 
     @Test
     fun `onInviteMember falls back to the shopping id when there is no short code`() {
         viewModel.onInviteMember(shopping.copy(shortCode = null))
 
-        verify { navigator.navigate(QrCodeProductsRoute("list1")) }
+        verify { navigator.navigate(QrCode("list1")) }
     }
 }

@@ -48,5 +48,6 @@ dependencies {
     implementation(libs.zxing.core)
 
     testImplementation(libs.junit)
+    testImplementation(libs.konsist)
     testImplementation(libs.mockk)
 }

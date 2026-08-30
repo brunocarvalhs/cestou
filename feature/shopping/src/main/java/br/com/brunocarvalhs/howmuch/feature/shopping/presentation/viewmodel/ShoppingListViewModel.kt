@@ -9,7 +9,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.User
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
-import br.com.brunocarvalhs.howmuch.core.extensions.toMonthYearString
+import br.com.brunocarvalhs.howmuch.core.common.extensions.toMonthYearString
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
@@ -17,7 +17,7 @@ import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.exception.OwnershipRequiredException
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShareShoppingUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingCreateUseCase

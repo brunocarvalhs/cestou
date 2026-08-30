@@ -2,9 +2,9 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.UpdateNotificationSettingsUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.viewmodel.NotificationSettingsViewModel
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateNotificationSettingsUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.NotificationSettingsViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

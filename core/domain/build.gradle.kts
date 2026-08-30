@@ -41,6 +41,7 @@ dependencies {
     implementation(libs.androidx.camera.core)
 
     testImplementation(libs.junit)
+    testImplementation(libs.konsist)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
 }

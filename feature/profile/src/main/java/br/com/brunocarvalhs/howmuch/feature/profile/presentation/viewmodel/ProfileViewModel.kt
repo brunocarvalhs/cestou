@@ -11,7 +11,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingCode
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.intent.ProfileIntent
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.state.ProfileUiState
-import br.com.brunocarvalhs.howmuch.feature.settings.commons.navigation.Settings
+import br.com.brunocarvalhs.howmuch.feature.settings.navigation.Settings
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

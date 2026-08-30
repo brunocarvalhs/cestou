@@ -2,7 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject

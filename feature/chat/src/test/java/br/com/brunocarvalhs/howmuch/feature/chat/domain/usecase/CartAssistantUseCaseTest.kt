@@ -4,7 +4,7 @@ import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk

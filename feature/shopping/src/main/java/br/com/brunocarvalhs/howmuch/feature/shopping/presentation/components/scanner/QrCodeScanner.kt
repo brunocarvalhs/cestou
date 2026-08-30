@@ -24,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import br.com.brunocarvalhs.howmuch.core.extensions.hasPermission
+import br.com.brunocarvalhs.howmuch.core.common.extensions.hasPermission
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.scanner.CameraPreview
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.scanner.QRCodeOverlay
 

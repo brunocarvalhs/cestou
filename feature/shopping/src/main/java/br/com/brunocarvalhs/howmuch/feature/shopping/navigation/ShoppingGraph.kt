@@ -32,7 +32,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
-import br.com.brunocarvalhs.howmuch.feature.settings.commons.navigation.Settings
+import br.com.brunocarvalhs.howmuch.feature.settings.navigation.Settings
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.EditShoppingContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.JoinListContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.scanner.QrCodeBottomSheet

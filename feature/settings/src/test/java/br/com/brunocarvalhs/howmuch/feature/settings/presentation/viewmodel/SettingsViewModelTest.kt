@@ -7,11 +7,11 @@ import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.UpdateCurrencyUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.UpdateLanguageUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.viewmodel.SettingsViewModel
-import br.com.brunocarvalhs.howmuch.feature.settings.commons.navigation.ThemeSettings
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateCurrencyUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateLanguageUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.SettingsViewModel
+import br.com.brunocarvalhs.howmuch.feature.settings.navigation.ThemeSettings
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

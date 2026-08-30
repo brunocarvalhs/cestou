@@ -75,6 +75,7 @@ dependencies {
     implementation(libs.androidx.wear.compose.ui.tooling)
 
     testImplementation(libs.junit)
+    testImplementation(libs.konsist)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)

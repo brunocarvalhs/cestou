@@ -1,9 +1,10 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
+import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.ClearCacheUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.DeleteAllDataUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.viewmodel.DataSettingsViewModel
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.ClearCacheUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.DeleteAllDataUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.DataSettingsViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -22,10 +23,11 @@ import org.junit.Test
 class DataSettingsViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
+    private val context = mockk<Context>(relaxed = true)
     private val clearCacheUseCase = mockk<ClearCacheUseCase>()
     private val deleteAllDataUseCase = mockk<DeleteAllDataUseCase>()
     private val navigator = mockk<Navigator>(relaxed = true)
-    private val viewModel = DataSettingsViewModel(clearCacheUseCase, deleteAllDataUseCase)
+    private val viewModel = DataSettingsViewModel(context, clearCacheUseCase, deleteAllDataUseCase)
 
     @Before
     fun setup() {

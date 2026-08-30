@@ -2,9 +2,9 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.UpdateShoppingPreferencesUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.app.presentation.viewmodel.ShoppingSettingsViewModel
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateShoppingPreferencesUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.ShoppingSettingsViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

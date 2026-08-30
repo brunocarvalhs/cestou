@@ -23,7 +23,7 @@ import br.com.brunocarvalhs.howmuch.feature.cart.navigation.FinishPurchaseRoute
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.ShareOptionsRoute
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.intent.CartIntent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.CartUiState
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

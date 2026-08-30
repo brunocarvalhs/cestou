@@ -8,16 +8,14 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
-import br.com.brunocarvalhs.howmuch.feature.cart.navigation.CartFlow
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.ConfirmItemRoute
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.FinishPurchaseRoute
-import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.GetQuestionSuggestionsUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShoppingClearPurchasedUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.SortProductsUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -47,8 +45,6 @@ class CartViewModelTest {
 
     private val repository = mockk<ShoppingRepository>()
     private val productsUseCase = mockk<ProductsUseCase>()
-    private val assistantUseCase = mockk<CartAssistantUseCase>()
-    private val getQuestionSuggestionsUseCase = mockk<GetQuestionSuggestionsUseCase>()
     private val clearPurchasedUseCase = mockk<ShoppingClearPurchasedUseCase>(relaxed = true)
     private val getSettingsUseCase = mockk<GetSettingsUseCase>()
     private val sortProductsUseCase = mockk<SortProductsUseCase>()
@@ -86,8 +82,6 @@ class CartViewModelTest {
             savedStateHandle,
             repository,
             productsUseCase,
-            assistantUseCase,
-            getQuestionSuggestionsUseCase,
             clearPurchasedUseCase,
             getSettingsUseCase,
             sortProductsUseCase,
@@ -177,14 +171,5 @@ class CartViewModelTest {
             )
         }
         verify { navigator.navigate(FinishPurchaseRoute) }
-    }
-
-    @Test
-    fun `onPromptChanged updates the prompt in the ui state`() {
-        val vm = viewModel()
-
-        vm.intent.onPromptChanged("how much did I spend?")
-
-        assertEquals("how much did I spend?", vm.uiState.value.prompt)
     }
 }

@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
-import br.com.brunocarvalhs.howmuch.core.extensions.hasPermission
+import br.com.brunocarvalhs.howmuch.core.common.extensions.hasPermission
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.scanner.CameraCaptureView
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.scanner.ImagePreviewView
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.scanner.PermissionDeniedState

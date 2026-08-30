@@ -50,13 +50,13 @@ class EditItemViewModelTest {
     }
 
     @Test
-    fun `onSaveEdit updates price, quantity and unit, then goes back`() = runTest {
+    fun `onSaveEdit updates price and quantity, then goes back`() = runTest {
         coEvery { useCase.update(any(), "list1") } returns Result.success(Unit)
 
-        viewModel.onSaveEdit(product, price = 8.0, quantity = 3.0, unit = "kg")
+        viewModel.onSaveEdit(product, price = 8.0, quantity = 3.0)
 
         coVerify {
-            useCase.update(match { it.price == 8.0 && it.quantity == 3.0 && it.unit == "kg" }, "list1")
+            useCase.update(match { it.price == 8.0 && it.quantity == 3.0 }, "list1")
         }
         verify { navigator.goBack() }
     }
@@ -65,7 +65,7 @@ class EditItemViewModelTest {
     fun `onSaveEdit does not navigate back when the update fails`() = runTest {
         coEvery { useCase.update(any(), "list1") } returns Result.failure(IllegalStateException("boom"))
 
-        viewModel.onSaveEdit(product, price = 8.0, quantity = 3.0, unit = "kg")
+        viewModel.onSaveEdit(product, price = 8.0, quantity = 3.0)
 
         verify(exactly = 0) { navigator.goBack() }
     }

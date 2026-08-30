@@ -7,7 +7,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.settings.commons.navigation.Settings
+import br.com.brunocarvalhs.howmuch.feature.settings.navigation.Settings
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk

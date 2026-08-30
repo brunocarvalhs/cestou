@@ -39,5 +39,6 @@ dependencies {
     implementation(libs.timber)
 
     testImplementation(libs.junit)
+    testImplementation(libs.konsist)
     testImplementation(libs.mockk)
 }
