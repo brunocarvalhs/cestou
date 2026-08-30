@@ -50,7 +50,6 @@ dependencies {
     implementation(project(":feature:settings"))
     implementation(project(":feature:products"))
     implementation(project(":feature:chat"))
-    implementation(project(":feature:cart"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

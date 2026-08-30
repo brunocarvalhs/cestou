@@ -3,8 +3,8 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductsUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShoppingGetDetailsUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingGetDetailsUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf

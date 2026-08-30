@@ -7,4 +7,6 @@ interface WearableSyncService {
     suspend fun findNodeByPairingCode(code: String): String?
     suspend fun sendAuthTokenToNode(nodeId: String, token: String)
     suspend fun openPhoneApp()
+    fun generatePairingCode(): String
+    val receivedAuthToken: kotlinx.coroutines.flow.Flow<String>
 }

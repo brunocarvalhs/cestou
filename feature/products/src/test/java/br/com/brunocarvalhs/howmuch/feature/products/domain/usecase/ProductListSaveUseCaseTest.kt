@@ -1,8 +1,8 @@
 package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.repository.ProductRepository
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductListSaveUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductListSaveUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

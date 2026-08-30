@@ -2,7 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
-import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShoppingGetByIdUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingGetByIdUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest

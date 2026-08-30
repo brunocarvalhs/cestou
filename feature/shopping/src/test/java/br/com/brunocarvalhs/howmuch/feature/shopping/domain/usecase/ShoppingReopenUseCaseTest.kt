@@ -2,7 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
-import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShoppingReopenUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingReopenUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

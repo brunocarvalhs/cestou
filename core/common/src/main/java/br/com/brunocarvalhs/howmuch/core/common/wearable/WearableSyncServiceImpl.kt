@@ -12,6 +12,13 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
+import com.google.android.gms.wearable.MessageClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -186,6 +193,26 @@ internal class WearableSyncServiceImpl @Inject constructor(
             }
         } catch (e: Exception) {
             Timber.tag("WearableSync").e(e, "Error opening phone app")
+        }
+    }
+
+    override fun generatePairingCode(): String {
+        val code = (100000..999999).random().toString()
+        CoroutineScope(Dispatchers.IO).launch {
+            updatePairingCode(code)
+        }
+        return code
+    }
+
+    override val receivedAuthToken: Flow<String> = callbackFlow {
+        val listener = MessageClient.OnMessageReceivedListener { messageEvent ->
+            if (messageEvent.path == "/auth/pair") {
+                trySend(String(messageEvent.data))
+            }
+        }
+        Wearable.getMessageClient(context).addListener(listener)
+        awaitClose {
+            Wearable.getMessageClient(context).removeListener(listener)
         }
     }
 }

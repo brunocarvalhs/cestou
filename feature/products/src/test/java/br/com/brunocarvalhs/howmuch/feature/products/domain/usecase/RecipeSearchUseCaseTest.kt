@@ -1,8 +1,8 @@
 package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.model.Recipe
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.repository.RecipeRepository
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.RecipeSearchUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.model.Recipe
+import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.RecipeRepository
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.RecipeSearchUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest

@@ -1,8 +1,8 @@
 package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.repository.ProductRepository
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.GetProductSuggestionsUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.GetProductSuggestionsUseCase
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first

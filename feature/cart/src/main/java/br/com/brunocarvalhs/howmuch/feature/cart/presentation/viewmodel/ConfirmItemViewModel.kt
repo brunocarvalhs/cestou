@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductsUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.ConfirmItemRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch

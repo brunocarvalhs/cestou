@@ -5,8 +5,8 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductsUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShareShoppingUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShareShoppingUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf

@@ -1,0 +1,45 @@
+package br.com.brunocarvalhs.howmuch.feature.products.presentation.components.scanner
+
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FlashlightOff
+import androidx.compose.material.icons.filled.FlashlightOn
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
+
+@Composable
+internal fun FlashControl(
+    isFlashOn: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FloatingActionButton(
+        modifier = modifier.padding(24.dp),
+        onClick = onToggle,
+        containerColor = if (isFlashOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+    ) {
+        Icon(
+            imageVector = if (isFlashOn) Icons.Default.FlashlightOff else Icons.Default.FlashlightOn,
+            contentDescription = stringResource(CoreR.string.content_description_flash)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun FlashControlOnPreview() {
+    FlashControl(isFlashOn = true, onToggle = {})
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun FlashControlOffPreview() {
+    FlashControl(isFlashOn = false, onToggle = {})
+}

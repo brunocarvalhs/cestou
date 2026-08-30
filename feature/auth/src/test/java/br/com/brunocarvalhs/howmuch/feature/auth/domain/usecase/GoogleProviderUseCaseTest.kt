@@ -1,6 +1,5 @@
 package br.com.brunocarvalhs.howmuch.feature.auth.domain.usecase
 
-import br.com.brunocarvalhs.howmuch.feature.auth.app.domain.usecase.GoogleProviderUseCase
 import com.firebase.ui.auth.configuration.auth_provider.AuthProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

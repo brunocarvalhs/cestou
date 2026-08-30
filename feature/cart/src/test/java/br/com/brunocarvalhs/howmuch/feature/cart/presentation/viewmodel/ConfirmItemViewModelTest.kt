@@ -5,7 +5,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductsUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

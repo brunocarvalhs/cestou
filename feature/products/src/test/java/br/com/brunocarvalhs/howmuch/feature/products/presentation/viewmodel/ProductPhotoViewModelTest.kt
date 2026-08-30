@@ -7,9 +7,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductAnalyzeImageUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductSaveUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.viewmodel.ProductPhotoViewModel
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductAnalyzeImageUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.ProductPhotoViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

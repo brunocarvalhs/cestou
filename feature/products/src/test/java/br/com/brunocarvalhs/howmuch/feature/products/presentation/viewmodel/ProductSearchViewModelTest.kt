@@ -7,11 +7,11 @@ import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.model.Recipe
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductSaveUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductSearchUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.RecipeSearchUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.viewmodel.ProductSearchViewModel
+import br.com.brunocarvalhs.howmuch.feature.products.domain.model.Recipe
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSearchUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.RecipeSearchUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.ProductSearchViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

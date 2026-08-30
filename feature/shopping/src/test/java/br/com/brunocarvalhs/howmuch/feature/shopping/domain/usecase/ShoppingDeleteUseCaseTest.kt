@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase
+package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository

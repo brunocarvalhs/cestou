@@ -54,7 +54,7 @@ import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.theme.CestouBrightGreen
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
-import br.com.brunocarvalhs.howmuch.feature.products.app.presentation.components.product.Suggestions
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.Suggestions
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.AiDockState
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds

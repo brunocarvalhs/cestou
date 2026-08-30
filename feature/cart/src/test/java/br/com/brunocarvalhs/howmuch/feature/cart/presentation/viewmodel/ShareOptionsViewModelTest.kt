@@ -3,7 +3,7 @@ package br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.QrCodeProductsRoute
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ShareShoppingUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShareShoppingUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

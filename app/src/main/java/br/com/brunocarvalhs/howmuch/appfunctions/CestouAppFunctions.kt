@@ -6,13 +6,13 @@ import androidx.appfunctions.AppFunctionSerializable
 import androidx.appfunctions.AppFunctionService
 import androidx.appfunctions.service.AppFunction
 import androidx.appfunctions.service.AppFunctionEntryPoint
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.repository.RecipeRepository
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductSaveUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductSearchUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.RecipeAddToListUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.RecipeSearchUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShoppingCreateUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShoppingGetAllUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.RecipeRepository
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSearchUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.RecipeAddToListUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.RecipeSearchUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingCreateUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingGetAllUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

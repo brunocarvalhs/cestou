@@ -1,6 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.PriceComparisonUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.PriceComparisonUseCase
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals

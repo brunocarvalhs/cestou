@@ -4,7 +4,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
-import br.com.brunocarvalhs.howmuch.feature.shopping.app.domain.usecase.ShoppingJoinUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingJoinUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

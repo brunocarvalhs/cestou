@@ -13,10 +13,10 @@ import br.com.brunocarvalhs.howmuch.feature.cart.navigation.CartFlow
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.ConfirmItemRoute
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.FinishPurchaseRoute
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.GetQuestionSuggestionsUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductsUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ShoppingClearPurchasedUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.SortProductsUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.GetQuestionSuggestionsUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShoppingClearPurchasedUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.SortProductsUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.app.domain.usecase.GetSettingsUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify

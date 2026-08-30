@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.repository.ProductRepository
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.GetQuestionSuggestionsUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.GetQuestionSuggestionsUseCase
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first

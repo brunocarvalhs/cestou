@@ -2,8 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 
 import android.graphics.Bitmap
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.repository.ProductRepository
-import br.com.brunocarvalhs.howmuch.feature.products.app.domain.usecase.ProductAnalyzeImageUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductAnalyzeImageUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest

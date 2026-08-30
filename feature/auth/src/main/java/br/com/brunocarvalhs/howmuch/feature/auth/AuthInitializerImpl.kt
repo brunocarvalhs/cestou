@@ -8,11 +8,11 @@ import androidx.navigation.compose.composable
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.LinkWearDevice
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
-import br.com.brunocarvalhs.howmuch.feature.auth.app.presentation.screen.LinkWearDeviceScreen
-import br.com.brunocarvalhs.howmuch.feature.auth.app.presentation.viewmodel.LinkWearViewModel
-import br.com.brunocarvalhs.howmuch.feature.auth.commons.navigation.Welcome
-import br.com.brunocarvalhs.howmuch.feature.auth.commons.navigation.authGraph
-import br.com.brunocarvalhs.howmuch.feature.auth.commons.navigation.authWearGraph
+import br.com.brunocarvalhs.howmuch.feature.auth.presentation.screen.LinkWearDeviceScreen
+import br.com.brunocarvalhs.howmuch.feature.auth.presentation.viewmodel.LinkWearViewModel
+import br.com.brunocarvalhs.howmuch.feature.auth.navigation.Welcome
+import br.com.brunocarvalhs.howmuch.feature.auth.navigation.authGraph
+import br.com.brunocarvalhs.howmuch.feature.auth.navigation.authWearGraph
 import javax.inject.Inject
 
 internal class AuthInitializerImpl @Inject constructor() : AuthInitializer {
