@@ -7,7 +7,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -29,6 +28,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.compose.DialogNavigator
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -86,7 +86,18 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
+
+                // Dialog destinations (androidx.navigation `dialog<...>`) render as an overlay on
+                // top of the current screen without replacing it, so they must not affect which
+                // screen drives the bottom bar — otherwise it collapses/reflows behind the dialog.
+                var screenBackStackEntry by remember { mutableStateOf(navBackStackEntry) }
+                LaunchedEffect(navBackStackEntry) {
+                    val destination = navBackStackEntry?.destination
+                    if (destination != null && destination !is DialogNavigator.Destination) {
+                        screenBackStackEntry = navBackStackEntry
+                    }
+                }
+                val currentDestination = screenBackStackEntry?.destination
                 val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
 
                 var wasAuthenticated by remember { mutableStateOf(isAuthenticated) }
@@ -111,21 +122,20 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     bottomBar = {
-                        AnimatedVisibility(visible = showBottomBar) {
-                            CestouBottomNavigation(
-                                currentRoute = currentRoute,
-                                photoUrl = photoUrl,
-                                onNavigate = { route ->
-                                    navigator.navigate(route) {
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
+                        CestouBottomNavigation(
+                            currentRoute = currentRoute,
+                            photoUrl = photoUrl,
+                            visible = showBottomBar,
+                            onNavigate = { route ->
+                                navigator.navigate(route) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
                                     }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                            )
-                        }
+                            }
+                        )
                     },
                 ) { padding ->
                     Surface(modifier = Modifier.padding(padding)) {

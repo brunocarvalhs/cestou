@@ -39,7 +39,8 @@ class ShoppingCreateUseCase @Inject constructor(
 
     suspend operator fun invoke(
         title: String? = null,
-        description: String? = null
+        description: String? = null,
+        emoji: String = Shopping.DEFAULT_EMOJI
     ): Result<Shopping> = runCatching {
         val user = authService.getOrCreateUserId()
         val userId = user.id
@@ -52,7 +53,8 @@ class ShoppingCreateUseCase @Inject constructor(
             status = Shopping.Status.NEW,
             users = listOf(userId),
             roles = mapOf(userId to User.Role.OWNER.name),
-            shortCode = (1..6).map { (('A'..'Z') + ('0'..'9')).random() }.joinToString("")
+            shortCode = (1..6).map { (('A'..'Z') + ('0'..'9')).random() }.joinToString(""),
+            emoji = emoji
         )
 
         repository.create(shopping)

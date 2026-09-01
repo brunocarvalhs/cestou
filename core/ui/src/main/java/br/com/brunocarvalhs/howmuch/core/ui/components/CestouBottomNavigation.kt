@@ -3,6 +3,7 @@ package br.com.brunocarvalhs.howmuch.core.ui.components
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -61,7 +62,8 @@ fun CestouBottomNavigation(
     currentRoute: Any?,
     onNavigate: (Any) -> Unit,
     modifier: Modifier = Modifier,
-    photoUrl: String? = null
+    photoUrl: String? = null,
+    visible: Boolean = true
 ) {
     val items = listOf(
         BottomNavItem.Lists,
@@ -70,7 +72,9 @@ fun CestouBottomNavigation(
     )
 
     NavigationBar(
-        modifier = modifier.height(112.dp),
+        modifier = modifier
+            .clipToBounds()
+            .height(if (visible) 112.dp else 0.dp),
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp
     ) {

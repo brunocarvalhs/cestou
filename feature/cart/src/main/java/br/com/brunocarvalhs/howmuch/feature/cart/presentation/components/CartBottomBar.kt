@@ -45,6 +45,7 @@ internal fun CartBottomBar(
     Column(
         modifier = modifier
             .background(TopAppBarDefaults.topAppBarColors().containerColor)
+            .navigationBarsPadding()
             .padding(16.dp)
     ) {
         Row(
