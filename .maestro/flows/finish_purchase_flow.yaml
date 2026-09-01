@@ -1,0 +1,26 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Finish Purchase Flow
+---
+# Depends on: create_list_flow.yaml + product_management_flow.yaml
+# (uses the "value" list with the "Arroz" item already added).
+- launchApp
+- tapOn: "value"
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- assertVisible: "Finish"
+- tapOn: "Finish"
+- waitForAnimationToEnd:
+    timeout: 1000
+- assertVisible: "Finish Purchase"
+- assertVisible: "Enter the total amount paid and the purchase location."
+- assertVisible: "Total Amount"
+- assertVisible: "Establishment (Optional)"
+- assertVisible: "Confirm and Save"
+- inputText: "value"
+- tapOn: "Confirm and Save"
+
+- assertVisible: "Finished List"
+- assertVisible: "This list is locked for changes."
+- tapOn: "Back"
+- assertVisible: "Cestou"
