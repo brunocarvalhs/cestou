@@ -32,6 +32,13 @@
     <string name="content_description_add_manually">Add manually</string>
     <string name="content_description_share_list">Share list</string>
     <string name="content_description_join_list">Join a list</string>
+
+    <!-- Collaboration notifications -->
+    <string name="notification_list_joined_title">New member</string>
+    <string name="notification_list_joined_message">%1$s joined \"%2$s\"</string>
+    <string name="notification_list_finished_title">List finished</string>
+    <string name="notification_list_finished_message">%1$s finished \"%2$s\"</string>
+    <string name="notification_someone">Someone</string>
     <string name="content_description_remove_unit">Remove quantity</string>
     <string name="content_description_add_unit">Add quantity</string>
 

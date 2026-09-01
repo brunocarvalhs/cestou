@@ -12,3 +12,13 @@ fun NotificationModel.toDomain() = Notification(
     isRead = isRead,
     timestamp = timestamp
 )
+
+fun NotificationModel.toMap(): Map<String, Any?> = mapOf(
+    "id" to id,
+    "userId" to userId,
+    "title" to title,
+    "message" to message,
+    "type" to type,
+    "isRead" to isRead,
+    "timestamp" to timestamp
+)
