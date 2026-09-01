@@ -1,0 +1,24 @@
+Cestou turns your shopping list into a smart, shared, budget-aware assistant.
+
+CREATE AND ORGANIZE
+Keep as many shopping lists as you need — groceries, a barbecue, a monthly stock-up — each with its own budget and products grouped by category.
+
+ADD ITEMS YOUR WAY
+Search by name, scan a barcode, or just take a photo of the products (or a price tag) and let AI identify and add them for you. Pick from ready-made suggestions for everyday items too.
+
+AI ASSISTANT
+Ask the built-in assistant to help build your list, answer questions about what's already in it, or suggest what you might be forgetting.
+
+SHARE AND COLLABORATE IN REAL TIME
+Invite people to a list with a code or QR code. Everyone sees changes instantly, and members get notified when the list is edited or finished.
+
+TRACK YOUR SPENDING
+See your total spent per list, set a budget and get warned if you go over it, and review your purchase history once a list is finished.
+
+MAKE IT YOURS
+Light, dark, or system theme; Portuguese, English, or Spanish; and your currency of choice.
+
+YOUR DATA, YOUR CALL
+Clear the cache, wipe your local data, or permanently delete your account and everything tied to it, right from Settings.
+
+Cestou works out of the box with no account required — sign in only if you want to sync across devices or share lists with others.
