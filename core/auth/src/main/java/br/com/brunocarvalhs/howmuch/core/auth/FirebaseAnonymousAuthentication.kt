@@ -106,16 +106,6 @@ class FirebaseAnonymousAuthentication @Inject constructor(
         Result.failure(e)
     }
 
-    override suspend fun signInWithGoogle(): Result<AuthenticatedUser> {
-        // TODO: Implementar Google Sign In real
-        return Result.failure(NotImplementedError("Google Sign In não implementado"))
-    }
-
-    override suspend fun signInWithApple(): Result<AuthenticatedUser> {
-        // TODO: Implementar Apple Sign In real
-        return Result.failure(NotImplementedError("Apple Sign In não implementado"))
-    }
-
     override suspend fun updateUserId(userId: String) {
         Timber.tag(TAG).d("Updating user ID to: $userId (Linking account)")
         scope.launch {
