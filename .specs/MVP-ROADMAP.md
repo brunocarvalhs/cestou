@@ -1,6 +1,6 @@
 # MVP Roadmap — Cestou (How-Much)
 
-Status: Draft
+Status: Phases 0–2 mostly done (9 PRs, #14–#22) — see gap list for what's still open
 Owner: bruno
 Last updated: 2026-09-01
 
@@ -33,18 +33,29 @@ shipped independently.
 
 | # | Gap | Why it matters | Est. effort |
 |---|---|---|---|
-| G1 | `feat/new-layout` → `develop` not merged | Nothing else ships until this lands; 215 commits of architecture change is not a normal PR review | M–L (process, not code) |
-| G2 | No in-app **account + data deletion** (Firebase-level) | Google Play policy requires apps that support account creation to also offer in-app account deletion, not just clearing local prefs. Today "Delete all data" only clears DataStore + cache. | S–M |
-| G3 | Privacy Policy / Terms of Service exist only as **in-app text**, no hosted URL | Play Console requires a reachable Privacy Policy URL at submission time | S |
-| G4 | Store listing assets missing | README still has a screenshots placeholder; no feature graphic/description drafted | S |
-| G5 | Collaboration notifications have no writer | `NotificationRepository` reads a Firestore `notifications` collection nothing in this repo ever writes to — SHOP-02 ("notify on list changes") is unfulfilled unless an external Cloud Function does it | M |
-| ~~G6~~ | ~~`lint-rules/` module has uncommitted deleted files~~ | Done — turned out to be orphaned index state from an abandoned attempt (never wired into `settings.gradle.kts`, fully superseded by the Konsist architecture tests). Unstaged, nothing to commit. | S |
-| G7 | Dead `signInWithGoogle`/`signInWithApple` in `AuthService`/`FirebaseAnonymousAuthentication` | Confirmed unused — real login goes through FirebaseUI's `FirebaseAuthScreen`. Misleading to keep as-is. | S |
-| G8 | Apple Sign-In never offered | `AuthConfigUseCase` only registers the Google provider; the UI has an unreachable Apple branch. Android-only app, so likely not worth building — candidate for removal instead of implementation. | S (to remove) / M (to implement) |
+| G1 | `feat/new-layout` → `develop` not merged | Nothing else ships until this lands; 215 commits of architecture change is not a normal PR review | M–L (process, not code) — **open, needs your call** |
+| ~~G2~~ | ~~No in-app account + data deletion~~ | Done — PR #18 | S–M |
+| ~~G3~~ | ~~Privacy Policy / Terms only in-app, no hosted URL~~ | Pages drafted — PR #21. Hosting decision + wiring the URL still needs you. | S |
+| ~~G4~~ | ~~Store listing assets missing~~ | Descriptions drafted (en/pt-BR/es) — PR #22. Screenshots/feature graphic still need a device. | S |
+| ~~G5~~ | ~~Collaboration notifications have no writer~~ | Done, client-side (no Cloud Functions) — PR #20. Firestore rules need a manual check, noted in the PR. | M |
+| ~~G6~~ | ~~`lint-rules/` module has uncommitted deleted files~~ | Done — orphaned index state from an abandoned attempt, unstaged. | S |
+| ~~G7~~ | ~~Dead `signInWithGoogle`/`signInWithApple`~~ | Done — PR #19 | S |
+| ~~G8~~ | ~~Apple Sign-In never offered~~ | Removed the unreachable UI branch rather than implementing it — PR #19 | S |
 
-Already fixed this session, each as its own branch + PR against `feat/new-layout` (not merged
-without review): shared `StorageService` for `core/auth` (PR #14), shopping-reminder push
-notifications (PR #15), Maestro regression suite (PR #16), this doc (PR #17).
+Every item below shipped as its own branch + PR against `feat/new-layout` this session (none
+merged without review): shared `StorageService` for `core/auth` (#14), shopping-reminder push
+notifications (#15), Maestro regression suite (#16), this doc (#17), account & data deletion
+(#18), dead social-auth cleanup (#19), collaboration notifications (#20), hosted legal pages
+(#21), store listing descriptions (#22).
+
+**Still genuinely open, none of them fixable from this environment:**
+- **G1** — the `develop` merge is your call, not something to automate.
+- **F0.3 / F2.2** — no adb/emulator here, so the Maestro suite and the Google Sign-In flow have
+  never actually run.
+- Screenshots/feature graphic (part of G4) need a device to capture.
+- The privacy/terms pages (G3) need a hosting decision before the in-app links can point anywhere.
+- Firestore security rules for the new `notifications` writes (G5) live outside this repo and need
+  a manual check in the Firebase Console.
 
 ## Plan — features broken by user value
 
@@ -60,34 +71,30 @@ notifications (PR #15), Maestro regression suite (PR #16), this doc (PR #17).
 
 ### Phase 1 — Play Store launch blockers (must-have)
 
-- **F1.1 — Account & data deletion (G2).** User story: *as a user, I can permanently delete my
-  account and all associated data from within the app.* Acceptance: a "Delete Account" action in
-  Settings/Profile calls Firebase Auth `delete()` + removes the user's Firestore documents
-  (shopping lists they own, profile), with a confirmation dialog and re-auth if Firebase requires
-  it for the sign-in method in use.
-- **F1.2 — Hosted Privacy Policy + Terms (G3).** Publish the existing `settings_privacy_content` /
-  `settings_terms_content` text as a real hosted page (even a static one), link it from
-  `CustomMethodPickerTerms` and the Settings screen, and register the URL in Play Console.
-- **F1.3 — Store listing assets (G4).** Screenshots (phone + tablet if supported), feature
-  graphic, short/long description in pt/en/es to match `generateLocaleConfig`.
+- ~~**F1.1 — Account & data deletion (G2).**~~ Done — PR #18. `DeleteAccountUseCase` leaves/deletes
+  the user's shopping lists, deletes their profile, clears local settings, then deletes the
+  Firebase account, in that order. No re-auth flow for `FirebaseAuthRecentLoginRequiredException`
+  — surfaces as a generic error if Firebase demands a recent login.
+- ~~**F1.2 — Hosted Privacy Policy + Terms (G3).**~~ Pages drafted — PR #21
+  (`docs/legal/privacy.html`, `terms.html`). Not linked from the app yet: needs a hosting decision
+  (`cestou.app` vs. GitHub Pages) before wiring the URL into `CustomMethodPickerTerms`, Settings,
+  and Play Console.
+- ~~**F1.3 — Store listing assets (G4).**~~ Descriptions done for en/pt-BR/es — PR #22
+  (`fastlane/metadata/android/`). Screenshots and the feature graphic still need a device.
 
 ### Phase 2 — Deliver on what the app already promises
 
-- **F2.1 — Wire real-time collaboration notifications (G5).** User story: *as a user in a shared
-  list, I get notified when someone else edits or finishes it.* No Cloud Functions (Spark plan) —
-  instead, the client that performs the write (edit/finish/join) also writes one `notifications`
-  document per other member of that list, gated by a Firestore security rule that only allows a
-  user to create a notification addressed to someone else, never to read/write on another user's
-  behalf otherwise. This only covers changes made while the app is open on some device; it's not a
-  true push notification (would need FCM + a trigger to send it, which again means Cloud Functions
-  or a self-hosted sender — out of scope for the free plan). Acceptable trade-off for MVP.
-- **F2.2 — Device QA pass on Google Sign-In.** Config is verified correct (`serverClientId` matches
-  `google-services.json`); what's unverified is the live flow (SHA-1 fingerprints registered,
-  OAuth consent screen published). Needs an actual device run, not code changes.
-- **F2.3 — Resolve the Apple Sign-In question (G7, G8).** Default recommendation: remove the dead
-  `signInWithGoogle`/`signInWithApple` methods and the unreachable Apple UI branch, since this is
-  Android-only and FirebaseUI already owns the real Google flow. Only build Apple for real if
-  there's a concrete reason (e.g., a KMP/iOS target on the roadmap).
+- ~~**F2.1 — Wire real-time collaboration notifications (G5).**~~ Done, client-side — PR #20.
+  `ShoppingJoinUseCase` and `FinishPurchaseViewModel` each write a `notifications` document per
+  other member instead of relying on a Cloud Function (Spark plan has none). Only covers changes
+  made while some device has the app open — not a true push notification. **Needs a manual check**
+  that Firestore security rules allow a user to create a notification addressed to someone else.
+- **F2.2 — Device QA pass on Google Sign-In.** Still open. Config is verified correct
+  (`serverClientId` matches `google-services.json`); what's unverified is the live flow (SHA-1
+  fingerprints registered, OAuth consent screen published). Needs an actual device run.
+- ~~**F2.3 — Resolve the Apple Sign-In question (G7, G8).**~~ Done — PR #19. Removed the dead
+  `signInWithGoogle`/`signInWithApple` methods and the unreachable Apple UI branch rather than
+  implementing Apple for real, since this is Android-only.
 
 ### Phase 3 — Post-launch polish (not MVP blockers)
 
@@ -100,10 +107,19 @@ notifications (PR #15), Maestro regression suite (PR #16), this doc (PR #17).
 
 ## Suggested order
 
-F0.3 can happen today, independent of everything else. F0.1 (the merge) should happen before Phase
-1 work starts, so Phase 1 isn't built twice on two diverging branches. Phase 1 items are
-independent of each other and can run in parallel. Phase 2 and 3 can trail the Play Store
-submission.
+Everything code-shaped that didn't need a device, a hosting decision, or a merge call from you is
+done (9 PRs, #14–#22). What's left needs you specifically:
+
+1. Review and merge the PRs you want, in whatever order makes sense to you — they're independent
+   of each other except that #19 (dead social-auth cleanup) and #20 (collaboration notifications)
+   both touch `AuthService`/`FirebaseAnonymousAuthentication`-adjacent files, so merge one before
+   rebasing the other if you take both.
+2. Decide on F0.1 (the `develop` merge) whenever you're ready — nothing above depends on it having
+   happened first, since everything branched from `feat/new-layout`.
+3. Once you have a device: run the Maestro suite (F0.3), do the Google Sign-In QA pass (F2.2), and
+   capture the screenshots/feature graphic (rest of G4).
+4. Pick a host for the legal pages (G3) and wire the URL in.
+5. Check the Firestore rules for the new notification writes (G5) in the Firebase Console.
 
 ## Process
 
