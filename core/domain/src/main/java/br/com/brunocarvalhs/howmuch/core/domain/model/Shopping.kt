@@ -16,12 +16,17 @@ data class Shopping(
     val isCategorized: Boolean = true,
     val shortCode: String? = null,
     val budget: Double? = null,
-    val position: Int = 0
+    val position: Int = 0,
+    val emoji: String = DEFAULT_EMOJI
 ) {
     @Serializable
     enum class Status {
         NEW,
         IN_PROGRESS,
         FINISH
+    }
+
+    companion object {
+        const val DEFAULT_EMOJI = "🛒"
     }
 }
