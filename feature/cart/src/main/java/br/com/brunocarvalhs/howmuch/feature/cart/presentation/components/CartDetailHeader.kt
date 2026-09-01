@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.theme.CestouSoftGreen
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTextPrimary
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTextSecondary
@@ -48,8 +49,9 @@ import coil.compose.AsyncImage
 internal fun CartDetailHeader(
     modifier: Modifier = Modifier,
     iconUrl: String? = null,
+    emoji: String? = null,
     title: String = "",
-    description: String = "Compartilhada com João",
+    description: String = "",
     onBack: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null,
     actions: @Composable (RowScope.() -> Unit) = {}
@@ -73,30 +75,19 @@ internal fun CartDetailHeader(
                             modifier = Modifier.size(32.dp)
                         )
                     } else {
-                        val (emoji, bgColor) = when {
-                            title.contains("breakfast", true) || title.contains("café", true) -> "🍳" to Color(0xFFFEF9E7)
-                            title.contains("dinner", true) || title.contains("jantar", true) -> "🍏" to Color(0xFFE8F8F5)
-                            title.contains("pizza", true) -> "🍕" to Color(0xFFFEF5E7)
-                            title.contains("spaghetti", true) || title.contains("massa", true) -> "🍝" to Color(0xFFFBEEE6)
-                            title.contains("drinks", true) || title.contains("bebidas", true) -> "🍺" to Color(0xFFF5EEF8)
-                            title.contains("purchased", true) -> "🍉" to Color(0xFFFCE4EC)
-                            else -> "🛒" to Color(0xFFF0F0F0)
-                        }
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(bgColor),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(text = emoji, style = MaterialTheme.typography.headlineSmall)
-                        }
+                        Text(
+                            text = emoji ?: Shopping.DEFAULT_EMOJI,
+                            style = MaterialTheme.typography.headlineSmall
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
                     Text(title, style = MaterialTheme.typography.titleLarge)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(description, style = MaterialTheme.typography.bodyMedium)
+                    if (description.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(description, style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
             }
         },
