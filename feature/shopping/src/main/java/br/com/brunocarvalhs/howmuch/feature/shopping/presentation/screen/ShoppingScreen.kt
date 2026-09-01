@@ -1,7 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -25,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -33,6 +33,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -44,6 +45,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragTarget
@@ -73,6 +77,7 @@ internal fun ShoppingScreen(
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyGridState()
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
@@ -82,8 +87,17 @@ internal fun ShoppingScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        intent.onFetchAll()
+    // addObserver() replays ON_RESUME synchronously when the lifecycle is already resumed,
+    // so this alone covers both the initial load and every subsequent return to this screen —
+    // a separate LaunchedEffect(Unit) { onFetchAll() } would double-fire on first composition.
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                intent.onFetchAll()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     DragAndDropContainer {
@@ -126,7 +140,9 @@ internal fun ShoppingScreen(
             containerColor = MaterialTheme.colorScheme.background,
             contentWindowInsets = WindowInsets(0, 0, 0, 0)
         ) { padding ->
-            Box(
+            PullToRefreshBox(
+                isRefreshing = uiState.isLoading,
+                onRefresh = { intent.onFetchAll() },
                 modifier = modifier
                     .fillMaxSize()
                     .padding(padding)
