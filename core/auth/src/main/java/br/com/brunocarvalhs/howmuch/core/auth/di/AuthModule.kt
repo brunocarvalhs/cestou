@@ -6,7 +6,9 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import br.com.brunocarvalhs.howmuch.core.auth.FirebaseAnonymousAuthentication
+import br.com.brunocarvalhs.howmuch.core.data.service.DataStoreStorageService
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -42,4 +44,11 @@ object AuthModule {
             produceFile = { context.preferencesDataStoreFile("auth_prefs") }
         )
     }
+
+    @Provides
+    @Singleton
+    @AuthDataStore
+    fun provideAuthStorageService(
+        @AuthDataStore dataStore: DataStore<Preferences>
+    ): StorageService = DataStoreStorageService(dataStore)
 }

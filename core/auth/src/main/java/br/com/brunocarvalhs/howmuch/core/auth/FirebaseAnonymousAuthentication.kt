@@ -1,12 +1,11 @@
 package br.com.brunocarvalhs.howmuch.core.auth
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
 import br.com.brunocarvalhs.howmuch.core.auth.di.AuthDataStore
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
+import br.com.brunocarvalhs.howmuch.core.domain.services.get
+import br.com.brunocarvalhs.howmuch.core.domain.services.observe
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -16,8 +15,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
@@ -26,11 +23,10 @@ import javax.inject.Inject
 class FirebaseAnonymousAuthentication @Inject constructor(
     private val auth: FirebaseAuth,
     private val crashlytics: FirebaseCrashlytics,
-    @AuthDataStore private val dataStore: DataStore<Preferences>
+    @AuthDataStore private val storage: StorageService
 ) : AuthService {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private val _userIdKey = stringPreferencesKey("synced_user_id")
 
     private val _firebaseAuthState = MutableStateFlow(auth.currentUser?.toAuthenticatedUser())
     private val _syncedUserId = MutableStateFlow<String?>(null)
@@ -51,7 +47,7 @@ class FirebaseAnonymousAuthentication @Inject constructor(
             _firebaseAuthState.value = firebaseAuth.currentUser?.toAuthenticatedUser()
         }
         scope.launch {
-            dataStore.data.map { it[_userIdKey] }.collect {
+            storage.observe<String>(USER_ID_KEY).collect {
                 _syncedUserId.value = it
             }
         }
@@ -69,7 +65,7 @@ class FirebaseAnonymousAuthentication @Inject constructor(
         }
 
     override suspend fun getOrCreateUserId(): AuthenticatedUser {
-        val syncedId = dataStore.data.map { it[_userIdKey] }.firstOrNull()
+        val syncedId = storage.get<String>(USER_ID_KEY)
         if (syncedId != null) {
             return AuthenticatedUser(id = syncedId)
         }
@@ -99,7 +95,7 @@ class FirebaseAnonymousAuthentication @Inject constructor(
     }
 
     override suspend fun signOut(): Result<Unit> = try {
-        dataStore.edit { it.remove(_userIdKey) }
+        storage.remove(USER_ID_KEY)
         auth.signOut()
         Result.success(Unit)
     } catch (e: Exception) {
@@ -119,9 +115,7 @@ class FirebaseAnonymousAuthentication @Inject constructor(
     override suspend fun updateUserId(userId: String) {
         Timber.tag(TAG).d("Updating user ID to: $userId (Linking account)")
         scope.launch {
-            dataStore.edit { preferences ->
-                preferences[_userIdKey] = userId
-            }
+            storage.save(USER_ID_KEY, userId)
         }
     }
 
@@ -143,5 +137,6 @@ class FirebaseAnonymousAuthentication @Inject constructor(
     companion object {
         private const val TAG = "FirebaseAnonymousAuthentication"
         private const val GUEST_ID = "guest"
+        private const val USER_ID_KEY = "synced_user_id"
     }
 }

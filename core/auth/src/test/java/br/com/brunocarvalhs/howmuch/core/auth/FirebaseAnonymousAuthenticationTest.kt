@@ -1,13 +1,12 @@
 package br.com.brunocarvalhs.howmuch.core.auth
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.emptyPreferences
+import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -29,8 +28,9 @@ class FirebaseAnonymousAuthenticationTest {
 
     private val auth = mockk<FirebaseAuth>(relaxed = true)
     private val crashlytics = mockk<FirebaseCrashlytics>(relaxed = true)
-    private val dataStore = mockk<DataStore<Preferences>>(relaxed = true) {
-        every { data } returns flowOf(emptyPreferences())
+    private val storage = mockk<StorageService>(relaxed = true) {
+        every { observe<Any>(any(), any(), any()) } returns flowOf(null)
+        coEvery { get<Any>(any(), any(), any()) } returns null
     }
 
     private fun fakeUser(uid: String = "user-1") = mockk<FirebaseUser> {
@@ -56,7 +56,7 @@ class FirebaseAnonymousAuthenticationTest {
     fun `currentUser maps the FirebaseUser to an AuthenticatedUser`() {
         every { auth.currentUser } returns fakeUser("user-1")
 
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
         assertEquals("user-1", service.currentUser?.id)
         assertEquals("user@test.com", service.currentUser?.email)
@@ -64,7 +64,7 @@ class FirebaseAnonymousAuthenticationTest {
 
     @Test
     fun `currentUser is null when there is no FirebaseUser`() {
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
         assertNull(service.currentUser)
     }
@@ -72,7 +72,7 @@ class FirebaseAnonymousAuthenticationTest {
     @Test
     fun `getOrCreateUserId returns the existing user without signing in again`() = runTest {
         every { auth.currentUser } returns fakeUser("user-1")
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
         val result = service.getOrCreateUserId()
 
@@ -84,7 +84,7 @@ class FirebaseAnonymousAuthenticationTest {
     fun `getOrCreateUserId signs in anonymously when there is no current user`() = runTest {
         val authResult = mockk<AuthResult> { every { user } returns fakeUser("user-2") }
         every { auth.signInAnonymously() } returns Tasks.forResult(authResult)
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
         val result = service.getOrCreateUserId()
 
@@ -95,7 +95,7 @@ class FirebaseAnonymousAuthenticationTest {
     fun `signInAnonymously returns success with the mapped user`() = runTest {
         val authResult = mockk<AuthResult> { every { user } returns fakeUser("user-2") }
         every { auth.signInAnonymously() } returns Tasks.forResult(authResult)
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
         val result = service.signInAnonymously()
 
@@ -107,7 +107,7 @@ class FirebaseAnonymousAuthenticationTest {
     fun `signInAnonymously fails when Firebase returns a null user`() = runTest {
         val authResult = mockk<AuthResult> { every { user } returns null }
         every { auth.signInAnonymously() } returns Tasks.forResult(authResult)
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
         val result = service.signInAnonymously()
 
@@ -117,7 +117,7 @@ class FirebaseAnonymousAuthenticationTest {
     @Test
     fun `signInAnonymously fails when the Firebase task fails`() = runTest {
         every { auth.signInAnonymously() } returns Tasks.forException(RuntimeException("no network"))
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
         val result = service.signInAnonymously()
 
@@ -126,7 +126,7 @@ class FirebaseAnonymousAuthenticationTest {
 
     @Test
     fun `signOut succeeds and delegates to FirebaseAuth`() = runTest {
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
         val result = service.signOut()
 
@@ -137,7 +137,7 @@ class FirebaseAnonymousAuthenticationTest {
     @Test
     fun `signOut fails when FirebaseAuth throws`() = runTest {
         every { auth.signOut() } throws IllegalStateException("boom")
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
         val result = service.signOut()
 
@@ -146,7 +146,7 @@ class FirebaseAnonymousAuthenticationTest {
 
     @Test
     fun `signInWithGoogle and signInWithApple are not implemented yet`() = runTest {
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
         assertTrue(service.signInWithGoogle().isFailure)
         assertTrue(service.signInWithApple().isFailure)
@@ -156,7 +156,7 @@ class FirebaseAnonymousAuthenticationTest {
     fun `authState reflects the listener registered on FirebaseAuth`() {
         val listenerSlot = slot<FirebaseAuth.AuthStateListener>()
         every { auth.addAuthStateListener(capture(listenerSlot)) } returns Unit
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
         every { auth.currentUser } returns fakeUser("user-3")
         listenerSlot.captured.onAuthStateChanged(auth)
