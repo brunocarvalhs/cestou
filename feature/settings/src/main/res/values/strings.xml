@@ -58,6 +58,12 @@
     <string name="settings_shopping_reminders_desc">Notify when there are pending lists</string>
     <string name="settings_shopping_none_selected">None selected</string>
 
+    <string name="settings_shopping_reminder_notification_title">Pending shopping list</string>
+    <plurals name="settings_shopping_reminder_notification_text">
+        <item quantity="one">You have %d pending shopping list</item>
+        <item quantity="other">You have %d pending shopping lists</item>
+    </plurals>
+
     <string name="settings_placeholder_soon">Feature for %s coming soon</string>
 
     <string name="settings_title_ai">AI</string>
