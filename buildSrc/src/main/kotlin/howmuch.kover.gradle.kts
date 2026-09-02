@@ -86,9 +86,30 @@ kover {
                 // HttpClient) como campo privado inline em vez de injetado — não testável sem
                 // um refactor de DI (fora de escopo aqui; considerar injetar o client depois).
                 classes(
-                    "*.GeminiAiAgent",
-                    "*.OpenRouterAiAgent"
+                    "*.GeminiAiAgent*",
+                    "*.OpenRouterAiAgent*"
                 )
+                // Ponto de entrada do app: Activity que só monta o Compose root (setContent)
+                // e faz roteamento de deep link, e a Application que só registra o Hilt/Timber
+                // no boot — mesma categoria de presentation.screen, sem teste de layout dedicado.
+                classes(
+                    "br.com.brunocarvalhs.howmuch.MainActivity*",
+                    "br.com.brunocarvalhs.howmuch.CestouApplication"
+                )
+                // androidx.startup Initializer implementations: thin bootstrap calling static
+                // Firebase/Timber SDK setup on app start, no branching logic of our own worth
+                // unit-testing (would just be mocking the SDK's own static initializers).
+                classes("*.initializer.*")
+                // ML Kit / CameraX wrappers (OCR, image analysis) — need instrumentation, not
+                // unit-testable in plain JVM tests without a real Android environment.
+                classes(
+                    "*.MlKitImageAnalyzerService*",
+                    "*.ProductImageTextRecognizer*"
+                )
+                // *InitializerImpl classes: by project convention (see feature-layer whitelist)
+                // these only wire NavGraphBuilder.composable<X> { ... } blocks per feature, same
+                // category as the already-excluded *.navigation.*Graph* wiring.
+                classes("*InitializerImpl*")
                 // Composables puros de drag-and-drop (mesma categoria de presentation.screen/
                 // components acima); DragTargetInfo (o state holder) continua coberto por teste.
                 classes("br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragDropUtilsKt*")
