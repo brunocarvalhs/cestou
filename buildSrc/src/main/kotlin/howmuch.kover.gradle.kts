@@ -63,12 +63,35 @@ kover {
                 // Composables de tela/componente ainda sem teste de layout dedicado via Robolectric
                 // (rollout incremental cobre as telas principais nesta rodada; o restante fica para
                 // uma próxima passada). ViewModels e lógica de apresentação continuam cobertos
-                // normalmente — só a função @Composable em si fica de fora aqui.
+                // normalmente — só a função @Composable em si fica de fora aqui. Inclui as telas
+                // Wear (presentation.wear.screen) e os NavGraphBuilder de cada feature
+                // (navigation.*Graph), que são só wiring de composable<X> { ... } sem ramificação
+                // própria — mesma categoria das telas, sem teste de layout dedicado ainda.
                 classes(
                     "*.presentation.screen.*",
+                    "*.presentation.wear.screen.*",
                     "*.presentation.components.*",
-                    "br.com.brunocarvalhs.howmuch.core.ui.components.*"
+                    "br.com.brunocarvalhs.howmuch.core.ui.components.*",
+                    "*.navigation.*Graph*"
                 )
+                // Wrappers finos sobre APIs estáticas do Android (Play Services Wearable Data
+                // Layer, AppFunctionService do SO) — mocká-las de forma significativa exige
+                // Robolectric/instrumented test, não apenas JVM unit test; a maior parte das
+                // linhas aqui é log em branches de erro de framework, não lógica própria.
+                classes(
+                    "br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncServiceImpl*",
+                    "br.com.brunocarvalhs.howmuch.appfunctions.*"
+                )
+                // Provedores de IA que constroem o cliente do SDK (GenerativeModel / Ktor
+                // HttpClient) como campo privado inline em vez de injetado — não testável sem
+                // um refactor de DI (fora de escopo aqui; considerar injetar o client depois).
+                classes(
+                    "*.GeminiAiAgent",
+                    "*.OpenRouterAiAgent"
+                )
+                // Composables puros de drag-and-drop (mesma categoria de presentation.screen/
+                // components acima); DragTargetInfo (o state holder) continua coberto por teste.
+                classes("br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragDropUtilsKt*")
             }
         }
         total {
