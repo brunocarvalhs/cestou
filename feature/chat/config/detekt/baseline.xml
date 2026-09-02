@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>EmptyFunctionBlock:ChatInitializerImpl.kt$ChatInitializerImpl${ }</ID>
+    <ID>ImportOrdering:ChatGraph.kt$import androidx.compose.runtime.getValue import androidx.hilt.navigation.compose.hiltViewModel import androidx.lifecycle.compose.collectAsStateWithLifecycle import androidx.navigation.NavGraphBuilder import androidx.navigation.compose.composable import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiSettings import br.com.brunocarvalhs.howmuch.core.navigation.Navigator import br.com.brunocarvalhs.howmuch.feature.chat.presentation.screen.AiChatScreen import br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel.AiChatViewModel</ID>
+    <ID>ImportOrdering:ChatModule.kt$import br.com.brunocarvalhs.howmuch.feature.chat.ChatInitializer import br.com.brunocarvalhs.howmuch.feature.chat.ChatInitializerImpl import br.com.brunocarvalhs.howmuch.core.navigation.FeatureInitializer import dagger.Binds import dagger.Module import dagger.hilt.InstallIn import dagger.hilt.components.SingletonComponent import dagger.multibindings.IntoSet</ID>
+    <ID>MaximumLineLength:AiChatScreen.kt$ </ID>
+    <ID>ParameterListWrapping:AiChatScreen.kt$( state: AiChatUiState, intent: AiChatIntent )</ID>
+  </CurrentIssues>
+</SmellBaseline>

@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>Filename:NavRoutes.kt$br.com.brunocarvalhs.howmuch.core.navigation.NavRoutes.kt</ID>
+    <ID>Filename:WearRoutes.kt$br.com.brunocarvalhs.howmuch.core.navigation.wear.WearRoutes.kt</ID>
+  </CurrentIssues>
+</SmellBaseline>
