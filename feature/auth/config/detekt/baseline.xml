@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>Filename:AuthNavigation.kt$br.com.brunocarvalhs.howmuch.feature.auth.navigation.AuthNavigation.kt</ID>
+    <ID>ImportOrdering:AuthInitializerImpl.kt$import androidx.compose.material3.windowsizeclass.WindowSizeClass import androidx.compose.runtime.collectAsState import androidx.hilt.navigation.compose.hiltViewModel import androidx.navigation.NavGraphBuilder import androidx.navigation.compose.composable import br.com.brunocarvalhs.howmuch.core.navigation.mobile.LinkWearDevice import br.com.brunocarvalhs.howmuch.core.navigation.Navigator import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList import br.com.brunocarvalhs.howmuch.feature.auth.presentation.screen.LinkWearDeviceScreen import br.com.brunocarvalhs.howmuch.feature.auth.presentation.viewmodel.LinkWearViewModel import br.com.brunocarvalhs.howmuch.feature.auth.navigation.Welcome import br.com.brunocarvalhs.howmuch.feature.auth.navigation.authGraph import br.com.brunocarvalhs.howmuch.feature.auth.navigation.authWearGraph import javax.inject.Inject</ID>
+    <ID>ImportOrdering:AuthWearGraph.kt$import androidx.hilt.navigation.compose.hiltViewModel import androidx.navigation.NavGraphBuilder import androidx.wear.compose.navigation.composable import br.com.brunocarvalhs.howmuch.core.navigation.Navigator import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingCode import br.com.brunocarvalhs.howmuch.core.navigation.mobile.LinkPhone import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.screen.PairingCodeWearScreen import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.screen.LinkPhoneWearScreen import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.viewmodel.PairingViewModel</ID>
+    <ID>MagicNumber:LinkWearViewModel.kt$LinkWearViewModel$6</ID>
+    <ID>MaximumLineLength:AuthModule.kt$AuthModule$ </ID>
+    <ID>MaximumLineLength:CustomAuthenticatedContent.kt$ </ID>
+    <ID>ParameterListWrapping:AuthModule.kt$AuthModule$(impl: AuthInitializerImpl)</ID>
+  </CurrentIssues>
+</SmellBaseline>
