@@ -1,0 +1,24 @@
+Cestou convierte tu lista de compras en un asistente inteligente, compartido y atento a tu presupuesto.
+
+CREA Y ORGANIZA
+Mantén tantas listas como necesites — el mercado semanal, una parrillada, una compra mensual — cada una con su propio presupuesto y productos agrupados por categoría.
+
+AÑADE PRODUCTOS A TU MANERA
+Busca por nombre, escanea el código de barras, o simplemente toma una foto de los productos (o de una etiqueta de precio) y deja que la IA los identifique y los añada por ti. También hay sugerencias listas para los productos de todos los días.
+
+ASISTENTE DE IA
+Pide ayuda al asistente para armar tu lista, resuelve dudas sobre lo que ya tienes en ella, o pide sugerencias de lo que podrías estar olvidando.
+
+COMPARTE Y COLABORA EN TIEMPO REAL
+Invita a otras personas a una lista con un código o código QR. Todos ven los cambios al instante, y los miembros reciben un aviso cuando la lista se edita o se finaliza.
+
+CONTROLA TUS GASTOS
+Consulta el total gastado por lista, define un presupuesto y recibe un aviso si lo superas, y revisa tu historial de compras una vez finalizada la lista.
+
+PERSONALÍZALO
+Tema claro, oscuro o automático; portugués, inglés o español; y la moneda que prefieras.
+
+TUS DATOS, TU DECISIÓN
+Limpia la caché, borra tus datos locales, o elimina permanentemente tu cuenta y todo lo relacionado con ella, directamente desde Configuración.
+
+Cestou funciona sin necesidad de una cuenta — inicia sesión solo si quieres sincronizar entre dispositivos o compartir listas con otras personas.
