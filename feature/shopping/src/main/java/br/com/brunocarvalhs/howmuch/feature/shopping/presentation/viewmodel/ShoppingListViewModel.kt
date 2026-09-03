@@ -114,10 +114,10 @@ internal class ShoppingListViewModel @Inject constructor(
         onShowJoinDialog = { _navigator?.navigate(JoinList()) },
         onMove = { from, to -> moveShopping(from, to) },
         onShowCreateSheet = { visible -> _uiState.update { it.copy(isCreateSheetVisible = visible) } },
-        onCreateConfirmed = { title, description ->
+        onCreateConfirmed = { title, description, emoji ->
             _uiState.update { it.copy(isCreateSheetVisible = false) }
             viewModelScope.launch {
-                shoppingCreateUseCase.invoke(title = title, description = description)
+                shoppingCreateUseCase.invoke(title = title, description = description, emoji = emoji)
                     .onSuccess {
                         analyticsTracker.trackEvent(
                             AnalyticsEvents.SHOPPING_LIST_CREATED,

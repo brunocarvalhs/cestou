@@ -63,6 +63,7 @@ internal fun ShoppingItem(
     status: Shopping.Status = Shopping.Status.NEW,
     iconUrl: String? = null,
     iconBackgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    emoji: String = Shopping.DEFAULT_EMOJI,
     onClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
     onDuplicateClick: () -> Unit = {},
@@ -87,9 +88,9 @@ internal fun ShoppingItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconProduct(
-                title = title,
                 iconUrl = iconUrl,
-                iconBackgroundColor = iconBackgroundColor
+                iconBackgroundColor = iconBackgroundColor,
+                emoji = emoji
             )
 
             Spacer(modifier = Modifier.width(16.dp))

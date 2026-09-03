@@ -13,6 +13,7 @@
     <string name="shopping_management_new_list_title">Nova Lista</string>
     <string name="shopping_management_new_list_description">Dê um nome para sua nova lista de compras</string>
     <string name="shopping_management_label_list_title">Título da Lista</string>
+    <string name="shopping_management_label_emoji_optional">Emoji (Opcional)</string>
     <string name="shopping_management_placeholder_list_title">Ex: Churrasco no Domingo</string>
     <string name="shopping_management_label_description_optional">Descrição (Opcional)</string>
     <string name="shopping_management_placeholder_description_new">Ex: Mercado da esquina</string>
