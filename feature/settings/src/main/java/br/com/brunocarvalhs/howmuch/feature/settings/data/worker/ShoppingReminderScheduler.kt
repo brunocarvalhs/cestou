@@ -54,8 +54,8 @@ internal class ShoppingReminderScheduler @Inject constructor(
 
     private fun parseTime(reminderTime: String): Pair<Int, Int> {
         val parts = reminderTime.split(":")
-        val hour = parts.getOrNull(0)?.toIntOrNull()?.coerceIn(0, 23) ?: DEFAULT_HOUR
-        val minute = parts.getOrNull(1)?.toIntOrNull()?.coerceIn(0, 59) ?: DEFAULT_MINUTE
+        val hour = parts.getOrNull(0)?.toIntOrNull()?.coerceIn(0, MAX_HOUR) ?: DEFAULT_HOUR
+        val minute = parts.getOrNull(1)?.toIntOrNull()?.coerceIn(0, MAX_MINUTE) ?: DEFAULT_MINUTE
         return hour to minute
     }
 
@@ -63,5 +63,7 @@ internal class ShoppingReminderScheduler @Inject constructor(
         const val WORK_NAME = "shopping_reminder"
         private const val DEFAULT_HOUR = 18
         private const val DEFAULT_MINUTE = 0
+        private const val MAX_HOUR = 23
+        private const val MAX_MINUTE = 59
     }
 }
