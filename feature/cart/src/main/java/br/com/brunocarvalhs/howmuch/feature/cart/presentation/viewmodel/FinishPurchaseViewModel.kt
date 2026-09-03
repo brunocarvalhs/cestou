@@ -8,11 +8,11 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepositor
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
 private const val TYPE_LIST_FINISHED = "list_finished"
 
