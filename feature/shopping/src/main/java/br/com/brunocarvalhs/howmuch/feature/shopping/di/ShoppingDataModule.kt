@@ -10,7 +10,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-internal abstract class ShoppingDataModule {
+abstract class ShoppingDataModule {
 
     @Binds
     @Singleton

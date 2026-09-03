@@ -6,7 +6,11 @@ import br.com.brunocarvalhs.howmuch.core.data.network.FirebaseFirestoreManager
 import br.com.brunocarvalhs.howmuch.core.data.network.NetworkLogger
 import br.com.brunocarvalhs.howmuch.core.data.network.NetworkManager
 import br.com.brunocarvalhs.howmuch.core.data.security.CryptoManager
-import br.com.brunocarvalhs.howmuch.core.domain.service.NetworkService
+import br.com.brunocarvalhs.howmuch.core.data.repository.NotificationRepositoryImpl
+import br.com.brunocarvalhs.howmuch.core.data.repository.UserRepositoryImpl
+import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
+import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
+import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Binds
 import dagger.Module
@@ -34,6 +38,14 @@ abstract class DataModule {
     @Singleton
     @Named("CloudNetwork")
     abstract fun bindCloudNetworkService(impl: CloudNetwork): NetworkService
+
+    @Binds
+    @Singleton
+    abstract fun bindUserRepository(impl: UserRepositoryImpl): UserRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNotificationRepository(impl: NotificationRepositoryImpl): NotificationRepository
 
     companion object {
         private const val REQUEST_TIMEOUT_MILLIS = 60_000L

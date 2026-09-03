@@ -4,12 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingUpdateUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.EditShopping
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.QrCode
+import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.EditShopping
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.EditShoppingIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.EditShoppingUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,7 +36,8 @@ internal class EditShoppingViewModel @Inject constructor(
     val intent = EditShoppingIntent(
         onUpdate = { shopping -> update(shopping) },
         onShareToken = { id -> shareToken(id) },
-        onCancel = { _navigator?.goBack() }
+        onCancel = { _navigator?.goBack() },
+        onErrorShown = { _uiState.update { it.copy(error = null) } }
     )
 
     fun setNavigator(navigator: Navigator) {

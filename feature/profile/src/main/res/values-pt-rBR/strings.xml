@@ -1,0 +1,9 @@
+<resources>
+    <string name="profile_title">Perfil</string>
+    <string name="profile_default_name">Usuário</string>
+    <string name="profile_default_email">email@exemplo.com</string>
+    <string name="profile_menu_notification_preferences">Preferências de Notificação</string>
+    <string name="profile_menu_theme_currency_language">Tema, Moeda e Idioma</string>
+    <string name="profile_menu_about">Sobre o App</string>
+    <string name="profile_menu_sign_out">Sair</string>
+</resources>

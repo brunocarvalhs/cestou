@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.core.data.network
 
 import br.com.brunocarvalhs.howmuch.core.data.security.CryptoManager
-import br.com.brunocarvalhs.howmuch.core.domain.service.NetworkService
+import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.InternalSerializationApi

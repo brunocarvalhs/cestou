@@ -9,6 +9,9 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -16,9 +19,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import br.com.brunocarvalhs.howmuch.feature.products.R
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -63,6 +70,18 @@ internal fun CameraCaptureView(
                 }, ContextCompat.getMainExecutor(ctx))
                 previewView
             }
+        )
+
+        PriceTagScannerCanvas()
+
+        Text(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 96.dp, start = 24.dp, end = 24.dp),
+            text = stringResource(R.string.product_photo_instruction),
+            color = Color.White,
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center
         )
 
         CaptureControls(

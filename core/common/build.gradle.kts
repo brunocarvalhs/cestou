@@ -52,6 +52,12 @@ dependencies {
     implementation(libs.timber)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    implementation(libs.play.services.wearable)
+    implementation(libs.wear.remoteinteractions)
+    implementation(libs.kotlinx.coroutines.guava)
 
     testImplementation(libs.junit)
+    testImplementation(libs.konsist)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

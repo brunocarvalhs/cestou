@@ -1,11 +1,11 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.data.repository
 
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
-import br.com.brunocarvalhs.howmuch.core.domain.service.AuthService
-import br.com.brunocarvalhs.howmuch.core.domain.service.NetworkService
-import br.com.brunocarvalhs.howmuch.core.domain.service.make
-import br.com.brunocarvalhs.howmuch.core.domain.service.observe
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
+import br.com.brunocarvalhs.howmuch.core.domain.services.make
+import br.com.brunocarvalhs.howmuch.core.domain.services.observe
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.mapper.toDomain
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.mapper.toModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.model.ShoppingModel
@@ -26,12 +26,16 @@ class ShoppingRepositoryImpl @Inject constructor(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     override fun observeAll(): Flow<List<Shopping>> = flow {
-        val user = authService.getOrCreateUserId()
+        val userId = runCatching { authService.getOrCreateUserId().id }.getOrNull()
+        if (userId == null) {
+            emit(emptyList())
+            return@flow
+        }
         networkService.observe<List<ShoppingModel>>(
             request = NetworkService.NetworkRequest(
                 endpoint = ENDPOINT,
                 method = NetworkService.Method.GET,
-                query = mapOf("users" to user.id)
+                query = mapOf("users" to userId)
             )
         ).collect { models ->
             emit(models?.map { it.toDomain() } ?: emptyList())
@@ -50,12 +54,13 @@ class ShoppingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAll(): List<Shopping> = withContext(ioDispatcher) {
-        val user = authService.getOrCreateUserId()
+        val userId = runCatching { authService.getOrCreateUserId().id }.getOrNull()
+            ?: return@withContext emptyList()
         val response = networkService.make<List<ShoppingModel>>(
             request = NetworkService.NetworkRequest(
                 endpoint = ENDPOINT,
                 method = NetworkService.Method.GET,
-                query = mapOf("users" to user.id)
+                query = mapOf("users" to userId)
             )
         )
         return@withContext response?.map { it.toDomain() } ?: emptyList()

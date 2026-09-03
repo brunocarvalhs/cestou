@@ -38,10 +38,11 @@ internal fun JoinListContent(
     onDismiss: () -> Unit,
     onJoin: (String) -> Unit,
     onScan: () -> Unit,
+    initialToken: String = "",
     error: UiText? = null,
     isLoading: Boolean = false
 ) {
-    var token by remember { mutableStateOf("") }
+    var token by remember { mutableStateOf(initialToken) }
     val context = LocalContext.current
 
     Column(

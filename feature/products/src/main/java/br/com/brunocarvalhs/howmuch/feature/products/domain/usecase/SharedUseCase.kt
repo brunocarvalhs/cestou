@@ -4,7 +4,7 @@ import br.com.brunocarvalhs.howmuch.feature.products.domain.services.SharedServi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class SharedUseCase(
+internal class SharedUseCase(
     private val service: SharedService
 ) {
     operator fun invoke(): Flow<String> = flow {

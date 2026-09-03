@@ -1,7 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.di
 
 import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingClearPurchasedUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingCreateUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDeleteUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingGetAllUseCase
@@ -18,7 +17,7 @@ import dagger.multibindings.IntoSet
 
 @Module
 @InstallIn(SingletonComponent::class)
-internal abstract class ShoppingAgentModule {
+abstract class ShoppingAgentModule {
 
     @Binds
     @IntoSet
@@ -47,10 +46,6 @@ internal abstract class ShoppingAgentModule {
     @Binds
     @IntoSet
     abstract fun bindShoppingReopen(useCase: ShoppingReopenUseCase): AgentActionUseCase<*>
-
-    @Binds
-    @IntoSet
-    abstract fun bindShoppingClearPurchased(useCase: ShoppingClearPurchasedUseCase): AgentActionUseCase<*>
 
     @Binds
     @IntoSet

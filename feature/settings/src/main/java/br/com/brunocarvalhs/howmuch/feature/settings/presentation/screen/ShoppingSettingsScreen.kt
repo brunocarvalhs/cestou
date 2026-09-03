@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.components.SettingsHeader
@@ -130,5 +131,27 @@ internal fun ShoppingSettingsScreen(
                 Text(text = stringResource(R.string.settings_ai_button_save))
             }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "Ordenar por categoria")
+@Composable
+private fun ShoppingSettingsScreenCategoryPreview() {
+    MaterialTheme {
+        ShoppingSettingsScreen(
+            state = ShoppingSettingsUiState(sortingMode = "CATEGORY", remindersEnabled = false),
+            intent = ShoppingSettingsIntent()
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Ordenar por nome, lembretes ativos")
+@Composable
+private fun ShoppingSettingsScreenNamePreview() {
+    MaterialTheme {
+        ShoppingSettingsScreen(
+            state = ShoppingSettingsUiState(sortingMode = "NAME", remindersEnabled = true),
+            intent = ShoppingSettingsIntent()
+        )
     }
 }

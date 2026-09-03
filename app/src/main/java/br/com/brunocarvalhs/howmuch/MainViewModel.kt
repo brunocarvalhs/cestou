@@ -2,8 +2,11 @@ package br.com.brunocarvalhs.howmuch
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.brunocarvalhs.howmuch.core.domain.entity.AppSettings
-import br.com.brunocarvalhs.howmuch.core.domain.entity.ThemeMode
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
+import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -14,8 +17,22 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class MainViewModel @Inject constructor(
-    getSettingsUseCase: GetSettingsUseCase
+    getSettingsUseCase: GetSettingsUseCase,
+    private val authService: AuthService,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
+
+    init {
+        analyticsTracker.trackEvent(AnalyticsEvents.APP_OPEN)
+    }
+
+    val isAuthenticated: StateFlow<Boolean> = authService.authState
+        .map { it != null }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = authService.currentUser != null
+        )
     private val settings = getSettingsUseCase()
         .stateIn(
             scope = viewModelScope,
@@ -37,5 +54,13 @@ internal class MainViewModel @Inject constructor(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = "pt"
+        )
+
+    val photoUrl: StateFlow<String?> = authService.authState
+        .map { it?.photoUrl }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = authService.currentUser?.photoUrl
         )
 }

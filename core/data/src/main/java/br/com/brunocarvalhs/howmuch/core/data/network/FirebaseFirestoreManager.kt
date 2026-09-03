@@ -1,6 +1,6 @@
 package br.com.brunocarvalhs.howmuch.core.data.network
 
-import br.com.brunocarvalhs.howmuch.core.domain.service.NetworkService
+import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue

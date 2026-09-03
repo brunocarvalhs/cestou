@@ -1,5 +1,9 @@
 <resources>
     <!-- Feature: Shopping Management -->
+    <string name="shopping_management_lists_title">Listas de compras</string>
+    <string name="shopping_management_notifications_title">Notificações</string>
+    <string name="shopping_management_section_recent">Criadas recentemente</string>
+    <string name="shopping_management_content_description_create_list">Criar lista</string>
     <string name="shopping_management_search_placeholder">Pesquisar listas&#8230;</string>
     <string name="shopping_management_summary_spent">Gasto Total</string>
     <string name="shopping_management_summary_budget">Orçamento: %s</string>
@@ -9,6 +13,7 @@
     <string name="shopping_management_new_list_title">Nova Lista</string>
     <string name="shopping_management_new_list_description">Dê um nome para sua nova lista de compras</string>
     <string name="shopping_management_label_list_title">Título da Lista</string>
+    <string name="shopping_management_label_emoji_optional">Emoji (Opcional)</string>
     <string name="shopping_management_placeholder_list_title">Ex: Churrasco no Domingo</string>
     <string name="shopping_management_label_description_optional">Descrição (Opcional)</string>
     <string name="shopping_management_placeholder_description_new">Ex: Mercado da esquina</string>
@@ -39,8 +44,10 @@
     <string name="shopping_management_invite_members_title">Convidar Membros</string>
     <string name="shopping_management_qr_code_hint">Escaneie o código acima ou use the token abaixo para entrar na lista.</string>
     <string name="shopping_management_button_share_invite">Compartilhar Link de Convite</string>
+    <string name="shopping_management_invite_share_text">Entre na minha lista de compras no Cestou! Use o código %s no app para participar.</string>
     <string name="shopping_management_error_only_owner_delete">Apenas o proprietário pode excluir esta lista</string>
     <string name="shopping_management_error_only_owner_edit">Apenas o proprietário pode editar esta lista</string>
+    <string name="shopping_management_error_create">Não foi possível criar a lista. Tente novamente.</string>
 
 
     <string name="shopping_management_error_join">Erro ao entrar na lista</string>
@@ -51,12 +58,6 @@
     <string name="shopping_list_copy_suffix">(Cópia)</string>
     <string name="shopping_list_new_title">Nova Lista</string>
     <string name="shopping_list_new_description">Lista de compras padrão</string>
-
-    <string name="shopping_suggestion_expensive">Qual é a minha lista mais cara?</string>
-    <string name="shopping_suggestion_breakfast">Sugerir itens para um café da manhã</string>
-    <string name="shopping_suggestion_pending">Quais listas estão pendentes?</string>
-    <string name="shopping_suggestion_barbecue">Crie uma lista de churrasco para 5 pessoas</string>
-    <string name="shopping_suggestion_spent_month">Qual o total gasto este mês?</string>
 
     <string name="action_duplicate">Duplicar</string>
     <string name="action_reopen">Reabrir</string>

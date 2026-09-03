@@ -12,16 +12,17 @@
     <!-- Feature: Product -->
     <string name="product_ai_identifying">AI is identifying items&#8230;</string>
     <string name="product_barcode_instruction">Position the barcode within the area</string>
-    <string name="product_photo_instruction">Take a photo of the products for the AI to analyze</string>
-    <string name="product_option_barcode">Barcode</string>
+    <string name="product_photo_instruction">Frame the product\'s price tag inside the box</string>
     <string name="product_option_search">Search</string>
     <string name="product_option_photo">Photo</string>
     <string name="product_option_suggestions">Suggestions</string>
+    <string name="product_option_ai">AI Chat</string>
+    <string name="product_option_common">Common</string>
+    <string name="product_header_add_to">Add to %s</string>
     <string name="product_empty_title">No product found</string>
-    <string name="product_empty_description">Find your products using search,\nbarcode or create a new product.</string>
+    <string name="product_empty_description">Find your products using search\nor create a new product.</string>
     <string name="product_error_loading_image">Error loading image</string>
 
-    <string name="product_error_qr_not_available">QR Code not available</string>
     <string name="product_error_load_image">Error loading image</string>
 
     <!-- Feature: Product Search & Recipes -->
@@ -38,6 +39,36 @@
     <string name="recipe_details_add_to_list">Add to List</string>
     <string name="product_action_retake">Retake</string>
     <string name="product_action_analyze">Analyze</string>
+
+    <!-- Feature: Product Photo Confirmation -->
+    <string name="product_photo_confirm_title">Confirm the products found</string>
+    <plurals name="product_photo_confirm_subtitle">
+        <item quantity="one">1 item found. Review before adding.</item>
+        <item quantity="other">%d items found. Review before adding.</item>
+    </plurals>
+    <string name="product_photo_confirm_add_all">Add %d items</string>
+    <string name="product_photo_item_remove">Remove item</string>
+    <string name="product_photo_item_added">%s added to the list</string>
+    <plurals name="product_photo_items_added">
+        <item quantity="one">1 item added to the list</item>
+        <item quantity="other">%d items added to the list</item>
+    </plurals>
+    <string name="product_photo_quantity_label">Quantity</string>
+    <string name="product_photo_error_no_products_found">No products identified. Try a clearer, well-lit photo.</string>
+    <string name="product_photo_error_analysis_failed">Couldn\'t analyze the photo. Please try again.</string>
+
+    <!-- Feature: Common Products (Basic Basket) -->
+    <string name="common_products_title">Basic Basket</string>
+    <string name="common_products_subtitle">Your everyday items, ready to add</string>
+    <string name="common_products_add_all">Add all to list</string>
+    <string name="common_products_add_placeholder">Add item to basket</string>
+    <string name="common_products_add_item_description">Add item</string>
+    <string name="common_products_item_add_description">Add to list</string>
+    <string name="common_products_item_remove_description">Remove from basket</string>
+    <string name="common_products_item_added">%s added to the list</string>
+    <string name="common_products_all_added">Items added to the list</string>
+    <string name="common_products_empty_title">Your basic basket is empty</string>
+    <string name="common_products_empty_description">Add the items you always buy to reuse them quickly.</string>
 
     <!-- Common Actions -->
     <string name="action_edit">Edit</string>
@@ -68,15 +99,11 @@
     <string name="shopping_list_label_category">Category</string>
     <string name="shopping_list_label_unit">Unit</string>
     <string name="shopping_list_save_changes">Save Changes</string>
-    <string name="shopping_list_locked_title">Finished List</string>
-    <string name="shopping_list_locked_description">This list is locked for changes.</string>
     <string name="shopping_list_summary_over_budget">Limit Exceeded!</string>
     <string name="shopping_list_summary_in_cart">In Cart</string>
     <string name="shopping_list_summary_total">Total: %s</string>
     <string name="shopping_list_summary_items_count">%1$d of %2$d</string>
     <string name="shopping_list_summary_items_in_cart">items in cart</string>
-    <string name="shopping_list_empty_title">Your list is empty</string>
-    <string name="shopping_list_empty_description">Add products or ask the AI for help!</string>
     <string name="shopping_list_share_options_title">How do you want to share?</string>
     <string name="shopping_list_share_invite_member">Invite to Collaborate</string>
     <string name="shopping_list_share_invite_member_desc">Another user can edit the list in real time</string>
@@ -89,4 +116,5 @@
     <!-- Content Descriptions -->
     <string name="content_description_remove_unit">Remove quantity</string>
     <string name="content_description_add_unit">Add quantity</string>
+    <string name="cart_item_delete_description">Delete item</string>
 </resources>

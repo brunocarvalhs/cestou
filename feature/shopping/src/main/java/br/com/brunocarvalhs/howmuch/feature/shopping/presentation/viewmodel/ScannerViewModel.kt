@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingJoinUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.ScannerIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -15,11 +16,16 @@ internal class ScannerViewModel @Inject constructor(
 
     private var _navigator: Navigator? = null
 
+    val intent = ScannerIntent(
+        onTokenScanned = { token -> onTokenScanned(token) },
+        onDismiss = { _navigator?.goBack() }
+    )
+
     fun setNavigator(navigator: Navigator) {
         _navigator = navigator
     }
 
-    fun onTokenScanned(token: String) {
+    private fun onTokenScanned(token: String) {
         viewModelScope.launch {
             shoppingJoinUseCase(token)
                 .onSuccess {

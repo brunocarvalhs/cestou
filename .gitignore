@@ -1,17 +1,45 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# Build outputs (matches every module: app/build, core/*/build, feature/*/build, ...)
+build/
+!.agents/skills/agp-9-upgrade/references/android/build/
+out/
+bin/
+
+# Gradle
+.gradle/
+gradle-app.setting
+
+# Kotlin compiler / K2 daemon cache
+.kotlin/
+
+# Native build
+.cxx/
+.externalNativeBuild/
+captures/
+
+# Local configuration
 local.properties
+*.iml
+
+# Android Studio / IntelliJ
+.idea/*
+!.idea/.gitignore
+!.idea/codeStyles/
+!.idea/compiler.xml
+!.idea/gradle.xml
+!.idea/vcs.xml
+!.idea/runConfigurations.xml
+!.idea/inspectionProfiles/
+
+# Signing & Firebase config (never commit real credentials)
+*.keystore
+*.jks
+key.properties
+google-services.json
+
+# Env files
 .env
+.env.local
+
+# Misc
+.DS_Store
 .artifacts

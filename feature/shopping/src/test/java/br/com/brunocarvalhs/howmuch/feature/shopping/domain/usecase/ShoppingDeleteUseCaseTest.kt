@@ -1,6 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import io.mockk.coEvery
 import io.mockk.coVerify

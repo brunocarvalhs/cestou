@@ -1,0 +1,4 @@
+<resources>
+    <string name="ai_chat_title">AI Assistant</string>
+    <string name="ai_chat_input_label">Message</string>
+</resources>

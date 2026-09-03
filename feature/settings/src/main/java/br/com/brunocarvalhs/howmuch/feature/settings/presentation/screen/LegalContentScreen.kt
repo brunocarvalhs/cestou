@@ -10,6 +10,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.components.SettingsHeader
 
@@ -39,5 +40,19 @@ internal fun LegalContentScreen(
                 style = MaterialTheme.typography.bodyMedium
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun LegalContentScreenPreview() {
+    MaterialTheme {
+        LegalContentScreen(
+            title = "Política de Privacidade",
+            content = "Esta política descreve como coletamos, usamos e protegemos " +
+                "os seus dados pessoais ao utilizar o Cestou. Ao continuar usando o " +
+                "aplicativo, você concorda com os termos descritos aqui.",
+            onBack = {}
+        )
     }
 }

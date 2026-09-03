@@ -31,13 +31,15 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -48,8 +50,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
 import br.com.brunocarvalhs.howmuch.feature.products.R
-import br.com.brunocarvalhs.howmuch.feature.products.domain.entity.Recipe
+import br.com.brunocarvalhs.howmuch.feature.products.domain.model.Recipe
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.intent.ProductSearchIntent
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.state.ProductSearchUiState
 import coil.compose.AsyncImage
@@ -60,7 +64,15 @@ internal fun ProductSearchForm(
     modifier: Modifier = Modifier,
     uiState: ProductSearchUiState,
     intent: ProductSearchIntent = ProductSearchIntent(),
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            intent.onErrorShown()
+        }
+    }
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -154,28 +166,18 @@ internal fun ProductSearchForm(
             if (uiState.searchMode == ProductSearchUiState.SearchMode.PRODUCT) {
                 items(uiState.results.size) { index ->
                     val product = uiState.results[index]
-                    ListItem(
-                        headlineContent = { Text(product.name) },
-                        trailingContent = {
-                            IconButton(onClick = { intent.onProductSelected(product) }) {
-                                Icon(Icons.Default.ShoppingBag, null)
-                            }
-                        }
+                    ProductItem(
+                        name = product.name,
+                        onClick = { intent.onProductSelected(product) }
                     )
                 }
             } else {
                 items(uiState.recipes.size) { index ->
                     val recipe = uiState.recipes[index]
-                    Card(
-                        onClick = { intent.onRecipeSelected(recipe) },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
-                        ListItem(
-                            headlineContent = { Text(recipe.name) },
-                            supportingContent = { Text(recipe.description, maxLines = 2) }
-                        )
-                    }
+                    RecipeSearchItem(
+                        recipe = recipe,
+                        onClick = { intent.onRecipeSelected(recipe) }
+                    )
                 }
             }
         }
@@ -187,6 +189,45 @@ internal fun ProductSearchForm(
             onDismiss = { intent.onClearRecipeSelection() },
             onConfirm = { intent.onAddRecipeIngredients(uiState.selectedRecipe) }
         )
+    }
+}
+
+@Composable
+private fun RecipeSearchItem(
+    recipe: Recipe,
+    onClick: () -> Unit
+) {
+    CestouCard(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Surface(
+                modifier = Modifier.size(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                AsyncImage(
+                    model = recipe.imageUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop
+                )
+            }
+            Spacer(Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = recipe.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1
+                )
+                Text(
+                    text = recipe.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2
+                )
+            }
+        }
     }
 }
 
@@ -320,10 +361,67 @@ private fun RecipeDetailsDialog(
     }
 }
 
-@Preview
+private val previewSearchResults = listOf(
+    Product(id = "1", name = "Arroz Branco 5kg", quantity = 1.0, price = 25.9),
+    Product(id = "2", name = "Feijão Carioca 1kg", quantity = 1.0, price = 8.5)
+)
+
+private val previewRecipe = Recipe(
+    id = "1",
+    name = "Arroz com feijão",
+    description = "Prato tradicional brasileiro",
+    instructions = "Cozinhe o arroz e o feijão separadamente e sirva juntos.",
+    ingredients = previewSearchResults
+)
+
+@Preview(showBackground = true, name = "Vazio - Produtos")
 @Composable
-private fun ProductSearchFormPreview() {
+private fun ProductSearchFormEmptyPreview() {
     ProductSearchForm(
         uiState = ProductSearchUiState()
+    )
+}
+
+@Preview(showBackground = true, name = "Vazio - Receitas")
+@Composable
+private fun ProductSearchFormEmptyRecipesPreview() {
+    ProductSearchForm(
+        uiState = ProductSearchUiState(searchMode = ProductSearchUiState.SearchMode.RECIPE)
+    )
+}
+
+@Preview(showBackground = true, name = "Resultados - Produtos")
+@Composable
+private fun ProductSearchFormResultsPreview() {
+    ProductSearchForm(
+        uiState = ProductSearchUiState(
+            query = "arroz",
+            results = previewSearchResults
+        )
+    )
+}
+
+@Preview(showBackground = true, name = "Resultados - Receitas")
+@Composable
+private fun ProductSearchFormRecipesPreview() {
+    ProductSearchForm(
+        uiState = ProductSearchUiState(
+            query = "arroz com feijão",
+            searchMode = ProductSearchUiState.SearchMode.RECIPE,
+            recipes = listOf(previewRecipe)
+        )
+    )
+}
+
+@Preview(showBackground = true, name = "Detalhes da receita")
+@Composable
+private fun ProductSearchFormRecipeDetailsPreview() {
+    ProductSearchForm(
+        uiState = ProductSearchUiState(
+            query = "arroz com feijão",
+            searchMode = ProductSearchUiState.SearchMode.RECIPE,
+            recipes = listOf(previewRecipe),
+            selectedRecipe = previewRecipe
+        )
     )
 }

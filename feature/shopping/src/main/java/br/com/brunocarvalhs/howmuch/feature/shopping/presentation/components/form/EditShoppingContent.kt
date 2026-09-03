@@ -39,7 +39,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyVisualTransformation
 import br.com.brunocarvalhs.howmuch.feature.shopping.R

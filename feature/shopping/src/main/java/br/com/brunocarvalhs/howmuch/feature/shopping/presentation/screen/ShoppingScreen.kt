@@ -1,91 +1,67 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.isImeVisible
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragTarget
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DropTarget
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.ai.CartAssistantDock
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.state.AiDockState
+import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.common.ShoppingEmptyState
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.CreateShoppingContent
-import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingHeader
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingItem
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingItemLoading
-import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingSummaryCard
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.ShoppingListIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingListUiState
 
-private const val SCROLL_THRESHOLD_UP = -15f
-private const val SCROLL_THRESHOLD_DOWN = 15f
 private const val HOVER_ALPHA = 0.5f
 private const val LOADING_ITEMS_COUNT = 5
 
@@ -98,11 +74,10 @@ internal fun ShoppingScreen(
     modifier: Modifier = Modifier,
     onSettings: () -> Unit = {},
 ) {
-    val focusManager = LocalFocusManager.current
     val context = LocalContext.current
-    val isKeyboardVisible = WindowInsets.isImeVisible
-
     val snackbarHostState = remember { SnackbarHostState() }
+    val listState = rememberLazyGridState()
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
@@ -112,96 +87,77 @@ internal fun ShoppingScreen(
         }
     }
 
-    val listState = rememberLazyGridState()
-    var isUiVisible by remember { mutableStateOf(true) }
-
-    val isExpanded = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
-
-    val nestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (uiState.aiDockState != AiDockState.COLLAPSED) {
-                    isUiVisible = true
-                    return Offset.Zero
-                }
-                if (available.y < SCROLL_THRESHOLD_UP) isUiVisible = false
-                if (available.y > SCROLL_THRESHOLD_DOWN) isUiVisible = true
-                return Offset.Zero
+    // addObserver() replays ON_RESUME synchronously when the lifecycle is already resumed,
+    // so this alone covers both the initial load and every subsequent return to this screen —
+    // a separate LaunchedEffect(Unit) { onFetchAll() } would double-fire on first composition.
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                intent.onFetchAll()
             }
         }
-    }
-
-    LaunchedEffect(Unit) {
-        intent.onFetchAll()
-    }
-
-    val totalSpent = remember(uiState.list) {
-        uiState.list.sumOf { it.price }
-    }
-    val completedLists = remember(uiState.list) {
-        uiState.list.count { it.status == Shopping.Status.FINISH }
-    }
-    val totalBudget = remember(uiState.list) {
-        uiState.list.sumOf { it.budget ?: 0.0 }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     DragAndDropContainer {
         Scaffold(
             topBar = {
-                ShoppingHeader(
-                    onAdd = { intent.onCreate() },
-                    onJoin = { intent.onShowJoinDialog() },
-                    onSettingsClick = onSettings
-                )
-            },
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            containerColor = MaterialTheme.colorScheme.background
-        ) { padding ->
-            Box(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(top = padding.calculateTopPadding())
-            ) {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(if (isExpanded) 400.dp else 300.dp),
-                        state = listState,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxSize()
-                            .nestedScroll(nestedScrollConnection)
-                            .pointerInput(Unit) {
-                                detectTapGestures {
-                                    focusManager.clearFocus()
-                                }
-                            },
-                        contentPadding = PaddingValues(bottom = 120.dp)
-                    ) {
-                        shoppingSearchAndFilters(uiState, intent)
-
-                        item(span = { GridItemSpan(maxLineSpan) }) {
-                            ShoppingSummaryCard(
-                                totalAmount = totalSpent,
-                                totalLists = uiState.list.size,
-                                completedLists = completedLists,
-                                totalBudget = totalBudget
+                CenterAlignedTopAppBar(
+                    actions = {
+                        IconButton(onClick = intent.onShowJoinDialog) {
+                            Icon(
+                                imageVector = Icons.Default.QrCodeScanner,
+                                contentDescription = stringResource(
+                                    R.string.shopping_management_button_join
+                                )
                             )
                         }
-
-                        shoppingListContent(uiState, intent)
-                    }
-
-                    if (isExpanded) {
-                        ShoppingAssistantExpanded(uiState, intent, padding)
-                    }
-                }
-
-                if (!isExpanded) {
-                    ShoppingAssistantCompact(
-                        uiState = uiState,
-                        intent = intent,
-                        isVisible = isUiVisible || uiState.aiDockState != AiDockState.COLLAPSED || isKeyboardVisible
+                    },
+                    title = {
+                        Text(
+                            text = stringResource(br.com.brunocarvalhs.howmuch.core.ui.R.string.app_name),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
                     )
+                )
+            },
+            floatingActionButton = {
+                FloatingActionButton(onClick = intent.onCreate) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(
+                            R.string.shopping_management_content_description_create_list
+                        )
+                    )
+                }
+            },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            containerColor = MaterialTheme.colorScheme.background,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        ) { padding ->
+            PullToRefreshBox(
+                isRefreshing = uiState.isLoading,
+                onRefresh = { intent.onFetchAll() },
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(1),
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    item {
+                        SectionHeader(stringResource(R.string.shopping_management_section_recent))
+                    }
+
+                    shoppingListContent(uiState, intent)
                 }
             }
         }
@@ -211,93 +167,19 @@ internal fun ShoppingScreen(
                 onDismissRequest = { intent.onShowCreateSheet(false) },
                 sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                containerColor = MaterialTheme.colorScheme.surface,
-                dragHandle = { BottomSheetDefaults.DragHandle() }
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 CreateShoppingContent(
-                    onConfirm = { title, description -> intent.onCreateConfirmed(title, description) },
+                    onConfirm = { title, description, emoji ->
+                        intent.onCreateConfirmed(
+                            title,
+                            description,
+                            emoji
+                        )
+                    },
                     onCancel = { intent.onShowCreateSheet(false) }
                 )
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-private fun LazyGridScope.shoppingSearchAndFilters(
-    uiState: ShoppingListUiState,
-    intent: ShoppingListIntent
-) {
-    item(span = { GridItemSpan(maxLineSpan) }) {
-        Column {
-            ShoppingSearchBar(uiState, intent)
-            Spacer(modifier = Modifier.height(12.dp))
-            ShoppingFilterChips(uiState, intent)
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ShoppingSearchBar(
-    uiState: ShoppingListUiState,
-    intent: ShoppingListIntent
-) {
-    SearchBar(
-        inputField = {
-            SearchBarDefaults.InputField(
-                query = uiState.searchQuery,
-                onQueryChange = { intent.onQueryChange(it) },
-                onSearch = { intent.onSearch(it) },
-                expanded = false,
-                onExpandedChange = {},
-                enabled = true,
-                placeholder = {
-                    Text(stringResource(R.string.shopping_management_search_placeholder))
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = null
-                    )
-                },
-                trailingIcon = null,
-                colors = SearchBarDefaults.colors().inputFieldColors,
-                interactionSource = null,
-            )
-        },
-        expanded = false,
-        onExpandedChange = {},
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        shape = SearchBarDefaults.inputFieldShape,
-        colors = SearchBarDefaults.colors(),
-        tonalElevation = SearchBarDefaults.TonalElevation,
-        shadowElevation = SearchBarDefaults.ShadowElevation,
-        windowInsets = SearchBarDefaults.windowInsets,
-    ) { }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ShoppingFilterChips(
-    uiState: ShoppingListUiState,
-    intent: ShoppingListIntent
-) {
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(uiState.filters) { filter ->
-            FilterChip(
-                selected = filter == uiState.selectedFilter,
-                onClick = { intent.onFilter(filter) },
-                label = {
-                    Text(filter.title.asString())
-                }
-            )
         }
     }
 }
@@ -308,12 +190,10 @@ private fun LazyGridScope.shoppingListContent(
 ) {
     if (uiState.isLoading) {
         items(LOADING_ITEMS_COUNT) {
-            ShoppingItemLoading(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
+            ShoppingItemLoading()
         }
     } else if (uiState.filteredList.isEmpty()) {
-        item(span = { GridItemSpan(maxLineSpan) }) {
+        item {
             ShoppingEmptyState()
         }
     } else {
@@ -325,23 +205,19 @@ private fun LazyGridScope.shoppingListItems(
     uiState: ShoppingListUiState,
     intent: ShoppingListIntent
 ) {
-    uiState.groupedList.forEach { (month, shoppings) ->
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            Text(
-                text = month,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(
-                    horizontal = 24.dp,
-                    vertical = 8.dp
-                )
-            )
-        }
-        items(shoppings, key = { it.id }) { shopping ->
-            ShoppingListItemWrapper(shopping, uiState, intent)
-        }
+    items(uiState.filteredList, key = { it.id }) { shopping ->
+        ShoppingListItemWrapper(shopping, uiState, intent)
     }
+}
+
+@Composable
+private fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
+    )
 }
 
 @Composable
@@ -350,38 +226,35 @@ private fun ShoppingListItemWrapper(
     uiState: ShoppingListUiState,
     intent: ShoppingListIntent
 ) {
-    val globalIndex = uiState.filteredList.indexOf(shopping)
-    DropTarget(
-        onDataDropped = { data ->
-            if (data is Shopping) {
-                val fromIndex = uiState.filteredList.indexOf(data)
-                if (fromIndex != -1 && globalIndex != -1) {
-                    intent.onMove(fromIndex, globalIndex)
-                }
-            }
-        }
-    ) { isHovered, _ ->
-        val dragAlpha by animateFloatAsState(
-            targetValue = if (isHovered) HOVER_ALPHA else 1.0f,
-            label = "dragAlpha"
-        )
-
-        DragTarget(
-            modifier = Modifier.alpha(dragAlpha),
-            dataToDrop = shopping
-        ) {
+//    val globalIndex = uiState.filteredList.indexOf(shopping)
+//    DropTarget(
+//        onDataDropped = { data ->
+//            if (data is Shopping) {
+//                val fromIndex = uiState.filteredList.indexOf(data)
+//                if (fromIndex != -1 && globalIndex != -1) {
+//                    intent.onMove(fromIndex, globalIndex)
+//                }
+//            }
+//        }
+//    ) { isHovered, _ ->
+//        val dragAlpha by animateFloatAsState(
+//            targetValue = if (isHovered) HOVER_ALPHA else 1.0f,
+//            label = "dragAlpha"
+//        )
+//
+//        DragTarget(
+//            modifier = Modifier.alpha(dragAlpha),
+//            dataToDrop = shopping
+//        ) {
             ShoppingItem(
-                modifier = Modifier.padding(
-                    horizontal = 16.dp,
-                    vertical = 8.dp
-                ),
+                modifier = Modifier.padding(vertical = 4.dp),
                 onClick = { intent.onOpen(shopping.id) },
                 title = shopping.title,
-                description = shopping.description,
-                price = shopping.price,
+                emoji = shopping.emoji,
                 budget = shopping.budget,
+                itemCount = 8,
+                users = shopping.users,
                 status = shopping.status,
-                isFavorite = shopping.isFavorite,
                 onFavoriteClick = { intent.onToggleFavorite(shopping) },
                 onDeleteClick = { intent.onDelete(shopping.id) },
                 onDuplicateClick = { intent.onDuplicate(shopping) },
@@ -397,87 +270,80 @@ private fun ShoppingListItemWrapper(
                     }
                 }
             )
-        }
-    }
+//        }
+//    }
 }
 
-@Composable
-private fun ShoppingAssistantExpanded(
-    uiState: ShoppingListUiState,
-    intent: ShoppingListIntent,
-    padding: PaddingValues
-) {
-    Box(
-        modifier = Modifier
-            .width(400.dp)
-            .padding(padding)
-            .imePadding()
-    ) {
-        CartAssistantDock(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            state = AiDockState.CHAT, // Sempre Chat se expandido
-            messages = uiState.aiMessages,
-            loading = uiState.isAiLoading,
-            value = uiState.prompt,
-            onValueChange = { intent.onPromptChanged(it) },
-            onSendClick = { intent.onSendPrompt() },
-            onFocused = { },
-            onNotFocused = { },
-            onAddClick = { intent.onCreate() },
-            onToggleClick = { },
-            suggestions = uiState.aiSuggestions,
-            isSuggestionsLoading = uiState.isAiSuggestionsLoading,
-            onSuggestionClick = { intent.onSuggestionClick(it) }
-        )
-    }
-}
+private val previewShoppingLists = listOf(
+    Shopping(
+        id = "1",
+        title = "Morning breakfast",
+        description = "",
+        price = 150.0,
+        budget = 500.0,
+        status = Shopping.Status.IN_PROGRESS,
+        users = listOf("user1", "user2"),
+        roles = emptyMap()
+    ),
+    Shopping(
+        id = "2",
+        title = "Dinner by Sarah",
+        description = "",
+        price = 80.0,
+        budget = 200.0,
+        status = Shopping.Status.NEW,
+        users = listOf("user3"),
+        roles = emptyMap()
+    ),
+    Shopping(
+        id = "3",
+        title = "Pizza day!",
+        description = "",
+        price = 0.0,
+        status = Shopping.Status.NEW,
+        users = listOf("user1"),
+        roles = emptyMap()
+    )
+)
 
-@Composable
-private fun BoxScope.ShoppingAssistantCompact(
-    uiState: ShoppingListUiState,
-    intent: ShoppingListIntent,
-    isVisible: Boolean
-) {
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = slideInVertically { it },
-        exit = slideOutVertically { it },
-        modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .imePadding()
-    ) {
-        CartAssistantDock(
-            modifier = Modifier
-                .navigationBarsPadding()
-                .padding(
-                    horizontal = 20.dp,
-                    vertical = 24.dp
-                ),
-            state = uiState.aiDockState,
-            messages = uiState.aiMessages,
-            loading = uiState.isAiLoading,
-            value = uiState.prompt,
-            onValueChange = { intent.onPromptChanged(it) },
-            onSendClick = { intent.onSendPrompt() },
-            onFocused = { intent.onOpenAi() },
-            onNotFocused = {
-                intent.onFetchAll()
-                intent.onCloseAi()
-            },
-            onAddClick = { intent.onCreate() },
-            onToggleClick = { intent.onToggleAi() },
-            suggestions = uiState.aiSuggestions,
-            isSuggestionsLoading = uiState.isAiSuggestionsLoading,
-            onSuggestionClick = { intent.onSuggestionClick(it) }
-        )
-    }
-}
-
-@Preview
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(showBackground = true, name = "Com listas")
 @Composable
 private fun ShoppingPreview() {
-    // ShoppingScreen(
-    //    uiState = ShoppingListUiState(), intent = ShoppingListIntent())
+    CestouTheme {
+        ShoppingScreen(
+            uiState = ShoppingListUiState(
+                list = StableList(previewShoppingLists),
+                filteredList = StableList(previewShoppingLists)
+            ),
+            windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(400.dp, 800.dp)),
+            intent = ShoppingListIntent()
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(showBackground = true, name = "Carregando")
+@Composable
+private fun ShoppingLoadingPreview() {
+    CestouTheme {
+        ShoppingScreen(
+            uiState = ShoppingListUiState(isLoading = true),
+            windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(400.dp, 800.dp)),
+            intent = ShoppingListIntent()
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(showBackground = true, name = "Vazio")
+@Composable
+private fun ShoppingEmptyPreview() {
+    CestouTheme {
+        ShoppingScreen(
+            uiState = ShoppingListUiState(),
+            windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(400.dp, 800.dp)),
+            intent = ShoppingListIntent()
+        )
+    }
 }

@@ -2,22 +2,24 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
-import br.com.brunocarvalhs.howmuch.core.domain.entity.User
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.User
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
-import br.com.brunocarvalhs.howmuch.core.domain.service.AuthService
-import br.com.brunocarvalhs.howmuch.core.extensions.toMonthYearString
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.common.extensions.toMonthYearString
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
-import br.com.brunocarvalhs.howmuch.feature.products.domain.model.ChatMessage
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.CartAssistantUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductsFlow
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.state.AiDockState
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.exception.OwnershipRequiredException
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
-import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.GetShoppingSuggestionsUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShareShoppingUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShareShoppingUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingCreateUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDeleteUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDuplicateUseCase
@@ -25,8 +27,7 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingGetA
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingGetByIdUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingReopenUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingUpdateUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.EditShopping
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.JoinList
+import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.EditShopping
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.ShoppingListIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingFilter
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingListUiState
@@ -48,11 +49,10 @@ internal class ShoppingListViewModel @Inject constructor(
     private val shoppingDuplicateUseCase: ShoppingDuplicateUseCase,
     private val shoppingDeleteUseCase: ShoppingDeleteUseCase,
     private val shareShoppingUseCase: ShareShoppingUseCase,
-    private val assistantUseCase: CartAssistantUseCase,
     private val shoppingReopenUseCase: ShoppingReopenUseCase,
-    private val getShoppingSuggestionsUseCase: GetShoppingSuggestionsUseCase,
     private val getSettingsUseCase: GetSettingsUseCase,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ShoppingListUiState())
@@ -69,7 +69,6 @@ internal class ShoppingListViewModel @Inject constructor(
                 shoppingGetByIdUseCase.invoke(id).onSuccess { navigateToProducts(it) }
             }
         },
-        onPromptChanged = { value -> _uiState.update { it.copy(prompt = value) } },
         onFilter = { value ->
             _uiState.update { it.copy(selectedFilter = value) }
             applyFilters()
@@ -82,13 +81,6 @@ internal class ShoppingListViewModel @Inject constructor(
             _uiState.update { it.copy(searchQuery = value) }
             applyFilters()
         },
-        onSendPrompt = { sendPrompt() },
-        onToggleAi = { toggleAi() },
-        onOpenAi = {
-            _uiState.update { it.copy(aiDockState = AiDockState.EXPANDED) }
-            loadAiSuggestions()
-        },
-        onCloseAi = { _uiState.update { it.copy(aiDockState = AiDockState.COLLAPSED) } },
         onToggleFavorite = { shopping ->
             handleShoppingAction(ShoppingAction.ToggleFavorite(shopping))
         },
@@ -119,23 +111,35 @@ internal class ShoppingListViewModel @Inject constructor(
         onReopen = { shopping ->
             handleShoppingAction(ShoppingAction.Reopen(shopping))
         },
-        onShowJoinDialog = { _navigator?.navigate(JoinList) },
+        onShowJoinDialog = { _navigator?.navigate(JoinList()) },
         onMove = { from, to -> moveShopping(from, to) },
         onShowCreateSheet = { visible -> _uiState.update { it.copy(isCreateSheetVisible = visible) } },
-        onCreateConfirmed = { title, description ->
+        onCreateConfirmed = { title, description, emoji ->
             _uiState.update { it.copy(isCreateSheetVisible = false) }
             viewModelScope.launch {
-                shoppingCreateUseCase.invoke(title = title, description = description)
-                    .onSuccess { navigateToProducts(it) }
+                shoppingCreateUseCase.invoke(title = title, description = description, emoji = emoji)
+                    .onSuccess {
+                        analyticsTracker.trackEvent(
+                            AnalyticsEvents.SHOPPING_LIST_CREATED,
+                            mapOf(AnalyticsParams.SHOPPING_ID to it.id)
+                        )
+                        navigateToProducts(it)
+                    }
+                    .onFailure {
+                        _uiState.update {
+                            it.copy(
+                                error = UiText.StringResource(
+                                    R.string.shopping_management_error_create
+                                )
+                            )
+                        }
+                    }
             }
-        },
-        onSuggestionClick = { suggestion ->
-            _uiState.update { it.copy(prompt = suggestion) }
-            sendPrompt()
         }
     )
 
     init {
+        analyticsTracker.trackScreenView(screenName = "shopping_list", screenClass = "ShoppingListViewModel")
         observeData()
     }
 
@@ -166,7 +170,12 @@ internal class ShoppingListViewModel @Inject constructor(
                     val shopping = repository.getById(action.id)
                     val userId = authService.currentUser?.id
                     if (shopping?.roles?.get(userId) == User.Role.OWNER.name) {
-                        shoppingDeleteUseCase(action.id)
+                        shoppingDeleteUseCase(action.id).onSuccess {
+                            analyticsTracker.trackEvent(
+                                AnalyticsEvents.SHOPPING_LIST_DELETED,
+                                mapOf(AnalyticsParams.SHOPPING_ID to action.id)
+                            )
+                        }
                     } else {
                         _uiState.update {
                             it.copy(
@@ -175,11 +184,15 @@ internal class ShoppingListViewModel @Inject constructor(
                                 )
                             )
                         }
-                        Result.failure(Exception("Not owner"))
+                        Result.failure(OwnershipRequiredException("delete"))
                     }
                 }
                 is ShoppingAction.Share -> {
                     shareShoppingUseCase(action.shopping)
+                    analyticsTracker.trackEvent(
+                        AnalyticsEvents.SHOPPING_LIST_SHARED,
+                        mapOf(AnalyticsParams.SHOPPING_ID to action.shopping.id)
+                    )
                     Result.success(Unit)
                 }
                 is ShoppingAction.Duplicate -> shoppingDuplicateUseCase(action.shopping)
@@ -197,25 +210,11 @@ internal class ShoppingListViewModel @Inject constructor(
         }
     }
 
-    private fun loadAiSuggestions() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isAiSuggestionsLoading = true) }
-            getShoppingSuggestionsUseCase().collect { suggestions ->
-                _uiState.update {
-                    it.copy(
-                        aiSuggestions = StableList(suggestions),
-                        isAiSuggestionsLoading = false
-                    )
-                }
-            }
-        }
-    }
-
     private fun applyFilters() {
         val query = _uiState.value.searchQuery.lowercase()
         val filter = _uiState.value.selectedFilter
 
-        val filtered = _uiState.value.list.filter { shopping ->
+        val filtered = _uiState.value.list.items.filter { shopping ->
             val matchesQuery = shopping.title.lowercase().contains(query) ||
                 shopping.description.lowercase().contains(query)
 
@@ -240,69 +239,6 @@ internal class ShoppingListViewModel @Inject constructor(
         _uiState.update { it.copy(filteredList = StableList(filtered), groupedList = grouped) }
     }
 
-    private fun sendPrompt() {
-        val text = _uiState.value.prompt
-        if (text.isBlank()) return
-
-        _uiState.update {
-            it.copy(
-                prompt = "",
-                aiDockState = AiDockState.CHAT,
-                aiMessages = StableList(
-                    it.aiMessages + ChatMessage(
-                        text = text,
-                        sender = ChatMessage.Sender.USER
-                    )
-                ),
-                isAiLoading = true
-            )
-        }
-
-        viewModelScope.launch {
-            try {
-                assistantUseCase(text, _uiState.value).collect { response ->
-                    _uiState.update {
-                        it.copy(
-                            aiMessages = StableList(
-                                it.aiMessages + ChatMessage(
-                                    text = response,
-                                    sender = ChatMessage.Sender.ASSISTANT
-                                )
-                            ),
-                            isAiLoading = false
-                        )
-                    }
-                }
-            } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
-                _uiState.update { it.copy(isAiLoading = false) }
-            }
-        }
-    }
-
-    private fun toggleAi() {
-        if (_uiState.value.aiMessages.isEmpty()) {
-            _uiState.update {
-                it.copy(
-                    aiDockState =
-                    if (it.aiDockState == AiDockState.COLLAPSED)
-                        AiDockState.EXPANDED
-                    else
-                        AiDockState.COLLAPSED
-                )
-            }
-            return
-        }
-
-        if (!closeConfirmation) {
-            closeConfirmation = true
-            _uiState.update { it.copy(aiDockState = AiDockState.EXPANDED) }
-            return
-        }
-        closeConfirmation = false
-        _uiState.update { it.copy(aiDockState = AiDockState.COLLAPSED) }
-    }
-
     private fun fetchAll() {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
@@ -317,7 +253,7 @@ internal class ShoppingListViewModel @Inject constructor(
     }
 
     private fun navigateToProducts(shopping: Shopping) {
-        _navigator?.navigate(route = ProductsFlow(shopping))
+        _navigator?.navigate(route = CartFlow(shopping))
     }
 
     private fun moveShopping(fromIndex: Int, toIndex: Int) {

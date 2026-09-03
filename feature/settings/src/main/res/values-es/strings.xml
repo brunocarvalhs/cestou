@@ -58,6 +58,12 @@
     <string name="settings_shopping_reminders_desc">Notificar cuando haya listas pendientes</string>
     <string name="settings_shopping_none_selected">Ninguna seleccionada</string>
 
+    <string name="settings_shopping_reminder_notification_title">Lista de compras pendiente</string>
+    <plurals name="settings_shopping_reminder_notification_text">
+        <item quantity="one">Tienes %d lista de compras pendiente</item>
+        <item quantity="other">Tienes %d listas de compras pendientes</item>
+    </plurals>
+
     <string name="settings_placeholder_soon">Funcionalidad de %s próximamente</string>
 
     <string name="settings_title_ai">IA</string>
@@ -75,6 +81,17 @@
     <string name="settings_data_delete_confirmation_title">¿Eliminar todos los datos?</string>
     <string name="settings_data_delete_confirmation_message">Esta action no se puede deshacer. Todas sus listas y configuraciones locales se eliminarán permanentemente.</string>
     <string name="settings_data_delete_button">Sí, eliminar todo</string>
+    <string name="settings_data_delete_account">Eliminar Cuenta</string>
+    <string name="settings_data_delete_account_hint">Elimina permanentemente su cuenta y todos sus datos</string>
+    <string name="settings_data_delete_account_confirmation_title">¿Eliminar cuenta?</string>
+    <string name="settings_data_delete_account_confirmation_message">Esta acción no se puede deshacer. Su cuenta, perfil y listas de compras se eliminarán permanentemente.</string>
+    <string name="settings_data_delete_account_button">Sí, eliminar mi cuenta</string>
+    <string name="settings_data_delete_account_success">Cuenta eliminada</string>
+    <string name="settings_data_delete_account_error">No se pudo eliminar su cuenta. Inténtelo de nuevo.</string>
+    <string name="settings_data_clear_cache_success">Caché borrada</string>
+    <string name="settings_data_clear_cache_error">No se pudo borrar la caché. Inténtalo de nuevo.</string>
+    <string name="settings_data_delete_all_success">Todos los datos fueron eliminados</string>
+    <string name="settings_data_delete_all_error">No se pudieron eliminar tus datos. Inténtalo de nuevo.</string>
 
     <string name="settings_terms_content">
         Al utilizar Cestou, usted acepta los siguientes términos: \n\n

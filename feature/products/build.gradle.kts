@@ -31,10 +31,16 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 dependencies {
     implementation(project(":core:common"))
+    implementation(project(":core:analytics"))
     implementation(project(":core:domain"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
@@ -42,6 +48,7 @@ dependencies {
     implementation(project(":core:auth"))
     implementation(project(":core:ai"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:chat"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
@@ -70,6 +77,7 @@ dependencies {
     implementation(libs.generative.ai)
     implementation(libs.google.mlkit.barcode.scanning)
     implementation(libs.mlkit.image.labeling)
+    implementation(libs.mlkit.text.recognition)
 
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
@@ -79,9 +87,13 @@ dependencies {
     implementation(libs.coil.compose)
 
     testImplementation(libs.junit)
+    testImplementation(libs.konsist)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
     testImplementation(libs.mockk)
     testImplementation(libs.androidx.core)
     testImplementation(libs.androidx.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.androidx.compose.ui.test.manifest)
 }

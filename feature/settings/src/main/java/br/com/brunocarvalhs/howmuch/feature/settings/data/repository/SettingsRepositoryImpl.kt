@@ -8,25 +8,30 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import br.com.brunocarvalhs.howmuch.core.domain.entity.AppSettings
-import br.com.brunocarvalhs.howmuch.core.domain.entity.ThemeMode
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiModel
+import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
+import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
+import br.com.brunocarvalhs.howmuch.feature.settings.data.worker.ShoppingReminderScheduler
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
 
 internal class SettingsRepositoryImpl @Inject constructor(
     private val dataStore: DataStore<Preferences>,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val reminderScheduler: ShoppingReminderScheduler
 ) : SettingsRepository {
 
     private object PreferencesKeys {
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
         val REMINDER_TIME = stringPreferencesKey("reminder_time")
+        val AI_PROVIDER = stringPreferencesKey("ai_provider")
         val AI_MODEL = stringPreferencesKey("ai_model")
         val CUSTOM_PROMPT = stringPreferencesKey("custom_prompt")
         val CREATIVITY_LEVEL = floatPreferencesKey("creativity_level")
@@ -54,6 +59,9 @@ internal class SettingsRepositoryImpl @Inject constructor(
 
             AppSettings(
                 themeMode = themeMode,
+                notificationsEnabled = preferences[PreferencesKeys.NOTIFICATIONS_ENABLED] ?: true,
+                reminderTime = preferences[PreferencesKeys.REMINDER_TIME] ?: "18:00",
+                aiProvider = preferences[PreferencesKeys.AI_PROVIDER] ?: "gemini",
                 aiModel = preferences[PreferencesKeys.AI_MODEL] ?: "google/gemini-2.0-flash-001",
                 customPrompt = preferences[PreferencesKeys.CUSTOM_PROMPT],
                 creativityLevel = preferences[PreferencesKeys.CREATIVITY_LEVEL] ?: 0.7f,
@@ -76,11 +84,16 @@ internal class SettingsRepositoryImpl @Inject constructor(
             preferences[PreferencesKeys.NOTIFICATIONS_ENABLED] = enabled
             preferences[PreferencesKeys.REMINDER_TIME] = reminderTime
         }
+        reminderScheduler.sync(getSettings().first())
     }
 
     override suspend fun updateAiSettings(model: String, prompt: String?, creativity: Float) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.AI_MODEL] = model
+            // Determine provider based on model or list
+            val provider = AiModel.freeModels.find { it.id == model }?.provider?.lowercase() ?: "openrouter"
+            preferences[PreferencesKeys.AI_PROVIDER] = if (model.contains("gemini")) "gemini" else provider
+            
             if (prompt != null) {
                 preferences[PreferencesKeys.CUSTOM_PROMPT] = prompt
             } else {
@@ -104,6 +117,7 @@ internal class SettingsRepositoryImpl @Inject constructor(
             preferences[PreferencesKeys.SORTING_MODE] = sortingMode
             preferences[PreferencesKeys.REMINDERS_ENABLED] = remindersEnabled
         }
+        reminderScheduler.sync(getSettings().first())
     }
 
     override suspend fun updateLanguage(language: String) {

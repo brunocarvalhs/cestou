@@ -1,12 +1,10 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.data.model
 
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
-import br.com.brunocarvalhs.howmuch.feature.products.data.model.ProductModel
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import kotlinx.serialization.Serializable
-import java.util.UUID
 
 @Serializable
-data class ShoppingModel(
+internal data class ShoppingModel(
     val id: String,
     val title: String,
     val description: String,
@@ -19,7 +17,8 @@ data class ShoppingModel(
     val isCategorized: Boolean = true,
     val shortCode: String? = null,
     val budget: Double? = null,
-    val position: Int = 0
+    val position: Int = 0,
+    val emoji: String = Shopping.DEFAULT_EMOJI
 ) {
     fun toMap(): Map<String, Any?> {
         return mapOf(
@@ -35,7 +34,8 @@ data class ShoppingModel(
             "isCategorized" to isCategorized,
             "shortCode" to shortCode,
             "budget" to budget,
-            "position" to position
+            "position" to position,
+            "emoji" to emoji
         )
     }
 }

@@ -15,7 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Product
+import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.event.ProductSuggestionEvent
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.intent.ProductSuggestionIntent
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.state.ProductSuggestionUiState

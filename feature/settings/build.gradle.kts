@@ -31,10 +31,16 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 dependencies {
     implementation(project(":core:common"))
+    implementation(project(":core:analytics"))
     implementation(project(":core:domain"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
@@ -43,6 +49,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material3.window.size)
     implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.datastore.preferences)
@@ -58,4 +65,16 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.timber)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.work.runtime.ktx)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.konsist)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.androidx.compose.ui.test.manifest)
+    testImplementation(libs.androidx.core)
+    testImplementation(libs.androidx.junit)
 }

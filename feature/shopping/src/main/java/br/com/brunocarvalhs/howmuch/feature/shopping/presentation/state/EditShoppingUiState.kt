@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state
 
 import androidx.compose.runtime.Stable
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 
 @Stable
 internal data class EditShoppingUiState(

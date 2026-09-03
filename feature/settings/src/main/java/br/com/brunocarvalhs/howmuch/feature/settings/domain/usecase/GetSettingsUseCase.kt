@@ -1,6 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase
 
-import br.com.brunocarvalhs.howmuch.core.domain.entity.AppSettings
+import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject

@@ -1,4 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
+// Configuração de cobertura, lint estático e demais itens usados pela esteira de CI ficam
+// isolados em plugins de convenção sob buildSrc/ (howmuch.*.gradle.kts) para manter este
+// arquivo enxuto — veja buildSrc/src/main/kotlin/.
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
@@ -9,23 +12,8 @@ plugins {
     alias(libs.plugins.firebase.perf) apply false
     alias(libs.plugins.google.services) apply false
     alias(libs.plugins.hilt) apply false
-    alias(libs.plugins.detekt)
     alias(libs.plugins.secrets) apply false
-}
-
-detekt {
-    toolVersion = libs.versions.detekt.get()
-    config.setFrom(files("config/detekt/detekt.yml"))
-    parallel = true
-    buildUponDefaultConfig = true
-    autoCorrect = true
-}
-
-subprojects {
-    apply(plugin = "io.gitlab.arturbosch.detekt")
-
-    dependencies {
-        "detektPlugins"(rootProject.libs.detekt.formatting)
-        "detektPlugins"(rootProject.libs.detekt.rules.compose)
-    }
+    id("howmuch.kover")
+    id("howmuch.detekt")
+    id("howmuch.test-defaults")
 }

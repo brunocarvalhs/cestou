@@ -30,7 +30,7 @@ private const val SURFACE_ALPHA = 0.5f
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ShareOptionsBottomSheet(
+fun ShareOptionsBottomSheet(
     onDismissRequest: () -> Unit,
     onInviteMember: () -> Unit,
     onShareAsText: () -> Unit

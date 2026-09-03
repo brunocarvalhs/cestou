@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.components.SettingsHeader
@@ -143,5 +144,27 @@ internal fun NotificationSettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "Ativado")
+@Composable
+private fun NotificationSettingsScreenEnabledPreview() {
+    MaterialTheme {
+        NotificationSettingsScreen(
+            state = NotificationSettingsUiState(notificationsEnabled = true, reminderTime = "18:00"),
+            intent = NotificationSettingsIntent()
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Desativado")
+@Composable
+private fun NotificationSettingsScreenDisabledPreview() {
+    MaterialTheme {
+        NotificationSettingsScreen(
+            state = NotificationSettingsUiState(notificationsEnabled = false, reminderTime = "18:00"),
+            intent = NotificationSettingsIntent()
+        )
     }
 }

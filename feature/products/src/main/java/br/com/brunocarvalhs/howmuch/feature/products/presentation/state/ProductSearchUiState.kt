@@ -1,8 +1,8 @@
 package br.com.brunocarvalhs.howmuch.feature.products.presentation.state
 
 import androidx.compose.runtime.Stable
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Product
-import br.com.brunocarvalhs.howmuch.feature.products.domain.entity.Recipe
+import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.feature.products.domain.model.Recipe
 
 @Stable
 internal data class ProductSearchUiState(

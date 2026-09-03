@@ -2,7 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 
 import android.content.Context
 import android.content.Intent
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatQuantity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -23,7 +24,7 @@ class ShareShoppingUseCase @Inject constructor(
         
         products.forEach { product ->
             val status = if (product.isPurchased) "✅" else "⬜"
-            sb.append("$status ${product.name} (${product.quantity}x)\n")
+            sb.append("$status ${product.name} (${product.quantity.formatQuantity()}x)\n")
         }
         
         val shareIntent = Intent(Intent.ACTION_SEND).apply {

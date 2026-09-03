@@ -24,8 +24,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import br.com.brunocarvalhs.howmuch.core.domain.entity.AiModel
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiModel
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.components.SettingsHeader
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.AiSettingsIntent
@@ -140,7 +141,7 @@ internal fun AiSettingsScreen(
             )
 
             Button(
-                onClick = { 
+                onClick = {
                     intent.onUpdateAiSettings(model, if (prompt.isEmpty()) null else prompt, creativity)
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -148,5 +149,31 @@ internal fun AiSettingsScreen(
                 Text(text = stringResource(R.string.settings_ai_button_save))
             }
         }
+    }
+}
+
+@Preview(showBackground = true, name = "Padrão")
+@Composable
+private fun AiSettingsScreenDefaultPreview() {
+    MaterialTheme {
+        AiSettingsScreen(
+            state = AiSettingsUiState(),
+            intent = AiSettingsIntent()
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Personalizado")
+@Composable
+private fun AiSettingsScreenCustomizedPreview() {
+    MaterialTheme {
+        AiSettingsScreen(
+            state = AiSettingsUiState(
+                aiModel = AiModel.freeModels.first().id,
+                customPrompt = "Sempre responda de forma breve e direta.",
+                creativityLevel = 0.9f
+            ),
+            intent = AiSettingsIntent()
+        )
     }
 }

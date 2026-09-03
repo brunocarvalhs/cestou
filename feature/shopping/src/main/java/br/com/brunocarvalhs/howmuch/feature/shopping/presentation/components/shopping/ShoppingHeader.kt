@@ -1,71 +1,93 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.GroupAdd
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import br.com.brunocarvalhs.howmuch.feature.shopping.R
-import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
+import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTextPrimary
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTextSecondary
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ShoppingHeader(
     modifier: Modifier = Modifier,
+    userName: String = "Marina Silva",
+    onNotificationClick: () -> Unit = {},
+    // Keeping for compatibility
     onAdd: () -> Unit = {},
     onJoin: () -> Unit = {},
     onSettingsClick: () -> Unit = {}
 ) {
-    Column(modifier = modifier.statusBarsPadding()) {
-
-        TopAppBar(
-            title = {
-                Text(
-                    text = stringResource(CoreR.string.app_name),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.semantics {
-                        heading()
-                    }
-                )
-            },
-            actions = {
-                IconButton(onClick = onJoin) {
-                    Icon(
-                        Icons.Default.GroupAdd,
-                        contentDescription = stringResource(CoreR.string.content_description_join_list)
-                    )
-                }
-
-                IconButton(onClick = onAdd) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = stringResource(CoreR.string.action_add)
-                    )
-                }
-
-                IconButton(onClick = onSettingsClick) {
-                    Icon(
-                        Icons.Default.Settings,
-                        contentDescription = stringResource(CoreR.string.content_description_settings)
-                    )
-                }
+    Row(
+        modifier = modifier
+            .statusBarsPadding()
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Person, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-        )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column {
+                Text(
+                    text = "Bem-vinda de volta,",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = CestouTextSecondary
+                )
+                Text(
+                    text = "$userName!",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = CestouTextPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.NotificationsNone,
+                contentDescription = "Notificações",
+                tint = CestouTextPrimary
+            )
+        }
     }
 }
 

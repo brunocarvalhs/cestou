@@ -14,6 +14,7 @@ jobs:
       ut_enabled: ${{ steps.config.outputs.ut_enabled }}
       lint_enabled: ${{ steps.config.outputs.lint_enabled }}
       detekt_enabled: ${{ steps.config.outputs.detekt_enabled }}
+      coverage_enabled: ${{ steps.config.outputs.coverage_enabled }}
     steps:
       - uses: actions/checkout@v4
       - id: config
@@ -24,6 +25,7 @@ jobs:
           echo "ut_enabled=$(yq '.test[] | select(.name == "unit_tests") | .enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "lint_enabled=$(yq '.linters.lint.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "detekt_enabled=$(yq '.linters.detekt.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "coverage_enabled=$(yq '.coverage.kover.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
   unit-tests:
     needs: [prepare]
@@ -63,6 +65,54 @@ jobs:
         uses: mb2dev/github-action-comment-pull-request@1.0.0
         with:
           message: "✅ Todos os testes unitários passaram com sucesso! Bom trabalho."
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          reactions: "+1"
+
+  coverage-check:
+    needs: [prepare, unit-tests]
+    if: needs.prepare.outputs.coverage_enabled == 'true'
+    runs-on: ubuntu-24.04
+    name: 📊 Test Coverage Gate (min. 80%)
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
+        with:
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
+
+      - name: Run Coverage Verification
+        run: |
+          COMMAND=$(yq '.coverage.kover.command' .github/pipeline-config.yaml)
+          chmod +x gradlew
+          $COMMAND
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
+
+      - name: Upload Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kover-html-report
+          path: build/reports/kover/html/
+
+      - name: Comment Failure
+        if: ${{ failure() }}
+        uses: mb2dev/github-action-comment-pull-request@1.0.0
+        with:
+          message: "❌ A cobertura de testes ficou abaixo do mínimo de 80%, por favor complemente os testes."
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          reactions: "-1 | confused"
+
+      - name: Comment Success
+        if: ${{ success() }}
+        uses: mb2dev/github-action-comment-pull-request@1.0.0
+        with:
+          message: "✅ Cobertura de testes acima de 80%! Bom trabalho."
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
           reactions: "+1"
 

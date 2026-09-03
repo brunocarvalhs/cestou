@@ -1,13 +1,16 @@
 package br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,19 +24,28 @@ internal fun ProductSearchBar(
     query: String,
     onQueryChange: (String) -> Unit
 ) {
-    PaddingValues(16.dp).let { padding ->
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            value = query,
-            onValueChange = onQueryChange,
-            placeholder = { Text(stringResource(R.string.product_search_placeholder)) },
-            leadingIcon = { Icon(Icons.Default.Search, null) },
-            singleLine = true,
-            shape = RoundedCornerShape(32.dp),
+    OutlinedTextField(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        value = query,
+        onValueChange = onQueryChange,
+        placeholder = { Text(stringResource(R.string.product_search_placeholder)) },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(Icons.Default.Clear, contentDescription = null)
+                }
+            }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(32.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+            focusedBorderColor = MaterialTheme.colorScheme.primary
         )
-    }
+    )
 }
 
 @Preview(showBackground = true)

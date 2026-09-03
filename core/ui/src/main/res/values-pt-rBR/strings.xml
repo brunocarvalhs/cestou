@@ -16,6 +16,11 @@
     <string name="action_gallery">Galeria</string>
     <string name="action_take_photo">Tirar Foto</string>
 
+    <!-- Navigation -->
+    <string name="nav_lists">Listas</string>
+    <string name="nav_ai_chat">IA Chat</string>
+    <string name="nav_profile">Perfil</string>
+
     <!-- Accessibility / Content Descriptions -->
     <string name="content_description_back">Voltar</string>
     <string name="content_description_settings">Configurações</string>
@@ -27,6 +32,13 @@
     <string name="content_description_add_manually">Adicionar manualmente</string>
     <string name="content_description_share_list">Compartilhar lista</string>
     <string name="content_description_join_list">Entrar em uma lista</string>
+
+    <!-- Collaboration notifications -->
+    <string name="notification_list_joined_title">Novo membro</string>
+    <string name="notification_list_joined_message">%1$s entrou em \"%2$s\"</string>
+    <string name="notification_list_finished_title">Lista finalizada</string>
+    <string name="notification_list_finished_message">%1$s finalizou \"%2$s\"</string>
+    <string name="notification_someone">Alguém</string>
     <string name="content_description_remove_unit">Remover quantidade</string>
     <string name="content_description_add_unit">Adicionar quantidade</string>
 
@@ -34,6 +46,12 @@
 
     <!-- Error State -->
     <string name="error_state_title">Oops! Algo deu errado</string>
+
+    <!-- Empty / Locked States -->
+    <string name="shopping_list_empty_title">Sua lista está vazia</string>
+    <string name="shopping_list_empty_description">Adicione produtos ou peça ajuda à IA!</string>
+    <string name="shopping_list_locked_title">Lista Finalizada</string>
+    <string name="shopping_list_locked_description">Esta lista está bloqueada para alterações.</string>
 
     <!-- Categories -->
     <string name="category_hortifruti">Hortifruti</string>

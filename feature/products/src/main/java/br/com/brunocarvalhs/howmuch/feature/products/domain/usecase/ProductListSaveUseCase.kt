@@ -3,9 +3,9 @@ package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentAction
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentParameter
 import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
-import br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentSession
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getString
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Product
+import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
 import java.util.UUID
 import javax.inject.Inject
@@ -18,7 +18,7 @@ import javax.inject.Singleton
 @AiAgentParameter(name = "productNames", description = "Lista de nomes dos produtos separados por vírgula")
 @AiAgentParameter(name = "shoppingId", description = "ID da lista de compras", isRequired = false)
 @Singleton
-internal class ProductListSaveUseCase @Inject constructor(
+class ProductListSaveUseCase @Inject constructor(
     private val repository: ProductRepository
 ) : AgentActionUseCase<List<Product>>() {
 
@@ -37,7 +37,7 @@ internal class ProductListSaveUseCase @Inject constructor(
 
     override suspend fun execute(
         arguments: Map<String, Any?>,
-        session: AiAgentSession,
+        session: AiSession,
         metadata: Map<String, Any?>
     ): Result<List<Product>> {
         val names = arguments.getString("productNames")?.split(",")?.map { it.trim() }

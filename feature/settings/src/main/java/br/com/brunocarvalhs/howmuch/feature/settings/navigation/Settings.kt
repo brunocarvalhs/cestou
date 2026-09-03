@@ -16,9 +16,6 @@ internal data object LanguageSettings : NavKey
 internal data object CurrencySettings : NavKey
 
 @Serializable
-internal data object AiSettings : NavKey
-
-@Serializable
 internal data object ShoppingSettings : NavKey
 
 @Serializable

@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Product
+import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.GetProductSuggestionsUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute
@@ -52,9 +52,8 @@ internal class ProductSuggestionViewModel @Inject constructor(
         viewModelScope.launch {
             getProductSuggestionsUseCase(shopping.id)
                 .catch { error ->
-                    _uiState.update {
-                        it.copy(errorMessage = error.message)
-                    }
+                    _uiState.update { it.copy(isLoading = false) }
+                    _events.send(ProductSuggestionEvent.Error(error.message.orEmpty()))
                 }
                 .collect { products ->
                     _uiState.update {

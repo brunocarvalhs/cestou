@@ -1,6 +1,6 @@
 package br.com.brunocarvalhs.howmuch.core.data.cloud
 
-import br.com.brunocarvalhs.howmuch.core.domain.service.NetworkService
+import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO

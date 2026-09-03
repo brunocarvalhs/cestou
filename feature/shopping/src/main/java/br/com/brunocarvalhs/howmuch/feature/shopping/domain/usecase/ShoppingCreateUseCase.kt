@@ -4,12 +4,12 @@ import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentAction
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentParameter
 import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
-import br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentSession
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getString
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
-import br.com.brunocarvalhs.howmuch.core.domain.entity.User
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.User
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
-import br.com.brunocarvalhs.howmuch.core.domain.service.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.UUID
@@ -39,7 +39,8 @@ class ShoppingCreateUseCase @Inject constructor(
 
     suspend operator fun invoke(
         title: String? = null,
-        description: String? = null
+        description: String? = null,
+        emoji: String = Shopping.DEFAULT_EMOJI
     ): Result<Shopping> = runCatching {
         val user = authService.getOrCreateUserId()
         val userId = user.id
@@ -52,7 +53,8 @@ class ShoppingCreateUseCase @Inject constructor(
             status = Shopping.Status.NEW,
             users = listOf(userId),
             roles = mapOf(userId to User.Role.OWNER.name),
-            shortCode = (1..6).map { (('A'..'Z') + ('0'..'9')).random() }.joinToString("")
+            shortCode = (1..6).map { (('A'..'Z') + ('0'..'9')).random() }.joinToString(""),
+            emoji = emoji
         )
 
         repository.create(shopping)
@@ -62,7 +64,7 @@ class ShoppingCreateUseCase @Inject constructor(
 
     override suspend fun execute(
         arguments: Map<String, Any?>,
-        session: AiAgentSession,
+        session: AiSession,
         metadata: Map<String, Any?>
     ): Result<Shopping> {
         val title = arguments.getString("title")

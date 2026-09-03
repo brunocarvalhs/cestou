@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
 import android.content.Context
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
@@ -9,7 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.UUID
 import javax.inject.Inject
 
-internal class ShoppingDuplicateUseCase @Inject constructor(
+class ShoppingDuplicateUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: ShoppingRepository,
     private val productsUseCase: ProductsUseCase

@@ -1,0 +1,25 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Home Flow
+---
+- launchApp:
+    clearState: true
+
+# Empty state (first launch, no lists yet)
+- assertVisible: "Cestou"
+- assertVisible: "No list found"
+- assertVisible: "Create a new shopping list or try searching for another term."
+
+# Bottom navigation tabs
+- assertVisible: "Lists"
+- assertVisible: "IA Chat"
+- assertVisible: "Profile"
+
+# Join a list dialog, opened from the top bar icon
+- tapOn: "Join List"
+- assertVisible: "Join a list"
+- assertVisible: "Ask the list owner for the code or QR Code."
+- assertVisible: "List code"
+- assertVisible: "Scan QR Code"
+- back
+
+- assertVisible: "Cestou"

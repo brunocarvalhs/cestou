@@ -19,24 +19,32 @@ Um aplicativo de carrinho de compras simples, mas poderoso, para Android, projet
 
 (Aqui você pode adicionar screenshots do seu aplicativo)
 
+As descrições da loja (pt-BR/en-US/es-ES) já estão em `fastlane/metadata/android/`; faltam só os
+screenshots e o feature graphic, que precisam de um device/emulador para capturar.
+
 ## 🛠️ Tecnologia e Arquitetura
 
 Este projeto foi desenvolvido utilizando as tecnologias e práticas mais recentes do desenvolvimento Android.
 
 *   **Linguagem:** 100% [Kotlin](https://kotlinlang.org/)
 *   **UI:** [Jetpack Compose](https://developer.android.com/jetpack/compose) para uma interface de usuário moderna e declarativa.
-*   **Navegação:** [Jetpack Navigation](https://developer.android.com/jetpack/compose/navigation) para gerenciar a navegação entre as telas do aplicativo.
+*   **Navegação:** [Jetpack Navigation 3](https://developer.android.com/jetpack/compose/navigation) com rotas fortemente tipadas (`NavKey`).
 *   **Injeção de Dependência:** [Hilt](https://dagger.dev/hilt/) para gerenciar as dependências do projeto.
-*   **Arquitetura:** Arquitetura Limpa (Clean Architecture) com uma estrutura multi-módulo (`'app'`, `'data'`, `'domain'`).
+*   **Arquitetura:** Clean Architecture com padrão MVI (Model-View-Intent) e injeção de IA via `AgentActionUseCase`.
 *   **Analytics:** Integração com o Firebase para Analytics, Crashlytics e Performance Monitoring.
 
 ### Arquitetura do Projeto
 
-O projeto é dividido nos seguintes módulos:
+O projeto segue uma arquitetura **Domain-Centric** distribuída em múltiplos módulos:
 
-*   `:app`: Contém a camada de UI, incluindo todas as telas (Composables), `MainActivity`, e a lógica de navegação.
-*   `:data`: Responsável pelas fontes de dados, como banco de dados local e serviços de rede. Implementa os repositórios definidos no módulo de domínio.
-*   `:domain`: Contém a lógica de negócios principal do aplicativo, incluindo casos de uso (use cases), entidades e as interfaces dos repositórios.
+*   `:core:*`: Módulos transversais que contêm componentes compartilhados (UI, Domain, Data, Navigation).
+*   `:feature:*`: Módulos de funcionalidade independentes, cada um seguindo a anatomia:
+    - `domain/`: Camada de negócio pura (Modelos, Repositórios, UseCases).
+    - `data/`: Camada de infraestrutura (Implementações, DTOs, Mappers).
+    - `presentation/`: Camada de UI (MVI com Compose e Data Class Intent).
+    - `navigation/`: Definições de rotas (`NavKey`) e grafos da feature.
+    - `di/`: Módulos Hilt para provisão de dependências.
+*   `:app`: Ponto de entrada do aplicativo que orquestra os módulos de feature via `FeatureInitializer`.
 
 ## 🚀 Como Compilar
 

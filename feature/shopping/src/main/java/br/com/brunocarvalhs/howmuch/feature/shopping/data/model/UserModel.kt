@@ -1,10 +1,10 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.data.model
 
-import br.com.brunocarvalhs.howmuch.core.domain.entity.User
+import br.com.brunocarvalhs.howmuch.core.domain.model.User
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class UserModel(
+internal data class UserModel(
     override val id: String,
     override val role: User.Role = User.Role.EDITOR
 ) : User {

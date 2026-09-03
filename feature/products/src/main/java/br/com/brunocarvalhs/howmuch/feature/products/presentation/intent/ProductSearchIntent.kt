@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.products.presentation.intent
 
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Product
-import br.com.brunocarvalhs.howmuch.feature.products.domain.entity.Recipe
+import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.feature.products.domain.model.Recipe
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.state.ProductSearchUiState
 
 internal data class ProductSearchIntent(
@@ -10,5 +10,6 @@ internal data class ProductSearchIntent(
     val onSearchModeChange: (ProductSearchUiState.SearchMode) -> Unit = {},
     val onRecipeSelected: (Recipe) -> Unit = {},
     val onClearRecipeSelection: () -> Unit = {},
-    val onAddRecipeIngredients: (Recipe) -> Unit = {}
+    val onAddRecipeIngredients: (Recipe) -> Unit = {},
+    val onErrorShown: () -> Unit = {}
 )

@@ -16,6 +16,11 @@
     <string name="action_gallery">Gallery</string>
     <string name="action_take_photo">Take Photo</string>
 
+    <!-- Navigation -->
+    <string name="nav_lists">Lists</string>
+    <string name="nav_ai_chat">IA Chat</string>
+    <string name="nav_profile">Profile</string>
+
     <!-- Accessibility / Content Descriptions -->
     <string name="content_description_back">Back</string>
     <string name="content_description_settings">Settings</string>
@@ -27,6 +32,13 @@
     <string name="content_description_add_manually">Add manually</string>
     <string name="content_description_share_list">Share list</string>
     <string name="content_description_join_list">Join a list</string>
+
+    <!-- Collaboration notifications -->
+    <string name="notification_list_joined_title">New member</string>
+    <string name="notification_list_joined_message">%1$s joined \"%2$s\"</string>
+    <string name="notification_list_finished_title">List finished</string>
+    <string name="notification_list_finished_message">%1$s finished \"%2$s\"</string>
+    <string name="notification_someone">Someone</string>
     <string name="content_description_remove_unit">Remove quantity</string>
     <string name="content_description_add_unit">Add quantity</string>
 
@@ -34,6 +46,12 @@
 
     <!-- Error State -->
     <string name="error_state_title">Oops! Something went wrong</string>
+
+    <!-- Empty / Locked States -->
+    <string name="shopping_list_empty_title">Your list is empty</string>
+    <string name="shopping_list_empty_description">Add products or ask the AI for help!</string>
+    <string name="shopping_list_locked_title">Finished List</string>
+    <string name="shopping_list_locked_description">This list is locked for changes.</string>
 
     <!-- Categories -->
     <string name="category_hortifruti">Produce</string>

@@ -1,6 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase
 
-import br.com.brunocarvalhs.howmuch.core.domain.entity.ThemeMode
+import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.repository.SettingsRepository
 import javax.inject.Inject
 

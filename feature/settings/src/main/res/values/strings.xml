@@ -58,6 +58,12 @@
     <string name="settings_shopping_reminders_desc">Notify when there are pending lists</string>
     <string name="settings_shopping_none_selected">None selected</string>
 
+    <string name="settings_shopping_reminder_notification_title">Pending shopping list</string>
+    <plurals name="settings_shopping_reminder_notification_text">
+        <item quantity="one">You have %d pending shopping list</item>
+        <item quantity="other">You have %d pending shopping lists</item>
+    </plurals>
+
     <string name="settings_placeholder_soon">Feature for %s coming soon</string>
 
     <string name="settings_title_ai">AI</string>
@@ -75,6 +81,17 @@
     <string name="settings_data_delete_confirmation_title">Delete all data?</string>
     <string name="settings_data_delete_confirmation_message">This action cannot be undone. All your lists and local settings will be permanently removed.</string>
     <string name="settings_data_delete_button">Yes, delete everything</string>
+    <string name="settings_data_clear_cache_success">Cache cleared</string>
+    <string name="settings_data_clear_cache_error">Couldn\'t clear the cache. Please try again.</string>
+    <string name="settings_data_delete_all_success">All data deleted</string>
+    <string name="settings_data_delete_all_error">Couldn\'t delete your data. Please try again.</string>
+    <string name="settings_data_delete_account">Delete Account</string>
+    <string name="settings_data_delete_account_hint">Permanently deletes your account and all your data</string>
+    <string name="settings_data_delete_account_confirmation_title">Delete account?</string>
+    <string name="settings_data_delete_account_confirmation_message">This action cannot be undone. Your account, profile and shopping lists will be permanently deleted.</string>
+    <string name="settings_data_delete_account_button">Yes, delete my account</string>
+    <string name="settings_data_delete_account_success">Account deleted</string>
+    <string name="settings_data_delete_account_error">Couldn\'t delete your account. Please try again.</string>
 
     <string name="settings_terms_content">
         By using Cestou, you agree to the following terms: \n\n

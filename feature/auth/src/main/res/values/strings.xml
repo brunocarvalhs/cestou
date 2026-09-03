@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="welcome_title">Suas compras, mais inteligentes</string>
+    <string name="welcome_description">Crie listas dinâmicas, compartilhe em tempo real com quem quiser e use nossa inteligência artificial para economizar.</string>
+    <string name="welcome_footer">Versão %1$s • Feito com ❤️ no Brasil</string>
+</resources>

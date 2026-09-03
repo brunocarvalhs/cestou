@@ -1,46 +1,40 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.ShoppingBag
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,43 +42,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
-import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatPrice
-import br.com.brunocarvalhs.howmuch.core.ui.utils.LocalCurrency
-import br.com.brunocarvalhs.howmuch.feature.shopping.R
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.common.IconProduct
+import coil.compose.AsyncImage
 
-
-private const val STATUS_FINISH_ALPHA = 0.4f
-private const val STATUS_IN_PROGRESS_ALPHA = 0.6f
-private const val STATUS_DEFAULT_ALPHA = 0.4f
-private const val LOADING_CONTAINER_ALPHA = 0.3f
-private const val SHIMMER_ALPHA_INITIAL = 0.3f
-private const val SHIMMER_ALPHA_TARGET = 0.7f
-private const val SHIMMER_DURATION = 1_000
-private const val LOADING_TITLE_WIDTH_FRACTION = 0.6f
-private const val LOADING_DESC_WIDTH_FRACTION = 0.4f
-private val FINISHED_SURFACE_ELEVATION = 1.dp
-private val DEFAULT_CARD_ELEVATION = 2.dp
-private val FINISHED_CARD_ELEVATION = 0.dp
-
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun ShoppingItem(
     modifier: Modifier = Modifier,
     title: String,
-    description: String,
-    price: Double,
-    budget: Double? = null,
+    itemCount: Int = 0,
+    users: List<String> = emptyList(),
     status: Shopping.Status = Shopping.Status.NEW,
+    iconUrl: String? = null,
+    iconBackgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    emoji: String = Shopping.DEFAULT_EMOJI,
     onClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
     onDuplicateClick: () -> Unit = {},
@@ -93,72 +72,26 @@ internal fun ShoppingItem(
     onDeleteClick: () -> Unit = {},
     isFavorite: Boolean = false,
     onFavoriteClick: () -> Unit = {},
+    budget: Double? = null
 ) {
-    val currencyCode = LocalCurrency.current
-    var expanded by remember { mutableStateOf(false) }
-    val backgroundColor by animateColorAsState(
-        targetValue = when (status) {
-            Shopping.Status.FINISH -> MaterialTheme.colorScheme.surfaceColorAtElevation(
-                FINISHED_SURFACE_ELEVATION
-            )
+    var showMenu by remember { mutableStateOf(false) }
 
-            else -> MaterialTheme.colorScheme.surface
-        },
-        label = "bgColor"
-    )
-
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) { role = Role.Button },
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (status == Shopping.Status.FINISH) {
-                FINISHED_CARD_ELEVATION
-            } else {
-                DEFAULT_CARD_ELEVATION
-            }
-        ),
-        onClick = onClick
-    ) {
+    Box(modifier = modifier) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = { showMenu = true }
+                )
+                .padding(vertical = 12.dp, horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(
-                        when (status) {
-                            Shopping.Status.FINISH -> MaterialTheme.colorScheme.primaryContainer.copy(
-                                alpha = STATUS_FINISH_ALPHA
-                            )
-
-                            Shopping.Status.IN_PROGRESS -> MaterialTheme.colorScheme.tertiaryContainer.copy(
-                                alpha = STATUS_IN_PROGRESS_ALPHA
-                            )
-
-                            else -> MaterialTheme.colorScheme.secondaryContainer.copy(
-                                alpha = STATUS_DEFAULT_ALPHA
-                            )
-                        }
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ShoppingBag,
-                    contentDescription = null,
-                    tint = when (status) {
-                        Shopping.Status.FINISH -> MaterialTheme.colorScheme.primary
-                        Shopping.Status.IN_PROGRESS -> MaterialTheme.colorScheme.tertiary
-                        else -> MaterialTheme.colorScheme.secondary
-                    }
-                )
-            }
+            IconProduct(
+                iconUrl = iconUrl,
+                iconBackgroundColor = iconBackgroundColor,
+                emoji = emoji
+            )
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -166,208 +99,128 @@ internal fun ShoppingItem(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = title,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f, fill = false)
                     )
-                    if (budget != null && price > budget) {
+
+                    IconButton(
+                        onClick = onFavoriteClick,
+                        modifier = Modifier.size(24.dp).padding(start = 4.dp)
+                    ) {
                         Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = stringResource(R.string.shopping_list_summary_over_budget),
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier
-                                .size(16.dp)
-                                .padding(start = 4.dp)
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Favorite",
+                            tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
 
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Surface(
-                        color = when (status) {
-                            Shopping.Status.FINISH -> MaterialTheme.colorScheme.primaryContainer
-                            Shopping.Status.IN_PROGRESS -> MaterialTheme.colorScheme.tertiaryContainer
-                            else -> MaterialTheme.colorScheme.secondaryContainer
-                        },
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        val statusText = when (status) {
-                            Shopping.Status.FINISH -> stringResource(R.string.shopping_status_finished)
-                            Shopping.Status.IN_PROGRESS -> stringResource(R.string.shopping_status_in_progress)
-                            else -> stringResource(R.string.shopping_status_new)
-                        }
-                        Text(
-                            text = statusText,
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            color = when (status) {
-                                Shopping.Status.FINISH -> MaterialTheme.colorScheme.onPrimaryContainer
-                                Shopping.Status.IN_PROGRESS -> MaterialTheme.colorScheme.onTertiaryContainer
-                                else -> MaterialTheme.colorScheme.onSecondaryContainer
-                            }
-                        )
-                    }
-
                     Text(
-                        text = price.formatPrice(currencyCode),
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.ExtraBold),
-                        color = if (budget != null && price > budget) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            MaterialTheme.colorScheme.primary
-                        }
+                        text = "$itemCount products",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    if (budget != null) {
+                    // Badge de Budget se existir
+                    budget?.let {
                         Text(
-                            text = "/ ${budget.formatPrice(currencyCode)}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = "•  R$ %.2f".format(it),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Medium
                         )
                     }
+
+                    // Status
+                    Text(
+                        text = "•  ${status.name}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
                 }
             }
 
-            Box {
-                IconButton(onClick = { expanded = true }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = stringResource(
-                            id = br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_more_options
-                        ),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                }
+            Spacer(modifier = Modifier.width(8.dp))
 
-                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = stringResource(
-                                    id = br.com.brunocarvalhs.howmuch.core.ui.R.string.action_edit
-                                )
-                            )
-                        },
-                        leadingIcon = { Icon(Icons.Default.Edit, null) },
-                        onClick = {
-                            expanded = false
-                            onEditClick()
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.action_duplicate)) },
-                        leadingIcon = { Icon(Icons.Default.ContentCopy, null) },
-                        onClick = {
-                            expanded = false
-                            onDuplicateClick()
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                if (status == Shopping.Status.FINISH) {
-                                    stringResource(id = R.string.action_reopen)
-                                } else {
-                                    stringResource(
-                                        id = br.com.brunocarvalhs.howmuch.core.ui.R.string.action_finish
-                                    )
-                                }
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                if (status == Shopping.Status.FINISH) {
-                                    Icons.Default.RestartAlt
-                                } else {
-                                    Icons.Default.CheckCircle
-                                },
-                                null
-                            )
-                        },
-                        onClick = {
-                            expanded = false
-                            onFinishClick()
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                if (isFavorite) {
-                                    stringResource(R.string.action_remove_favorite)
-                                } else {
-                                    stringResource(R.string.action_add_favorite)
-                                }
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = if (isFavorite) Icons.Default.Favorite
-                                else Icons.Default.FavoriteBorder,
-                                contentDescription = null,
-                                tint = if (isFavorite) Color.Red
-                                else MaterialTheme.colorScheme.onSurface
-                            )
-                        },
-                        onClick = {
-                            expanded = false
-                            onFavoriteClick()
-                        }
-                    )
-                    HorizontalDivider()
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = stringResource(
-                                    id = br.com.brunocarvalhs.howmuch.core.ui.R.string.action_share
-                                )
-                            )
-                        },
-                        leadingIcon = { Icon(
-                            imageVector = Icons.Default.Share,
-                            contentDescription = null
-                        ) },
-                        onClick = {
-                            expanded = false
-                            onShareClick()
-                        }
-                    )
-                    HorizontalDivider()
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = stringResource(
-                                    id = br.com.brunocarvalhs.howmuch.core.ui.R.string.action_delete
-                                ),
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        },
-                        onClick = {
-                            expanded = false
-                            onDeleteClick()
-                        }
-                    )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (users.size > 1) {
+                    UserAvatars(users = users)
+                    Spacer(modifier = Modifier.width(8.dp))
                 }
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        // Dropdown Menu ativado pelo Long Press
+        DropdownMenu(
+            expanded = showMenu,
+            onDismissRequest = { showMenu = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Editar") },
+                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                onClick = { showMenu = false; onEditClick() }
+            )
+            DropdownMenuItem(
+                text = { Text("Duplicar") },
+                leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null) },
+                onClick = { showMenu = false; onDuplicateClick() }
+            )
+            DropdownMenuItem(
+                text = { Text("Compartilhar") },
+                leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) },
+                onClick = { showMenu = false; onShareClick() }
+            )
+            DropdownMenuItem(
+                text = { Text("Finalizar") },
+                leadingIcon = { Icon(Icons.Default.CheckCircle, contentDescription = null) },
+                onClick = { showMenu = false; onFinishClick() }
+            )
+            HorizontalDivider()
+            DropdownMenuItem(
+                text = { Text("Deletar", color = MaterialTheme.colorScheme.error) },
+                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                onClick = { showMenu = false; onDeleteClick() }
+            )
+        }
+    }
+}
+
+@Composable
+private fun UserAvatars(users: List<String>) {
+    val displayCount = users.take(2)
+    Row(horizontalArrangement = Arrangement.spacedBy((-8).dp)) {
+        displayCount.forEach { _ ->
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .border(1.dp, MaterialTheme.colorScheme.surface, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -375,55 +228,64 @@ internal fun ShoppingItem(
 
 @Composable
 internal fun ShoppingItemLoading(modifier: Modifier = Modifier) {
-    val infiniteTransition = rememberInfiniteTransition(label = "shimmer")
-    val alpha by infiniteTransition.animateFloat(
-        initialValue = SHIMMER_ALPHA_INITIAL,
-        targetValue = SHIMMER_ALPHA_TARGET,
-        animationSpec = infiniteRepeatable(
-            animation = tween(SHIMMER_DURATION),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "alpha"
-    )
-
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = LOADING_CONTAINER_ALPHA)
-        )
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp, horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
+        Box(
             modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth()
-                .alpha(alpha),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+                .size(56.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
             Box(
                 modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.outlineVariant)
+                    .width(120.dp)
+                    .height(16.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(4.dp))
             )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(LOADING_TITLE_WIDTH_FRACTION)
-                        .height(20.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.outlineVariant)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(LOADING_DESC_WIDTH_FRACTION)
-                        .height(16.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.outlineVariant)
-                )
-            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(12.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(4.dp))
+            )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ShoppingItemPreview() {
+    CestouTheme {
+        Column {
+            ShoppingItem(
+                title = "Morning breakfast",
+                itemCount = 8,
+                users = listOf("1", "2")
+            )
+            ShoppingItem(
+                title = "Pizza day!",
+                itemCount = 4
+            )
+            ShoppingItem(
+                title = "Often purchased",
+                itemCount = 10,
+                iconBackgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ShoppingItemLoadingPreview() {
+    CestouTheme {
+        ShoppingItemLoading()
     }
 }

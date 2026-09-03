@@ -10,7 +10,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Product
+import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductAnalyzeImageUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
@@ -41,7 +41,12 @@ internal class ProductPhotoViewModel @Inject constructor(
         onImageCaptured = { uri -> onImageCaptured(uri) },
         onRetake = { retake() },
         onAnalyzeImage = { analyzeImage() },
-        onProductConfirmed = { product -> onProductConfirmed(product) }
+        onProductConfirmed = { product -> onProductConfirmed(product) },
+        onAnalysisItemUpdated = { product -> updateAnalysisItem(product) },
+        onAnalysisItemRemoved = { id -> removeAnalysisItem(id) },
+        onConfirmAllAnalysisItems = { confirmAllAnalysisItems() },
+        onConfirmationMessageShown = { onConfirmationMessageShown() },
+        onErrorMessageShown = { onErrorMessageShown() }
     )
 
     private fun onImageCaptured(uri: Uri) {
@@ -71,10 +76,25 @@ internal class ProductPhotoViewModel @Inject constructor(
 
             analyzeImageUseCase(bitmap)
                 .onSuccess { products ->
-                    _uiState.update { it.copy(isAnalyzing = false, analysisResult = products) }
+                    _uiState.update {
+                        it.copy(
+                            isAnalyzing = false,
+                            analysisResult = products,
+                            errorMessage = if (products.isEmpty()) {
+                                context.getString(R.string.product_photo_error_no_products_found)
+                            } else {
+                                null
+                            }
+                        )
+                    }
                 }
-                .onFailure { e ->
-                    _uiState.update { it.copy(isAnalyzing = false, errorMessage = e.message) }
+                .onFailure {
+                    _uiState.update {
+                        it.copy(
+                            isAnalyzing = false,
+                            errorMessage = context.getString(R.string.product_photo_error_analysis_failed)
+                        )
+                    }
                 }
         }
     }
@@ -96,6 +116,56 @@ internal class ProductPhotoViewModel @Inject constructor(
     private fun onProductConfirmed(product: Product) {
         viewModelScope.launch {
             saveUseCase(product = product, shoppingId = shopping.id)
+            _uiState.update { state ->
+                state.copy(
+                    analysisResult = state.analysisResult.filterNot { it.id == product.id },
+                    confirmationMessage = context.getString(R.string.product_photo_item_added, product.name)
+                )
+            }
         }
+    }
+
+    private fun updateAnalysisItem(product: Product) {
+        _uiState.update { state ->
+            state.copy(analysisResult = state.analysisResult.map { if (it.id == product.id) product else it })
+        }
+    }
+
+    private fun removeAnalysisItem(id: String) {
+        _uiState.update { state ->
+            val remaining = state.analysisResult.filterNot { it.id == id }
+            state.copy(
+                analysisResult = remaining,
+                capturedImageUri = if (remaining.isEmpty()) null else state.capturedImageUri
+            )
+        }
+    }
+
+    private fun confirmAllAnalysisItems() {
+        val items = _uiState.value.analysisResult
+        if (items.isEmpty()) return
+
+        viewModelScope.launch {
+            items.forEach { product -> saveUseCase(product = product, shoppingId = shopping.id) }
+            _uiState.update {
+                it.copy(
+                    analysisResult = emptyList(),
+                    capturedImageUri = null,
+                    confirmationMessage = context.resources.getQuantityString(
+                        R.plurals.product_photo_items_added,
+                        items.size,
+                        items.size
+                    )
+                )
+            }
+        }
+    }
+
+    private fun onConfirmationMessageShown() {
+        _uiState.update { it.copy(confirmationMessage = null) }
+    }
+
+    private fun onErrorMessageShown() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 }

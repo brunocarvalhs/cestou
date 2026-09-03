@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ImportOrdering:ProfileViewModel.kt$import androidx.lifecycle.ViewModel import androidx.lifecycle.viewModelScope import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService import br.com.brunocarvalhs.howmuch.core.navigation.mobile.LinkWearDevice import br.com.brunocarvalhs.howmuch.core.navigation.Navigator import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingCode import br.com.brunocarvalhs.howmuch.feature.profile.presentation.intent.ProfileIntent import br.com.brunocarvalhs.howmuch.feature.profile.presentation.state.ProfileUiState import br.com.brunocarvalhs.howmuch.feature.settings.navigation.Settings import dagger.hilt.android.lifecycle.HiltViewModel import kotlinx.coroutines.flow.MutableStateFlow import kotlinx.coroutines.flow.asStateFlow import kotlinx.coroutines.flow.update import kotlinx.coroutines.launch import javax.inject.Inject</ID>
+    <ID>ImportOrdering:ProfileWearGraph.kt$import androidx.hilt.navigation.compose.hiltViewModel import androidx.navigation.NavGraphBuilder import androidx.wear.compose.navigation.composable import br.com.brunocarvalhs.howmuch.core.navigation.Navigator import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile import br.com.brunocarvalhs.howmuch.feature.profile.presentation.wear.screen.ProfileWearScreen import br.com.brunocarvalhs.howmuch.feature.profile.presentation.viewmodel.ProfileViewModel</ID>
+  </CurrentIssues>
+</SmellBaseline>

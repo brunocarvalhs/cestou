@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.domain.repository
 
-import br.com.brunocarvalhs.howmuch.core.domain.entity.AppSettings
-import br.com.brunocarvalhs.howmuch.core.domain.entity.ThemeMode
+import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
+import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import kotlinx.coroutines.flow.Flow
 
 interface SettingsRepository {

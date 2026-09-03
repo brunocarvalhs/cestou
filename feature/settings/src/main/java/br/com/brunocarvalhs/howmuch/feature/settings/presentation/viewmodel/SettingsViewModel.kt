@@ -20,19 +20,22 @@ import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.common.BuildConfig
-import br.com.brunocarvalhs.howmuch.core.domain.entity.AiModel
-import br.com.brunocarvalhs.howmuch.core.domain.entity.AppSettings
-import br.com.brunocarvalhs.howmuch.core.domain.entity.ThemeMode
-import br.com.brunocarvalhs.howmuch.core.extensions.openBrowser
-import br.com.brunocarvalhs.howmuch.core.extensions.openEmail
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiModel
+import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
+import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
+import br.com.brunocarvalhs.howmuch.core.common.extensions.openBrowser
+import br.com.brunocarvalhs.howmuch.core.common.extensions.openEmail
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiSettings
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateCurrencyUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateLanguageUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.navigation.AiSettings
 import br.com.brunocarvalhs.howmuch.feature.settings.navigation.AppRate
 import br.com.brunocarvalhs.howmuch.feature.settings.navigation.CurrencySettings
 import br.com.brunocarvalhs.howmuch.feature.settings.navigation.DataSettings
@@ -67,7 +70,8 @@ internal class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val getSettingsUseCase: GetSettingsUseCase,
     private val updateLanguageUseCase: UpdateLanguageUseCase,
-    private val updateCurrencyUseCase: UpdateCurrencyUseCase
+    private val updateCurrencyUseCase: UpdateCurrencyUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -83,15 +87,24 @@ internal class SettingsViewModel @Inject constructor(
         onUpdateLanguage = { language ->
             viewModelScope.launch {
                 updateLanguageUseCase(language)
+                analyticsTracker.trackEvent(
+                    AnalyticsEvents.SETTINGS_LANGUAGE_CHANGED,
+                    mapOf(AnalyticsParams.LANGUAGE to language)
+                )
             }
         },
         onUpdateCurrency = { currency ->
             viewModelScope.launch {
                 updateCurrencyUseCase(currency)
+                analyticsTracker.trackEvent(
+                    AnalyticsEvents.SETTINGS_CURRENCY_CHANGED,
+                    mapOf(AnalyticsParams.CURRENCY to currency)
+                )
             }
         })
 
     init {
+        analyticsTracker.trackScreenView(screenName = "settings", screenClass = "SettingsViewModel")
         observeSettings()
     }
 

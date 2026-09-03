@@ -2,7 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.brunocarvalhs.howmuch.core.domain.entity.ThemeMode
+import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateThemeUseCase

@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.ai.AnalyzingOverlay
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.AnalyzingOverlay
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.PreviewActions
 import coil.compose.AsyncImage
 

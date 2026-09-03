@@ -3,9 +3,9 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentAction
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentParameter
 import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
-import br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentSession
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getString
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -21,7 +21,7 @@ import javax.inject.Singleton
     isRequired = true
 )
 @Singleton
-internal class ShoppingReopenUseCase @Inject constructor(
+class ShoppingReopenUseCase @Inject constructor(
     private val repository: ShoppingRepository
 ) : AgentActionUseCase<Unit>() {
 
@@ -31,7 +31,7 @@ internal class ShoppingReopenUseCase @Inject constructor(
 
     override suspend fun execute(
         arguments: Map<String, Any?>,
-        session: AiAgentSession,
+        session: AiSession,
         metadata: Map<String, Any?>
     ): Result<Unit> {
         val shoppingId = arguments.getString("shopping_id") ?: throw Exception("Shopping ID is required")

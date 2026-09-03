@@ -58,6 +58,12 @@
     <string name="settings_shopping_reminders_desc">Notificar quando houver listas pendentes</string>
     <string name="settings_shopping_none_selected">Nenhuma selecionada</string>
 
+    <string name="settings_shopping_reminder_notification_title">Lista de compras pendente</string>
+    <plurals name="settings_shopping_reminder_notification_text">
+        <item quantity="one">Você tem %d lista de compras pendente</item>
+        <item quantity="other">Você tem %d listas de compras pendentes</item>
+    </plurals>
+
     <string name="settings_placeholder_soon">Funcionalidade de %s em breve</string>
 
     <string name="settings_title_ai">IA</string>
@@ -75,6 +81,17 @@
     <string name="settings_data_delete_confirmation_title">Apagar todos os dados?</string>
     <string name="settings_data_delete_confirmation_message">Esta ação não pode ser desfeita. Todas as suas listas e configurações locais serão removidas permanentemente.</string>
     <string name="settings_data_delete_button">Sim, apagar tudo</string>
+    <string name="settings_data_clear_cache_success">Cache limpo</string>
+    <string name="settings_data_clear_cache_error">Não foi possível limpar o cache. Tente novamente.</string>
+    <string name="settings_data_delete_all_success">Todos os dados foram apagados</string>
+    <string name="settings_data_delete_all_error">Não foi possível apagar seus dados. Tente novamente.</string>
+    <string name="settings_data_delete_account">Excluir Conta</string>
+    <string name="settings_data_delete_account_hint">Exclui permanentemente sua conta e todos os seus dados</string>
+    <string name="settings_data_delete_account_confirmation_title">Excluir conta?</string>
+    <string name="settings_data_delete_account_confirmation_message">Esta ação não pode ser desfeita. Sua conta, perfil e listas de compras serão excluídos permanentemente.</string>
+    <string name="settings_data_delete_account_button">Sim, excluir minha conta</string>
+    <string name="settings_data_delete_account_success">Conta excluída</string>
+    <string name="settings_data_delete_account_error">Não foi possível excluir sua conta. Tente novamente.</string>
 
     <string name="settings_terms_content">
         Ao utilizar o Cestou, você concorda com os seguintes termos: \n\n

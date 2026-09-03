@@ -31,10 +31,16 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 dependencies {
     implementation(project(":core:common"))
+    implementation(project(":core:analytics"))
     implementation(project(":core:domain"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
@@ -43,6 +49,7 @@ dependencies {
     implementation(project(":core:ai"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:products"))
+    implementation(project(":feature:chat"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
@@ -59,6 +66,14 @@ dependencies {
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.coil.compose)
+
+    // Wear OS
+    implementation(libs.androidx.wear.compose.material3)
+    implementation(libs.androidx.wear.compose.foundation)
+    implementation(libs.androidx.compose.navigation)
+    implementation(libs.androidx.wear.compose.navigation3)
+    implementation(libs.androidx.wear.compose.ui.tooling)
 
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
@@ -72,6 +87,13 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
+    testImplementation(libs.konsist)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.androidx.compose.ui.test.manifest)
+    testImplementation(libs.androidx.core)
+    testImplementation(libs.androidx.junit)
 }

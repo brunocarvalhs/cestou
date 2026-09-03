@@ -1,6 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.data.mapper
 
-import br.com.brunocarvalhs.howmuch.core.domain.entity.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.model.ShoppingModel
 import org.junit.Assert.assertEquals
 import org.junit.Test
