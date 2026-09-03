@@ -46,6 +46,7 @@
     <string name="shopping_management_invite_share_text">Entre na minha lista de compras no Cestou! Use o código %s no app para participar.</string>
     <string name="shopping_management_error_only_owner_delete">Apenas o proprietário pode excluir esta lista</string>
     <string name="shopping_management_error_only_owner_edit">Apenas o proprietário pode editar esta lista</string>
+    <string name="shopping_management_error_create">Não foi possível criar a lista. Tente novamente.</string>
 
 
     <string name="shopping_management_error_join">Erro ao entrar na lista</string>
