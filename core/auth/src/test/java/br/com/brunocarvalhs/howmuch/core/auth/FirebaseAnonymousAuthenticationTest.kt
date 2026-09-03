@@ -145,6 +145,41 @@ class FirebaseAnonymousAuthenticationTest {
     }
 
     @Test
+    fun `deleteAccount succeeds and clears the synced user id`() = runTest {
+        val user = fakeUser("user-1")
+        every { auth.currentUser } returns user
+        every { user.delete() } returns Tasks.forResult(null)
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+
+        val result = service.deleteAccount()
+
+        assertTrue(result.isSuccess)
+        verify { user.delete() }
+    }
+
+    @Test
+    fun `deleteAccount fails when there is no current user`() = runTest {
+        every { auth.currentUser } returns null
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+
+        val result = service.deleteAccount()
+
+        assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `deleteAccount fails when Firebase throws`() = runTest {
+        val user = fakeUser("user-1")
+        every { auth.currentUser } returns user
+        every { user.delete() } returns Tasks.forException(RuntimeException("recent login required"))
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+
+        val result = service.deleteAccount()
+
+        assertTrue(result.isFailure)
+    }
+
+    @Test
     fun `authState reflects the listener registered on FirebaseAuth`() {
         val listenerSlot = slot<FirebaseAuth.AuthStateListener>()
         every { auth.addAuthStateListener(capture(listenerSlot)) } returns Unit

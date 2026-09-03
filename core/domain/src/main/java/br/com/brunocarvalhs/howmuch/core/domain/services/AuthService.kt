@@ -10,4 +10,5 @@ interface AuthService {
     suspend fun signInAnonymously(): Result<AuthenticatedUser>
     suspend fun signOut(): Result<Unit>
     suspend fun updateUserId(userId: String)
+    suspend fun deleteAccount(): Result<Unit>
 }

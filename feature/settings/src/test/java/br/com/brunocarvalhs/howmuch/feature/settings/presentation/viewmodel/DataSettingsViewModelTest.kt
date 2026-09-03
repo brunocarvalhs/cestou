@@ -3,6 +3,7 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.ClearCacheUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.DeleteAccountUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.DeleteAllDataUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.DataSettingsViewModel
 import io.mockk.coEvery
@@ -26,8 +27,14 @@ class DataSettingsViewModelTest {
     private val context = mockk<Context>(relaxed = true)
     private val clearCacheUseCase = mockk<ClearCacheUseCase>()
     private val deleteAllDataUseCase = mockk<DeleteAllDataUseCase>()
+    private val deleteAccountUseCase = mockk<DeleteAccountUseCase>()
     private val navigator = mockk<Navigator>(relaxed = true)
-    private val viewModel = DataSettingsViewModel(context, clearCacheUseCase, deleteAllDataUseCase)
+    private val viewModel = DataSettingsViewModel(
+        context,
+        clearCacheUseCase,
+        deleteAllDataUseCase,
+        deleteAccountUseCase
+    )
 
     @Before
     fun setup() {
@@ -56,6 +63,15 @@ class DataSettingsViewModelTest {
         viewModel.intent.onDeleteAllData()
 
         coVerify { deleteAllDataUseCase() }
+    }
+
+    @Test
+    fun `onDeleteAccount delegates to the use case`() = runTest {
+        coEvery { deleteAccountUseCase() } returns Result.success(Unit)
+
+        viewModel.intent.onDeleteAccount()
+
+        coVerify { deleteAccountUseCase() }
     }
 
     @Test

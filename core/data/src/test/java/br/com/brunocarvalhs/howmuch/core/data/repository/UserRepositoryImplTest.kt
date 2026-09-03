@@ -65,4 +65,24 @@ class UserRepositoryImplTest {
 
         assertTrue(result.isFailure)
     }
+
+    @Test
+    fun `deleteProfile succeeds when network call succeeds`() = runTest {
+        coEvery { networkService.make<Boolean>(any(), any(), any()) } returns true
+
+        val result = repository.deleteProfile("u1")
+
+        assertTrue(result.isSuccess)
+    }
+
+    @Test
+    fun `deleteProfile fails when network call throws`() = runTest {
+        coEvery {
+            networkService.make<Boolean>(any(), any(), any())
+        } throws NetworkService.NetworkException(code = 404)
+
+        val result = repository.deleteProfile("u1")
+
+        assertTrue(result.isFailure)
+    }
 }

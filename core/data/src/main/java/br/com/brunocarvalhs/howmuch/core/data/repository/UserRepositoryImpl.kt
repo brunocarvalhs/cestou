@@ -40,6 +40,17 @@ class UserRepositoryImpl @Inject constructor(
         Unit
     }
 
+    override suspend fun deleteProfile(id: String): Result<Unit> = runCatching {
+        networkService.make(
+            request = NetworkService.NetworkRequest(
+                endpoint = "$ENDPOINT/$id",
+                method = NetworkService.Method.DELETE
+            ),
+            response = Boolean::class
+        )
+        Unit
+    }
+
     companion object {
         private const val ENDPOINT = "users"
     }

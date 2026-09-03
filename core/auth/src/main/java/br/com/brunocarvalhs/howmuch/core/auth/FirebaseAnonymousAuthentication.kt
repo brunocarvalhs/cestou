@@ -131,6 +131,18 @@ class FirebaseAnonymousAuthentication @Inject constructor(
         Result.failure(e)
     }
 
+    override suspend fun deleteAccount(): Result<Unit> = try {
+        val user = auth.currentUser
+            ?: return Result.failure(IllegalStateException("No authenticated user"))
+        user.delete().await()
+        dataStore.edit { it.remove(_userIdKey) }
+        Result.success(Unit)
+    } catch (e: Exception) {
+        if (e is kotlinx.coroutines.CancellationException) throw e
+        Timber.tag(TAG).e(e, "Falha ao excluir conta")
+        Result.failure(e)
+    }
+
     override suspend fun updateUserId(userId: String) {
         Timber.tag(TAG).d("Updating user ID to: $userId (Linking account)")
         dataStore.edit { preferences ->

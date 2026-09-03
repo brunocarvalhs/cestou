@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.ClearCacheUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.DeleteAccountUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.DeleteAllDataUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.DataSettingsIntent
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.state.DataSettingsUiState
@@ -22,7 +23,8 @@ import javax.inject.Inject
 internal class DataSettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val clearCacheUseCase: ClearCacheUseCase,
-    private val deleteAllDataUseCase: DeleteAllDataUseCase
+    private val deleteAllDataUseCase: DeleteAllDataUseCase,
+    private val deleteAccountUseCase: DeleteAccountUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DataSettingsUiState())
@@ -33,6 +35,7 @@ internal class DataSettingsViewModel @Inject constructor(
     val intent = DataSettingsIntent(
         onClearCache = { clearCache() },
         onDeleteAllData = { deleteAllData() },
+        onDeleteAccount = { deleteAccount() },
         onBack = { _navigator?.goBack() },
         onMessageShown = { _uiState.update { it.copy(message = null) } }
     )
@@ -56,6 +59,18 @@ internal class DataSettingsViewModel @Inject constructor(
                 .fold(
                     onSuccess = { context.getString(R.string.settings_data_delete_all_success) },
                     onFailure = { context.getString(R.string.settings_data_delete_all_error) }
+                )
+            _uiState.update { it.copy(isLoading = false, message = message) }
+        }
+    }
+
+    private fun deleteAccount() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            val message = deleteAccountUseCase()
+                .fold(
+                    onSuccess = { context.getString(R.string.settings_data_delete_account_success) },
+                    onFailure = { context.getString(R.string.settings_data_delete_account_error) }
                 )
             _uiState.update { it.copy(isLoading = false, message = message) }
         }
