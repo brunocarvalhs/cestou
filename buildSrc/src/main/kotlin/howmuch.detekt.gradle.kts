@@ -28,4 +28,12 @@ subprojects {
         "detektPlugins"("io.gitlab.arturbosch.detekt:detekt-formatting:$detektVersion")
         "detektPlugins"("io.nlopez.compose.rules:detekt:$detektComposeRulesVersion")
     }
+
+    // Baseline por módulo: registra as violações já existentes no rewrite (nunca tinha rodado
+    // Detekt de verdade) para não bloquear PRs não relacionadas. Só passa a barrar problemas
+    // NOVOS a partir daqui — o baseline fica versionado e visível em code review, não escondido.
+    // Regenerar com `./gradlew detektBaseline` sempre que decidir zerar o débito de um módulo.
+    configure<DetektExtension> {
+        baseline = file("$projectDir/config/detekt/baseline.xml")
+    }
 }

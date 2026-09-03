@@ -46,6 +46,7 @@
     <string name="shopping_management_invite_share_text">Join my shopping list on Cestou! Use the code %s in the app to join.</string>
     <string name="shopping_management_error_only_owner_delete">Only the owner can delete this list</string>
     <string name="shopping_management_error_only_owner_edit">Only the owner can edit this list</string>
+    <string name="shopping_management_error_create">Could not create the list. Please try again.</string>
 
 
     <string name="shopping_management_error_join">Error joining list</string>

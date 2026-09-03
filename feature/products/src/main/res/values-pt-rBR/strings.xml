@@ -43,14 +43,14 @@
     <!-- Feature: Product Photo Confirmation -->
     <string name="product_photo_confirm_title">Confirme os produtos encontrados</string>
     <plurals name="product_photo_confirm_subtitle">
-        <item quantity="one">1 item encontrado. Revise antes de adicionar.</item>
+        <item quantity="one">%d item encontrado. Revise antes de adicionar.</item>
         <item quantity="other">%d itens encontrados. Revise antes de adicionar.</item>
     </plurals>
     <string name="product_photo_confirm_add_all">Adicionar %d itens</string>
     <string name="product_photo_item_remove">Remover item</string>
     <string name="product_photo_item_added">%s adicionado à lista</string>
     <plurals name="product_photo_items_added">
-        <item quantity="one">1 item adicionado à lista</item>
+        <item quantity="one">%d item adicionado à lista</item>
         <item quantity="other">%d itens adicionados à lista</item>
     </plurals>
     <string name="product_photo_quantity_label">Quantidade</string>
