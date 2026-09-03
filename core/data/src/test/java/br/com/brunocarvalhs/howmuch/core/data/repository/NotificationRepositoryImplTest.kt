@@ -72,4 +72,24 @@ class NotificationRepositoryImplTest {
 
         assertTrue(result.isFailure)
     }
+
+    @Test
+    fun `notify succeeds when network call succeeds`() = runTest {
+        coEvery { networkService.make<String>(any(), any(), any()) } returns "n2"
+
+        val result = repository.notify("u2", "Title", "Message", "list_joined")
+
+        assertTrue(result.isSuccess)
+    }
+
+    @Test
+    fun `notify fails when network call throws`() = runTest {
+        coEvery {
+            networkService.make<String>(any(), any(), any())
+        } throws NetworkService.NetworkException(code = 403)
+
+        val result = repository.notify("u2", "Title", "Message", "list_joined")
+
+        assertTrue(result.isFailure)
+    }
 }

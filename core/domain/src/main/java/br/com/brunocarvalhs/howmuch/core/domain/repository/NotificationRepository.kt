@@ -15,4 +15,5 @@ data class Notification(
 interface NotificationRepository {
     fun observeNotifications(userId: String): Flow<List<Notification>>
     suspend fun markAsRead(notificationId: String): Result<Unit>
+    suspend fun notify(userId: String, title: String, message: String, type: String): Result<Unit>
 }

@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.core.data.repository
 
 import br.com.brunocarvalhs.howmuch.core.data.extensions.toDomain
+import br.com.brunocarvalhs.howmuch.core.data.extensions.toMap
 import br.com.brunocarvalhs.howmuch.core.data.model.NotificationModel
 import br.com.brunocarvalhs.howmuch.core.domain.repository.Notification
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
@@ -9,6 +10,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.services.make
 import br.com.brunocarvalhs.howmuch.core.domain.services.observe
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,6 +37,32 @@ class NotificationRepositoryImpl @Inject constructor(
                 payload = mapOf("isRead" to true)
             ),
             response = Boolean::class
+        )
+        Unit
+    }
+
+    override suspend fun notify(
+        userId: String,
+        title: String,
+        message: String,
+        type: String
+    ): Result<Unit> = runCatching {
+        val model = NotificationModel(
+            id = UUID.randomUUID().toString(),
+            userId = userId,
+            title = title,
+            message = message,
+            type = type,
+            isRead = false,
+            timestamp = System.currentTimeMillis()
+        )
+        networkService.make(
+            request = NetworkService.NetworkRequest(
+                endpoint = ENDPOINT,
+                method = NetworkService.Method.POST,
+                payload = model.toMap()
+            ),
+            response = String::class
         )
         Unit
     }
