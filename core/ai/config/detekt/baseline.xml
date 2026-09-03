@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>Filename:AiAgentModels.kt$br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentModels.kt</ID>
+    <ID>MagicNumber:AgentExtensionsTest.kt$AgentExtensionsTest$5</ID>
+    <ID>MagicNumber:AgentExtensionsTest.kt$AgentExtensionsTest$5.5</ID>
+  </CurrentIssues>
+</SmellBaseline>

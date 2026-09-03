@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
@@ -34,6 +36,13 @@ class FirebaseAnonymousAuthentication @Inject constructor(
 
     private val _firebaseAuthState = MutableStateFlow(auth.currentUser?.toAuthenticatedUser())
     private val _syncedUserId = MutableStateFlow<String?>(null)
+
+    private val resolveUserIdMutex = Mutex()
+
+    // Caches the id resolved by getOrCreateUserId() so every caller (create/read/observe) agrees
+    // on the same UUID even when resolved concurrently before any session is persisted.
+    @Volatile
+    private var cachedUserId: String? = null
 
     override val authState: Flow<AuthenticatedUser?> = combine(
         _firebaseAuthState,
@@ -69,20 +78,35 @@ class FirebaseAnonymousAuthentication @Inject constructor(
         }
 
     override suspend fun getOrCreateUserId(): AuthenticatedUser {
-        val syncedId = dataStore.data.map { it[_userIdKey] }.firstOrNull()
-        if (syncedId != null) {
-            return AuthenticatedUser(id = syncedId)
-        }
+        cachedUserId?.let { return AuthenticatedUser(id = it) }
 
-        auth.currentUser?.let { user ->
-            Timber.d("Sessão já existente: ${user.uid}")
-            crashlytics.setUser(user)
-            return user.toAuthenticatedUser()
-        }
+        return resolveUserIdMutex.withLock {
+            // Re-check: another caller may have resolved it while we were waiting for the lock.
+            cachedUserId?.let { return@withLock AuthenticatedUser(id = it) }
 
-        return signInAnonymously().getOrElse {
-            Timber.tag(TAG).w("Fallback para usuário guest devido a falha na autenticação")
-            AuthenticatedUser(id = GUEST_ID)
+            val syncedId = dataStore.data.map { it[_userIdKey] }.firstOrNull()
+            if (syncedId != null) {
+                cachedUserId = syncedId
+                return@withLock AuthenticatedUser(id = syncedId)
+            }
+
+            auth.currentUser?.let { user ->
+                Timber.d("Sessão já existente: ${user.uid}")
+                crashlytics.setUser(user)
+                dataStore.edit { it[_userIdKey] = user.uid }
+                cachedUserId = user.uid
+                return@withLock user.toAuthenticatedUser()
+            }
+
+            val result = signInAnonymously().getOrElse {
+                Timber.tag(TAG).w("Fallback para usuário guest devido a falha na autenticação")
+                AuthenticatedUser(id = GUEST_ID)
+            }
+            if (result.id != GUEST_ID) {
+                dataStore.edit { it[_userIdKey] = result.id }
+                cachedUserId = result.id
+            }
+            result
         }
     }
 
@@ -100,6 +124,7 @@ class FirebaseAnonymousAuthentication @Inject constructor(
 
     override suspend fun signOut(): Result<Unit> = try {
         dataStore.edit { it.remove(_userIdKey) }
+        cachedUserId = null
         auth.signOut()
         Result.success(Unit)
     } catch (e: Exception) {
@@ -108,11 +133,10 @@ class FirebaseAnonymousAuthentication @Inject constructor(
 
     override suspend fun updateUserId(userId: String) {
         Timber.tag(TAG).d("Updating user ID to: $userId (Linking account)")
-        scope.launch {
-            dataStore.edit { preferences ->
-                preferences[_userIdKey] = userId
-            }
+        dataStore.edit { preferences ->
+            preferences[_userIdKey] = userId
         }
+        cachedUserId = userId
     }
 
     private fun FirebaseUser.toAuthenticatedUser() = AuthenticatedUser(

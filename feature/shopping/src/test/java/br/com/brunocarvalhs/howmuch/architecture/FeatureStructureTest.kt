@@ -2,7 +2,9 @@ package br.com.brunocarvalhs.howmuch.architecture
 
 import com.lemonappdev.konsist.api.Konsist
 import com.lemonappdev.konsist.api.ext.list.withPackage
+import com.lemonappdev.konsist.api.ext.provider.hasAnnotationOf
 import com.lemonappdev.konsist.api.verify.assertTrue
+import kotlinx.serialization.Serializable
 import org.junit.Test
 
 /**
@@ -31,5 +33,22 @@ class FeatureStructureTest {
                     allowedLayers.contains(remainder.substringBefore("."))
                 }
             }
+    }
+
+    /**
+     * Guards against a silent-failure bug: `NetworkManager` resolves the response `KSerializer`
+     * reflectively, so a `data.model` class that isn't `@Serializable` doesn't fail to compile —
+     * it fails at runtime with a caught `SerializationException`, and the repository quietly
+     * returns an empty list/null instead of the Firestore data. `ShoppingModel` shipped without
+     * this annotation and every shopping list silently failed to load. See
+     * `.claude/skills/firestore-serializable-models/SKILL.md`.
+     */
+    @Test
+    fun `shopping data models are annotated as Serializable`() {
+        Konsist
+            .scopeFromProduction()
+            .classes()
+            .filter { it.resideInPackage("$featurePackage.data.model..") }
+            .assertTrue { it.hasAnnotationOf<Serializable>() }
     }
 }
