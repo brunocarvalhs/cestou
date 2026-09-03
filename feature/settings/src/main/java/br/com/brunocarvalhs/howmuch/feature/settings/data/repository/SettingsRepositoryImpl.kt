@@ -11,17 +11,20 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiModel
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
+import br.com.brunocarvalhs.howmuch.feature.settings.data.worker.ShoppingReminderScheduler
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
 
 internal class SettingsRepositoryImpl @Inject constructor(
     private val dataStore: DataStore<Preferences>,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val reminderScheduler: ShoppingReminderScheduler
 ) : SettingsRepository {
 
     private object PreferencesKeys {
@@ -56,6 +59,8 @@ internal class SettingsRepositoryImpl @Inject constructor(
 
             AppSettings(
                 themeMode = themeMode,
+                notificationsEnabled = preferences[PreferencesKeys.NOTIFICATIONS_ENABLED] ?: true,
+                reminderTime = preferences[PreferencesKeys.REMINDER_TIME] ?: "18:00",
                 aiProvider = preferences[PreferencesKeys.AI_PROVIDER] ?: "gemini",
                 aiModel = preferences[PreferencesKeys.AI_MODEL] ?: "google/gemini-2.0-flash-001",
                 customPrompt = preferences[PreferencesKeys.CUSTOM_PROMPT],
@@ -79,6 +84,7 @@ internal class SettingsRepositoryImpl @Inject constructor(
             preferences[PreferencesKeys.NOTIFICATIONS_ENABLED] = enabled
             preferences[PreferencesKeys.REMINDER_TIME] = reminderTime
         }
+        reminderScheduler.sync(getSettings().first())
     }
 
     override suspend fun updateAiSettings(model: String, prompt: String?, creativity: Float) {
@@ -111,6 +117,7 @@ internal class SettingsRepositoryImpl @Inject constructor(
             preferences[PreferencesKeys.SORTING_MODE] = sortingMode
             preferences[PreferencesKeys.REMINDERS_ENABLED] = remindersEnabled
         }
+        reminderScheduler.sync(getSettings().first())
     }
 
     override suspend fun updateLanguage(language: String) {

@@ -58,6 +58,12 @@
     <string name="settings_shopping_reminders_desc">Notificar cuando haya listas pendientes</string>
     <string name="settings_shopping_none_selected">Ninguna seleccionada</string>
 
+    <string name="settings_shopping_reminder_notification_title">Lista de compras pendiente</string>
+    <plurals name="settings_shopping_reminder_notification_text">
+        <item quantity="one">Tienes %d lista de compras pendiente</item>
+        <item quantity="other">Tienes %d listas de compras pendientes</item>
+    </plurals>
+
     <string name="settings_placeholder_soon">Funcionalidad de %s próximamente</string>
 
     <string name="settings_title_ai">IA</string>

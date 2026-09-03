@@ -82,6 +82,15 @@ kover {
                     "br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncServiceImpl*",
                     "br.com.brunocarvalhs.howmuch.appfunctions.*"
                 )
+                // WorkManager.getInstance(context) é resolvido estaticamente pelo próprio
+                // WorkManagerImpl (não interceptável de forma confiável via mockk em JVM puro,
+                // exige WorkManagerTestInitHelper/instrumentado); ShoppingReminderWorker some com
+                // NotificationManager/ActivityCompat/EntryPoints, mesma categoria dos wrappers
+                // estáticos acima.
+                classes(
+                    "*.ShoppingReminderScheduler*",
+                    "*.ShoppingReminderWorker*"
+                )
                 // Provedores de IA que constroem o cliente do SDK (GenerativeModel / Ktor
                 // HttpClient) como campo privado inline em vez de injetado — não testável sem
                 // um refactor de DI (fora de escopo aqui; considerar injetar o client depois).
