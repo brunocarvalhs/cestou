@@ -131,7 +131,8 @@ class FirebaseAnonymousAuthentication @Inject constructor(
         val user = auth.currentUser
             ?: return Result.failure(IllegalStateException("No authenticated user"))
         user.delete().await()
-        dataStore.edit { it.remove(_userIdKey) }
+        storage.remove(USER_ID_KEY)
+        cachedUserId = null
         Result.success(Unit)
     } catch (e: Exception) {
         if (e is kotlinx.coroutines.CancellationException) throw e

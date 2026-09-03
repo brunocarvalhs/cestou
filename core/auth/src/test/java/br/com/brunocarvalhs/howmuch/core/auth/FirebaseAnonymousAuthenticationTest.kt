@@ -149,7 +149,7 @@ class FirebaseAnonymousAuthenticationTest {
         val user = fakeUser("user-1")
         every { auth.currentUser } returns user
         every { user.delete() } returns Tasks.forResult(null)
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
         val result = service.deleteAccount()
 
@@ -160,7 +160,7 @@ class FirebaseAnonymousAuthenticationTest {
     @Test
     fun `deleteAccount fails when there is no current user`() = runTest {
         every { auth.currentUser } returns null
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
         val result = service.deleteAccount()
 
@@ -172,7 +172,7 @@ class FirebaseAnonymousAuthenticationTest {
         val user = fakeUser("user-1")
         every { auth.currentUser } returns user
         every { user.delete() } returns Tasks.forException(RuntimeException("recent login required"))
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
         val result = service.deleteAccount()
 
