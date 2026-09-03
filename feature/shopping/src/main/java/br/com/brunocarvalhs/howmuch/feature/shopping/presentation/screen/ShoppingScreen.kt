@@ -170,10 +170,11 @@ internal fun ShoppingScreen(
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
                 CreateShoppingContent(
-                    onConfirm = { title, description ->
+                    onConfirm = { title, description, emoji ->
                         intent.onCreateConfirmed(
                             title,
-                            description
+                            description,
+                            emoji
                         )
                     },
                     onCancel = { intent.onShowCreateSheet(false) }
@@ -249,6 +250,7 @@ private fun ShoppingListItemWrapper(
                 modifier = Modifier.padding(vertical = 4.dp),
                 onClick = { intent.onOpen(shopping.id) },
                 title = shopping.title,
+                emoji = shopping.emoji,
                 budget = shopping.budget,
                 itemCount = 8,
                 users = shopping.users,

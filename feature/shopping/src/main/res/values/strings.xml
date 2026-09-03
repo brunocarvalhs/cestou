@@ -13,6 +13,7 @@
     <string name="shopping_management_new_list_title">New List</string>
     <string name="shopping_management_new_list_description">Give your new shopping list a name</string>
     <string name="shopping_management_label_list_title">List Title</string>
+    <string name="shopping_management_label_emoji_optional">Emoji (Optional)</string>
     <string name="shopping_management_placeholder_list_title">Ex: Sunday Barbecue</string>
     <string name="shopping_management_label_description_optional">Description (Optional)</string>
     <string name="shopping_management_placeholder_description_new">Ex: Neighborhood market</string>

@@ -135,6 +135,8 @@ internal fun CartScreen(
                 CartDetailHeader(
                     title = uiState.shopping?.title
                         ?: stringResource(R.string.shopping_list_default_title),
+                    description = uiState.shopping?.description.orEmpty(),
+                    emoji = uiState.shopping?.emoji,
                     onBack = onBack,
                     actions = {
                         IconButton(

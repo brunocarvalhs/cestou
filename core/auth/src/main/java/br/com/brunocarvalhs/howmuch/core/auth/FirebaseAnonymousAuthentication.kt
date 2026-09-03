@@ -131,16 +131,6 @@ class FirebaseAnonymousAuthentication @Inject constructor(
         Result.failure(e)
     }
 
-    override suspend fun signInWithGoogle(): Result<AuthenticatedUser> {
-        // TODO: Implementar Google Sign In real
-        return Result.failure(NotImplementedError("Google Sign In não implementado"))
-    }
-
-    override suspend fun signInWithApple(): Result<AuthenticatedUser> {
-        // TODO: Implementar Apple Sign In real
-        return Result.failure(NotImplementedError("Apple Sign In não implementado"))
-    }
-
     override suspend fun deleteAccount(): Result<Unit> = try {
         val user = auth.currentUser
             ?: return Result.failure(IllegalStateException("No authenticated user"))

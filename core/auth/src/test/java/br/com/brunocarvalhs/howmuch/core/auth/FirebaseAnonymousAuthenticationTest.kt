@@ -145,14 +145,6 @@ class FirebaseAnonymousAuthenticationTest {
     }
 
     @Test
-    fun `signInWithGoogle and signInWithApple are not implemented yet`() = runTest {
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, dataStore)
-
-        assertTrue(service.signInWithGoogle().isFailure)
-        assertTrue(service.signInWithApple().isFailure)
-    }
-
-    @Test
     fun `deleteAccount succeeds and clears the synced user id`() = runTest {
         val user = fakeUser("user-1")
         every { auth.currentUser } returns user

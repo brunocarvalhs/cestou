@@ -19,6 +19,9 @@ Um aplicativo de carrinho de compras simples, mas poderoso, para Android, projet
 
 (Aqui você pode adicionar screenshots do seu aplicativo)
 
+As descrições da loja (pt-BR/en-US/es-ES) já estão em `fastlane/metadata/android/`; faltam só os
+screenshots e o feature graphic, que precisam de um device/emulador para capturar.
+
 ## 🛠️ Tecnologia e Arquitetura
 
 Este projeto foi desenvolvido utilizando as tecnologias e práticas mais recentes do desenvolvimento Android.

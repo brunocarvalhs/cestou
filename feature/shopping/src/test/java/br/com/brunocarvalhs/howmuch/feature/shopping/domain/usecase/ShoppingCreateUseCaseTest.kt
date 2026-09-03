@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
 import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import io.mockk.coEvery
@@ -38,7 +39,18 @@ class ShoppingCreateUseCaseTest {
         assertEquals(description, shopping?.description)
         assertEquals(listOf(userId), shopping?.users)
         assertEquals("OWNER", shopping?.roles?.get(userId))
-        
+        assertEquals(Shopping.DEFAULT_EMOJI, shopping?.emoji)
+
         coVerify { repository.create(any()) }
+    }
+
+    @Test
+    fun `invoke should create shopping list with the given emoji`() = runTest {
+        val userId = "user-123"
+        coEvery { authService.getOrCreateUserId() } returns AuthenticatedUser(id = userId, email = "test@test.com")
+
+        val result = useCase(title = "Weekly Groceries", emoji = "🍕")
+
+        assertEquals("🍕", result.getOrNull()?.emoji)
     }
 }
