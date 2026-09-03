@@ -1,6 +1,9 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.data.model
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import kotlinx.serialization.Serializable
+
+@Serializable
 internal data class ShoppingModel(
     val id: String,
     val title: String,

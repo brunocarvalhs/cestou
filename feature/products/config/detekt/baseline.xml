@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>EmptyFunctionBlock:ProductsInitializerImpl.kt$ProductsInitializerImpl${ }</ID>
+    <ID>Filename:ProductsRoutes.kt$br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductsRoutes.kt</ID>
+    <ID>ImportOrdering:CommonProductViewModel.kt$import android.content.Context import androidx.lifecycle.SavedStateHandle import androidx.lifecycle.ViewModel import androidx.lifecycle.viewModelScope import androidx.navigation.toRoute import br.com.brunocarvalhs.howmuch.core.domain.model.Product import br.com.brunocarvalhs.howmuch.feature.products.R import br.com.brunocarvalhs.howmuch.feature.products.domain.model.CommonProduct import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.CommonProductAddAllToShoppingUseCase import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.CommonProductAddUseCase import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.CommonProductGetAllUseCase import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.CommonProductRemoveUseCase import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase import br.com.brunocarvalhs.howmuch.feature.products.presentation.intent.CommonProductIntent import br.com.brunocarvalhs.howmuch.feature.products.presentation.state.CommonProductUiState import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute import dagger.hilt.android.lifecycle.HiltViewModel import dagger.hilt.android.qualifiers.ApplicationContext import kotlinx.coroutines.flow.MutableStateFlow import kotlinx.coroutines.flow.asStateFlow import kotlinx.coroutines.flow.update import kotlinx.coroutines.launch import java.util.UUID import javax.inject.Inject</ID>
+    <ID>ImportOrdering:Suggestions.kt$import androidx.compose.foundation.background import androidx.compose.foundation.clickable import androidx.compose.foundation.layout.Arrangement import androidx.compose.foundation.layout.Box import androidx.compose.foundation.layout.Column import androidx.compose.foundation.layout.Spacer import androidx.compose.foundation.layout.fillMaxWidth import androidx.compose.foundation.layout.height import androidx.compose.foundation.layout.padding import androidx.compose.foundation.lazy.LazyRow import androidx.compose.foundation.lazy.items import androidx.compose.foundation.shape.RoundedCornerShape import androidx.compose.material3.LinearProgressIndicator import androidx.compose.material3.MaterialTheme import androidx.compose.material3.Text import androidx.compose.runtime.Composable import androidx.compose.ui.Modifier import androidx.compose.ui.draw.clip import androidx.compose.ui.res.stringResource import androidx.compose.ui.tooling.preview.Preview import androidx.compose.ui.unit.dp import br.com.brunocarvalhs.howmuch.feature.products.R import br.com.brunocarvalhs.howmuch.core.theme.CestouTextSecondary</ID>
+    <ID>MagicNumber:PriceComparisonUseCaseTest.kt$PriceComparisonUseCaseTest$3</ID>
+    <ID>MagicNumber:ProductModelTest.kt$ProductModelTest$10.0</ID>
+    <ID>MagicNumber:ProductModelTest.kt$ProductModelTest$5</ID>
+    <ID>MagicNumber:ProductModelTest.kt$ProductModelTest$5.0</ID>
+    <ID>MagicNumber:ProductRepositoryImplTest.kt$ProductRepositoryImplTest$12.5</ID>
+    <ID>MagicNumber:ProductRepositoryImplTest.kt$ProductRepositoryImplTest$3</ID>
+    <ID>MagicNumber:ProductSaveUseCaseTest.kt$ProductSaveUseCaseTest$5.0</ID>
+    <ID>MagicNumber:ProductSearchViewModelTest.kt$ProductSearchViewModelTest$4</ID>
+    <ID>MaximumLineLength:ProductSearchViewModelTest.kt$ProductSearchViewModelTest$ </ID>
+    <ID>MaximumLineLength:ProductsModule.kt$ProductsModule$ </ID>
+    <ID>ParameterListWrapping:ProductsModule.kt$ProductsModule$(impl: ProductsInitializerImpl)</ID>
+    <ID>TooManyFunctions:ProductRepositoryImplTest.kt$ProductRepositoryImplTest</ID>
+  </CurrentIssues>
+</SmellBaseline>
