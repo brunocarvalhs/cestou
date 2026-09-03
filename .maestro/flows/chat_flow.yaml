@@ -1,0 +1,19 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Chat Flow
+---
+- launchApp:
+    clearState: true
+
+- tapOn: "IA Chat"
+- assertVisible: "AI Assistant"
+- assertVisible: "Message"
+
+- tapOn: "Message"
+- inputText: "Oi"
+- tapOn: "Send message"
+- waitForAnimationToEnd:
+    timeout: 3000
+- assertVisible: "Oi"
+
+- tapOn: "Lists"
+- assertVisible: "Cestou"

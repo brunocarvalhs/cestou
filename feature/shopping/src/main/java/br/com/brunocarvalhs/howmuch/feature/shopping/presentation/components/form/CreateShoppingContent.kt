@@ -1,6 +1,10 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,6 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -22,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -29,16 +38,22 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
+private val EMOJI_OPTIONS = listOf(
+    Shopping.DEFAULT_EMOJI, "🛍️", "🥦", "🍎", "🍕", "🧴", "🎂", "🍺", "🍝", "🍳", "🏠", "🐾", "👶", "🎉"
+)
+
 @Composable
 internal fun CreateShoppingContent(
-    onConfirm: (String, String) -> Unit,
+    onConfirm: (String, String, String) -> Unit,
     onCancel: () -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var selectedEmoji by remember { mutableStateOf(Shopping.DEFAULT_EMOJI) }
 
     Column(
         modifier = Modifier
@@ -52,15 +67,56 @@ internal fun CreateShoppingContent(
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         Text(
             text = stringResource(R.string.shopping_management_new_list_description),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = stringResource(R.string.shopping_management_label_emoji_optional),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(EMOJI_OPTIONS) { emoji ->
+                val selected = emoji == selectedEmoji
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (selected) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            }
+                        )
+                        .border(
+                            width = if (selected) 2.dp else 0.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = CircleShape
+                        )
+                        .clickable { selectedEmoji = emoji },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = emoji, style = MaterialTheme.typography.titleLarge)
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -110,7 +166,7 @@ internal fun CreateShoppingContent(
                 Text(stringResource(CoreR.string.action_cancel))
             }
             Button(
-                onClick = { onConfirm(title, description) },
+                onClick = { onConfirm(title, description, selectedEmoji) },
                 modifier = Modifier
                     .weight(1f)
                     .height(56.dp),
@@ -129,7 +185,7 @@ internal fun CreateShoppingContent(
 private fun CreateShoppingContentPreview() {
     MaterialTheme {
         CreateShoppingContent(
-            onConfirm = { _, _ -> },
+            onConfirm = { _, _, _ -> },
             onCancel = {}
         )
     }

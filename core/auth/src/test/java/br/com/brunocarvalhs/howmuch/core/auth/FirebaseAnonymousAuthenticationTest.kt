@@ -145,14 +145,6 @@ class FirebaseAnonymousAuthenticationTest {
     }
 
     @Test
-    fun `signInWithGoogle and signInWithApple are not implemented yet`() = runTest {
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
-
-        assertTrue(service.signInWithGoogle().isFailure)
-        assertTrue(service.signInWithApple().isFailure)
-    }
-
-    @Test
     fun `authState reflects the listener registered on FirebaseAuth`() {
         val listenerSlot = slot<FirebaseAuth.AuthStateListener>()
         every { auth.addAuthStateListener(capture(listenerSlot)) } returns Unit

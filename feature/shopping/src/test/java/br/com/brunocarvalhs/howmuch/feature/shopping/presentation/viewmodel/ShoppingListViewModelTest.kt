@@ -107,10 +107,12 @@ class ShoppingListViewModelTest {
     @Test
     fun `onCreateConfirmed creates a list and tracks the created event`() = runTest {
         val created = ownedShopping.copy(id = "new-list")
-        coEvery { shoppingCreateUseCase.invoke("Title", "Desc") } returns Result.success(created)
+        coEvery {
+            shoppingCreateUseCase.invoke("Title", "Desc", Shopping.DEFAULT_EMOJI)
+        } returns Result.success(created)
         val vm = viewModel()
 
-        vm.intent.onCreateConfirmed("Title", "Desc")
+        vm.intent.onCreateConfirmed("Title", "Desc", Shopping.DEFAULT_EMOJI)
 
         coVerify {
             analyticsTracker.trackEvent(AnalyticsEvents.SHOPPING_LIST_CREATED, mapOf("shopping_id" to "new-list"))

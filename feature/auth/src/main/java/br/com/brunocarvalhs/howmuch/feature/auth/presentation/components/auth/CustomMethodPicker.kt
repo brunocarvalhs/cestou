@@ -37,7 +37,6 @@ internal fun CustomMethodPickerLayout(
         providers.forEach { provider ->
             val (text, icon) = when (provider) {
                 is AuthProvider.Google -> "Continuar com Google" to Icons.Default.Email // Replace with real icons later
-                is AuthProvider.Apple -> "Continuar com Apple" to Icons.Default.Email
                 is AuthProvider.Email -> "Entrar com E-mail" to Icons.Default.Email
                 is AuthProvider.Phone -> "Entrar com Telefone" to Icons.Default.Phone
                 else -> "Entrar com ${provider.providerId}" to Icons.Default.Email

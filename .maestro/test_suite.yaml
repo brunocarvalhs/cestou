@@ -1,0 +1,9 @@
+appId: br.com.brunocarvalhs.howmuch
+---
+- runFlow: flows/home_flow.yaml
+- runFlow: flows/create_list_flow.yaml
+- runFlow: flows/product_management_flow.yaml
+- runFlow: flows/finish_purchase_flow.yaml
+- runFlow: flows/join_list_flow.yaml
+- runFlow: flows/settings_flow.yaml
+- runFlow: flows/chat_flow.yaml
