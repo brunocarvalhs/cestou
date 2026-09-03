@@ -16,7 +16,8 @@ internal fun ShoppingModel.toDomain(): Shopping = Shopping(
     isCategorized = isCategorized,
     shortCode = shortCode,
     budget = budget,
-    position = position
+    position = position,
+    emoji = emoji
 )
 
 internal fun Shopping.toModel(): ShoppingModel = ShoppingModel(
@@ -32,5 +33,6 @@ internal fun Shopping.toModel(): ShoppingModel = ShoppingModel(
     isCategorized = isCategorized,
     shortCode = shortCode,
     budget = budget,
-    position = position
+    position = position,
+    emoji = emoji
 )
