@@ -82,6 +82,10 @@
     <string name="settings_data_delete_account_button">Sí, eliminar mi cuenta</string>
     <string name="settings_data_delete_account_success">Cuenta eliminada</string>
     <string name="settings_data_delete_account_error">No se pudo eliminar su cuenta. Inténtelo de nuevo.</string>
+    <string name="settings_data_clear_cache_success">Caché borrada</string>
+    <string name="settings_data_clear_cache_error">No se pudo borrar la caché. Inténtalo de nuevo.</string>
+    <string name="settings_data_delete_all_success">Todos los datos fueron eliminados</string>
+    <string name="settings_data_delete_all_error">No se pudieron eliminar tus datos. Inténtalo de nuevo.</string>
 
     <string name="settings_terms_content">
         Al utilizar Cestou, usted acepta los siguientes términos: \n\n

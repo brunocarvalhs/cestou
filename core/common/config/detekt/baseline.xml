@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ImportOrdering:WearableSyncServiceImpl.kt$import android.content.Context import com.google.android.gms.common.api.ApiException import com.google.android.gms.common.api.CommonStatusCodes import com.google.android.gms.wearable.DataMapItem import com.google.android.gms.wearable.PutDataMapRequest import com.google.android.gms.wearable.Wearable import androidx.wear.remote.interactions.RemoteActivityHelper import dagger.hilt.android.qualifiers.ApplicationContext import kotlinx.coroutines.TimeoutCancellationException import kotlinx.coroutines.guava.await import kotlinx.coroutines.tasks.await import kotlinx.coroutines.withTimeout import com.google.android.gms.wearable.MessageClient import kotlinx.coroutines.CoroutineScope import kotlinx.coroutines.Dispatchers import kotlinx.coroutines.channels.awaitClose import kotlinx.coroutines.flow.Flow import kotlinx.coroutines.flow.callbackFlow import kotlinx.coroutines.launch import timber.log.Timber import javax.inject.Inject import kotlin.time.Duration.Companion.milliseconds</ID>
+    <ID>MagicNumber:WearableSyncServiceImpl.kt$WearableSyncServiceImpl$1000</ID>
+    <ID>MagicNumber:WearableSyncServiceImpl.kt$WearableSyncServiceImpl$100000</ID>
+    <ID>MagicNumber:WearableSyncServiceImpl.kt$WearableSyncServiceImpl$3</ID>
+    <ID>MagicNumber:WearableSyncServiceImpl.kt$WearableSyncServiceImpl$999999</ID>
+    <ID>MaximumLineLength:WearableSyncServiceImpl.kt$WearableSyncServiceImpl$ </ID>
+  </CurrentIssues>
+</SmellBaseline>
