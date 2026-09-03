@@ -18,13 +18,14 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
-import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.ui.R
 import coil.compose.AsyncImage
 
@@ -61,7 +62,8 @@ fun CestouBottomNavigation(
     currentRoute: Any?,
     onNavigate: (Any) -> Unit,
     modifier: Modifier = Modifier,
-    photoUrl: String? = null
+    photoUrl: String? = null,
+    visible: Boolean = true
 ) {
     val items = listOf(
         BottomNavItem.Lists,
@@ -70,7 +72,9 @@ fun CestouBottomNavigation(
     )
 
     NavigationBar(
-        modifier = modifier.height(112.dp),
+        modifier = modifier
+            .clipToBounds()
+            .height(if (visible) 112.dp else 0.dp),
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp
     ) {
