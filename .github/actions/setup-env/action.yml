@@ -51,6 +51,9 @@ runs:
       run: |
         if [ "${{ inputs.google-services-json }}" != "" ]; then
           echo "${{ inputs.google-services-json }}" | base64 --decode > app/google-services.json
+          if [ -d wear ]; then
+            echo "${{ inputs.google-services-json }}" | base64 --decode > wear/google-services.json
+          fi
         fi
 
     - name: Cache Gradle
