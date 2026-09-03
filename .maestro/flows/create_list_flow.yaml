@@ -1,0 +1,36 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Create List Flow
+---
+# Depends on: none. Creates the "value" list fixture used by
+# product_management_flow.yaml and finish_purchase_flow.yaml.
+- launchApp:
+    clearState: true
+
+- tapOn:
+    point: 77%,4%
+    retryTapIfNoChange: true
+- assertVisible: "New List"
+- assertVisible: "Give your new shopping list a name"
+- assertVisible: "List Title"
+- assertVisible: "Description (Optional)"
+- assertVisible: "Cancel"
+- assertVisible: "Create"
+- tapOn: "List Title"
+- inputText: "value"
+- tapOn: "Description (Optional)"
+- inputText: "value"
+- waitForAnimationToEnd:
+    timeout: 1000
+- tapOn: "Create"
+
+- waitForAnimationToEnd:
+    timeout: 5000
+- assertVisible: "value"
+- assertVisible: "Share list"
+- assertVisible: "Back"
+- assertVisible: "$0.00"
+- assertVisible: "0 of 0"
+- assertVisible: "Your list is empty"
+- assertVisible: "Add products or ask the AI for help!"
+- tapOn: "Back"
+- assertVisible: "Cestou"
