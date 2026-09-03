@@ -4,10 +4,10 @@ import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
-import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
+import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
 private const val SHORT_CODE_MAX_LENGTH = 8
 
