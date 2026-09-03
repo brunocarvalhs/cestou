@@ -125,6 +125,15 @@ internal class ShoppingListViewModel @Inject constructor(
                         )
                         navigateToProducts(it)
                     }
+                    .onFailure {
+                        _uiState.update {
+                            it.copy(
+                                error = UiText.StringResource(
+                                    R.string.shopping_management_error_create
+                                )
+                            )
+                        }
+                    }
             }
         }
     )
