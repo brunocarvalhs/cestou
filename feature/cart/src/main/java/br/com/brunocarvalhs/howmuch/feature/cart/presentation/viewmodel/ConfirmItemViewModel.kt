@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
+import br.com.brunocarvalhs.howmuch.core.domain.model.withActivity
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.ConfirmItemRoute
@@ -15,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 internal class ConfirmItemViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val useCase: ProductsUseCase
+    private val useCase: ProductsUseCase,
+    private val authService: AuthService
 ) : ViewModel() {
 
     private val shoppingId = savedStateHandle.toRoute<ConfirmItemRoute>(ConfirmItemRoute.typeMap).shoppingId
@@ -27,13 +31,14 @@ internal class ConfirmItemViewModel @Inject constructor(
 
     fun onConfirmPurchased(product: Product, price: Double?, quantity: Double) {
         viewModelScope.launch {
+            val userId = authService.getOrCreateUserId().id
             useCase.update(
                 shoppingId = shoppingId,
                 product = product.copy(
                     isPurchased = true,
                     price = price,
                     quantity = quantity
-                ),
+                ).withActivity(ProductActivity.Action.PURCHASED, userId),
             ).onSuccess {
                 _navigator?.goBack()
             }

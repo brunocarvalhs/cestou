@@ -1,10 +1,13 @@
 package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 
+import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
@@ -13,26 +16,46 @@ import org.junit.Test
 class ProductSaveUseCaseTest {
 
     private val repository = mockk<ProductRepository>()
-    private val useCase = ProductSaveUseCase(repository)
+    private val authService = mockk<AuthService>()
+    private val useCase = ProductSaveUseCase(repository, authService)
 
     @Test
-    fun `invoke by name and quantity builds and saves a new product`() = runTest {
-        coEvery { repository.saveProduct(any(), "list1") } returns Result.success(Unit)
+    fun `invoke by name and quantity builds and saves a new product with an ADDED entry for the current user`() =
+        runTest {
+            coEvery { authService.getOrCreateUserId() } returns AuthenticatedUser(id = "user1")
+            coEvery { repository.saveProduct(any(), "list1") } returns Result.success(Unit)
 
-        val result = useCase(name = "Milk", quantity = 2.0, shoppingId = "list1")
+            val result = useCase(name = "Milk", quantity = 2.0, shoppingId = "list1")
 
-        assertTrue(result.isSuccess)
-        coVerify { repository.saveProduct(match { it.name == "Milk" && it.quantity == 2.0 }, "list1") }
-    }
+            assertTrue(result.isSuccess)
+            coVerify {
+                repository.saveProduct(
+                    match {
+                        it.name == "Milk" &&
+                            it.quantity == 2.0 &&
+                            it.addedBy == "user1" &&
+                            it.history.single().action == ProductActivity.Action.ADDED
+                    },
+                    "list1"
+                )
+            }
+        }
 
     @Test
-    fun `invoke by product forwards straight to the repository`() = runTest {
+    fun `invoke by product appends an ADDED entry for the current user before saving`() = runTest {
         val product = Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0)
-        coEvery { repository.saveProduct(product, "list1") } returns Result.success(Unit)
+        coEvery { authService.getOrCreateUserId() } returns AuthenticatedUser(id = "user1")
+        coEvery { repository.saveProduct(any(), "list1") } returns Result.success(Unit)
 
         val result = useCase(product, "list1")
 
         assertTrue(result.isSuccess)
+        coVerify {
+            repository.saveProduct(
+                match { it.addedBy == "user1" && it.history.size == 1 },
+                "list1"
+            )
+        }
     }
 
     @Test
@@ -41,7 +64,7 @@ class ProductSaveUseCaseTest {
 
         val result = useCase.execute(
             mapOf("name" to "Milk", "quantity" to 2.0, "price" to 5.0, "shoppingId" to "list1"),
-            mockk(relaxed = true),
+            mockk(relaxed = true) { every { userId } returns "session-user" },
             emptyMap()
         )
 
@@ -55,10 +78,47 @@ class ProductSaveUseCaseTest {
     fun `execute defaults quantity and price when absent`() = runTest {
         coEvery { repository.saveProduct(any(), "list1") } returns Result.success(Unit)
 
-        useCase.execute(mapOf("name" to "Milk", "shoppingId" to "list1"), mockk(relaxed = true), emptyMap())
+        useCase.execute(
+            mapOf("name" to "Milk", "shoppingId" to "list1"),
+            mockk(relaxed = true) { every { userId } returns "session-user" },
+            emptyMap()
+        )
 
         coVerify {
             repository.saveProduct(match { it.quantity == 1.0 && it.price == 0.0 }, "list1")
+        }
+    }
+
+    @Test
+    fun `execute appends an ADDED entry using the session userId`() = runTest {
+        coEvery { repository.saveProduct(any(), "list1") } returns Result.success(Unit)
+
+        val result = useCase.execute(
+            mapOf("name" to "Milk", "shoppingId" to "list1"),
+            mockk(relaxed = true) { every { userId } returns "session-user" },
+            emptyMap()
+        )
+
+        assertTrue(result.isSuccess)
+        coVerify {
+            repository.saveProduct(match { it.addedBy == "session-user" }, "list1")
+        }
+    }
+
+    @Test
+    fun `execute falls back to AuthService when the session has no userId`() = runTest {
+        coEvery { authService.getOrCreateUserId() } returns AuthenticatedUser(id = "fallback-user")
+        coEvery { repository.saveProduct(any(), "list1") } returns Result.success(Unit)
+
+        val result = useCase.execute(
+            mapOf("name" to "Milk", "shoppingId" to "list1"),
+            mockk(relaxed = true) { every { userId } returns null },
+            emptyMap()
+        )
+
+        assertTrue(result.isSuccess)
+        coVerify {
+            repository.saveProduct(match { it.addedBy == "fallback-user" }, "list1")
         }
     }
 
