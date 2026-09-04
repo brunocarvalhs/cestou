@@ -25,8 +25,9 @@ import javax.inject.Singleton
 @Singleton
 class ProductSaveUseCase @Inject constructor(
     private val repository: ProductRepository,
-    private val authService: AuthService
-) : AgentActionUseCase<Unit>() {
+    private val authService: AuthService,
+    private val duplicateCheckUseCase: ProductDuplicateCheckUseCase
+) : AgentActionUseCase<String>() {
 
     suspend operator fun invoke(
         name: String,
@@ -54,7 +55,7 @@ class ProductSaveUseCase @Inject constructor(
         arguments: Map<String, Any?>,
         session: AiSession,
         metadata: Map<String, Any?>
-    ): Result<Unit> {
+    ): Result<String> {
         val name = arguments.getString("name") ?: return Result.failure(Exception("Nome é obrigatório"))
         val shoppingId = arguments.getString("shoppingId")
             ?: metadata.getString("shopping")
@@ -71,7 +72,24 @@ class ProductSaveUseCase @Inject constructor(
         // identity (spec Edge Cases) — prefer the session's user id, falling back
         // to AuthService only if the session doesn't carry one.
         val userId = session.userId ?: authService.getOrCreateUserId().id
-        return save(product, shoppingId, userId)
+
+        // Duplicate check (spec item-add-authorship P2, IAA-02): informational only —
+        // the item is saved either way (AC2, no hard block). Checked against the list
+        // state *before* this save, so it only flags an item that was already there.
+        val duplicate = duplicateCheckUseCase(name, shoppingId)
+
+        return save(product, shoppingId, userId).map {
+            // The AI chat is the only surface this PR wires the warning into: this
+            // message is what feeds back into the model's function-call response
+            // (see GeminiAiAgent/OpenRouterAiAgent: `.getOrNull()?.toString()`), so the
+            // assistant can mention the duplicate naturally in its reply to the user.
+            if (duplicate != null) {
+                "Produto adicionado. Atenção: \"${duplicate.name}\" já foi adicionado por " +
+                    "${duplicate.addedBy} e ainda não foi comprado."
+            } else {
+                "Produto adicionado com sucesso."
+            }
+        }
     }
 
     private suspend fun save(product: Product, shoppingId: String, userId: String): Result<Unit> =
