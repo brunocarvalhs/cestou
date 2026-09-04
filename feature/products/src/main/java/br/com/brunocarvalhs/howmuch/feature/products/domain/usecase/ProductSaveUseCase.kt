@@ -11,10 +11,10 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.withActivity
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
+import kotlinx.coroutines.flow.first
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.flow.first
 
 @AiAgentAction(
     id = "save_product_to_cart",

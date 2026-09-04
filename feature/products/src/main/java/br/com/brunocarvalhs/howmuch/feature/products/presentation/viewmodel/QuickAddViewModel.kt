@@ -83,7 +83,9 @@ internal class QuickAddViewModel @Inject constructor(
                     it.copy(
                         newItemName = "",
                         isSaving = false,
-                        duplicateWarning = duplicate?.let { match -> duplicateWarningMessage(match.addedBy, match.name) }
+                        duplicateWarning = duplicate?.let { match ->
+                            duplicateWarningMessage(match.addedBy, match.name)
+                        }
                     )
                 } else {
                     // Save failed (network error, repository exception, ...) — surface it instead

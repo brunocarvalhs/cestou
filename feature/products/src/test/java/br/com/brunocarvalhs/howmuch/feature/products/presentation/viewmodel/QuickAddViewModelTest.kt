@@ -96,26 +96,17 @@ class QuickAddViewModelTest {
     }
 
     @Test
-    fun `isOverBudget is true once totalAmount exceeds the shopping budget`() = runTest {
-        val products = listOf(Product(id = "p1", name = "Milk", quantity = 1.0, price = 150.0))
-        coEvery { productsUseCase("list1") } returns flowOf(products)
+    fun `isOverBudget reflects whether the total exceeds the shopping budget`() = runTest {
+        coEvery { productsUseCase("list1") } returns
+            flowOf(listOf(Product(id = "p1", name = "Milk", quantity = 1.0, price = 150.0)))
+        assertTrue(viewModel(shopping(budget = 100.0)).uiState.value.isOverBudget)
 
-        val vm = viewModel(shopping(budget = 100.0))
-
-        assertTrue(vm.uiState.value.isOverBudget)
-    }
-
-    @Test
-    fun `isOverBudget is false when no budget is set`() = runTest {
         coEvery { productsUseCase("list1") } returns flowOf(emptyList())
-
-        val vm = viewModel(shopping(budget = null))
-
-        assertFalse(vm.uiState.value.isOverBudget)
+        assertFalse(viewModel(shopping(budget = null)).uiState.value.isOverBudget)
     }
 
     @Test
-    fun `onSubmit saves the trimmed name through ProductSaveUseCase`() = runTest {
+    fun `onSubmit trims and saves a valid name, and is a no-op for a blank one`() = runTest {
         coEvery { productsUseCase("list1") } returns flowOf(emptyList())
         coEvery { productDuplicateCheckUseCase("Arroz", "list1") } returns null
         coEvery { productSaveUseCase(name = "Arroz", quantity = 1.0, shoppingId = "list1") } returns
@@ -128,21 +119,16 @@ class QuickAddViewModelTest {
         coVerify { productSaveUseCase(name = "Arroz", quantity = 1.0, shoppingId = "list1") }
         assertEquals("", vm.uiState.value.newItemName)
         assertFalse(vm.uiState.value.isSaving)
-    }
-
-    @Test
-    fun `onSubmit is a no-op for a blank name`() = runTest {
-        coEvery { productsUseCase("list1") } returns flowOf(emptyList())
-        val vm = viewModel()
 
         vm.intent.onNewItemNameChange("   ")
         vm.intent.onSubmit()
 
-        coVerify(exactly = 0) { productSaveUseCase(any<String>(), any(), any()) }
+        // Still exactly one save — the blank-name submit was a no-op, not a second save.
+        coVerify(exactly = 1) { productSaveUseCase(name = "Arroz", quantity = 1.0, shoppingId = "list1") }
     }
 
     @Test
-    fun `onSubmit surfaces a save failure instead of silently clearing the field`() = runTest {
+    fun `onSubmit surfaces a save failure without clearing the field, clearable via onSaveErrorShown`() = runTest {
         coEvery { productsUseCase("list1") } returns flowOf(emptyList())
         coEvery { productDuplicateCheckUseCase("Arroz", "list1") } returns null
         coEvery { productSaveUseCase(name = "Arroz", quantity = 1.0, shoppingId = "list1") } returns
@@ -156,17 +142,6 @@ class QuickAddViewModelTest {
         assertEquals("Arroz", vm.uiState.value.newItemName)
         assertTrue(vm.uiState.value.saveError!!.contains("Arroz"))
         assertFalse(vm.uiState.value.isSaving)
-    }
-
-    @Test
-    fun `onSaveErrorShown clears the save error`() = runTest {
-        coEvery { productsUseCase("list1") } returns flowOf(emptyList())
-        coEvery { productDuplicateCheckUseCase("Arroz", "list1") } returns null
-        coEvery { productSaveUseCase(name = "Arroz", quantity = 1.0, shoppingId = "list1") } returns
-            Result.failure(RuntimeException("network error"))
-        val vm = viewModel()
-        vm.intent.onNewItemNameChange("Arroz")
-        vm.intent.onSubmit()
 
         vm.intent.onSaveErrorShown()
 
@@ -195,87 +170,48 @@ class QuickAddViewModelTest {
     }
 
     @Test
-    fun `onSubmit saves the item and sets a duplicate warning when a match exists (no hard block)`() = runTest {
-        val existing = Product(id = "p1", name = "Leite", quantity = 1.0)
-        coEvery { productsUseCase("list1") } returns flowOf(emptyList())
-        coEvery { productDuplicateCheckUseCase("leite", "list1") } returns existing
-        coEvery { productSaveUseCase(name = "leite", quantity = 1.0, shoppingId = "list1") } returns
-            Result.success(Unit)
-        val vm = viewModel()
-
-        vm.intent.onNewItemNameChange("leite")
-        vm.intent.onSubmit()
-
-        // AC2: proceeding still saves the item normally, no hard block.
-        coVerify { productSaveUseCase(name = "leite", quantity = 1.0, shoppingId = "list1") }
-        assertTrue(vm.uiState.value.duplicateWarning!!.contains("Leite"))
-    }
-
-    @Test
-    fun `duplicate warning names the adder when their profile resolves`() = runTest {
-        val existing = Product(id = "p1", name = "Leite", quantity = 1.0)
+    fun `duplicate warning saves anyway, names a resolvable adder, and falls back otherwise`() = runTest {
+        val existingWithAdder = Product(id = "p1", name = "Leite", quantity = 1.0)
             .withActivity(ProductActivity.Action.ADDED, userId = "user-a")
         coEvery { productsUseCase("list1") } returns flowOf(emptyList())
-        coEvery { productDuplicateCheckUseCase("leite", "list1") } returns existing
+        coEvery { productDuplicateCheckUseCase("leite", "list1") } returns existingWithAdder
         coEvery { productSaveUseCase(name = "leite", quantity = 1.0, shoppingId = "list1") } returns
             Result.success(Unit)
+
         coEvery { userRepository.getUserProfile("user-a") } returns
             flowOf(UserProfile(id = "user-a", name = "Ana"))
-        val vm = viewModel()
+        val namedVm = viewModel()
+        namedVm.intent.onNewItemNameChange("leite")
+        namedVm.intent.onSubmit()
+        // AC2: proceeding still saves the item normally, no hard block — and names the adder.
+        coVerify { productSaveUseCase(name = "leite", quantity = 1.0, shoppingId = "list1") }
+        assertTrue(namedVm.uiState.value.duplicateWarning!!.contains("Ana"))
 
-        vm.intent.onNewItemNameChange("leite")
-        vm.intent.onSubmit()
-
-        assertTrue(vm.uiState.value.duplicateWarning!!.contains("Ana"))
-    }
-
-    @Test
-    fun `duplicate warning falls back to the plain message when the adder has no resolvable name`() = runTest {
-        val existing = Product(id = "p1", name = "Leite", quantity = 1.0)
-            .withActivity(ProductActivity.Action.ADDED, userId = "user-a")
-        coEvery { productsUseCase("list1") } returns flowOf(emptyList())
-        coEvery { productDuplicateCheckUseCase("leite", "list1") } returns existing
-        coEvery { productSaveUseCase(name = "leite", quantity = 1.0, shoppingId = "list1") } returns
-            Result.success(Unit)
         coEvery { userRepository.getUserProfile("user-a") } returns flowOf(null)
-        val vm = viewModel()
-
-        vm.intent.onNewItemNameChange("leite")
-        vm.intent.onSubmit()
-
-        assertFalse(vm.uiState.value.duplicateWarning!!.contains("user-a"))
-        assertTrue(vm.uiState.value.duplicateWarning!!.contains("Leite"))
+        val fallbackVm = viewModel()
+        fallbackVm.intent.onNewItemNameChange("leite")
+        fallbackVm.intent.onSubmit()
+        assertFalse(fallbackVm.uiState.value.duplicateWarning!!.contains("user-a"))
+        assertTrue(fallbackVm.uiState.value.duplicateWarning!!.contains("Leite"))
     }
 
     @Test
-    fun `onDuplicateWarningShown clears the warning`() = runTest {
+    fun `duplicate warning clears via onDuplicateWarningShown or onNewItemNameChange`() = runTest {
         val existing = Product(id = "p1", name = "Leite", quantity = 1.0)
         coEvery { productsUseCase("list1") } returns flowOf(emptyList())
         coEvery { productDuplicateCheckUseCase("leite", "list1") } returns existing
         coEvery { productSaveUseCase(name = "leite", quantity = 1.0, shoppingId = "list1") } returns
             Result.success(Unit)
+
         val vm = viewModel()
         vm.intent.onNewItemNameChange("leite")
         vm.intent.onSubmit()
-
         vm.intent.onDuplicateWarningShown()
-
         assertNull(vm.uiState.value.duplicateWarning)
-    }
 
-    @Test
-    fun `onNewItemNameChange clears a pending duplicate warning`() = runTest {
-        val existing = Product(id = "p1", name = "Leite", quantity = 1.0)
-        coEvery { productsUseCase("list1") } returns flowOf(emptyList())
-        coEvery { productDuplicateCheckUseCase("leite", "list1") } returns existing
-        coEvery { productSaveUseCase(name = "leite", quantity = 1.0, shoppingId = "list1") } returns
-            Result.success(Unit)
-        val vm = viewModel()
         vm.intent.onNewItemNameChange("leite")
         vm.intent.onSubmit()
-
         vm.intent.onNewItemNameChange("Arroz")
-
         assertNull(vm.uiState.value.duplicateWarning)
     }
 }
