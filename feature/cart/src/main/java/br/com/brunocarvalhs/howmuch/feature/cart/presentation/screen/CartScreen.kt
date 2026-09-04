@@ -223,8 +223,12 @@ internal fun CartScreen(
 
                     itemsIndexed(products, key = { _, product -> product.id }) { index, product ->
                         // Attribution avatar only makes sense once there's more than one member
-                        // to attribute to (spec IAA-01 AC6) — hidden entirely otherwise.
-                        val showAttribution = (uiState.shopping?.users?.size ?: 0) > 1
+                        // to attribute to (spec IAA-01 AC6), and only once the product actually
+                        // has history to show — a legacy product with none renders like a
+                        // single-member list instead of a clickable "no history yet" avatar
+                        // (design.md Error Handling Strategy).
+                        val showAttribution = (uiState.shopping?.users?.size ?: 0) > 1 &&
+                            product.lastActivity != null
                         ProductListItem(
                             product = product,
                             enabled = !isLocked,
