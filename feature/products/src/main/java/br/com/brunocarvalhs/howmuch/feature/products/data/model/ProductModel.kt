@@ -43,7 +43,7 @@ internal data class ProductModel(
                 unit = map["unit"] as? String ?: "un",
                 history = (map["history"] as? List<*>)
                     ?.filterIsInstance<Map<String, Any?>>()
-                    ?.map { ProductActivityModel.fromMap(it) }
+                    ?.mapNotNull { ProductActivityModel.fromMap(it) }
                     ?: emptyList()
             )
         }

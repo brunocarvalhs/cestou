@@ -65,4 +65,17 @@ class ProductMapperTest {
 
         assertEquals(emptyList<ProductActivity>(), result.history)
     }
+
+    @Test
+    fun `toDomain drops a history entry with an unrecognized action instead of throwing`() {
+        val result = model.copy(
+            history = listOf(
+                ProductActivityModel(userId = "user-a", action = "ADDED", timestamp = 100L),
+                ProductActivityModel(userId = "user-b", action = "NOT_A_REAL_ACTION", timestamp = 200L),
+            )
+        ).toDomain()
+
+        assertEquals(1, result.history.size)
+        assertEquals("user-a", result.history.first().userId)
+    }
 }

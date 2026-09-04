@@ -16,19 +16,22 @@ internal data class ProductActivityModel(
     )
 
     companion object {
-        fun fromMap(map: Map<String, Any?>): ProductActivityModel = ProductActivityModel(
-            userId = map["userId"] as String,
-            action = map["action"] as String,
-            timestamp = (map["timestamp"] as? Number)?.toLong() ?: 0L
-        )
+        fun fromMap(map: Map<String, Any?>): ProductActivityModel? {
+            val userId = map["userId"] as? String ?: return null
+            val action = map["action"] as? String ?: return null
+            return ProductActivityModel(
+                userId = userId,
+                action = action,
+                timestamp = (map["timestamp"] as? Number)?.toLong() ?: 0L
+            )
+        }
     }
 }
 
-internal fun ProductActivityModel.toDomain(): ProductActivity = ProductActivity(
-    userId = userId,
-    action = ProductActivity.Action.valueOf(action),
-    timestamp = timestamp
-)
+internal fun ProductActivityModel.toDomain(): ProductActivity? {
+    val action = runCatching { ProductActivity.Action.valueOf(action) }.getOrNull() ?: return null
+    return ProductActivity(userId = userId, action = action, timestamp = timestamp)
+}
 
 internal fun ProductActivity.toModel(): ProductActivityModel = ProductActivityModel(
     userId = userId,
