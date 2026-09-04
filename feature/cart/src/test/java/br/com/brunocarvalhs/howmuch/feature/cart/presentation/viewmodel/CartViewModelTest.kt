@@ -5,8 +5,12 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
+import br.com.brunocarvalhs.howmuch.core.domain.model.withActivity
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
+import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
@@ -48,6 +52,7 @@ class CartViewModelTest {
     private val clearPurchasedUseCase = mockk<ShoppingClearPurchasedUseCase>(relaxed = true)
     private val getSettingsUseCase = mockk<GetSettingsUseCase>()
     private val sortProductsUseCase = mockk<SortProductsUseCase>()
+    private val userRepository = mockk<UserRepository>()
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val navigator = mockk<Navigator>(relaxed = true)
 
@@ -69,6 +74,7 @@ class CartViewModelTest {
         every { getSettingsUseCase() } returns flowOf(mockk(relaxed = true))
         coEvery { productsUseCase(shopping.id) } returns flowOf(emptyList())
         every { sortProductsUseCase(any(), any()) } returns emptyList()
+        every { userRepository.getUserProfile(any()) } returns flowOf(null)
     }
 
     @After
@@ -85,6 +91,7 @@ class CartViewModelTest {
             clearPurchasedUseCase,
             getSettingsUseCase,
             sortProductsUseCase,
+            userRepository,
             analyticsTracker
         )
         vm.setNavigator(navigator)
@@ -129,24 +136,17 @@ class CartViewModelTest {
     }
 
     @Test
-    fun `onTogglePurchased navigates to confirm item when the product has no price yet`() {
-        val product = Product(id = "p1", name = "Milk", quantity = 1.0, price = 0.0)
-        val vm = viewModel()
-
-        vm.intent.onTogglePurchased(product, true)
-
-        verify { navigator.navigate(ConfirmItemRoute(product, "list1")) }
-    }
-
-    @Test
-    fun `onTogglePurchased marks the product purchased directly when it already has a price`() = runTest {
-        val product = Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0)
+    fun `onTogglePurchased navigates to confirm item without a price, marks directly with one`() = runTest {
+        val withoutPrice = Product(id = "p1", name = "Milk", quantity = 1.0, price = 0.0)
+        val withPrice = Product(id = "p2", name = "Bread", quantity = 1.0, price = 5.0)
         coEvery { productsUseCase.update(any(), "list1") } returns Result.success(Unit)
         val vm = viewModel()
 
-        vm.intent.onTogglePurchased(product, true)
+        vm.intent.onTogglePurchased(withoutPrice, true)
+        vm.intent.onTogglePurchased(withPrice, true)
 
-        coVerify { productsUseCase.update(product.copy(isPurchased = true), "list1") }
+        verify { navigator.navigate(ConfirmItemRoute(withoutPrice, "list1")) }
+        coVerify { productsUseCase.update(withPrice.copy(isPurchased = true), "list1") }
     }
 
     @Test
@@ -171,5 +171,46 @@ class CartViewModelTest {
             )
         }
         verify { navigator.navigate(FinishPurchaseRoute) }
+    }
+
+    @Test
+    fun `resolves distinct member ids from shopping users and product history, and only those`() =
+        runTest {
+            val memberShopping = shopping.copy(users = listOf("u1", "u2"))
+            val products = listOf(
+                Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0)
+                    .withActivity(ProductActivity.Action.ADDED, "u3")
+                    .withActivity(ProductActivity.Action.EDITED, "u1"),
+                Product(id = "p2", name = "Bread", quantity = 1.0, price = 3.0)
+                    .withActivity(ProductActivity.Action.ADDED, "u2")
+            )
+            every { repository.observeById(shopping.id) } returns MutableStateFlow(memberShopping)
+            coEvery { productsUseCase(shopping.id) } returns flowOf(products)
+            every { sortProductsUseCase(products, any()) } returns products
+            val u1 = UserProfile(id = "u1", name = "Ana")
+            val u2 = UserProfile(id = "u2", name = "Bruno")
+            val u3 = UserProfile(id = "u3", name = "Carlos")
+            every { userRepository.getUserProfile("u1") } returns flowOf(u1)
+            every { userRepository.getUserProfile("u2") } returns flowOf(u2)
+            every { userRepository.getUserProfile("u3") } returns flowOf(u3)
+
+            val vm = viewModel()
+
+            assertEquals(mapOf("u1" to u1, "u2" to u2, "u3" to u3), vm.uiState.value.memberProfiles)
+            coVerify(exactly = 1) { userRepository.getUserProfile("u1") }
+            coVerify(exactly = 1) { userRepository.getUserProfile("u2") }
+            coVerify(exactly = 1) { userRepository.getUserProfile("u3") }
+        }
+
+    @Test
+    fun `a member with no name in their profile still resolves without crashing`() = runTest {
+        val memberShopping = shopping.copy(users = listOf("u1"))
+        every { repository.observeById(shopping.id) } returns MutableStateFlow(memberShopping)
+        val noNameProfile = UserProfile(id = "u1", name = null)
+        every { userRepository.getUserProfile("u1") } returns flowOf(noNameProfile)
+
+        val vm = viewModel()
+
+        assertEquals(mapOf("u1" to noNameProfile), vm.uiState.value.memberProfiles)
     }
 }

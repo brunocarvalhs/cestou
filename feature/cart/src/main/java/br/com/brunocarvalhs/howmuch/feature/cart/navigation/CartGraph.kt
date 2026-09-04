@@ -18,6 +18,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.ConfirmItemContent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.EditItemContent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.FinishPurchaseContent
+import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.ProductHistoryContent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.screen.CartScreen
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.CartViewModel
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.ConfirmItemViewModel
@@ -39,6 +40,7 @@ internal fun NavGraphBuilder.cartGraph(
         finishPurchaseDestination(navigator)
         confirmItemDestination(navigator)
         editItemDestination(navigator)
+        productHistoryDestination(navigator)
         shareOptionsDestination(navigator)
     }
 }
@@ -139,6 +141,32 @@ private fun NavGraphBuilder.editItemDestination(navigator: Navigator) {
                         quantity = quantity,
                     )
                 }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+private fun NavGraphBuilder.productHistoryDestination(navigator: Navigator) {
+    dialog<ProductHistoryRoute>(
+        typeMap = ProductHistoryRoute.typeMap
+    ) { backStackEntry ->
+        val route: ProductHistoryRoute = backStackEntry.toRoute()
+        val parentEntry = remember(backStackEntry) {
+            navigator.navController.getBackStackEntry<CartFlow>()
+        }
+        // Reuses the parent CartViewModel's already-resolved memberProfiles — no new
+        // UserRepository call for this sheet (T10 done-when).
+        val listViewModel: CartViewModel = hiltViewModel(parentEntry)
+        val listUiState by listViewModel.uiState.collectAsStateWithLifecycle()
+
+        ModalBottomSheet(
+            onDismissRequest = { navigator.goBack() },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            ProductHistoryContent(
+                history = route.product.history,
+                memberProfiles = listUiState.memberProfiles
             )
         }
     }

@@ -32,6 +32,7 @@
     <string name="content_description_add_manually">Añadir manualmente</string>
     <string name="content_description_share_list">Compartir lista</string>
     <string name="content_description_join_list">Unirse a una lista</string>
+    <string name="content_description_product_history">Ver historial del artículo</string>
 
     <!-- Collaboration notifications -->
     <string name="notification_list_joined_title">Nuevo miembro</string>

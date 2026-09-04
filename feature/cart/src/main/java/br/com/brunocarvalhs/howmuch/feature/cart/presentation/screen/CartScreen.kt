@@ -222,13 +222,27 @@ internal fun CartScreen(
                     }
 
                     itemsIndexed(products, key = { _, product -> product.id }) { index, product ->
+                        // Attribution avatar only makes sense once there's more than one member
+                        // to attribute to (spec IAA-01 AC6), and only once the product actually
+                        // has history to show — a legacy product with none renders like a
+                        // single-member list instead of a clickable "no history yet" avatar
+                        // (design.md Error Handling Strategy).
+                        val showAttribution = (uiState.shopping?.users?.size ?: 0) > 1 &&
+                            product.lastActivity != null
                         ProductListItem(
                             product = product,
                             enabled = !isLocked,
                             onDelete = { intent.onDeleteProduct(product) },
                             onEdit = { intent.onEditProduct(product) },
                             onTogglePurchased = { intent.onTogglePurchased(product, it) },
-                            showDivider = index < uiState.products.size - 1
+                            showDivider = index < uiState.products.size - 1,
+                            showAttribution = showAttribution,
+                            attributionProfile = if (showAttribution) {
+                                uiState.memberProfiles[product.lastActivity?.userId]
+                            } else {
+                                null
+                            },
+                            onShowHistory = { intent.onShowProductHistory(product) }
                         )
                     }
                 }

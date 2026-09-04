@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
@@ -21,7 +22,10 @@ internal data class CartUiState(
     val allShoppings: StableList<Shopping> = StableList(),
     val isAiLoading: Boolean = false,
     val isLoading: Boolean = false,
-    val error: UiText? = null
+    val error: UiText? = null,
+    // Resolved once per list load (member ids + every Product.history entry's userId), not
+    // per-row — see CartViewModel.resolveMemberProfiles. Rows only ever do a map lookup here.
+    val memberProfiles: Map<String, UserProfile> = emptyMap()
 ) : AiAgentContext {
     override fun toMetadata(): Map<String, Any?> =
         mapOf(

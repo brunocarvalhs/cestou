@@ -13,5 +13,6 @@ internal data class CartIntent(
     val onToggleFinishPurchaseSheet: () -> Unit = {},
     val onClearPurchased: () -> Unit = {}, //
     val onShowShareOptions: () -> Unit = {},
-    val onMoveProduct: (Product, String) -> Unit = { _, _ -> }
+    val onMoveProduct: (Product, String) -> Unit = { _, _ -> },
+    val onShowProductHistory: (Product) -> Unit = {}
 )
