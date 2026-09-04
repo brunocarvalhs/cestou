@@ -41,6 +41,7 @@ shipped independently.
 | ~~G6~~ | ~~`lint-rules/` module has uncommitted deleted files~~ | Done — orphaned index state from an abandoned attempt, unstaged. | S |
 | ~~G7~~ | ~~Dead `signInWithGoogle`/`signInWithApple`~~ | Done — PR #19 | S |
 | ~~G8~~ | ~~Apple Sign-In never offered~~ | Removed the unreachable UI branch rather than implementing it — PR #19 | S |
+| G9 | `ShoppingRepositoryImpl.updatePositions` is a no-op (`ShoppingRepositoryImpl.kt:133-139`) — reordering lists by drag updates local state optimistically (`ShoppingListViewModel.kt:269`) but never writes to Firestore, so the order silently reverts on next sync | Feature is already exposed in the UI and looks like it works; found during a 2026-09-04 Tech Lead audit | S |
 
 Every item below shipped as its own branch + PR against `feat/new-layout` this session (none
 merged without review): shared `StorageService` for `core/auth` (#14), shopping-reminder push
@@ -95,6 +96,9 @@ notifications (#15), Maestro regression suite (#16), this doc (#17), account & d
 - ~~**F2.3 — Resolve the Apple Sign-In question (G7, G8).**~~ Done — PR #19. Removed the dead
   `signInWithGoogle`/`signInWithApple` methods and the unreachable Apple UI branch rather than
   implementing Apple for real, since this is Android-only.
+- **F2.4 — Fix `updatePositions` no-op (G9).** Implement the actual Firestore batch write that the
+  method's own comment says is missing (`ShoppingRepositoryImpl.kt:133-139`). Small, low-risk fix
+  for a feature that's already shipped and silently broken.
 
 ### Phase 3 — Post-launch polish (not MVP blockers)
 
