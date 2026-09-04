@@ -136,24 +136,17 @@ class CartViewModelTest {
     }
 
     @Test
-    fun `onTogglePurchased navigates to confirm item when the product has no price yet`() {
-        val product = Product(id = "p1", name = "Milk", quantity = 1.0, price = 0.0)
-        val vm = viewModel()
-
-        vm.intent.onTogglePurchased(product, true)
-
-        verify { navigator.navigate(ConfirmItemRoute(product, "list1")) }
-    }
-
-    @Test
-    fun `onTogglePurchased marks the product purchased directly when it already has a price`() = runTest {
-        val product = Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0)
+    fun `onTogglePurchased navigates to confirm item without a price, marks directly with one`() = runTest {
+        val withoutPrice = Product(id = "p1", name = "Milk", quantity = 1.0, price = 0.0)
+        val withPrice = Product(id = "p2", name = "Bread", quantity = 1.0, price = 5.0)
         coEvery { productsUseCase.update(any(), "list1") } returns Result.success(Unit)
         val vm = viewModel()
 
-        vm.intent.onTogglePurchased(product, true)
+        vm.intent.onTogglePurchased(withoutPrice, true)
+        vm.intent.onTogglePurchased(withPrice, true)
 
-        coVerify { productsUseCase.update(product.copy(isPurchased = true), "list1") }
+        verify { navigator.navigate(ConfirmItemRoute(withoutPrice, "list1")) }
+        coVerify { productsUseCase.update(withPrice.copy(isPurchased = true), "list1") }
     }
 
     @Test

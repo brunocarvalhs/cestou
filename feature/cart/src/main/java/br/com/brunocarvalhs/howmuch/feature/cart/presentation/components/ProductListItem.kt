@@ -40,11 +40,11 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.model.withActivity
-import br.com.brunocarvalhs.howmuch.core.ui.R as CoreUiR
 import br.com.brunocarvalhs.howmuch.core.ui.components.UserAvatar
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatQuantity
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
 import br.com.brunocarvalhs.howmuch.feature.products.R
+import br.com.brunocarvalhs.howmuch.core.ui.R as CoreUiR
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

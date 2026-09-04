@@ -11,7 +11,6 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.withActivity
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
-import br.com.brunocarvalhs.howmuch.core.ui.R as CoreUiR
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.intent.CartIntent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.CartUiState
@@ -19,6 +18,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import br.com.brunocarvalhs.howmuch.core.ui.R as CoreUiR
 
 // Teste de layout via Robolectric (JVM), não androidTest: valida a composição real da tela
 // sem depender de emulador, adequado para rodar na esteira de CI.

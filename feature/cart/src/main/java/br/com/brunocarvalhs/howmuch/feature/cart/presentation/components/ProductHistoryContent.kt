@@ -117,10 +117,12 @@ private fun ProductActivity.Action.labelRes(): Int = when (this) {
 private fun formatHistoryTime(timestamp: Long): String =
     SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(timestamp))
 
+private const val PREVIEW_BASE_TIMESTAMP = 1_700_000_000_000L
+
 @Preview(showBackground = true, name = "3-entry history (added, edited, purchased)")
 @Composable
 private fun ProductHistoryContentPreview() {
-    val baseTime = 1_700_000_000_000L
+    val baseTime = PREVIEW_BASE_TIMESTAMP
     CestouTheme {
         ProductHistoryContent(
             history = listOf(
