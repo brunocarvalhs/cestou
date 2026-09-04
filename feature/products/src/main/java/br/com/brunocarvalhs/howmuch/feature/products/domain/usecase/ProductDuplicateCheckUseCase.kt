@@ -2,8 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
-import javax.inject.Inject
 import kotlinx.coroutines.flow.first
+import javax.inject.Inject
 
 /**
  * Checks whether [shoppingId] already has an active (not yet purchased) product whose name
