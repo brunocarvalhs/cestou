@@ -2,7 +2,6 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.sh
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -26,7 +24,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -50,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.ui.components.UserAvatars
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.common.IconProduct
 import coil.compose.AsyncImage
 
@@ -155,7 +153,10 @@ internal fun ShoppingItem(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (users.size > 1) {
-                    UserAvatars(users = users)
+                    // ShoppingItem only knows member ids here, not resolved profiles — pass a
+                    // list of nulls so the shared avatar shell falls back to the generic icon
+                    // per member (same look as before extraction to core/ui).
+                    UserAvatars(profiles = users.map { null })
                     Spacer(modifier = Modifier.width(8.dp))
                 }
                 Icon(
@@ -198,30 +199,6 @@ internal fun ShoppingItem(
                 leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
                 onClick = { showMenu = false; onDeleteClick() }
             )
-        }
-    }
-}
-
-@Composable
-private fun UserAvatars(users: List<String>) {
-    val displayCount = users.take(2)
-    Row(horizontalArrangement = Arrangement.spacedBy((-8).dp)) {
-        displayCount.forEach { _ ->
-            Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .border(1.dp, MaterialTheme.colorScheme.surface, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
         }
     }
 }

@@ -109,6 +109,13 @@
     <string name="shopping_list_share_invite_member_desc">Another user can edit the list in real time</string>
     <string name="shopping_list_share_text">Send as Text</string>
     <string name="shopping_list_share_text_desc">Send the item list via WhatsApp, email, etc.</string>
+    <string name="shopping_list_history_title">Item History</string>
+    <string name="shopping_list_history_empty">No history yet for this item.</string>
+    <string name="shopping_list_history_action_added">Added</string>
+    <string name="shopping_list_history_action_edited">Edited</string>
+    <string name="shopping_list_history_action_purchased">Purchased</string>
+    <string name="shopping_list_history_entry">%1$s by %2$s</string>
+    <string name="shopping_list_history_unknown_user">Someone</string>
 
     <string name="state_description_in_cart">In cart</string>
     <string name="state_description_not_in_cart">Not in cart</string>

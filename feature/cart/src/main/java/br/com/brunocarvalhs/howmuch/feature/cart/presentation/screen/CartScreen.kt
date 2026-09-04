@@ -222,13 +222,23 @@ internal fun CartScreen(
                     }
 
                     itemsIndexed(products, key = { _, product -> product.id }) { index, product ->
+                        // Attribution avatar only makes sense once there's more than one member
+                        // to attribute to (spec IAA-01 AC6) — hidden entirely otherwise.
+                        val showAttribution = (uiState.shopping?.users?.size ?: 0) > 1
                         ProductListItem(
                             product = product,
                             enabled = !isLocked,
                             onDelete = { intent.onDeleteProduct(product) },
                             onEdit = { intent.onEditProduct(product) },
                             onTogglePurchased = { intent.onTogglePurchased(product, it) },
-                            showDivider = index < uiState.products.size - 1
+                            showDivider = index < uiState.products.size - 1,
+                            showAttribution = showAttribution,
+                            attributionProfile = if (showAttribution) {
+                                uiState.memberProfiles[product.lastActivity?.userId]
+                            } else {
+                                null
+                            },
+                            onShowHistory = { intent.onShowProductHistory(product) }
                         )
                     }
                 }

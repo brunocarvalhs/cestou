@@ -29,4 +29,11 @@ internal data class EditItemRoute(val product: Product, val shoppingId: String) 
 }
 
 @Serializable
+internal data class ProductHistoryRoute(val product: Product) : NavKey {
+    companion object {
+        val typeMap = mapOf(typeOf<Product>() to navTypeSerializer<Product>())
+    }
+}
+
+@Serializable
 internal data object ShareOptionsRoute : NavKey
