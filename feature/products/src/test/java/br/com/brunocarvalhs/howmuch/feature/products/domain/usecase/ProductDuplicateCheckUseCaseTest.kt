@@ -1,8 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
-import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
-import br.com.brunocarvalhs.howmuch.core.domain.model.withActivity
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -17,35 +15,49 @@ class ProductDuplicateCheckUseCaseTest {
     private val repository = mockk<ProductRepository>()
     private val useCase = ProductDuplicateCheckUseCase(repository)
 
-    private fun product(name: String, isPurchased: Boolean = false) =
-        Product(id = name, name = name, quantity = 1.0, price = 1.0, isPurchased = isPurchased)
-            .withActivity(ProductActivity.Action.ADDED, userId = "user-a")
-
     @Test
-    fun `invoke matches an active product ignoring case and surrounding whitespace`() = runTest {
-        val existing = product(name = "Leite ")
+    fun `invoke returns the existing active product on an exact match`() = runTest {
+        val existing = Product(id = "p1", name = "Leite", quantity = 1.0)
         coEvery { repository.getAllProducts("list1") } returns flowOf(listOf(existing))
 
-        val result = useCase(name = "leite", shoppingId = "list1")
+        val result = useCase("Leite", "list1")
 
         assertEquals(existing, result)
     }
 
     @Test
-    fun `invoke ignores a match that is already purchased`() = runTest {
-        val purchased = product(name = "Leite", isPurchased = true)
+    fun `invoke matches case-insensitively and trims both sides`() = runTest {
+        val existing = Product(id = "p1", name = "Leite ", quantity = 1.0)
+        coEvery { repository.getAllProducts("list1") } returns flowOf(listOf(existing))
+
+        val result = useCase(" leite", "list1")
+
+        assertEquals(existing, result)
+    }
+
+    @Test
+    fun `invoke returns null when the only match is already purchased`() = runTest {
+        val purchased = Product(id = "p1", name = "Leite", quantity = 1.0, isPurchased = true)
         coEvery { repository.getAllProducts("list1") } returns flowOf(listOf(purchased))
 
-        val result = useCase(name = "Leite", shoppingId = "list1")
+        val result = useCase("Leite", "list1")
 
         assertNull(result)
     }
 
     @Test
-    fun `invoke returns null when there is no matching product`() = runTest {
-        coEvery { repository.getAllProducts("list1") } returns flowOf(listOf(product(name = "Arroz")))
+    fun `invoke returns null when there is no name match`() = runTest {
+        val existing = Product(id = "p1", name = "Leite", quantity = 1.0)
+        coEvery { repository.getAllProducts("list1") } returns flowOf(listOf(existing))
 
-        val result = useCase(name = "Leite", shoppingId = "list1")
+        val result = useCase("Arroz", "list1")
+
+        assertNull(result)
+    }
+
+    @Test
+    fun `invoke returns null for a blank name without querying the repository`() = runTest {
+        val result = useCase("   ", "list1")
 
         assertNull(result)
     }

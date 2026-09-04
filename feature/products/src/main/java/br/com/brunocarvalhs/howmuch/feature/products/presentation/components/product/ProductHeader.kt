@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -40,7 +41,7 @@ import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 internal fun ProductHeader(
     modifier: Modifier = Modifier,
     shoppingTitle: String? = null,
-    selectedOption: Options = Options.AI,
+    selectedOption: Options = Options.QUICK_ADD,
     onOptionSelected: (Options) -> Unit = {},
     onBack: () -> Unit = {},
 ) {
@@ -72,11 +73,16 @@ internal fun ProductHeader(
             }
         )
 
+        // Options.QUICK_ADD is the default landing surface (ProductScreen's startDestination),
+        // not a secondary tab here — AI/Search/Photo/Suggestions stay reachable exactly as before
+        // (design.md: "ProductHeader's existing option selector keeps AI / Search / Photo /
+        // Suggestions reachable... unchanged in behavior").
+        val secondaryOptions = Options.entries.filterNot { it == Options.QUICK_ADD }
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(Options.entries) { option ->
+            items(secondaryOptions) { option ->
                 val selected = option == selectedOption
                 FilterChip(
                     selected = selected,
@@ -87,6 +93,7 @@ internal fun ProductHeader(
                                 Options.PHOTO -> stringResource(R.string.product_option_photo)
                                 Options.SUGGESTIONS -> stringResource(R.string.product_option_suggestions)
                                 Options.AI -> stringResource(R.string.product_option_ai)
+                                Options.QUICK_ADD -> stringResource(R.string.product_option_quick_add)
                             }
                         )
                     },
@@ -123,6 +130,7 @@ private fun Options.icon(): ImageVector = when (this) {
     Options.SEARCH -> Icons.Default.Search
     Options.PHOTO -> Icons.Default.CameraAlt
     Options.AI -> Icons.Default.SmartToy
+    Options.QUICK_ADD -> Icons.Default.Bolt
 }
 
 @Preview

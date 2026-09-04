@@ -23,11 +23,13 @@ import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.com
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductHeader
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductPhotoForm
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductSearchForm
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.QuickAddForm
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.SuggestionsAndCommonForm
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.CommonProductViewModel
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.ProductPhotoViewModel
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.ProductSearchViewModel
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.ProductSuggestionViewModel
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.QuickAddViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +41,7 @@ internal fun ProductScreen(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val selectedOption = Options.entries.find { it.name == currentRoute } ?: Options.AI
+    val selectedOption = Options.entries.find { it.name == currentRoute } ?: Options.QUICK_ADD
 
     val viewModelStoreOwner = LocalViewModelStoreOwner.current!!
     val snackbarHostState = remember { SnackbarHostState() }
@@ -65,9 +67,28 @@ internal fun ProductScreen(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Options.AI.name,
+            startDestination = Options.QUICK_ADD.name,
             modifier = modifier.padding(innerPadding)
         ) {
+            composable(Options.QUICK_ADD.name) {
+                val viewModel: QuickAddViewModel = hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
+                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                val commonViewModel: CommonProductViewModel =
+                    hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
+                val commonUiState by commonViewModel.uiState.collectAsStateWithLifecycle()
+                QuickAddForm(
+                    uiState = uiState,
+                    intent = viewModel.intent,
+                    commonUiState = commonUiState,
+                    commonIntent = commonViewModel.intent,
+                    snackbarHostState = snackbarHostState,
+                    onNavigateToPhoto = {
+                        navController.navigate(Options.PHOTO.name) {
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
             composable(Options.SEARCH.name) {
                 val viewModel: ProductSearchViewModel = hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -90,6 +111,9 @@ internal fun ProductScreen(
                 val suggestionViewModel: ProductSuggestionViewModel =
                     hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
                 val suggestionUiState by suggestionViewModel.uiState.collectAsStateWithLifecycle()
+                // Same CommonProductViewModel instance Quick Add uses (shared viewModelStoreOwner)
+                // — the "Common" mode here is management (add/remove/bulk-add), Quick Add's chips
+                // are the fast single-tap add; both stay in sync against the same state.
                 val commonViewModel: CommonProductViewModel =
                     hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
                 val commonUiState by commonViewModel.uiState.collectAsStateWithLifecycle()

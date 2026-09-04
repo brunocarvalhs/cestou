@@ -34,6 +34,17 @@ import kotlinx.coroutines.flow.emptyFlow
 
 private enum class SuggestionsAndCommonMode { SUGGESTIONS, COMMON }
 
+/**
+ * [Options.SUGGESTIONS]'s content: AI suggestions, plus a "Common" mode that hosts the full
+ * common-products management view (`CommonProductForm`) — add a new common item, remove one,
+ * bulk-add all of them to the current list.
+ *
+ * [Options.QUICK_ADD] also offers common-product chips for a fast single-tap add
+ * (`.specs/features/item-add-authorship/design.md`), sharing the same `CommonProductViewModel`
+ * instance (same `viewModelStoreOwner` in `ProductScreen`) so both surfaces stay in sync. That's a
+ * *quick add*, not *manage* — the two are complementary, not duplicate paths: Quick Add answers
+ * "add one of my usual items fast," this tab answers "curate what my usual items even are."
+ */
 @Composable
 internal fun SuggestionsAndCommonForm(
     modifier: Modifier = Modifier,

@@ -17,6 +17,7 @@
     <string name="product_option_photo">Foto</string>
     <string name="product_option_suggestions">Sugestões</string>
     <string name="product_option_ai">Chat com IA</string>
+    <string name="product_option_quick_add">Adição Rápida</string>
     <string name="product_option_common">Comuns</string>
     <string name="product_header_add_to">Adicionar a %s</string>
     <string name="product_empty_title">Nenhum produto encontrado</string>
@@ -69,6 +70,15 @@
     <string name="common_products_all_added">Itens adicionados à lista</string>
     <string name="common_products_empty_title">Sua cesta básica está vazia</string>
     <string name="common_products_empty_description">Adicione os itens que você sempre compra para reutilizá-los rapidamente.</string>
+
+    <!-- Feature: Quick Add -->
+    <string name="quick_add_placeholder">Nome do item</string>
+    <string name="quick_add_add_description">Adicionar item</string>
+    <string name="quick_add_scan_description">Escanear código de barras ou tirar foto</string>
+    <string name="quick_add_common_products_title">Itens comuns</string>
+    <string name="quick_add_duplicate_warning">%s já está na lista</string>
+    <string name="quick_add_duplicate_warning_by">%1$s já está na lista (adicionado por %2$s)</string>
+    <string name="quick_add_save_error">Não foi possível adicionar \"%s\". Tente novamente.</string>
 
     <!-- Common Actions -->
     <string name="action_edit">Editar</string>

@@ -11,12 +11,21 @@ import javax.inject.Inject
  *
  * Used to power the "already on the list" warning (spec `item-add-authorship` P2, IAA-02): the
  * warning is informational only — callers SHALL still save the item regardless of the result
- * (no hard block, spec P2 AC2).
+ * (no hard block, spec P2 AC2). Returns the matching [Product] (so the caller can read
+ * `.addedBy`) or `null` when there's no active match.
+ *
+ * Shared by both the AI add path (`ProductSaveUseCase.execute`) and the Quick Add screen
+ * (`QuickAddViewModel`) — reconciled here after PR4 and PR5 each added their own copy in
+ * isolated worktrees.
  */
 class ProductDuplicateCheckUseCase @Inject constructor(
     private val repository: ProductRepository
 ) {
-    suspend operator fun invoke(name: String, shoppingId: String): Product? =
-        repository.getAllProducts(shoppingId).first()
-            .firstOrNull { !it.isPurchased && it.name.trim().equals(name.trim(), ignoreCase = true) }
+    suspend operator fun invoke(name: String, shoppingId: String): Product? {
+        val trimmedName = name.trim()
+        if (trimmedName.isEmpty()) return null
+
+        return repository.getAllProducts(shoppingId).first()
+            .firstOrNull { !it.isPurchased && it.name.trim().equals(trimmedName, ignoreCase = true) }
+    }
 }

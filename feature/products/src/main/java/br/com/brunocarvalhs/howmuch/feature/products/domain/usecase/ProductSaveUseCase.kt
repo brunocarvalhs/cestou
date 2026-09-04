@@ -8,8 +8,10 @@ import br.com.brunocarvalhs.howmuch.core.ai.utils.getString
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
 import br.com.brunocarvalhs.howmuch.core.domain.model.withActivity
+import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
+import kotlinx.coroutines.flow.first
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,7 +28,8 @@ import javax.inject.Singleton
 class ProductSaveUseCase @Inject constructor(
     private val repository: ProductRepository,
     private val authService: AuthService,
-    private val duplicateCheckUseCase: ProductDuplicateCheckUseCase
+    private val duplicateCheckUseCase: ProductDuplicateCheckUseCase,
+    private val userRepository: UserRepository
 ) : AgentActionUseCase<String>() {
 
     suspend operator fun invoke(
@@ -78,18 +81,21 @@ class ProductSaveUseCase @Inject constructor(
         // state *before* this save, so it only flags an item that was already there.
         val duplicate = duplicateCheckUseCase(name, shoppingId)
 
-        return save(product, shoppingId, userId).map {
-            // The AI chat is the only surface this PR wires the warning into: this
-            // message is what feeds back into the model's function-call response
-            // (see GeminiAiAgent/OpenRouterAiAgent: `.getOrNull()?.toString()`), so the
-            // assistant can mention the duplicate naturally in its reply to the user.
-            if (duplicate != null) {
-                "Produto adicionado. Atenção: \"${duplicate.name}\" já foi adicionado por " +
-                    "${duplicate.addedBy} e ainda não foi comprado."
-            } else {
-                "Produto adicionado com sucesso."
-            }
+        val saveResult = save(product, shoppingId, userId)
+        if (saveResult.isFailure) return saveResult.map { "" }
+
+        // The AI chat is the only surface this PR wires the warning into: this
+        // message is what feeds back into the model's function-call response
+        // (see GeminiAiAgent/OpenRouterAiAgent: `.getOrNull()?.toString()`), so the
+        // assistant can mention the duplicate naturally in its reply to the user.
+        val message = if (duplicate != null) {
+            val adderName = duplicate.addedBy?.let { userRepository.getUserProfile(it).first()?.name }
+            "Produto adicionado. Atenção: \"${duplicate.name}\" já foi adicionado por " +
+                "${adderName ?: "outra pessoa"} e ainda não foi comprado."
+        } else {
+            "Produto adicionado com sucesso."
         }
+        return Result.success(message)
     }
 
     private suspend fun save(product: Product, shoppingId: String, userId: String): Result<Unit> =

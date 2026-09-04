@@ -3,13 +3,17 @@ package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
+import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
+import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -18,7 +22,8 @@ class ProductSaveUseCaseTest {
     private val repository = mockk<ProductRepository>()
     private val authService = mockk<AuthService>()
     private val duplicateCheckUseCase = mockk<ProductDuplicateCheckUseCase>()
-    private val useCase = ProductSaveUseCase(repository, authService, duplicateCheckUseCase)
+    private val userRepository = mockk<UserRepository>()
+    private val useCase = ProductSaveUseCase(repository, authService, duplicateCheckUseCase, userRepository)
 
     @Test
     fun `invoke by name and quantity builds and saves a new product with an ADDED entry for the current user`() =
@@ -128,7 +133,7 @@ class ProductSaveUseCaseTest {
     }
 
     @Test
-    fun `execute still saves and surfaces a warning when an active duplicate exists`() = runTest {
+    fun `execute still saves and surfaces a warning naming the adder when their profile resolves`() = runTest {
         val duplicate = Product(
             id = "p0",
             name = "Leite",
@@ -138,6 +143,7 @@ class ProductSaveUseCaseTest {
         )
         coEvery { duplicateCheckUseCase("Milk", "list1") } returns duplicate
         coEvery { repository.saveProduct(any(), "list1") } returns Result.success(Unit)
+        coEvery { userRepository.getUserProfile("user-a") } returns flowOf(UserProfile(id = "user-a", name = "Ana"))
 
         val result = useCase.execute(
             mapOf("name" to "Milk", "shoppingId" to "list1"),
@@ -147,9 +153,35 @@ class ProductSaveUseCaseTest {
 
         assertTrue(result.isSuccess)
         assertTrue(result.getOrNull()?.contains("Leite") == true)
+        // The warning names the person, not their raw Firebase UID (spec P2 AC1).
+        assertTrue(result.getOrNull()?.contains("Ana") == true)
+        assertFalse(result.getOrNull()?.contains("user-a") == true)
         coVerify {
             repository.saveProduct(match { it.name == "Milk" && it.addedBy == "session-user" }, "list1")
         }
+    }
+
+    @Test
+    fun `execute falls back to a generic label when the adder's profile has no name`() = runTest {
+        val duplicate = Product(
+            id = "p0",
+            name = "Leite",
+            quantity = 1.0,
+            price = 5.0,
+            history = listOf(ProductActivity(userId = "user-a", action = ProductActivity.Action.ADDED))
+        )
+        coEvery { duplicateCheckUseCase("Milk", "list1") } returns duplicate
+        coEvery { repository.saveProduct(any(), "list1") } returns Result.success(Unit)
+        coEvery { userRepository.getUserProfile("user-a") } returns flowOf(null)
+
+        val result = useCase.execute(
+            mapOf("name" to "Milk", "shoppingId" to "list1"),
+            mockk(relaxed = true) { every { userId } returns "session-user" },
+            emptyMap()
+        )
+
+        assertTrue(result.isSuccess)
+        assertFalse(result.getOrNull()?.contains("user-a") == true)
     }
 
     @Test

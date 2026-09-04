@@ -7,17 +7,22 @@ name: Product Management Flow
 - waitForAnimationToEnd:
     timeout: 2000
 
-# Add product bottom sheet
+# Add product bottom sheet — now opens on Quick Add by default instead of AI chat
+# (Options.QUICK_ADD replaces Options.AI as the startDestination; item-add-authorship spec P3,
+# PR5 / feat/iaa-quick-add). Quick Add shows a text field, common-product chips, and a
+# scan/photo shortcut on one screen, no tab switching needed for a plain item.
 - tapOn:
     point: 80%,88%
-- assertVisible: "Suggestions"
+- assertVisible: "Item name"
+- assertVisible: "Common items"
+- assertVisible: "Arroz"
+# AI/Search/Photo/Suggestions stay reachable as secondary options via the header selector,
+# unchanged in behavior (spec P3 AC3). Quick Add itself has no header chip — it's the landing
+# surface, not a tab you switch back into.
+- assertVisible: "AI Chat"
 - assertVisible: "Search"
 - assertVisible: "Photo"
-- assertVisible: "Barcode"
-- assertVisible: "Search product"
-- assertVisible: "Arroz"
-- assertVisible: "Feijão"
-- assertVisible: "Óleo"
+- assertVisible: "Suggestions"
 
 - tapOn: "Search"
 - assertVisible: "Products"
@@ -35,6 +40,10 @@ name: Product Management Flow
 - assertVisible: "Mark as purchased"
 - assertVisible: "Arroz"
 - assertVisible: "• Mercearia"
+# NOTE (pre-existing drift, unrelated to PR5 / feat/iaa-quick-add — not fixed here per
+# tasks.md T15): this "More options" -> Edit/Delete interaction does not match current
+# ProductListItem.kt, where edit/delete live behind onLongClick + swipe-to-dismiss with no
+# visible "More options" affordance. Left as-is rather than silently reworked.
 - tapOn:
     text: "More options"
     index: 1
