@@ -5,6 +5,10 @@ import org.junit.Test
 
 class ProductModelTest {
 
+    companion object {
+        private const val TIMESTAMP = 100L
+    }
+
     @Test
     fun `toMap includes every field plus the computed total`() {
         val model = ProductModel(
@@ -29,6 +33,22 @@ class ProductModelTest {
         assertEquals("789", map["barcode"])
         assertEquals("kg", map["unit"])
         assertEquals(10.0, map["total"])
+        assertEquals(emptyList<Map<String, Any?>>(), map["history"])
+    }
+
+    @Test
+    fun `toMap serializes history entries as maps`() {
+        val model = ProductModel(
+            id = "1",
+            name = "Arroz",
+            quantity = 2.0,
+            history = listOf(ProductActivityModel(userId = "user-a", action = "ADDED", timestamp = TIMESTAMP))
+        )
+
+        val history = model.toMap()["history"] as List<*>
+
+        assertEquals(1, history.size)
+        assertEquals(mapOf("userId" to "user-a", "action" to "ADDED", "timestamp" to TIMESTAMP), history.first())
     }
 
     @Test
@@ -75,5 +95,47 @@ class ProductModelTest {
         assertEquals("Outros", model.category)
         assertEquals(null, model.barcode)
         assertEquals("un", model.unit)
+        assertEquals(emptyList<ProductActivityModel>(), model.history)
+    }
+
+    @Test
+    fun `fromMap parses history entries back into ProductActivityModel`() {
+        val map = mapOf(
+            "id" to "1",
+            "name" to "Arroz",
+            "history" to listOf(mapOf("userId" to "user-a", "action" to "ADDED", "timestamp" to TIMESTAMP))
+        )
+
+        val model = ProductModel.fromMap(map)
+
+        assertEquals(1, model.history.size)
+        assertEquals("user-a", model.history.first().userId)
+        assertEquals("ADDED", model.history.first().action)
+        assertEquals(TIMESTAMP, model.history.first().timestamp)
+    }
+
+    @Test
+    fun `fromMap ignores a missing history key without crashing`() {
+        val model = ProductModel.fromMap(mapOf("id" to "1", "name" to "Arroz"))
+
+        assertEquals(emptyList<ProductActivityModel>(), model.history)
+    }
+
+    @Test
+    fun `fromMap drops malformed history entries instead of crashing the whole parse`() {
+        val map = mapOf(
+            "id" to "1",
+            "name" to "Arroz",
+            "history" to listOf(
+                mapOf("userId" to "user-a", "action" to "ADDED", "timestamp" to TIMESTAMP),
+                mapOf("action" to "EDITED"), // missing userId — dropped, not fatal
+                "not even a map" // wrong element type — dropped, not fatal
+            )
+        )
+
+        val model = ProductModel.fromMap(map)
+
+        assertEquals(1, model.history.size)
+        assertEquals("user-a", model.history.first().userId)
     }
 }

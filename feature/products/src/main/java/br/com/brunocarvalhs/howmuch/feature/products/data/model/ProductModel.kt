@@ -12,7 +12,8 @@ internal data class ProductModel(
     val isPurchased: Boolean = false,
     val category: String = "Outros",
     val barcode: String? = null,
-    val unit: String = "un"
+    val unit: String = "un",
+    val history: List<ProductActivityModel> = emptyList()
 ) {
     fun toMap(): Map<String, Any?> {
         return mapOf(
@@ -24,7 +25,8 @@ internal data class ProductModel(
             "category" to category,
             "barcode" to barcode,
             "unit" to unit,
-            "total" to price.orEmpty() * quantity
+            "total" to price.orEmpty() * quantity,
+            "history" to history.map { it.toMap() }
         )
     }
 
@@ -38,7 +40,11 @@ internal data class ProductModel(
                 isPurchased = map["isPurchased"] as? Boolean ?: false,
                 category = map["category"] as? String ?: "Outros",
                 barcode = map["barcode"] as? String,
-                unit = map["unit"] as? String ?: "un"
+                unit = map["unit"] as? String ?: "un",
+                history = (map["history"] as? List<*>)
+                    ?.filterIsInstance<Map<String, Any?>>()
+                    ?.mapNotNull { ProductActivityModel.fromMap(it) }
+                    ?: emptyList()
             )
         }
     }
