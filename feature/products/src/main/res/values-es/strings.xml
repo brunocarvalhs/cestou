@@ -18,6 +18,7 @@
     <string name="product_option_suggestions">Sugerencias</string>
     <string name="product_option_ai">Chat con IA</string>
     <string name="product_option_quick_add">Añadir Rápido</string>
+    <string name="product_option_common">Comunes</string>
     <string name="product_header_add_to">Añadir a %s</string>
     <string name="product_empty_title">No se encontró ningún producto</string>
     <string name="product_empty_description">Encuentra tus productos usando la búsqueda\no crea un nuevo producto.</string>
@@ -76,6 +77,8 @@
     <string name="quick_add_scan_description">Escanear código de barras o tomar foto</string>
     <string name="quick_add_common_products_title">Artículos comunes</string>
     <string name="quick_add_duplicate_warning">%s ya está en la lista</string>
+    <string name="quick_add_duplicate_warning_by">%1$s ya está en la lista (añadido por %2$s)</string>
+    <string name="quick_add_save_error">No se pudo añadir \"%s\". Inténtalo de nuevo.</string>
 
     <!-- Common Actions -->
     <string name="action_edit">Editar</string>

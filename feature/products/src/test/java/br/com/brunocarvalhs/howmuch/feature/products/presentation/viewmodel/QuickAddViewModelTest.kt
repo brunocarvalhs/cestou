@@ -5,7 +5,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
+import br.com.brunocarvalhs.howmuch.core.domain.model.withActivity
+import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductDuplicateCheckUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
@@ -13,6 +17,7 @@ import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseC
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -40,6 +45,7 @@ class QuickAddViewModelTest {
     private val productsUseCase = mockk<ProductsUseCase>()
     private val productSaveUseCase = mockk<ProductSaveUseCase>(relaxed = true)
     private val productDuplicateCheckUseCase = mockk<ProductDuplicateCheckUseCase>()
+    private val userRepository = mockk<UserRepository>()
 
     private fun shopping(budget: Double? = null) = Shopping(
         id = "list1",
@@ -59,7 +65,8 @@ class QuickAddViewModelTest {
             savedStateHandle,
             productsUseCase,
             productSaveUseCase,
-            productDuplicateCheckUseCase
+            productDuplicateCheckUseCase,
+            userRepository
         )
     }
 
@@ -120,6 +127,7 @@ class QuickAddViewModelTest {
 
         coVerify { productSaveUseCase(name = "Arroz", quantity = 1.0, shoppingId = "list1") }
         assertEquals("", vm.uiState.value.newItemName)
+        assertFalse(vm.uiState.value.isSaving)
     }
 
     @Test
@@ -131,6 +139,59 @@ class QuickAddViewModelTest {
         vm.intent.onSubmit()
 
         coVerify(exactly = 0) { productSaveUseCase(any<String>(), any(), any()) }
+    }
+
+    @Test
+    fun `onSubmit surfaces a save failure instead of silently clearing the field`() = runTest {
+        coEvery { productsUseCase("list1") } returns flowOf(emptyList())
+        coEvery { productDuplicateCheckUseCase("Arroz", "list1") } returns null
+        coEvery { productSaveUseCase(name = "Arroz", quantity = 1.0, shoppingId = "list1") } returns
+            Result.failure(RuntimeException("network error"))
+        val vm = viewModel()
+
+        vm.intent.onNewItemNameChange("Arroz")
+        vm.intent.onSubmit()
+
+        // Field is NOT cleared and an error is surfaced — the user must not believe it was added.
+        assertEquals("Arroz", vm.uiState.value.newItemName)
+        assertTrue(vm.uiState.value.saveError!!.contains("Arroz"))
+        assertFalse(vm.uiState.value.isSaving)
+    }
+
+    @Test
+    fun `onSaveErrorShown clears the save error`() = runTest {
+        coEvery { productsUseCase("list1") } returns flowOf(emptyList())
+        coEvery { productDuplicateCheckUseCase("Arroz", "list1") } returns null
+        coEvery { productSaveUseCase(name = "Arroz", quantity = 1.0, shoppingId = "list1") } returns
+            Result.failure(RuntimeException("network error"))
+        val vm = viewModel()
+        vm.intent.onNewItemNameChange("Arroz")
+        vm.intent.onSubmit()
+
+        vm.intent.onSaveErrorShown()
+
+        assertNull(vm.uiState.value.saveError)
+    }
+
+    @Test
+    fun `onSubmit ignores a second call while the first save is still in flight`() = runTest {
+        coEvery { productsUseCase("list1") } returns flowOf(emptyList())
+        coEvery { productDuplicateCheckUseCase("Arroz", "list1") } returns null
+        val saveGate = CompletableDeferred<Unit>()
+        coEvery { productSaveUseCase(name = "Arroz", quantity = 1.0, shoppingId = "list1") } coAnswers {
+            saveGate.await()
+            Result.success(Unit)
+        }
+        val vm = viewModel()
+        vm.intent.onNewItemNameChange("Arroz")
+
+        vm.intent.onSubmit()
+        assertTrue(vm.uiState.value.isSaving)
+        vm.intent.onSubmit() // double-tap / Done-then-tap while the first save hasn't resolved yet
+
+        saveGate.complete(Unit)
+
+        coVerify(exactly = 1) { productSaveUseCase(name = "Arroz", quantity = 1.0, shoppingId = "list1") }
     }
 
     @Test
@@ -147,6 +208,42 @@ class QuickAddViewModelTest {
 
         // AC2: proceeding still saves the item normally, no hard block.
         coVerify { productSaveUseCase(name = "leite", quantity = 1.0, shoppingId = "list1") }
+        assertTrue(vm.uiState.value.duplicateWarning!!.contains("Leite"))
+    }
+
+    @Test
+    fun `duplicate warning names the adder when their profile resolves`() = runTest {
+        val existing = Product(id = "p1", name = "Leite", quantity = 1.0)
+            .withActivity(ProductActivity.Action.ADDED, userId = "user-a")
+        coEvery { productsUseCase("list1") } returns flowOf(emptyList())
+        coEvery { productDuplicateCheckUseCase("leite", "list1") } returns existing
+        coEvery { productSaveUseCase(name = "leite", quantity = 1.0, shoppingId = "list1") } returns
+            Result.success(Unit)
+        coEvery { userRepository.getUserProfile("user-a") } returns
+            flowOf(UserProfile(id = "user-a", name = "Ana"))
+        val vm = viewModel()
+
+        vm.intent.onNewItemNameChange("leite")
+        vm.intent.onSubmit()
+
+        assertTrue(vm.uiState.value.duplicateWarning!!.contains("Ana"))
+    }
+
+    @Test
+    fun `duplicate warning falls back to the plain message when the adder has no resolvable name`() = runTest {
+        val existing = Product(id = "p1", name = "Leite", quantity = 1.0)
+            .withActivity(ProductActivity.Action.ADDED, userId = "user-a")
+        coEvery { productsUseCase("list1") } returns flowOf(emptyList())
+        coEvery { productDuplicateCheckUseCase("leite", "list1") } returns existing
+        coEvery { productSaveUseCase(name = "leite", quantity = 1.0, shoppingId = "list1") } returns
+            Result.success(Unit)
+        coEvery { userRepository.getUserProfile("user-a") } returns flowOf(null)
+        val vm = viewModel()
+
+        vm.intent.onNewItemNameChange("leite")
+        vm.intent.onSubmit()
+
+        assertFalse(vm.uiState.value.duplicateWarning!!.contains("user-a"))
         assertTrue(vm.uiState.value.duplicateWarning!!.contains("Leite"))
     }
 

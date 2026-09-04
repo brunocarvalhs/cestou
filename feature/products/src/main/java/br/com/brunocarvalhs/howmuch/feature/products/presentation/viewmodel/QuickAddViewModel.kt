@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductDuplicateCheckUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
@@ -16,6 +17,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -35,7 +37,8 @@ internal class QuickAddViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val productsUseCase: ProductsUseCase,
     private val productSaveUseCase: ProductSaveUseCase,
-    private val productDuplicateCheckUseCase: ProductDuplicateCheckUseCase
+    private val productDuplicateCheckUseCase: ProductDuplicateCheckUseCase,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val shopping = savedStateHandle.toRoute<ProductPickerRoute>(ProductPickerRoute.typeMap).shopping
@@ -46,7 +49,8 @@ internal class QuickAddViewModel @Inject constructor(
     val intent = QuickAddIntent(
         onNewItemNameChange = { name -> _uiState.update { it.copy(newItemName = name, duplicateWarning = null) } },
         onSubmit = { submit() },
-        onDuplicateWarningShown = { _uiState.update { it.copy(duplicateWarning = null) } }
+        onDuplicateWarningShown = { _uiState.update { it.copy(duplicateWarning = null) } },
+        onSaveErrorShown = { _uiState.update { it.copy(saveError = null) } }
     )
 
     init {
@@ -58,24 +62,44 @@ internal class QuickAddViewModel @Inject constructor(
     }
 
     private fun submit() {
+        // Guards both the keyboard "Done" action and the Add icon from double-firing a save
+        // while the previous one is still in flight (e.g. double-tap, or Done then Add).
+        if (_uiState.value.isSaving) return
+
         val name = _uiState.value.newItemName.trim()
         if (name.isBlank()) return
 
         viewModelScope.launch {
+            _uiState.update { it.copy(isSaving = true) }
+
             // Same duplicate-check use case the AI path uses (IAA-02) — no hard block, the item
             // is saved either way, the warning is purely informational (spec P2 AC2).
             val duplicate = productDuplicateCheckUseCase(name, shopping.id)
 
-            productSaveUseCase(name = name, quantity = 1.0, shoppingId = shopping.id)
+            val result = productSaveUseCase(name = name, quantity = 1.0, shoppingId = shopping.id)
 
             _uiState.update {
-                it.copy(
-                    newItemName = "",
-                    duplicateWarning = duplicate?.let { match ->
-                        context.getString(R.string.quick_add_duplicate_warning, match.name)
-                    }
-                )
+                if (result.isSuccess) {
+                    it.copy(
+                        newItemName = "",
+                        isSaving = false,
+                        duplicateWarning = duplicate?.let { match -> duplicateWarningMessage(match.addedBy, match.name) }
+                    )
+                } else {
+                    // Save failed (network error, repository exception, ...) — surface it instead
+                    // of silently clearing the field as if the item had been added.
+                    it.copy(isSaving = false, saveError = context.getString(R.string.quick_add_save_error, name))
+                }
             }
+        }
+    }
+
+    private suspend fun duplicateWarningMessage(addedByUserId: String?, name: String): String {
+        val adderName = addedByUserId?.let { userRepository.getUserProfile(it).first()?.name }
+        return if (adderName != null) {
+            context.getString(R.string.quick_add_duplicate_warning_by, name, adderName)
+        } else {
+            context.getString(R.string.quick_add_duplicate_warning, name)
         }
     }
 }

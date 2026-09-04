@@ -18,6 +18,7 @@
     <string name="product_option_suggestions">Suggestions</string>
     <string name="product_option_ai">AI Chat</string>
     <string name="product_option_quick_add">Quick Add</string>
+    <string name="product_option_common">Common</string>
     <string name="product_header_add_to">Add to %s</string>
     <string name="product_empty_title">No product found</string>
     <string name="product_empty_description">Find your products using search\nor create a new product.</string>
@@ -76,6 +77,8 @@
     <string name="quick_add_scan_description">Scan a barcode or take a photo</string>
     <string name="quick_add_common_products_title">Common items</string>
     <string name="quick_add_duplicate_warning">%s is already on the list</string>
+    <string name="quick_add_duplicate_warning_by">%1$s is already on the list (added by %2$s)</string>
+    <string name="quick_add_save_error">Couldn\'t add \"%s\". Try again.</string>
 
     <!-- Common Actions -->
     <string name="action_edit">Edit</string>

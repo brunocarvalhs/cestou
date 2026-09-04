@@ -111,10 +111,18 @@ internal fun ProductScreen(
                 val suggestionViewModel: ProductSuggestionViewModel =
                     hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
                 val suggestionUiState by suggestionViewModel.uiState.collectAsStateWithLifecycle()
+                // Same CommonProductViewModel instance Quick Add uses (shared viewModelStoreOwner)
+                // — the "Common" mode here is management (add/remove/bulk-add), Quick Add's chips
+                // are the fast single-tap add; both stay in sync against the same state.
+                val commonViewModel: CommonProductViewModel =
+                    hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
+                val commonUiState by commonViewModel.uiState.collectAsStateWithLifecycle()
                 SuggestionsAndCommonForm(
                     suggestionUiState = suggestionUiState,
                     suggestionIntent = suggestionViewModel.intent,
                     suggestionEvents = suggestionViewModel.events,
+                    commonUiState = commonUiState,
+                    commonIntent = commonViewModel.intent,
                     snackbarHostState = snackbarHostState,
                     onBack = onBack
                 )

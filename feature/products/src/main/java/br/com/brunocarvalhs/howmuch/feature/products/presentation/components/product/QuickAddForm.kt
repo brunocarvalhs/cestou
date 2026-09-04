@@ -76,6 +76,13 @@ internal fun QuickAddForm(
         }
     }
 
+    LaunchedEffect(uiState.saveError) {
+        uiState.saveError?.let {
+            snackbarHostState.showSnackbar(it)
+            intent.onSaveErrorShown()
+        }
+    }
+
     Column(modifier = modifier.fillMaxSize()) {
         QuickAddTotalHeader(
             totalAmount = uiState.totalAmount,
@@ -96,11 +103,12 @@ internal fun QuickAddForm(
                 modifier = Modifier.weight(1f),
                 placeholder = { Text(stringResource(R.string.quick_add_placeholder)) },
                 singleLine = true,
+                enabled = !uiState.isSaving,
                 shape = RoundedCornerShape(16.dp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = { intent.onSubmit() })
             )
-            IconButton(onClick = onNavigateToPhoto) {
+            IconButton(onClick = onNavigateToPhoto, enabled = !uiState.isSaving) {
                 Icon(
                     Icons.Default.CameraAlt,
                     contentDescription = stringResource(R.string.quick_add_scan_description)
@@ -108,13 +116,17 @@ internal fun QuickAddForm(
             }
             IconButton(
                 onClick = { intent.onSubmit() },
-                enabled = uiState.newItemName.isNotBlank()
+                enabled = uiState.newItemName.isNotBlank() && !uiState.isSaving
             ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = stringResource(R.string.quick_add_add_description),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                if (uiState.isSaving) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                } else {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = stringResource(R.string.quick_add_add_description),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
 
