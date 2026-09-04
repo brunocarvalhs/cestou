@@ -6,6 +6,9 @@ import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getString
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
+import br.com.brunocarvalhs.howmuch.core.domain.model.withActivity
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
 import java.util.UUID
 import javax.inject.Inject
@@ -21,7 +24,8 @@ import javax.inject.Singleton
 @AiAgentParameter(name = "shoppingId", description = "ID da lista de compras", isRequired = false)
 @Singleton
 class ProductSaveUseCase @Inject constructor(
-    private val repository: ProductRepository
+    private val repository: ProductRepository,
+    private val authService: AuthService
 ) : AgentActionUseCase<Unit>() {
 
     suspend operator fun invoke(
@@ -41,7 +45,10 @@ class ProductSaveUseCase @Inject constructor(
     suspend operator fun invoke(
         product: Product,
         shoppingId: String
-    ): Result<Unit> = repository.saveProduct(product, shoppingId)
+    ): Result<Unit> {
+        val userId = authService.getOrCreateUserId().id
+        return save(product, shoppingId, userId)
+    }
 
     override suspend fun execute(
         arguments: Map<String, Any?>,
@@ -49,7 +56,7 @@ class ProductSaveUseCase @Inject constructor(
         metadata: Map<String, Any?>
     ): Result<Unit> {
         val name = arguments.getString("name") ?: return Result.failure(Exception("Nome é obrigatório"))
-        val shoppingId = arguments.getString("shoppingId") 
+        val shoppingId = arguments.getString("shoppingId")
             ?: metadata.getString("shopping")
             ?: return Result.failure(Exception("ID da lista de compras não encontrado"))
 
@@ -60,6 +67,13 @@ class ProductSaveUseCase @Inject constructor(
             price = arguments["price"]?.toString()?.toDoubleOrNull() ?: 0.0
         )
 
-        return invoke(product, shoppingId)
+        // The AI agent always acts on behalf of a human user, never as its own
+        // identity (spec Edge Cases) — prefer the session's user id, falling back
+        // to AuthService only if the session doesn't carry one.
+        val userId = session.userId ?: authService.getOrCreateUserId().id
+        return save(product, shoppingId, userId)
     }
+
+    private suspend fun save(product: Product, shoppingId: String, userId: String): Result<Unit> =
+        repository.saveProduct(product.withActivity(ProductActivity.Action.ADDED, userId), shoppingId)
 }
