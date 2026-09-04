@@ -15,7 +15,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KType
 
 class NetworkManager @Inject constructor(
-    private val firebaseFirestoreManager: FirebaseFirestoreManager,
+    private val rawDataGateway: RawDataGateway,
     private val cryptoManager: CryptoManager,
     private val compatibilityConverter: CompatibilityConverter,
     private val networkLogger: NetworkLogger
@@ -46,7 +46,7 @@ class NetworkManager @Inject constructor(
         )
 
         return try {
-            val result = firebaseFirestoreManager.execute(
+            val result = rawDataGateway.execute(
                 endpoint = finalEndpoint,
                 method = request.method,
                 data = finalPayload,
@@ -84,7 +84,7 @@ class NetworkManager @Inject constructor(
     ): Flow<T?> {
         val finalEndpoint = getEndpoint(request.endpoint)
 
-        return firebaseFirestoreManager.observe(
+        return rawDataGateway.observe(
             endpoint = finalEndpoint,
             query = request.query
         ).map { result ->

@@ -66,6 +66,11 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.appcheck.debug)
 
+    // Supabase
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.postgrest.kt)
+    implementation(libs.supabase.realtime.kt)
+
     // Utils
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
@@ -78,4 +83,9 @@ dependencies {
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
+}
+
+secrets {
+    propertiesFileName = ".env"
+    defaultPropertiesFileName = ".env.example"
 }

@@ -1,15 +1,19 @@
 package br.com.brunocarvalhs.howmuch.core.data.di
 
+import br.com.brunocarvalhs.howmuch.core.data.BuildConfig
 import br.com.brunocarvalhs.howmuch.core.data.cloud.CloudNetwork
 import br.com.brunocarvalhs.howmuch.core.data.network.CompatibilityConverter
 import br.com.brunocarvalhs.howmuch.core.data.network.FirebaseFirestoreManager
 import br.com.brunocarvalhs.howmuch.core.data.network.NetworkLogger
 import br.com.brunocarvalhs.howmuch.core.data.network.NetworkManager
+import br.com.brunocarvalhs.howmuch.core.data.network.RawDataGateway
+import br.com.brunocarvalhs.howmuch.core.data.network.SupabasePostgrestManager
 import br.com.brunocarvalhs.howmuch.core.data.security.CryptoManager
 import br.com.brunocarvalhs.howmuch.core.data.repository.NotificationRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.data.repository.UserRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
+import br.com.brunocarvalhs.howmuch.core.domain.services.AccessTokenProvider
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Binds
@@ -17,6 +21,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.realtime.Realtime
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
@@ -33,6 +41,10 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindNetworkService(impl: NetworkManager): NetworkService
+
+    @Binds
+    @Singleton
+    abstract fun bindRawDataGateway(impl: FirebaseFirestoreManager): RawDataGateway
 
     @Binds
     @Singleton
@@ -60,6 +72,25 @@ abstract class DataModule {
         @Singleton
         fun provideFirebaseFirestoreManager(firestore: FirebaseFirestore): FirebaseFirestoreManager =
             FirebaseFirestoreManager(firestore)
+
+        @Provides
+        @Singleton
+        fun provideSupabaseClient(accessTokenProvider: AccessTokenProvider): SupabaseClient =
+            createSupabaseClient(
+                supabaseUrl = BuildConfig.SUPABASE_URL,
+                supabaseKey = BuildConfig.SUPABASE_ANON_KEY
+            ) {
+                accessToken = { accessTokenProvider.getToken() }
+                install(Postgrest)
+                install(Realtime)
+            }
+
+        @Provides
+        @Singleton
+        fun provideSupabasePostgrestManager(
+            supabase: SupabaseClient,
+            compatibilityConverter: CompatibilityConverter
+        ): SupabasePostgrestManager = SupabasePostgrestManager(supabase, compatibilityConverter)
 
         @Provides
         @Singleton

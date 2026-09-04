@@ -69,7 +69,8 @@ appfunctions = "1.0.0-alpha09"
 turbine = "1.2.1"
 mockk = "1.14.11"
 datastoreCore = "1.2.1"
-ktor = "2.3.2"
+ktor = "2.3.12"
+supabaseKt = "2.6.1"
 robolectric = "4.16"
 playServicesWearable = "20.0.1"
 wearToolingPreview = "1.0.0"
@@ -185,6 +186,11 @@ androidx-wear-tooling-preview = { group = "androidx.wear", name = "wear-tooling-
 androidx-compose-navigation = { group = "androidx.wear.compose", name = "compose-navigation", version.ref = "composeNavigation" }
 wear-remoteinteractions = { group = "androidx.wear", name = "wear-remote-interactions", version.ref = "wearRemoteInteractions" }
 konsist = { group = "com.lemonappdev", name = "konsist", version.ref = "konsist" }
+
+# Supabase
+supabase-bom = { group = "io.github.jan-tennert.supabase", name = "bom", version.ref = "supabaseKt" }
+supabase-postgrest-kt = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt" }
+supabase-realtime-kt = { group = "io.github.jan-tennert.supabase", name = "realtime-kt" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -14,13 +14,13 @@ import javax.inject.Inject
 
 class FirebaseFirestoreManager @Inject constructor(
     private val firestore: FirebaseFirestore
-) {
+) : RawDataGateway {
 
-    suspend fun execute(
+    override suspend fun execute(
         endpoint: String,
         method: NetworkService.Method,
-        data: Map<String, Any?>? = null,
-        query: Map<String, Any?>? = null
+        data: Map<String, Any?>?,
+        query: Map<String, Any?>?
     ): Any? = try {
         when (method) {
             NetworkService.Method.GET -> get(endpoint, query)
@@ -206,9 +206,9 @@ class FirebaseFirestoreManager @Inject constructor(
 
     private fun isDocumentPath(endpoint: String): Boolean = endpoint.split("/").size % 2 == 0
 
-    fun observe(
+    override fun observe(
         endpoint: String,
-        query: Map<String, Any?>? = null
+        query: Map<String, Any?>?
     ): Flow<Any?> = callbackFlow {
         val registration = if (isDocumentPath(endpoint)) {
             documentRef(endpoint).addSnapshotListener { snapshot, error ->
