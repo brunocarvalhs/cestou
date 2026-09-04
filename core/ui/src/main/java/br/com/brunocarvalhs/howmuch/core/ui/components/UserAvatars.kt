@@ -25,6 +25,8 @@ import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 
 private const val AVATAR_DEFAULT_SIZE_DP = 28
 private val DEFAULT_AVATAR_SIZE = AVATAR_DEFAULT_SIZE_DP.dp
+private const val AVATAR_ICON_SIZE_DIVISOR = 1.75f
+private const val AVATAR_OVERLAP_DP = -8
 
 /**
  * A single member avatar. Renders initials derived from [profile]'s name when one is available;
@@ -57,7 +59,7 @@ fun UserAvatar(
             Icon(
                 imageVector = Icons.Default.Person,
                 contentDescription = null,
-                modifier = Modifier.size(size / 1.75f),
+                modifier = Modifier.size(size / AVATAR_ICON_SIZE_DIVISOR),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -77,7 +79,7 @@ fun UserAvatars(
     modifier: Modifier = Modifier,
     maxVisible: Int = 2
 ) {
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy((-8).dp)) {
+    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(AVATAR_OVERLAP_DP.dp)) {
         profiles.take(maxVisible).forEach { profile ->
             UserAvatar(profile = profile)
         }
