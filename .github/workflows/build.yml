@@ -197,18 +197,9 @@ jobs:
         run: |
           APP_ID="${{ steps.firebase_config.outputs.app_id }}"
           RAW_NOTES=$(yq '.release.firebase.release_notes // "release automatica"' .github/pipeline-config.yaml)
-          GROUPS=$(yq '.release.firebase.groups // ""' .github/pipeline-config.yaml)
-          TESTERS=$(yq '.release.firebase.testers // ""' .github/pipeline-config.yaml)
-          NOTIFICATIONS=$(yq '.release.firebase.notifications // true' .github/pipeline-config.yaml)
 
           # Create service account file from secret
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > service-account.json
-          
-          if [ ! -s "service-account.json" ]; then
-            echo "❌ Error: FIREBASE_SERVICE_ACCOUNT_JSON secret is empty or not set."
-            exit 1
-          fi
-
           export GOOGLE_APPLICATION_CREDENTIALS=$PWD/service-account.json
 
           # Prefix notes with variant label
@@ -218,27 +209,7 @@ jobs:
           # Find the APK file
           APK_FILE=$(find output/ -name "*.apk" | head -n 1)
 
-          # Ensure APK exists
-          if [ -z "$APK_FILE" ] || [ ! -f "$APK_FILE" ]; then
-            echo "❌ Error: APK file not found in 'output/'"
-            echo "Listing contents of 'output/':"
-            ls -R output/ || echo "output/ directory does not exist."
-            exit 1
-          fi
-
-          # Correct Notification Logic
-          if [ "$NOTIFICATIONS" = "false" ]; then
-            NOTIFICATION_FLAG="--no-notifications"
-          else
-            NOTIFICATION_FLAG=""
-          fi
-
-          echo "🚀 Distributing $APK_FILE to Firebase App ID: $APP_ID"
-
           # Distribute using service account credentials
           firebase appdistribution:distribute "$APK_FILE" \
             --app "$APP_ID" \
-            --release-notes "$NOTES" \
-            ${GROUPS:+--groups "$GROUPS"} \
-            ${TESTERS:+--testers "$TESTERS"} \
-            $NOTIFICATION_FLAG
+            --release-notes "$NOTES"
