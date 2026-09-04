@@ -13,7 +13,7 @@ internal fun ProductModel.toDomain(): Product = Product(
     isPurchased = isPurchased,
     category = category,
     barcode = barcode,
-    history = history.map { it.toDomain() },
+    history = history.mapNotNull { it.toDomain() },
 )
 
 internal fun Product.toModel(): ProductModel = ProductModel(
