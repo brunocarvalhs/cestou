@@ -2,20 +2,21 @@ package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
+import kotlinx.coroutines.flow.first
 
 /**
- * Checks whether a product name matches an existing, not-yet-purchased item on a shopping list.
+ * Checks whether [shoppingId] already has an active (not yet purchased) product whose name
+ * matches [name], ignoring case and leading/trailing whitespace.
  *
- * NOTE: This is a minimal implementation created for PR5 (`feat/iaa-quick-add`) so Quick Add's
- * duplicate warning can ship independently. PR4 (`feat/iaa-duplicate-warning`, IAA-02) may add its
- * own copy of this use case in a parallel worktree — reconcile the two into a single shared use
- * case when the branches merge instead of keeping both.
+ * Used to power the "already on the list" warning (spec `item-add-authorship` P2, IAA-02): the
+ * warning is informational only — callers SHALL still save the item regardless of the result
+ * (no hard block, spec P2 AC2). Returns the matching [Product] (so the caller can read
+ * `.addedBy`) or `null` when there's no active match.
  *
- * Matching rule (per `.specs/features/item-add-authorship/design.md`): trimmed, case-insensitive
- * name match against non-purchased products only. Returns the matching [Product] (so the caller
- * can read `.addedBy`) or `null` when there's no match.
+ * Shared by both the AI add path (`ProductSaveUseCase.execute`) and the Quick Add screen
+ * (`QuickAddViewModel`) — reconciled here after PR4 and PR5 each added their own copy in
+ * isolated worktrees.
  */
 class ProductDuplicateCheckUseCase @Inject constructor(
     private val repository: ProductRepository
