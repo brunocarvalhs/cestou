@@ -7,7 +7,6 @@ interface AuthService {
     val authState: Flow<AuthenticatedUser?>
     val currentUser: AuthenticatedUser?
     suspend fun getOrCreateUserId(): AuthenticatedUser
-    suspend fun signInAnonymously(): Result<AuthenticatedUser>
     suspend fun signOut(): Result<Unit>
     suspend fun updateUserId(userId: String)
     suspend fun deleteAccount(): Result<Unit>

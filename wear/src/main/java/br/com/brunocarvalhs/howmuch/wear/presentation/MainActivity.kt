@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val startDestination = if (authService.currentUser != null && authService.currentUser?.id != "guest") {
+        val startDestination = if (authService.currentUser != null) {
             ShoppingList::class.java.name
         } else {
             LinkPhone::class.java.name

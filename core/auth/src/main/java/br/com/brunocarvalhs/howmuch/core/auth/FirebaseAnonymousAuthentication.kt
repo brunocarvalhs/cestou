@@ -30,7 +30,7 @@ class FirebaseAnonymousAuthentication @Inject constructor(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    private val _firebaseAuthState = MutableStateFlow(auth.currentUser?.toAuthenticatedUser())
+    private val _firebaseAuthState = MutableStateFlow(auth.currentUser?.toAuthenticatedUserOrNull())
     private val _syncedUserId = MutableStateFlow<String?>(null)
 
     private val resolveUserIdMutex = Mutex()
@@ -53,7 +53,7 @@ class FirebaseAnonymousAuthentication @Inject constructor(
 
     init {
         auth.addAuthStateListener { firebaseAuth ->
-            _firebaseAuthState.value = firebaseAuth.currentUser?.toAuthenticatedUser()
+            _firebaseAuthState.value = firebaseAuth.currentUser?.toAuthenticatedUserOrNull()
         }
         scope.launch {
             storage.observe<String>(USER_ID_KEY).collect {
@@ -86,7 +86,7 @@ class FirebaseAnonymousAuthentication @Inject constructor(
                 return@withLock AuthenticatedUser(id = syncedId)
             }
 
-            auth.currentUser?.let { user ->
+            auth.currentUser?.takeIf { !it.isAnonymous }?.let { user ->
                 Timber.d("Sessão já existente: ${user.uid}")
                 crashlytics.setUser(user)
                 storage.save(USER_ID_KEY, user.uid)
@@ -94,28 +94,8 @@ class FirebaseAnonymousAuthentication @Inject constructor(
                 return@withLock user.toAuthenticatedUser()
             }
 
-            val result = signInAnonymously().getOrElse {
-                Timber.tag(TAG).w("Fallback para usuário guest devido a falha na autenticação")
-                AuthenticatedUser(id = GUEST_ID)
-            }
-            if (result.id != GUEST_ID) {
-                storage.save(USER_ID_KEY, result.id)
-                cachedUserId = result.id
-            }
-            result
+            throw IllegalStateException("No authenticated user. Sign-in is required.")
         }
-    }
-
-    override suspend fun signInAnonymously(): Result<AuthenticatedUser> = try {
-        val result = auth.signInAnonymously().await()
-        val user = requireNotNull(result.user) { "Usuário nulo após signInAnonymously" }
-        Timber.tag(TAG).d("Novo usuário anônimo criado: ${user.uid}")
-        crashlytics.setUser(user)
-        Result.success(user.toAuthenticatedUser())
-    } catch (e: Exception) {
-        if (e is kotlinx.coroutines.CancellationException) throw e
-        Timber.tag(TAG).e(e, "Falha ao autenticar anônimo")
-        Result.failure(e)
     }
 
     override suspend fun signOut(): Result<Unit> = try {
@@ -154,6 +134,12 @@ class FirebaseAnonymousAuthentication @Inject constructor(
         photoUrl = photoUrl?.toString()
     )
 
+    // Anonymous Firebase sessions (including ones created before this app version dropped
+    // anonymous sign-in) are never treated as an authenticated identity: the app requires
+    // sign-in with a real provider (e.g. Google).
+    private fun FirebaseUser.toAuthenticatedUserOrNull() =
+        takeIf { !it.isAnonymous }?.toAuthenticatedUser()
+
     private fun FirebaseCrashlytics.setUser(user: FirebaseUser?) {
         user?.let {
             setUserId(it.uid)
@@ -163,7 +149,6 @@ class FirebaseAnonymousAuthentication @Inject constructor(
 
     companion object {
         private const val TAG = "FirebaseAnonymousAuthentication"
-        private const val GUEST_ID = "guest"
         private const val USER_ID_KEY = "synced_user_id"
     }
 }

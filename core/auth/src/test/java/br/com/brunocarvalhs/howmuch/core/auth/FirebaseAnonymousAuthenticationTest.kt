@@ -2,7 +2,6 @@ package br.com.brunocarvalhs.howmuch.core.auth
 
 import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
 import com.google.android.gms.tasks.Tasks
-import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -33,12 +32,13 @@ class FirebaseAnonymousAuthenticationTest {
         coEvery { get<Any>(any(), any(), any()) } returns null
     }
 
-    private fun fakeUser(uid: String = "user-1") = mockk<FirebaseUser> {
+    private fun fakeUser(uid: String = "user-1", isAnonymous: Boolean = false) = mockk<FirebaseUser> {
         every { this@mockk.uid } returns uid
         every { email } returns "user@test.com"
         every { displayName } returns "User"
         every { phoneNumber } returns null
         every { photoUrl } returns null
+        every { this@mockk.isAnonymous } returns isAnonymous
     }
 
     @Before
@@ -81,47 +81,42 @@ class FirebaseAnonymousAuthenticationTest {
     }
 
     @Test
-    fun `getOrCreateUserId signs in anonymously when there is no current user`() = runTest {
-        val authResult = mockk<AuthResult> { every { user } returns fakeUser("user-2") }
-        every { auth.signInAnonymously() } returns Tasks.forResult(authResult)
+    fun `getOrCreateUserId throws when there is no current user`() = runTest {
         val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
-        val result = service.getOrCreateUserId()
+        var failed = false
+        try {
+            service.getOrCreateUserId()
+        } catch (e: IllegalStateException) {
+            failed = true
+        }
 
-        assertEquals("user-2", result.id)
+        assertTrue(failed)
+        verify(exactly = 0) { auth.signInAnonymously() }
     }
 
     @Test
-    fun `signInAnonymously returns success with the mapped user`() = runTest {
-        val authResult = mockk<AuthResult> { every { user } returns fakeUser("user-2") }
-        every { auth.signInAnonymously() } returns Tasks.forResult(authResult)
+    fun `getOrCreateUserId throws when the only session is anonymous`() = runTest {
+        every { auth.currentUser } returns fakeUser("user-2", isAnonymous = true)
         val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
-        val result = service.signInAnonymously()
+        var failed = false
+        try {
+            service.getOrCreateUserId()
+        } catch (e: IllegalStateException) {
+            failed = true
+        }
 
-        assertTrue(result.isSuccess)
-        assertEquals("user-2", result.getOrNull()?.id)
+        assertTrue(failed)
     }
 
     @Test
-    fun `signInAnonymously fails when Firebase returns a null user`() = runTest {
-        val authResult = mockk<AuthResult> { every { user } returns null }
-        every { auth.signInAnonymously() } returns Tasks.forResult(authResult)
+    fun `currentUser is null when the only session is anonymous`() {
+        every { auth.currentUser } returns fakeUser("user-2", isAnonymous = true)
+
         val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
 
-        val result = service.signInAnonymously()
-
-        assertTrue(result.isFailure)
-    }
-
-    @Test
-    fun `signInAnonymously fails when the Firebase task fails`() = runTest {
-        every { auth.signInAnonymously() } returns Tasks.forException(RuntimeException("no network"))
-        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
-
-        val result = service.signInAnonymously()
-
-        assertTrue(result.isFailure)
+        assertNull(service.currentUser)
     }
 
     @Test
