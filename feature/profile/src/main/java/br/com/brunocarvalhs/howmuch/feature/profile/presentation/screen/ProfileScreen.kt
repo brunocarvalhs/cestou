@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -85,8 +86,8 @@ internal fun ProfileScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             UserInfoHeader(
-                name = state.user?.displayName ?: stringResource(R.string.profile_default_name),
-                email = state.user?.email ?: stringResource(R.string.profile_default_email),
+                name = state.user?.displayName,
+                email = state.user?.email,
                 photoUrl = state.user?.photoUrl
             )
 
@@ -139,27 +140,31 @@ internal fun ProfileScreen(
 }
 
 @Composable
-private fun UserInfoHeader(name: String, email: String, photoUrl: String?) {
+private fun UserInfoHeader(name: String?, email: String?, photoUrl: String?) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         ProfileAvatar(name = name, photoUrl = photoUrl)
         Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = name,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = email,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        name?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        email?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
 private const val AVATAR_SIZE_DP = 88
 
 @Composable
-private fun ProfileAvatar(name: String, photoUrl: String?) {
+private fun ProfileAvatar(name: String?, photoUrl: String?) {
     Box(
         modifier = Modifier
             .size(AVATAR_SIZE_DP.dp)
@@ -176,13 +181,20 @@ private fun ProfileAvatar(name: String, photoUrl: String?) {
                     .fillMaxSize()
                     .clip(CircleShape)
             )
-        } else {
+        } else if (!name.isNullOrBlank()) {
             val locale = LocalLocale.current.platformLocale
             Text(
                 text = name.trim().take(1).uppercase(locale),
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(40.dp)
             )
         }
     }
