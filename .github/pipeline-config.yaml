@@ -34,9 +34,13 @@ build:
   # Build targets: one entry per distributable app module (phone, Wear OS, Android
   # Auto, ...). Onboarding a new device only means adding a target here with its
   # own module path and variants - no workflow file changes are required. Each
-  # variant may set deploy.firebase.app_id explicitly (needed once a target has
-  # its own Firebase App entry, e.g. Wear OS); when omitted, the pipeline falls
-  # back to the shared FIREBASE_APP_ID secret.
+  # variant may set deploy.firebase.app_id explicitly, but only do this when the
+  # target's actual applicationId differs from the phone app's (Firebase
+  # App Distribution matches by APK package name, not by target name - the
+  # wear module intentionally shares the phone app's applicationId for
+  # pairing, so it must NOT set its own app_id here, or every upload fails
+  # with "APK package name does not match your Firebase app's package name").
+  # When omitted, the pipeline falls back to the shared FIREBASE_APP_ID secret.
   targets:
     - name: "app"
       module: ":app"
@@ -77,7 +81,6 @@ build:
           deploy:
             firebase:
               label: "WEAR DEBUG"
-              app_id: "1:801865394084:android:3d8cd6308873dd4789c331"
 
         - name: "release"
           description: "Production Ready APK"
@@ -88,7 +91,6 @@ build:
           deploy:
             firebase:
               label: "WEAR RELEASE"
-              app_id: "1:801865394084:android:3d8cd6308873dd4789c331"
 
 # Checks run by every pipeline (PR validation, develop build, master release).
 # Adding, removing, renaming or disabling a check is a pure config change here -
