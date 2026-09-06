@@ -1,20 +1,202 @@
 name: Continuous Integration - Build & Distribute
 
-# Thin caller for brunocarvalhs/mobile-ci-pipeline. The actual logic lives
-# there - edit .github/pipeline-config.yaml to change what runs. Bump the
-# pinned @v1 below to pick up pipeline improvements after reviewing the
-# changelog at https://github.com/brunocarvalhs/mobile-ci-pipeline.
-
 on:
   push:
     branches: [ develop ]
 
 jobs:
-  checks:
-    uses: brunocarvalhs/mobile-ci-pipeline/.github/workflows/checks.yml@v1
-    secrets: inherit
+  prepare:
+    runs-on: ubuntu-24.04
+    outputs:
+      jdk_version: ${{ steps.config.outputs.jdk_version }}
+      java_distribution: ${{ steps.config.outputs.java_distribution }}
+      gradle_opts: ${{ steps.config.outputs.gradle_opts }}
+      app_name: ${{ steps.config.outputs.app_name }}
+      variants: ${{ steps.config.outputs.variants }}
+      checks_stage_1: ${{ steps.config.outputs.checks_stage_1 }}
+      checks_stage_2: ${{ steps.config.outputs.checks_stage_2 }}
+      build_enabled: ${{ steps.config.outputs.build_enabled }}
+      deploy_enabled: ${{ steps.config.outputs.deploy_enabled }}
+    steps:
+      - uses: actions/checkout@v4
 
-  build-and-distribute:
-    needs: [checks]
-    uses: brunocarvalhs/mobile-ci-pipeline/.github/workflows/build-and-distribute.yml@v1
-    secrets: inherit
+      - name: Validate pipeline-config.yaml
+        run: |
+          chmod +x .github/scripts/validate-pipeline-config.sh
+          .github/scripts/validate-pipeline-config.sh
+
+      - id: config
+        run: |
+          echo "jdk_version=$(yq '.build."java-version"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "java_distribution=$(yq '.build."java-distribution" // "temurin"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "gradle_opts=$(yq '.build.gradle_opts' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "app_name=$(yq '.project.name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "variants=$(yq -o=json '[.build.targets[] as $t | $t.variants[] | select(.enabled) | . + {"target": $t.name, "module": $t.module}]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
+          echo "checks_stage_1=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 1)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
+          echo "checks_stage_2=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 2)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
+          echo "build_enabled=true" >> $GITHUB_OUTPUT
+          echo "deploy_enabled=$(yq '.release.firebase.enabled // false' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+
+  checks_stage_1:
+    needs: [prepare]
+    if: needs.prepare.outputs.checks_stage_1 != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        check: ${{ fromJson(needs.prepare.outputs.checks_stage_1) }}
+    runs-on: ubuntu-24.04
+    name: ${{ matrix.check.display_name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
+        with:
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
+
+      - name: Run Check
+        run: |
+          chmod +x gradlew
+          ${{ matrix.check.command }}
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
+
+  checks_stage_2:
+    needs: [prepare, checks_stage_1]
+    if: |
+      always() &&
+      needs.prepare.outputs.checks_stage_2 != '[]' &&
+      (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped')
+    strategy:
+      fail-fast: false
+      matrix:
+        check: ${{ fromJson(needs.prepare.outputs.checks_stage_2) }}
+    runs-on: ubuntu-24.04
+    name: ${{ matrix.check.display_name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
+        with:
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
+
+      - name: Run Check
+        run: |
+          chmod +x gradlew
+          ${{ matrix.check.command }}
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
+
+  build:
+    needs: [prepare, checks_stage_1, checks_stage_2]
+    if: |
+      always() &&
+      needs.prepare.outputs.build_enabled == 'true' &&
+      (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped') &&
+      (needs.checks_stage_2.result == 'success' || needs.checks_stage_2.result == 'skipped')
+    strategy:
+      matrix:
+        variant: ${{ fromJson(needs.prepare.outputs.variants) }}
+    runs-on: ubuntu-24.04
+    name: 📦 Build APK - ${{ matrix.variant.target }}/${{ matrix.variant.name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
+        with:
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
+
+      - name: Build APK
+        run: |
+          chmod +x gradlew
+          ./gradlew ${{ matrix.variant.module }}:${{ matrix.variant.gradle_task }}
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.variant.artifact_name }}
+          path: ${{ matrix.variant.path }}
+
+  deploy-firebase:
+    needs: [prepare, build]
+    if: needs.prepare.outputs.deploy_enabled == 'true'
+    strategy:
+      matrix:
+        variant: ${{ fromJson(needs.prepare.outputs.variants) }}
+    runs-on: ubuntu-24.04
+    name: 🚀 Firebase Dist - ${{ matrix.variant.target }}/${{ matrix.variant.name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check Deployment and Get Label
+        id: firebase_config
+        run: |
+          # Use data directly from the matrix variant (agnostic approach)
+          LABEL="${{ matrix.variant.deploy.firebase.label }}"
+          APP_ID="${{ matrix.variant.deploy.firebase.app_id }}"
+
+          if [ -z "$APP_ID" ] || [ "$APP_ID" == "null" ]; then
+            # Fallback to secret if not defined in flavor
+            APP_ID="${{ secrets.FIREBASE_APP_ID }}"
+          fi
+
+          if [ -n "$APP_ID" ] && [ "$APP_ID" != "null" ]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "label=$LABEL" >> $GITHUB_OUTPUT
+            echo "app_id=$APP_ID" >> $GITHUB_OUTPUT
+          else
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download APK Artifact
+        if: steps.firebase_config.outputs.should_deploy == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.variant.artifact_name }}
+          path: output/
+
+      - name: Install Firebase CLI
+        if: steps.firebase_config.outputs.should_deploy == 'true'
+        run: curl -sL https://firebase.tools | bash
+
+      - name: Upload APK to Firebase App Distribution
+        if: steps.firebase_config.outputs.should_deploy == 'true'
+        run: |
+          APP_ID="${{ steps.firebase_config.outputs.app_id }}"
+          RAW_NOTES=$(yq '.release.firebase.release_notes // "release automatica"' .github/pipeline-config.yaml)
+
+          # Create service account file from secret
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > service-account.json
+          export GOOGLE_APPLICATION_CREDENTIALS=$PWD/service-account.json
+
+          # Prefix notes with variant label
+          LABEL="${{ steps.firebase_config.outputs.label }}"
+          NOTES="[$LABEL] $RAW_NOTES"
+
+          # Find the APK file
+          APK_FILE=$(find output/ -name "*.apk" | head -n 1)
+
+          # Distribute using service account credentials
+          firebase appdistribution:distribute "$APK_FILE" \
+            --app "$APP_ID" \
+            --release-notes "$NOTES"

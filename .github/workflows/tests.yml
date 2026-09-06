@@ -1,17 +1,181 @@
 name: Continuous Integration - Pull Request Validation
 
-# Thin caller for brunocarvalhs/mobile-ci-pipeline. The actual logic lives
-# there - edit .github/pipeline-config.yaml to change what runs. Bump the
-# pinned @v1 below to pick up pipeline improvements after reviewing the
-# changelog at https://github.com/brunocarvalhs/mobile-ci-pipeline.
-
 on:
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
-  checks:
-    uses: brunocarvalhs/mobile-ci-pipeline/.github/workflows/checks.yml@v1
-    with:
-      post_pr_comments: true
-    secrets: inherit
+  prepare:
+    runs-on: ubuntu-24.04
+    outputs:
+      jdk_version: ${{ steps.config.outputs.jdk_version }}
+      java_distribution: ${{ steps.config.outputs.java_distribution }}
+      gradle_opts: ${{ steps.config.outputs.gradle_opts }}
+      checks_stage_1: ${{ steps.config.outputs.checks_stage_1 }}
+      checks_stage_2: ${{ steps.config.outputs.checks_stage_2 }}
+      coverage_enabled: ${{ steps.config.outputs.coverage_enabled }}
+      coverage_display_name: ${{ steps.config.outputs.coverage_display_name }}
+      coverage_pr_success: ${{ steps.config.outputs.coverage_pr_success }}
+      coverage_pr_failure: ${{ steps.config.outputs.coverage_pr_failure }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate pipeline-config.yaml
+        run: |
+          chmod +x .github/scripts/validate-pipeline-config.sh
+          .github/scripts/validate-pipeline-config.sh
+
+      - id: config
+        run: |
+          echo "jdk_version=$(yq '.build."java-version"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "java_distribution=$(yq '.build."java-distribution" // "temurin"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "gradle_opts=$(yq '.build.gradle_opts' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "checks_stage_1=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 1)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
+          echo "checks_stage_2=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 2)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
+          echo "coverage_enabled=$(yq '.coverage.kover.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "coverage_display_name=$(yq '.coverage.kover.display_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "coverage_pr_success=$(yq '.coverage.kover.pr_comment.success' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "coverage_pr_failure=$(yq '.coverage.kover.pr_comment.failure' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+
+  checks_stage_1:
+    needs: [prepare]
+    if: needs.prepare.outputs.checks_stage_1 != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        check: ${{ fromJson(needs.prepare.outputs.checks_stage_1) }}
+    runs-on: ubuntu-24.04
+    name: ${{ matrix.check.display_name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
+        with:
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
+
+      - name: Run Check
+        run: |
+          chmod +x gradlew
+          ${{ matrix.check.command }}
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
+
+      - name: Comment Failure
+        if: ${{ failure() && matrix.check.pr_comment.failure != null }}
+        uses: mb2dev/github-action-comment-pull-request@1.0.0
+        with:
+          message: ${{ matrix.check.pr_comment.failure }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          reactions: "-1 | confused"
+
+      - name: Comment Success
+        if: ${{ success() && matrix.check.pr_comment.success != null }}
+        uses: mb2dev/github-action-comment-pull-request@1.0.0
+        with:
+          message: ${{ matrix.check.pr_comment.success }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          reactions: "+1"
+
+  checks_stage_2:
+    needs: [prepare, checks_stage_1]
+    if: |
+      always() &&
+      needs.prepare.outputs.checks_stage_2 != '[]' &&
+      (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped')
+    strategy:
+      fail-fast: false
+      matrix:
+        check: ${{ fromJson(needs.prepare.outputs.checks_stage_2) }}
+    runs-on: ubuntu-24.04
+    name: ${{ matrix.check.display_name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
+        with:
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
+
+      - name: Run Check
+        run: |
+          chmod +x gradlew
+          ${{ matrix.check.command }}
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
+
+      - name: Comment Failure
+        if: ${{ failure() && matrix.check.pr_comment.failure != null }}
+        uses: mb2dev/github-action-comment-pull-request@1.0.0
+        with:
+          message: ${{ matrix.check.pr_comment.failure }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          reactions: "-1 | confused"
+
+      - name: Comment Success
+        if: ${{ success() && matrix.check.pr_comment.success != null }}
+        uses: mb2dev/github-action-comment-pull-request@1.0.0
+        with:
+          message: ${{ matrix.check.pr_comment.success }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          reactions: "+1"
+
+  coverage-check:
+    needs: [prepare, checks_stage_1, checks_stage_2]
+    if: |
+      always() &&
+      needs.prepare.outputs.coverage_enabled == 'true' &&
+      (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped') &&
+      (needs.checks_stage_2.result == 'success' || needs.checks_stage_2.result == 'skipped')
+    runs-on: ubuntu-24.04
+    name: ${{ needs.prepare.outputs.coverage_display_name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
+        with:
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
+
+      - name: Run Coverage Verification
+        run: |
+          COMMAND=$(yq '.coverage.kover.command' .github/pipeline-config.yaml)
+          chmod +x gradlew
+          $COMMAND
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
+
+      - name: Upload Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kover-html-report
+          path: build/reports/kover/html/
+
+      - name: Comment Failure
+        if: ${{ failure() }}
+        uses: mb2dev/github-action-comment-pull-request@1.0.0
+        with:
+          message: ${{ needs.prepare.outputs.coverage_pr_failure }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          reactions: "-1 | confused"
+
+      - name: Comment Success
+        if: ${{ success() }}
+        uses: mb2dev/github-action-comment-pull-request@1.0.0
+        with:
+          message: ${{ needs.prepare.outputs.coverage_pr_success }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          reactions: "+1"
