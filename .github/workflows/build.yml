@@ -13,31 +13,39 @@ jobs:
       gradle_opts: ${{ steps.config.outputs.gradle_opts }}
       app_name: ${{ steps.config.outputs.app_name }}
       variants: ${{ steps.config.outputs.variants }}
-      ut_enabled: ${{ steps.config.outputs.ut_enabled }}
-      lint_enabled: ${{ steps.config.outputs.lint_enabled }}
-      detekt_enabled: ${{ steps.config.outputs.detekt_enabled }}
+      checks_stage_1: ${{ steps.config.outputs.checks_stage_1 }}
+      checks_stage_2: ${{ steps.config.outputs.checks_stage_2 }}
       build_enabled: ${{ steps.config.outputs.build_enabled }}
       deploy_enabled: ${{ steps.config.outputs.deploy_enabled }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Validate pipeline-config.yaml
+        run: |
+          chmod +x .github/scripts/validate-pipeline-config.sh
+          .github/scripts/validate-pipeline-config.sh
+
       - id: config
         run: |
           echo "jdk_version=$(yq '.build."java-version"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "java_distribution=$(yq '.build."java-distribution" // "temurin"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "gradle_opts=$(yq '.build.gradle_opts' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "app_name=$(yq '.project.name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "variants=$(yq -o=json '.build.flavors' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
-          echo "ut_enabled=$(yq '.test[] | select(.name == "unit_tests") | .enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "lint_enabled=$(yq '.linters.lint.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "detekt_enabled=$(yq '.linters.detekt.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "variants=$(yq -o=json '[.build.targets[] as $t | $t.variants[] | select(.enabled) | . + {"target": $t.name, "module": $t.module}]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
+          echo "checks_stage_1=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 1)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
+          echo "checks_stage_2=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 2)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
           echo "build_enabled=true" >> $GITHUB_OUTPUT
           echo "deploy_enabled=$(yq '.release.firebase.enabled // false' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
-  unit-tests:
+  checks_stage_1:
     needs: [prepare]
-    if: needs.prepare.outputs.ut_enabled == 'true'
+    if: needs.prepare.outputs.checks_stage_1 != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        check: ${{ fromJson(needs.prepare.outputs.checks_stage_1) }}
     runs-on: ubuntu-24.04
-    name: 🧪 Unit Testing
+    name: ${{ matrix.check.display_name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -50,19 +58,25 @@ jobs:
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
-      - name: Run Unit Tests
+      - name: Run Check
         run: |
-          COMMAND=$(yq '.test[] | select(.name == "unit_tests") | .command' .github/pipeline-config.yaml)
           chmod +x gradlew
-          $COMMAND
+          ${{ matrix.check.command }}
         env:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
-  lint-check:
-    needs: [prepare]
-    if: needs.prepare.outputs.lint_enabled == 'true'
+  checks_stage_2:
+    needs: [prepare, checks_stage_1]
+    if: |
+      always() &&
+      needs.prepare.outputs.checks_stage_2 != '[]' &&
+      (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped')
+    strategy:
+      fail-fast: false
+      matrix:
+        check: ${{ fromJson(needs.prepare.outputs.checks_stage_2) }}
     runs-on: ubuntu-24.04
-    name: 🧹 Code Style (Lint)
+    name: ${{ matrix.check.display_name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -75,52 +89,25 @@ jobs:
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
-      - name: Run Lint
+      - name: Run Check
         run: |
-          COMMAND=$(yq '.linters.lint.command' .github/pipeline-config.yaml)
           chmod +x gradlew
-          $COMMAND
-        env:
-          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
-
-  detekt-check:
-    needs: [prepare]
-    if: needs.prepare.outputs.detekt_enabled == 'true'
-    runs-on: ubuntu-24.04
-    name: 🔍 Static Analysis (Detekt)
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Environment
-        uses: ./.github/actions/setup-env
-        with:
-          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
-          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
-          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
-          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
-
-      - name: Run Detekt
-        run: |
-          COMMAND=$(yq '.linters.detekt.command' .github/pipeline-config.yaml)
-          chmod +x gradlew
-          $COMMAND
+          ${{ matrix.check.command }}
         env:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
   build:
-    needs: [prepare, unit-tests, lint-check, detekt-check]
+    needs: [prepare, checks_stage_1, checks_stage_2]
     if: |
-      always() && 
-      needs.prepare.outputs.build_enabled == 'true' && 
-      (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped') &&
-      (needs.lint-check.result == 'success' || needs.lint-check.result == 'skipped') &&
-      (needs.detekt-check.result == 'success' || needs.detekt-check.result == 'skipped')
+      always() &&
+      needs.prepare.outputs.build_enabled == 'true' &&
+      (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped') &&
+      (needs.checks_stage_2.result == 'success' || needs.checks_stage_2.result == 'skipped')
     strategy:
       matrix:
         variant: ${{ fromJson(needs.prepare.outputs.variants) }}
     runs-on: ubuntu-24.04
-    name: 📦 Build APK - ${{ matrix.variant.deploy.firebase.label }}
+    name: 📦 Build APK - ${{ matrix.variant.target }}/${{ matrix.variant.name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -136,7 +123,7 @@ jobs:
       - name: Build APK
         run: |
           chmod +x gradlew
-          ./gradlew ${{ matrix.variant.gradle_task }}
+          ./gradlew ${{ matrix.variant.module }}:${{ matrix.variant.gradle_task }}
         env:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -156,7 +143,7 @@ jobs:
       matrix:
         variant: ${{ fromJson(needs.prepare.outputs.variants) }}
     runs-on: ubuntu-24.04
-    name: 🚀 Firebase Dist - ${{ matrix.variant.deploy.firebase.label }}
+    name: 🚀 Firebase Dist - ${{ matrix.variant.target }}/${{ matrix.variant.name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -167,12 +154,12 @@ jobs:
           # Use data directly from the matrix variant (agnostic approach)
           LABEL="${{ matrix.variant.deploy.firebase.label }}"
           APP_ID="${{ matrix.variant.deploy.firebase.app_id }}"
-          
+
           if [ -z "$APP_ID" ] || [ "$APP_ID" == "null" ]; then
             # Fallback to secret if not defined in flavor
             APP_ID="${{ secrets.FIREBASE_APP_ID }}"
           fi
-          
+
           if [ -n "$APP_ID" ] && [ "$APP_ID" != "null" ]; then
             echo "should_deploy=true" >> $GITHUB_OUTPUT
             echo "label=$LABEL" >> $GITHUB_OUTPUT

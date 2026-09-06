@@ -31,67 +31,126 @@ build:
   gradle_opts: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
   ignore-cache: false
   
-  # Build variants (flavors)
-  flavors:
-    - name: "debug"
-      description: "Development / Internal Testing"
-      gradle_task: "assembleDebug"
-      enabled: true
-      path: "app/build/outputs/apk/debug/*.apk"
-      artifact_name: "HowMuch-apk-debug"
-      deploy:
-        firebase:
-          label: "DEBUG"
-          
-    - name: "release"
-      description: "Production Ready APK"
-      gradle_task: "assembleRelease"
-      enabled: true
-      path: "app/build/outputs/apk/release/*.apk"
-      artifact_name: "HowMuch-apk-release"
-      deploy:
-        firebase:
-          label: "RELEASE"
+  # Build targets: one entry per distributable app module (phone, Wear OS, Android
+  # Auto, ...). Onboarding a new device only means adding a target here with its
+  # own module path and variants - no workflow file changes are required. Each
+  # variant may set deploy.firebase.app_id explicitly (needed once a target has
+  # its own Firebase App entry, e.g. Wear OS); when omitted, the pipeline falls
+  # back to the shared FIREBASE_APP_ID secret.
+  targets:
+    - name: "app"
+      module: ":app"
+      description: "Phone / Tablet app"
+      google_services_required: true
+      variants:
+        - name: "debug"
+          description: "Development / Internal Testing"
+          gradle_task: "assembleDebug"
+          enabled: true
+          path: "app/build/outputs/apk/debug/*.apk"
+          artifact_name: "HowMuch-app-debug"
+          deploy:
+            firebase:
+              label: "APP DEBUG"
 
-# Test Suites
-test:
-  - name: "unit_tests"
-    description: "Business Logic & Unit Testing"
-    enabled: true
-    command: "./gradlew testDebug"
-    path: 
-      - "app/build/reports/tests/testDebugUnitTest/index.html"
-    gradlew-path: "."
-    build-path: "app/build/reports/tests/testDebugUnitTest/index.html"
-    reporter-type: "html"
-    reporter-path: "app/build/reports/tests/testDebugUnitTest/index.html"
+        - name: "release"
+          description: "Production Ready APK"
+          gradle_task: "assembleRelease"
+          enabled: true
+          path: "app/build/outputs/apk/release/*.apk"
+          artifact_name: "HowMuch-app-release"
+          deploy:
+            firebase:
+              label: "APP RELEASE"
 
-# Static Analysis & Linters
-linters:
-  lint:
-    name: "Android Lint"
-    description: "Android Layout & Performance Checks"
+    - name: "wear"
+      module: ":wear"
+      description: "Wear OS companion app"
+      google_services_required: true
+      variants:
+        - name: "debug"
+          description: "Development / Internal Testing"
+          gradle_task: "assembleDebug"
+          enabled: true
+          path: "wear/build/outputs/apk/debug/*.apk"
+          artifact_name: "HowMuch-wear-debug"
+          deploy:
+            firebase:
+              label: "WEAR DEBUG"
+              app_id: "1:801865394084:android:3d8cd6308873dd4789c331"
+
+        - name: "release"
+          description: "Production Ready APK"
+          gradle_task: "assembleRelease"
+          enabled: true
+          path: "wear/build/outputs/apk/release/*.apk"
+          artifact_name: "HowMuch-wear-release"
+          deploy:
+            firebase:
+              label: "WEAR RELEASE"
+              app_id: "1:801865394084:android:3d8cd6308873dd4789c331"
+
+# Checks run by every pipeline (PR validation, develop build, master release).
+# Adding, removing, renaming or disabling a check is a pure config change here -
+# no workflow file edits needed. `pr_comment` is optional; when set, tests.yml
+# posts it on the PR (build.yml/release.yml never run on a pull_request event,
+# so they simply skip commenting).
+#
+# `stage` controls execution order: every check in stage 1 runs in parallel
+# first; stage 2 only starts once every enabled stage-1 check has passed. Two
+# stages is what the workflows wire up today - group checks accordingly (e.g.
+# keep fast static analysis in stage 1 to fail fast before the slower stage).
+checks:
+  - name: "lint"
+    display_name: "🧹 Code Style (Lint)"
     enabled: true
+    stage: 1
     command: "./gradlew lintDebug"
-  detekt:
-    name: "Detekt"
-    description: "Kotlin Static Code Analysis"
-    enabled: true
-    command: "./gradlew detekt"
+    pr_comment:
+      success: "✅ Todos os lints passaram com sucesso! Bom trabalho."
+      failure: "❌ Ops, encontrado falhas no lint, por favor corrija."
 
-# Test Coverage Gate
+  - name: "detekt"
+    display_name: "🔍 Static Analysis (Detekt)"
+    enabled: true
+    stage: 1
+    command: "./gradlew detekt"
+    pr_comment:
+      success: "✅ Todos os detekts passaram com sucesso! Bom trabalho."
+      failure: "❌ Ops, encontrado falhas no detekt, por favor corrija."
+
+  - name: "unit_tests"
+    display_name: "🧪 Unit Testing"
+    enabled: true
+    stage: 2
+    command: "./gradlew testDebug"
+    pr_comment:
+      success: "✅ Todos os testes unitários passaram com sucesso! Bom trabalho."
+      failure: "❌ Ops, encontrado falhas nos testes unitários, por favor corrija."
+
+# Test Coverage Gate (kept separate from checks[]: it depends on unit_tests
+# having run first, and it publishes an HTML report artifact).
 coverage:
   kover:
     name: "Kover"
+    display_name: "📊 Test Coverage Gate (min. 80%)"
     description: "Minimum aggregated line coverage gate (80%), enforced via kover { reports { total { verify { rule { minBound(80) } } } } } in the root build.gradle.kts"
     enabled: true
     command: "./gradlew koverVerify"
     report_path: "build/reports/kover/html/index.html"
+    pr_comment:
+      success: "✅ Cobertura de testes acima de 80%! Bom trabalho."
+      failure: "❌ A cobertura de testes ficou abaixo do mínimo de 80%, por favor complemente os testes."
 
 # Store & GitHub Release Settings
 release:
   enabled: true
   command_aab: "./gradlew bundleRelease"
+  # Toggles .github/scripts/version.sh (bumps versionName/versionCode, updates
+  # CHANGELOG.md and creates the GitHub Release). Disable to build/deploy a
+  # master push without cutting a new version, e.g. re-running a failed deploy.
+  versioning:
+    enabled: true
   firebase:
     enabled: true
     groups: "testers"

@@ -50,10 +50,12 @@ runs:
       shell: bash
       run: |
         if [ "${{ inputs.google-services-json }}" != "" ]; then
-          echo "${{ inputs.google-services-json }}" | base64 --decode > app/google-services.json
-          if [ -d wear ]; then
-            echo "${{ inputs.google-services-json }}" | base64 --decode > wear/google-services.json
-          fi
+          # Drop the decoded file into every target module that declares
+          # google_services_required: true in pipeline-config.yaml, so adding a
+          # new device target there is enough - no edit needed here.
+          for MODULE_PATH in $(yq '.build.targets[] | select(.google_services_required == true) | .module' .github/pipeline-config.yaml | tr -d '"' | sed 's|^:||'); do
+            echo "${{ inputs.google-services-json }}" | base64 --decode > "$MODULE_PATH/google-services.json"
+          done
         fi
 
     - name: Cache Gradle
