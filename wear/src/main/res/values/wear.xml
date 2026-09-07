@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+         Advertises this wear app to the Wearable Data Layer API regardless of
+         its applicationId. The phone app looks up this capability (see
+         WearablePaths.WEAR_CAPABILITY in :core:common) via CapabilityClient to
+         find a reachable watch node during pairing, since wear no longer
+         shares the phone app's applicationId (DataClient/package-name-based
+         discovery would not work across the two different packages).
+    -->
+    <string-array name="android_wear_capabilities">
+        <item>howmuch_wear_app</item>
+    </string-array>
+</resources>

@@ -14,7 +14,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "br.com.brunocarvalhs.howmuch"
+        applicationId = "br.com.brunocarvalhs.howmuch.wear"
         minSdk = 30
         targetSdk = 37
         versionCode = 1
