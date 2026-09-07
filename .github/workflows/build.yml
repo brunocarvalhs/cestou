@@ -104,6 +104,7 @@ jobs:
       (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped') &&
       (needs.checks_stage_2.result == 'success' || needs.checks_stage_2.result == 'skipped')
     strategy:
+      fail-fast: false
       matrix:
         variant: ${{ fromJson(needs.prepare.outputs.variants) }}
     runs-on: ubuntu-24.04
@@ -140,6 +141,7 @@ jobs:
     needs: [prepare, build]
     if: needs.prepare.outputs.deploy_enabled == 'true'
     strategy:
+      fail-fast: false
       matrix:
         variant: ${{ fromJson(needs.prepare.outputs.variants) }}
     runs-on: ubuntu-24.04
