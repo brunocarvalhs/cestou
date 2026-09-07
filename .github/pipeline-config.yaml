@@ -56,6 +56,7 @@ build:
           deploy:
             firebase:
               label: "APP DEBUG"
+              app_id: "1:801865394084:android:442edb0a4a22174689c331"
 
         - name: "release"
           description: "Production Ready APK"
@@ -66,6 +67,7 @@ build:
           deploy:
             firebase:
               label: "APP RELEASE"
+              app_id: "1:801865394084:android:442edb0a4a22174689c331"
 
     - name: "wear"
       module: ":wear"
