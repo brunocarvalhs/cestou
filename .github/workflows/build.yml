@@ -108,7 +108,11 @@ jobs:
       matrix:
         variant: ${{ fromJson(needs.prepare.outputs.variants) }}
     runs-on: ubuntu-24.04
-    name: 📦 Build APK - ${{ matrix.variant.target }}/${{ matrix.variant.name }}
+    # One job per target/variant does both build and (if enabled) Firebase
+    # distribution, instead of two separate matrix jobs - halves the number
+    # of entries in the run's job list and skips an artifact upload/download
+    # round trip, since the APK never needs to leave this runner.
+    name: 📦 ${{ matrix.variant.target }}/${{ matrix.variant.name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -137,21 +141,9 @@ jobs:
           name: ${{ matrix.variant.artifact_name }}
           path: ${{ matrix.variant.path }}
 
-  deploy-firebase:
-    needs: [prepare, build]
-    if: needs.prepare.outputs.deploy_enabled == 'true'
-    strategy:
-      fail-fast: false
-      matrix:
-        variant: ${{ fromJson(needs.prepare.outputs.variants) }}
-    runs-on: ubuntu-24.04
-    name: 🚀 Firebase Dist - ${{ matrix.variant.target }}/${{ matrix.variant.name }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Check Deployment and Get Label
         id: firebase_config
+        if: needs.prepare.outputs.deploy_enabled == 'true'
         run: |
           # Use data directly from the matrix variant (agnostic approach)
           LABEL="${{ matrix.variant.deploy.firebase.label }}"
@@ -170,19 +162,12 @@ jobs:
             echo "should_deploy=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Download APK Artifact
-        if: steps.firebase_config.outputs.should_deploy == 'true'
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ matrix.variant.artifact_name }}
-          path: output/
-
       - name: Install Firebase CLI
-        if: steps.firebase_config.outputs.should_deploy == 'true'
+        if: needs.prepare.outputs.deploy_enabled == 'true' && steps.firebase_config.outputs.should_deploy == 'true'
         run: curl -sL https://firebase.tools | bash
 
       - name: Upload APK to Firebase App Distribution
-        if: steps.firebase_config.outputs.should_deploy == 'true'
+        if: needs.prepare.outputs.deploy_enabled == 'true' && steps.firebase_config.outputs.should_deploy == 'true'
         run: |
           APP_ID="${{ steps.firebase_config.outputs.app_id }}"
           RAW_NOTES=$(yq '.release.firebase.release_notes // "release automatica"' .github/pipeline-config.yaml)
@@ -195,8 +180,8 @@ jobs:
           LABEL="${{ steps.firebase_config.outputs.label }}"
           NOTES="[$LABEL] $RAW_NOTES"
 
-          # Find the APK file
-          APK_FILE=$(find output/ -name "*.apk" | head -n 1)
+          # The APK is already on this runner - built a few steps above.
+          APK_FILE=$(find "$(dirname "${{ matrix.variant.path }}")" -name "*.apk" | head -n 1)
 
           # Distribute using service account credentials
           firebase appdistribution:distribute "$APK_FILE" \
