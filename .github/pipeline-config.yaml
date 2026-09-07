@@ -81,6 +81,7 @@ build:
           deploy:
             firebase:
               label: "WEAR DEBUG"
+              app_id: "1:801865394084:android:3d8cd6308873dd4789c331"
 
         - name: "release"
           description: "Production Ready APK"
@@ -91,6 +92,7 @@ build:
           deploy:
             firebase:
               label: "WEAR RELEASE"
+              app_id: "1:801865394084:android:3d8cd6308873dd4789c331"
 
 # Checks run by every pipeline (PR validation, develop build, master release).
 # Adding, removing, renaming or disabling a check is a pure config change here -
