@@ -13,6 +13,11 @@ git:
   branches:
     main: "master"
     develop: "develop"
+  # Step names for the git-plumbing steps shared by release-pr.yml,
+  # rollback.yml and release.yml's sync-develop job.
+  step_names:
+    load_config: "⚙️ Load Config"
+    configure_git: "🔧 Configure git"
 
 # File paths used across the pipeline
 paths:
@@ -30,7 +35,29 @@ build:
   gradle-version: "8.3.1"
   gradle_opts: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
   ignore-cache: false
-  
+  # Default `timeout-minutes` for every job across every workflow that
+  # doesn't set its own (instrumented_tests.timeout_minutes below is the one
+  # exception - emulator boots are slow and unpredictable enough to earn a
+  # bigger budget). Exists so a hung step (stuck Gradle daemon, wedged
+  # network call) can't burn CI time indefinitely.
+  default_timeout_minutes: 15
+
+  # checkout/setup_environment/run_check/comment_* are generic build/CI
+  # infrastructure steps reused by the checks[] matrix and by every other
+  # section below that doesn't declare its own step_names override (coverage,
+  # instrumented_tests, security.codeql, size_check all reuse these instead
+  # of repeating "Checkout code" in five places). build_apks/upload_apks are
+  # specific to build.yml's own `build` job.
+  step_names:
+    checkout: "📥 Checkout code"
+    setup_environment: "⚙️ Setup Environment"
+    setup_node: "🟢 Set up Node.js"
+    run_check: "▶️ Run Check"
+    comment_failure: "💬 Comment Failure"
+    comment_success: "💬 Comment Success"
+    build_apks: "🏗️ Build APKs"
+    upload_apks: "📤 Upload APKs"
+
   # Build targets: one entry per distributable app module (phone, Wear OS, Android
   # Auto, ...). Onboarding a new device only means adding a target here with its
   # own module path and variants - no workflow file changes are required. Each
@@ -119,7 +146,7 @@ checks:
   - name: "detekt"
     display_name: "🔍 Static Analysis (Detekt)"
     enabled: true
-    stage: 1
+    stage: 2
     command: "./gradlew detekt"
     pr_comment:
       success: "✅ Todos os detekts passaram com sucesso! Bom trabalho."
@@ -134,8 +161,10 @@ checks:
       success: "✅ Todos os testes unitários passaram com sucesso! Bom trabalho."
       failure: "❌ Ops, encontrado falhas nos testes unitários, por favor corrija."
 
-# Test Coverage Gate (kept separate from checks[]: it depends on unit_tests
-# having run first, and it publishes an HTML report artifact).
+# Test Coverage Gate (kept separate from checks[] because it publishes an
+# HTML report artifact). Runs in parallel with stage 2 - koverVerify has its
+# own Gradle task dependency on the test task, so it doesn't need
+# unit_tests's job to finish first, only stage 1 (lint) to have passed.
 coverage:
   kover:
     name: "Kover"
@@ -147,32 +176,213 @@ coverage:
     pr_comment:
       success: "✅ Cobertura de testes acima de 80%! Bom trabalho."
       failure: "❌ A cobertura de testes ficou abaixo do mínimo de 80%, por favor complemente os testes."
+    step_names:
+      run: "📊 Run Coverage Verification"
+      upload_report: "📤 Upload Coverage Report"
+
+# Instrumented (UI) Tests Gate. Kept separate from checks[] because it needs
+# a running emulator (reactivecircus/android-emulator-runner), not a plain
+# `./gradlew <command>` step like the checks[] matrix runs. Gated only on
+# stage 1 (lint) passing, same as coverage - runs in parallel with stage 2.
+instrumented_tests:
+  enabled: true
+  display_name: "📱 Instrumented Tests (UI)"
+  api_level: 34
+  target: "google_apis"
+  arch: "x86_64"
+  # Scoped to :app, not a bare `connectedDebugAndroidTest` - that aggregates
+  # every module's connectedDebugAndroidTest task, and modules with no
+  # androidTest source at all (everything except :app, currently) fail with
+  # "Could not load test results" instead of skipping cleanly - a real AGP
+  # behavior hit running this for the first time in CI, not a config typo.
+  # Add more `:module:connectedDebugAndroidTest` targets here once another
+  # module actually has androidTest sources.
+  command: "./gradlew :app:connectedDebugAndroidTest"
+  # Overrides build.default_timeout_minutes - emulator boot + test run is the
+  # single slowest, most hang-prone step in the whole pipeline.
+  timeout_minutes: 30
+  pr_comment:
+    success: "✅ Todos os testes instrumentados passaram com sucesso! Bom trabalho."
+    failure: "❌ Ops, encontrado falhas nos testes instrumentados, por favor corrija."
+  step_names:
+    enable_kvm: "🖥️ Enable KVM"
+    run: "▶️ Run Instrumented Tests"
+
+# APK Size Regression Gate. Compares a freshly built debug APK against
+# size_check.baseline_bytes, which build.yml keeps updated after every
+# successful push to develop (see the `update-size-baseline` job there) -
+# so the baseline always reflects the last APK actually shipped to internal
+# testers, without this file needing to fetch cross-workflow artifacts to
+# compare against. baseline_bytes starts at 0 (meaning "no baseline yet");
+# the check step treats that as a bootstrap no-op instead of a failure.
+size_check:
+  enabled: true
+  target: "app"
+  variant: "debug"
+  gradle_task: "assembleDebug"
+  max_increase_percent: 10
+  baseline_bytes: 0
+  pr_comment:
+    success: "✅ Tamanho do APK dentro do limite."
+    failure: "❌ O APK cresceu além do limite configurado (size_check.max_increase_percent) - verifique se esse aumento é esperado."
+  step_names:
+    build_apk: "🏗️ Build APK"
+    compare: "📏 Compare against baseline"
+    # build.yml's `update-size-baseline` job (not the PR check above)
+    download_apks: "📥 Download built APKs"
+    update_baseline: "📏 Update baseline_bytes"
+
+# tests.yml's final job: aggregates every check/gate above into one
+# stable-named required status check (see branch protection rules on
+# master) and posts the PR comment summarizing what passed/failed/was
+# skipped and why.
+pr_gate:
+  step_names:
+    build_report: "🧾 Build pipeline report"
+    post_report: "💬 Post pipeline report to PR"
+    verify: "✅ Verify every required job passed or was intentionally skipped"
 
 # Store & GitHub Release Settings
 release:
   enabled: true
   command_aab: "./gradlew bundleRelease"
-  # Toggles .github/scripts/version.sh (bumps versionName/versionCode, updates
-  # CHANGELOG.md and creates the GitHub Release). Disable to build/deploy a
-  # master push without cutting a new version, e.g. re-running a failed deploy.
+  # versionName/versionCode and CHANGELOG.md are bumped by .github/scripts/version.sh
+  # BEFORE master ever sees the commit - release-pr.yml runs it directly on
+  # develop (promote PR: develop -> master) and rollback.yml runs it on the
+  # rollback branch, both as part of the PR diff into master so it's reviewed
+  # like any other change (master is a protected branch with no direct
+  # pushes - see branch protection rules). This flag only toggles whether
+  # release.yml reads that already-bumped version back out and creates a
+  # tagged GitHub Release for it. Disable to build/deploy a master push
+  # without cutting a GitHub Release, e.g. re-running a failed Play Store
+  # deploy for a version already released.
   versioning:
     enabled: true
+  # Step names for release.yml's `build`/`release` jobs, plus release-pr.yml
+  # (which has no section of its own - it's the "prepare a release" half of
+  # this same release process, just running pre-merge on develop instead of
+  # post-merge on master).
+  step_names:
+    build_aab: "🏗️ Build AAB"
+    upload_aab: "📤 Upload AAB Artifact"
+    read_version: "🔢 Read current version"
+    create_release: "🏷️ Create Release"
+    sync_merge: "🔀 Merge master into develop"
+    sync_open_pr_conflict: "⚠️ Open PR on conflict"
+    # release-pr.yml
+    bump_version: "🔢 Bump version and changelog"
+    commit_push_develop: "📤 Commit and push to develop"
+    open_pr: "🔀 Open PR develop → master"
+    noop: "💤 No releasable changes"
   firebase:
     enabled: true
     groups: "testers"
     notifications: false
+    step_names:
+      download_apks: "📥 Download APKs"
+      install_cli: "🔥 Install Firebase CLI"
+      distribute: "🚀 Distribute to Firebase App Distribution"
   github_release:
     draft: false
     prerelease: false
   google_play:
     track: "production"
-    status: "completed"
-    user_fraction: 0.5
+    # "inProgress" is required for user_fraction to actually take effect - the
+    # Play Developer API ignores user_fraction under "completed" and rolls out
+    # to 100% immediately. Bump the rollout by re-running the deploy job with
+    # a higher user_fraction, then flip this to "completed" once it's at 100%.
+    status: "inProgress"
+    user_fraction: 0.1
+    # Job in release.yml targets this GitHub Environment before uploading to
+    # the Play Store, so the actual gate (require a reviewer, yes/no) is
+    # whatever protection rules that environment has under repo Settings >
+    # Environments - GitHub evaluates that at run time, a workflow file can't
+    # read it back. Renaming here only changes which environment the job
+    # points at, it doesn't create or configure one.
+    environment_name: "production"
+    step_names:
+      download_aab: "📥 Download AAB Artifact"
+      upload: "🚀 Upload to Google Play"
+
+# Incident rollback (rollback.yml): pick a previously released tag and this
+# restores master's tracked files to that tag's content. Has its own section
+# (rather than nesting under release:) because it's a distinct flow with its
+# own steps, not a variant of the normal release.
+rollback:
+  step_names:
+    checkout_target_branch: "📥 Checkout target branch explicitly"
+    validate_tag: "🔍 Validate tag exists"
+    create_branch: "🌿 Create rollback branch"
+    restore_code: "⏪ Restore code to target tag"
+    bump_version: "🔢 Bump version and changelog"
+    push_open_pr: "🔀 Push and open PR"
+
+# Security & Supply-Chain Scanning.
+# - codeql / commitlint: `codeql`/`commitlint` jobs in tests.yml (part of PR
+#   validation, alongside `danger`) export these fields and no-op every step
+#   when disabled.
+# - secret_scanning: a native GitHub feature that runs outside any workflow
+#   (repo Settings > Code security) - nothing here can toggle it at run time,
+#   these fields just document the intent it was provisioned with.
+# - dependabot: GitHub parses .github/dependabot.yml directly (also outside
+#   any workflow), so it can't read this section at run time either - but
+#   unlike secret_scanning, that file's content IS fully generated from the
+#   fields below by .github/scripts/generate-dependabot.sh, and tests.yml's
+#   `prepare` job fails the PR if the committed file drifts from what this
+#   section would generate. So this section is still the real source of
+#   truth, just applied by a generator + drift check instead of at run time.
+security:
+  codeql:
+    enabled: true
+    languages: "java-kotlin"
+    build_command: "./gradlew assembleDebug -x lint -x test -x detekt"
+    # No standalone schedule: master and develop are both PR-only now (branch
+    # protection blocks direct pushes to master, and the whole promotion/
+    # hotfix/rollback flow goes through PRs into develop too), so every
+    # commit that ever lands on either branch already went through this same
+    # `codeql` job as a PR check - a periodic re-scan of unchanged code would
+    # be pure redundancy.
+    step_names:
+      init: "🔒 Initialize CodeQL"
+      build: "🏗️ Build"
+      analyze: "🔍 Perform CodeQL Analysis"
+  commitlint:
+    enabled: true
+    node_version: 24
+    # version.sh (release-pr.yml / rollback.yml) decides the semver bump by
+    # grepping commit subjects for these prefixes, so an unenforced typo here
+    # silently produces the wrong version - this is what actually keeps that
+    # contract honest.
+    allowed_types: ["feat", "fix", "perf", "refactor", "revert", "chore", "docs", "style", "test", "build", "ci"]
+    step_names:
+      generate_config: "📝 Generate commitlint config"
+      install: "📦 Install commitlint"
+      run: "🔍 Lint PR commits"
+  secret_scanning:
+    enabled: true
+    push_protection: true
+  dependabot:
+    enabled: true
+    schedule_interval: "weekly"
+    open_pull_requests_limit: 10
+    ecosystems:
+      - id: "gradle"
+        directory: "/"
+        labels: ["dependencies"]
+      - id: "github-actions"
+        directory: "/"
+        labels: ["ci"]
 
 # Danger JS Rules and Settings
 danger:
   enabled: true
   node_version: 24
+  step_names:
+    export_config: "📤 Export pipeline-config.yaml as JSON"
+    install_deps: "📦 Install dependencies"
+    run: "🦋 Run Danger"
+    install_gh: "📥 Install GitHub CLI"
+    approve: "✅ Approve PR"
   rules:
     pr_size_limit: 500
     jira_pattern: "\\[?[A-Z]{2,}-\\d+\\]?"

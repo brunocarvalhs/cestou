@@ -1,0 +1,124 @@
+name: Release - Rollback Master
+
+# Incident response: pick a previously released tag (e.g. "1.4.2") and this
+# restores master's tracked files to that tag's content, preserving version
+# bookkeeping (versionCode must keep increasing for the Play Store, so the
+# rollback still ships as a NEW, higher version - it just contains old code).
+# Opens a PR into master like any other change; merging it runs the normal
+# release.yml path (build, GitHub Release, manual approval gate, Google
+# Play), and sync-develop brings the rollback into develop too.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag para qual a master deve voltar (ex: 1.4.2)"
+        required: true
+        type: string
+      reason:
+        description: "Motivo do rollback (aparece no PR)"
+        required: false
+        type: string
+        default: "Incidente grave em produção"
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  rollback:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: 📥 Checkout master
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Load Config
+        id: config
+        run: |
+          echo "main_branch=$(yq '.git.branches.main' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "bot_name=$(yq '.git.bot_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "bot_email=$(yq '.git.bot_email' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "gradle_file=$(yq '.paths.gradle_file' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "changelog_file=$(yq '.paths.changelog' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_checkout_target_branch=$(yq '.rollback.step_names.checkout_target_branch' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_validate_tag=$(yq '.rollback.step_names.validate_tag' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_create_branch=$(yq '.rollback.step_names.create_branch' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_restore_code=$(yq '.rollback.step_names.restore_code' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_bump_version=$(yq '.rollback.step_names.bump_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_push_open_pr=$(yq '.rollback.step_names.push_open_pr' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+
+      - name: ${{ steps.config.outputs.step_checkout_target_branch }}
+        run: git checkout "${{ steps.config.outputs.main_branch }}"
+
+      - name: ${{ steps.config.outputs.step_validate_tag }}
+        run: |
+          git fetch --tags
+          if ! git rev-parse -q --verify "refs/tags/${{ inputs.tag }}" >/dev/null; then
+            echo "::error::Tag '${{ inputs.tag }}' não existe neste repositório."
+            exit 1
+          fi
+
+      - name: ${{ steps.config.outputs.step_create_branch }}
+        id: branch
+        run: |
+          BRANCH="rollback/${{ inputs.tag }}-$(date +'%Y%m%d%H%M%S')"
+          git checkout -b "$BRANCH"
+          echo "name=$BRANCH" >> $GITHUB_OUTPUT
+
+      - name: ${{ steps.config.outputs.step_restore_code }}
+        id: restore
+        run: |
+          git config user.name "${{ steps.config.outputs.bot_name }}"
+          git config user.email "${{ steps.config.outputs.bot_email }}"
+          GRADLE_FILE="${{ steps.config.outputs.gradle_file }}"
+          CHANGELOG_FILE="${{ steps.config.outputs.changelog_file }}"
+
+          # Restore every tracked file to the target tag's content...
+          git checkout "${{ inputs.tag }}" -- .
+          # ...except version bookkeeping, which must keep moving forward
+          # (Play Store rejects a lower versionCode than what's already live).
+          git checkout HEAD -- "$GRADLE_FILE" "$CHANGELOG_FILE"
+
+          if git diff --cached --quiet && git diff --quiet; then
+            echo "::error::Nada para reverter: o conteúdo já é igual ao da tag ${{ inputs.tag }} (fora os arquivos de versão)."
+            exit 1
+          fi
+
+          git add -A
+          git commit -m "revert: rollback master to ${{ inputs.tag }}" -m "${{ inputs.reason }}"
+
+      - name: ${{ steps.config.outputs.step_bump_version }}
+        id: bump
+        run: |
+          chmod +x .github/scripts/version.sh
+          new_version=$(.github/scripts/version.sh)
+          echo "new_version=$new_version" >> $GITHUB_OUTPUT
+          GRADLE_FILE="${{ steps.config.outputs.gradle_file }}"
+          CHANGELOG_FILE="${{ steps.config.outputs.changelog_file }}"
+          git add "$GRADLE_FILE" "$CHANGELOG_FILE"
+          git commit -m "chore(release): prepare $new_version"
+
+      - name: ${{ steps.config.outputs.step_push_open_pr }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        run: |
+          MAIN="${{ steps.config.outputs.main_branch }}"
+          BRANCH="${{ steps.branch.outputs.name }}"
+          git push origin "$BRANCH"
+
+          BODY=$(printf '**Motivo:** %s\n\nRestaura o conteúdo de `%s` para o estado da tag `%s`, preservando o versionamento (nova versão: **%s**). Merge dispara `release.yml` normalmente: checks, build, GitHub Release, gate manual, Google Play - `sync-develop` então mergeia isso de volta em develop.' \
+            "${{ inputs.reason }}" "$MAIN" "${{ inputs.tag }}" "${{ steps.bump.outputs.new_version }}")
+
+          gh pr create \
+            --title "🔴 Rollback: voltar $MAIN para ${{ inputs.tag }}" \
+            --body "$BODY" \
+            --base "$MAIN" \
+            --head "$BRANCH" \
+            --label "incident,rollback"
