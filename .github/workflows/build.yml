@@ -4,13 +4,23 @@ on:
   push:
     branches: [ develop ]
 
+# No cancel-in-progress here (unlike tests.yml): this workflow ends in a real
+# Firebase App Distribution upload, so an in-flight run should finish or fail
+# on its own rather than being killed mid-deploy by the next push - it just
+# queues behind whatever's already running.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   prepare:
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     outputs:
       jdk_version: ${{ steps.config.outputs.jdk_version }}
       java_distribution: ${{ steps.config.outputs.java_distribution }}
       gradle_opts: ${{ steps.config.outputs.gradle_opts }}
+      default_timeout: ${{ steps.config.outputs.default_timeout }}
       app_name: ${{ steps.config.outputs.app_name }}
       variants: ${{ steps.config.outputs.variants }}
       target_names: ${{ steps.config.outputs.target_names }}
@@ -18,10 +28,31 @@ jobs:
       checks_stage_2: ${{ steps.config.outputs.checks_stage_2 }}
       build_enabled: ${{ steps.config.outputs.build_enabled }}
       deploy_enabled: ${{ steps.config.outputs.deploy_enabled }}
+      size_enabled: ${{ steps.config.outputs.size_enabled }}
+      size_target: ${{ steps.config.outputs.size_target }}
+      size_apk_glob: ${{ steps.config.outputs.size_apk_glob }}
+      dev_branch: ${{ steps.config.outputs.dev_branch }}
+      bot_name: ${{ steps.config.outputs.bot_name }}
+      bot_email: ${{ steps.config.outputs.bot_email }}
+      step_checkout: ${{ steps.config.outputs.step_checkout }}
+      step_setup_env: ${{ steps.config.outputs.step_setup_env }}
+      step_run_check: ${{ steps.config.outputs.step_run_check }}
+      step_build_apks: ${{ steps.config.outputs.step_build_apks }}
+      step_build_upload_apks: ${{ steps.config.outputs.step_build_upload_apks }}
+      step_deploy_download_apks: ${{ steps.config.outputs.step_deploy_download_apks }}
+      step_deploy_install_firebase_cli: ${{ steps.config.outputs.step_deploy_install_firebase_cli }}
+      step_deploy_distribute: ${{ steps.config.outputs.step_deploy_distribute }}
+      step_size_download_apks: ${{ steps.config.outputs.step_size_download_apks }}
+      step_size_update_baseline: ${{ steps.config.outputs.step_size_update_baseline }}
     steps:
-      - uses: actions/checkout@v4
+      # Bootstrap exception (see step_names comment in pipeline-config.yaml):
+      # this step downloads the very file its own name would come from.
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-      - name: Validate pipeline-config.yaml
+      # Bootstrap exception too: runs before the config-loading step below,
+      # so no step_names.* output exists yet at this point.
+      - name: 🧪 Validate pipeline-config.yaml
         run: |
           chmod +x .github/scripts/validate-pipeline-config.sh
           .github/scripts/validate-pipeline-config.sh
@@ -31,6 +62,7 @@ jobs:
           echo "jdk_version=$(yq '.build."java-version"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "java_distribution=$(yq '.build."java-distribution" // "temurin"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "gradle_opts=$(yq '.build.gradle_opts' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "default_timeout=$(yq '.build.default_timeout_minutes' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "app_name=$(yq '.project.name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "variants=$(yq -o=json '[.build.targets[] as $t | $t.variants[] | select(.enabled) | . + {"target": $t.name, "module": $t.module}]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
           echo "target_names=$(yq -o=json '[.build.targets[] | select([.variants[].enabled] | any) | .name]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
@@ -38,6 +70,24 @@ jobs:
           echo "checks_stage_2=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 2)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
           echo "build_enabled=true" >> $GITHUB_OUTPUT
           echo "deploy_enabled=$(yq '.release.firebase.enabled // false' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "size_enabled=$(yq '.size_check.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "size_target=$(yq '.size_check.target' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          SIZE_TARGET=$(yq '.size_check.target' .github/pipeline-config.yaml)
+          SIZE_VARIANT=$(yq '.size_check.variant' .github/pipeline-config.yaml)
+          echo "size_apk_glob=$(yq --arg t "$SIZE_TARGET" --arg v "$SIZE_VARIANT" '.build.targets[] | select(.name == $t) | .variants[] | select(.name == $v) | .path' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "dev_branch=$(yq '.git.branches.develop' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "bot_name=$(yq '.git.bot_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "bot_email=$(yq '.git.bot_email' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_checkout=$(yq '.build.step_names.checkout' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_setup_env=$(yq '.build.step_names.setup_environment' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_run_check=$(yq '.build.step_names.run_check' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_build_apks=$(yq '.build.step_names.build_apks' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_build_upload_apks=$(yq '.build.step_names.upload_apks' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_deploy_download_apks=$(yq '.release.firebase.step_names.download_apks' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_deploy_install_firebase_cli=$(yq '.release.firebase.step_names.install_cli' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_deploy_distribute=$(yq '.release.firebase.step_names.distribute' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_size_download_apks=$(yq '.size_check.step_names.download_apks' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_size_update_baseline=$(yq '.size_check.step_names.update_baseline' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
   checks_stage_1:
     needs: [prepare]
@@ -47,12 +97,13 @@ jobs:
       matrix:
         check: ${{ fromJson(needs.prepare.outputs.checks_stage_1) }}
     runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
     name: ${{ matrix.check.display_name }}
     steps:
-      - name: Checkout code
+      - name: ${{ needs.prepare.outputs.step_checkout }}
         uses: actions/checkout@v4
 
-      - name: Setup Environment
+      - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
         with:
           jdk-version: ${{ needs.prepare.outputs.jdk_version }}
@@ -60,7 +111,7 @@ jobs:
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
-      - name: Run Check
+      - name: ${{ needs.prepare.outputs.step_run_check }}
         run: |
           chmod +x gradlew
           ${{ matrix.check.command }}
@@ -78,12 +129,13 @@ jobs:
       matrix:
         check: ${{ fromJson(needs.prepare.outputs.checks_stage_2) }}
     runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
     name: ${{ matrix.check.display_name }}
     steps:
-      - name: Checkout code
+      - name: ${{ needs.prepare.outputs.step_checkout }}
         uses: actions/checkout@v4
 
-      - name: Setup Environment
+      - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
         with:
           jdk-version: ${{ needs.prepare.outputs.jdk_version }}
@@ -91,7 +143,7 @@ jobs:
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
-      - name: Run Check
+      - name: ${{ needs.prepare.outputs.step_run_check }}
         run: |
           chmod +x gradlew
           ${{ matrix.check.command }}
@@ -116,12 +168,13 @@ jobs:
         # declares.
         target_name: ${{ fromJson(needs.prepare.outputs.target_names) }}
     runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
     name: 📦 Build ${{ matrix.target_name }} (all variants)
     steps:
-      - name: Checkout code
+      - name: ${{ needs.prepare.outputs.step_checkout }}
         uses: actions/checkout@v4
 
-      - name: Setup Environment
+      - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
         with:
           jdk-version: ${{ needs.prepare.outputs.jdk_version }}
@@ -129,7 +182,7 @@ jobs:
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
-      - name: Build APKs
+      - name: ${{ needs.prepare.outputs.step_build_apks }}
         id: build
         run: |
           chmod +x gradlew
@@ -154,7 +207,7 @@ jobs:
           KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: Upload APKs
+      - name: ${{ needs.prepare.outputs.step_build_upload_apks }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ needs.prepare.outputs.app_name }}-${{ matrix.target_name }}
@@ -168,21 +221,22 @@ jobs:
       matrix:
         target_name: ${{ fromJson(needs.prepare.outputs.target_names) }}
     runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
     name: 🚀 Update ${{ matrix.target_name }} (all variants)
     steps:
-      - name: Checkout code
+      - name: ${{ needs.prepare.outputs.step_checkout }}
         uses: actions/checkout@v4
 
-      - name: Download APKs
+      - name: ${{ needs.prepare.outputs.step_deploy_download_apks }}
         uses: actions/download-artifact@v4
         with:
           name: ${{ needs.prepare.outputs.app_name }}-${{ matrix.target_name }}
           path: output/
 
-      - name: Install Firebase CLI
+      - name: ${{ needs.prepare.outputs.step_deploy_install_firebase_cli }}
         run: curl -sL https://firebase.tools | bash
 
-      - name: Distribute to Firebase App Distribution
+      - name: ${{ needs.prepare.outputs.step_deploy_distribute }}
         run: |
           RAW_NOTES=$(yq '.release.firebase.release_notes // "release automatica"' .github/pipeline-config.yaml)
 
@@ -217,3 +271,51 @@ jobs:
               --release-notes "$NOTES"
             echo "::endgroup::"
           done < <(echo '${{ needs.prepare.outputs.variants }}' | jq -c --arg t "${{ matrix.target_name }}" '.[] | select(.target == $t)')
+
+  # Keeps size_check.baseline_bytes in pipeline-config.yaml (read by
+  # tests.yml's apk-size-check job on every PR) equal to the size of the
+  # debug APK actually built above, so PRs are always compared against what
+  # really shipped to internal testers - not a stale, hand-maintained number.
+  # develop has no branch protection (see branch protection rules), so this
+  # bot commit can push directly instead of needing a PR.
+  update-size-baseline:
+    needs: [prepare, build]
+    if: |
+      always() &&
+      needs.prepare.outputs.size_enabled == 'true' &&
+      needs.build.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
+    name: 📏 Update APK Size Baseline
+    steps:
+      - name: ${{ needs.prepare.outputs.step_checkout }}
+        uses: actions/checkout@v4
+
+      - name: ${{ needs.prepare.outputs.step_size_download_apks }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.prepare.outputs.app_name }}-${{ needs.prepare.outputs.size_target }}
+          path: output/
+
+      - name: ${{ needs.prepare.outputs.step_size_update_baseline }}
+        run: |
+          GLOB="${{ needs.prepare.outputs.size_apk_glob }}"
+          APK_FILE=$(find output/ -iname "$(basename "$GLOB")" | head -n 1)
+          if [ -z "$APK_FILE" ]; then
+            echo "::warning::Nenhum APK encontrado casando com $GLOB no artefato baixado - baseline não atualizado."
+            exit 0
+          fi
+
+          NEW_BYTES=$(stat -c%s "$APK_FILE")
+          CURRENT_BYTES=$(yq '.size_check.baseline_bytes' .github/pipeline-config.yaml)
+          if [ "$NEW_BYTES" == "$CURRENT_BYTES" ]; then
+            echo "Baseline já está em $NEW_BYTES bytes, nada para commitar."
+            exit 0
+          fi
+
+          yq -i ".size_check.baseline_bytes = $NEW_BYTES" .github/pipeline-config.yaml
+          git config user.name "${{ needs.prepare.outputs.bot_name }}"
+          git config user.email "${{ needs.prepare.outputs.bot_email }}"
+          git add .github/pipeline-config.yaml
+          git commit -m "chore(ci): update APK size baseline to $NEW_BYTES bytes"
+          git push origin "HEAD:${{ needs.prepare.outputs.dev_branch }}"

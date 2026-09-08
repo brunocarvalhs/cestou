@@ -1,21 +1,30 @@
-name: Release to Master
+name: Release - Prepare Release PR
+
+# Git Flow "promote to master" step: bumps the version on develop itself
+# (reviewable in the PR diff once opened) and opens a PR straight from
+# develop into master - no intermediate release branch. release.yml (push to
+# master) never bumps version itself, it only reads what already landed via
+# this PR's merge, so master stays direct-push-free and every version change
+# is a reviewable diff like any other change.
 
 on:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
-  version_manager:
-    name: Version Manager
-    runs-on: ubuntu-latest
-    outputs:
-      new_name: ${{ steps.bump.outputs.new_name }}
-      new_code: ${{ steps.bump.outputs.new_code }}
-      updated: ${{ steps.bump.outputs.updated }}
-      feat: ${{ steps.count_feat.outputs.feat }}
-      fix: ${{ steps.count_fix.outputs.fix }}
-      breaking: ${{ steps.count_breaking.outputs.breaking }}
+  prepare:
+    name: Bump & Open Release PR
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
-      - name: Checkout develop
+      - name: 📥 Checkout develop
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -25,99 +34,53 @@ jobs:
         run: |
           echo "main_branch=$(yq '.git.branches.main' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "dev_branch=$(yq '.git.branches.develop' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "gradle_file=$(yq '.paths.gradle_file' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "bot_name=$(yq '.git.bot_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "bot_email=$(yq '.git.bot_email' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_bump_version=$(yq '.release.step_names.bump_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_commit_push_develop=$(yq '.release.step_names.commit_push_develop' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_open_pr=$(yq '.release.step_names.open_pr' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_noop=$(yq '.release.step_names.noop' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
-      - name: Count commits
-        id: counts
-        run: |
-          FEAT=$(git log origin/${{ steps.config.outputs.main_branch }}..origin/${{ steps.config.outputs.dev_branch }} --pretty=%s | grep -E '^feat' | wc -l || echo 0)
-          FIX=$(git log origin/${{ steps.config.outputs.main_branch }}..origin/${{ steps.config.outputs.dev_branch }} --pretty=%s | grep -E '^(fix|revert|perf|refactor)' | wc -l || echo 0)
-          BREAKING=$(git log origin/${{ steps.config.outputs.main_branch }}..origin/${{ steps.config.outputs.dev_branch }} --pretty=%b | grep -c 'BREAKING CHANGE' || echo 0)
-          echo "feat=$FEAT" >> $GITHUB_OUTPUT
-          echo "fix=$FIX" >> $GITHUB_OUTPUT
-          echo "breaking=$BREAKING" >> $GITHUB_OUTPUT
-
-      - name: Get current version
-        id: version
-        run: |
-          FILE="${{ steps.config.outputs.gradle_file }}"
-          VERSION_NAME=$(grep "versionName = " "$FILE" | sed 's/.*versionName = "\(.*\)"/\1/')
-          VERSION_CODE=$(grep "versionCode = " "$FILE" | sed 's/.*versionCode = \([0-9]*\).*/\1/')
-          echo "name=$VERSION_NAME" >> $GITHUB_OUTPUT
-          echo "code=$VERSION_CODE" >> $GITHUB_OUTPUT
-
-      - name: Bump version
+      - name: ${{ steps.config.outputs.step_bump_version }}
         id: bump
         run: |
-          FEAT=${{ steps.counts.outputs.feat }}
-          FIX=${{ steps.counts.outputs.fix }}
-          BREAKING=${{ steps.counts.outputs.breaking }}
-          VERSION=${{ steps.version.outputs.name }}
-          CODE=${{ steps.version.outputs.code }}
-          
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-          
-          if [ $((FEAT + FIX + BREAKING)) -eq 0 ]; then
-            echo "updated=false" >> $GITHUB_OUTPUT
-          else
-            if [ $BREAKING -gt 0 ]; then
-              MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
-            elif [ $FEAT -gt 0 ]; then
-              MINOR=$((MINOR + 1)); PATCH=0
-            else
-              PATCH=$((PATCH + 1))
-            fi
-            echo "new_name=$MAJOR.$MINOR.$PATCH" >> $GITHUB_OUTPUT
-            echo "new_code=$((CODE + 1))" >> $GITHUB_OUTPUT
-            echo "updated=true" >> $GITHUB_OUTPUT
-          fi
+          git config user.name "${{ steps.config.outputs.bot_name }}"
+          git config user.email "${{ steps.config.outputs.bot_email }}"
+          chmod +x .github/scripts/version.sh
+          new_version=$(.github/scripts/version.sh)
+          echo "new_version=$new_version" >> $GITHUB_OUTPUT
 
-  update_version:
-    needs: [version_manager]
-    if: needs.version_manager.outputs.updated == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout develop
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Update Version File
+      - name: ${{ steps.config.outputs.step_commit_push_develop }}
+        if: steps.bump.outputs.new_version != ''
         run: |
-          FILE=$(yq '.paths.gradle_file' .github/pipeline-config.yaml)
-          BOT_NAME=$(yq '.git.bot_name' .github/pipeline-config.yaml)
-          BOT_EMAIL=$(yq '.git.bot_email' .github/pipeline-config.yaml)
-          DEV_BRANCH=$(yq '.git.branches.develop' .github/pipeline-config.yaml)
-          
-          sed -i "s/versionCode = .*/versionCode = ${{ needs.version_manager.outputs.new_code }}/" "$FILE"
-          sed -i "s/versionName = .*/versionName = \"${{ needs.version_manager.outputs.new_name }}\"/" "$FILE"
-          
-          git config user.name "$BOT_NAME"
-          git config user.email "$BOT_EMAIL"
-          git add "$FILE"
-          git commit -m "chore: bump version to ${{ needs.version_manager.outputs.new_name }}"
-          git push origin $DEV_BRANCH
+          GRADLE_FILE=$(yq '.paths.gradle_file' .github/pipeline-config.yaml)
+          CHANGELOG_FILE=$(yq '.paths.changelog' .github/pipeline-config.yaml)
+          git add "$GRADLE_FILE" "$CHANGELOG_FILE"
+          git commit -m "chore(release): prepare ${{ steps.bump.outputs.new_version }}"
+          git push origin "HEAD:${{ steps.config.outputs.dev_branch }}"
 
-  pr_release:
-    needs: [version_manager, update_version]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout develop
-        uses: actions/checkout@v4
-      
-      - name: Create PR
+      - name: ${{ steps.config.outputs.step_open_pr }}
+        if: steps.bump.outputs.new_version != ''
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         run: |
-          MAIN_BRANCH=$(yq '.git.branches.main' .github/pipeline-config.yaml)
-          DEV_BRANCH=$(yq '.git.branches.develop' .github/pipeline-config.yaml)
-          RELEASE_BRANCH="release-$(date +'%Y-%m-%d')"
-          
-          git checkout -b $RELEASE_BRANCH
-          git push origin $RELEASE_BRANCH
-          
+          MAIN_BRANCH="${{ steps.config.outputs.main_branch }}"
+          DEV_BRANCH="${{ steps.config.outputs.dev_branch }}"
+          NEW_VERSION="${{ steps.bump.outputs.new_version }}"
+
+          EXISTING=$(gh pr list --head "$DEV_BRANCH" --base "$MAIN_BRANCH" --json number --jq 'length')
+          if [ "$EXISTING" -gt 0 ]; then
+            echo "::notice::Já existe um PR aberto de $DEV_BRANCH → $MAIN_BRANCH, reaproveitando."
+            exit 0
+          fi
+
           gh pr create \
-            --title "Release ${{ needs.version_manager.outputs.new_name }}" \
-            --body "Automated release preparation." \
-            --base $MAIN_BRANCH \
-            --head $RELEASE_BRANCH
+            --title "Release $NEW_VERSION" \
+            --body "Promove \`$DEV_BRANCH\` para \`$MAIN_BRANCH\`. Bump de versão para **$NEW_VERSION** já incluso e revisável neste diff. Merge dispara \`release.yml\`: build, GitHub Release, gate manual, Google Play (rollout 10%) - \`sync-develop\` então mergeia \`$MAIN_BRANCH\` de volta em \`$DEV_BRANCH\`." \
+            --base "$MAIN_BRANCH" \
+            --head "$DEV_BRANCH" \
+            --label "release"
+
+      - name: ${{ steps.config.outputs.step_noop }}
+        if: steps.bump.outputs.new_version == ''
+        run: echo "::notice::Nenhum commit feat/fix/breaking desde a última release - nada para preparar."

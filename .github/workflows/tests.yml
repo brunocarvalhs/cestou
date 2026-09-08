@@ -4,23 +4,82 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   prepare:
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     outputs:
       jdk_version: ${{ steps.config.outputs.jdk_version }}
       java_distribution: ${{ steps.config.outputs.java_distribution }}
       gradle_opts: ${{ steps.config.outputs.gradle_opts }}
+      default_timeout: ${{ steps.config.outputs.default_timeout }}
       checks_stage_1: ${{ steps.config.outputs.checks_stage_1 }}
       checks_stage_2: ${{ steps.config.outputs.checks_stage_2 }}
       coverage_enabled: ${{ steps.config.outputs.coverage_enabled }}
       coverage_display_name: ${{ steps.config.outputs.coverage_display_name }}
       coverage_pr_success: ${{ steps.config.outputs.coverage_pr_success }}
       coverage_pr_failure: ${{ steps.config.outputs.coverage_pr_failure }}
+      instrumented_enabled: ${{ steps.config.outputs.instrumented_enabled }}
+      instrumented_display_name: ${{ steps.config.outputs.instrumented_display_name }}
+      instrumented_api_level: ${{ steps.config.outputs.instrumented_api_level }}
+      instrumented_target: ${{ steps.config.outputs.instrumented_target }}
+      instrumented_arch: ${{ steps.config.outputs.instrumented_arch }}
+      instrumented_command: ${{ steps.config.outputs.instrumented_command }}
+      instrumented_timeout: ${{ steps.config.outputs.instrumented_timeout }}
+      instrumented_pr_success: ${{ steps.config.outputs.instrumented_pr_success }}
+      instrumented_pr_failure: ${{ steps.config.outputs.instrumented_pr_failure }}
+      codeql_enabled: ${{ steps.config.outputs.codeql_enabled }}
+      codeql_languages: ${{ steps.config.outputs.codeql_languages }}
+      codeql_build_command: ${{ steps.config.outputs.codeql_build_command }}
+      danger_enabled: ${{ steps.config.outputs.danger_enabled }}
+      danger_node_version: ${{ steps.config.outputs.danger_node_version }}
+      commitlint_enabled: ${{ steps.config.outputs.commitlint_enabled }}
+      commitlint_node_version: ${{ steps.config.outputs.commitlint_node_version }}
+      size_enabled: ${{ steps.config.outputs.size_enabled }}
+      size_module: ${{ steps.config.outputs.size_module }}
+      size_gradle_task: ${{ steps.config.outputs.size_gradle_task }}
+      size_apk_glob: ${{ steps.config.outputs.size_apk_glob }}
+      size_pr_success: ${{ steps.config.outputs.size_pr_success }}
+      size_pr_failure: ${{ steps.config.outputs.size_pr_failure }}
+      step_checkout: ${{ steps.config.outputs.step_checkout }}
+      step_setup_env: ${{ steps.config.outputs.step_setup_env }}
+      step_run_check: ${{ steps.config.outputs.step_run_check }}
+      step_comment_failure: ${{ steps.config.outputs.step_comment_failure }}
+      step_comment_success: ${{ steps.config.outputs.step_comment_success }}
+      step_setup_node: ${{ steps.config.outputs.step_setup_node }}
+      step_coverage_run: ${{ steps.config.outputs.step_coverage_run }}
+      step_coverage_upload: ${{ steps.config.outputs.step_coverage_upload }}
+      step_instrumented_kvm: ${{ steps.config.outputs.step_instrumented_kvm }}
+      step_instrumented_run: ${{ steps.config.outputs.step_instrumented_run }}
+      step_codeql_init: ${{ steps.config.outputs.step_codeql_init }}
+      step_codeql_build: ${{ steps.config.outputs.step_codeql_build }}
+      step_codeql_analyze: ${{ steps.config.outputs.step_codeql_analyze }}
+      step_danger_export_config: ${{ steps.config.outputs.step_danger_export_config }}
+      step_danger_install_deps: ${{ steps.config.outputs.step_danger_install_deps }}
+      step_danger_run: ${{ steps.config.outputs.step_danger_run }}
+      step_danger_install_gh: ${{ steps.config.outputs.step_danger_install_gh }}
+      step_danger_approve: ${{ steps.config.outputs.step_danger_approve }}
+      step_commitlint_generate_config: ${{ steps.config.outputs.step_commitlint_generate_config }}
+      step_commitlint_install: ${{ steps.config.outputs.step_commitlint_install }}
+      step_commitlint_run: ${{ steps.config.outputs.step_commitlint_run }}
+      step_size_build_apk: ${{ steps.config.outputs.step_size_build_apk }}
+      step_size_compare: ${{ steps.config.outputs.step_size_compare }}
+      step_gate_build_report: ${{ steps.config.outputs.step_gate_build_report }}
+      step_gate_post_report: ${{ steps.config.outputs.step_gate_post_report }}
+      step_gate_verify: ${{ steps.config.outputs.step_gate_verify }}
     steps:
-      - uses: actions/checkout@v4
+      # Bootstrap exception (see step_names comment in pipeline-config.yaml):
+      # this step downloads the very file its own name would come from.
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-      - name: Validate pipeline-config.yaml
+      # Bootstrap exception too: runs before the config-loading step below,
+      # so no step_names.* output exists yet at this point.
+      - name: 🧪 Validate pipeline-config.yaml
         run: |
           chmod +x .github/scripts/validate-pipeline-config.sh
           .github/scripts/validate-pipeline-config.sh
@@ -30,12 +89,63 @@ jobs:
           echo "jdk_version=$(yq '.build."java-version"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "java_distribution=$(yq '.build."java-distribution" // "temurin"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "gradle_opts=$(yq '.build.gradle_opts' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "default_timeout=$(yq '.build.default_timeout_minutes' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "checks_stage_1=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 1)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
           echo "checks_stage_2=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 2)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
           echo "coverage_enabled=$(yq '.coverage.kover.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "coverage_display_name=$(yq '.coverage.kover.display_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "coverage_pr_success=$(yq '.coverage.kover.pr_comment.success' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "coverage_pr_failure=$(yq '.coverage.kover.pr_comment.failure' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "instrumented_enabled=$(yq '.instrumented_tests.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "instrumented_display_name=$(yq '.instrumented_tests.display_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "instrumented_api_level=$(yq '.instrumented_tests.api_level' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "instrumented_target=$(yq '.instrumented_tests.target' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "instrumented_arch=$(yq '.instrumented_tests.arch' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "instrumented_command=$(yq '.instrumented_tests.command' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "instrumented_timeout=$(yq '.instrumented_tests.timeout_minutes' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "instrumented_pr_success=$(yq '.instrumented_tests.pr_comment.success' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "instrumented_pr_failure=$(yq '.instrumented_tests.pr_comment.failure' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "codeql_enabled=$(yq '.security.codeql.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "codeql_languages=$(yq '.security.codeql.languages' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "codeql_build_command=$(yq '.security.codeql.build_command' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "danger_enabled=$(yq '.danger.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "danger_node_version=$(yq '.danger.node_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "commitlint_enabled=$(yq '.security.commitlint.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "commitlint_node_version=$(yq '.security.commitlint.node_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "size_enabled=$(yq '.size_check.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "size_gradle_task=$(yq '.size_check.gradle_task' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "size_pr_success=$(yq '.size_check.pr_comment.success' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "size_pr_failure=$(yq '.size_check.pr_comment.failure' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          SIZE_TARGET=$(yq '.size_check.target' .github/pipeline-config.yaml)
+          SIZE_VARIANT=$(yq '.size_check.variant' .github/pipeline-config.yaml)
+          echo "size_module=$(yq --arg t "$SIZE_TARGET" '.build.targets[] | select(.name == $t) | .module' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "size_apk_glob=$(yq --arg t "$SIZE_TARGET" --arg v "$SIZE_VARIANT" '.build.targets[] | select(.name == $t) | .variants[] | select(.name == $v) | .path' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_checkout=$(yq '.build.step_names.checkout' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_setup_env=$(yq '.build.step_names.setup_environment' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_run_check=$(yq '.build.step_names.run_check' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_comment_failure=$(yq '.build.step_names.comment_failure' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_comment_success=$(yq '.build.step_names.comment_success' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_setup_node=$(yq '.build.step_names.setup_node' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_coverage_run=$(yq '.coverage.kover.step_names.run' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_coverage_upload=$(yq '.coverage.kover.step_names.upload_report' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_instrumented_kvm=$(yq '.instrumented_tests.step_names.enable_kvm' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_instrumented_run=$(yq '.instrumented_tests.step_names.run' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_codeql_init=$(yq '.security.codeql.step_names.init' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_codeql_build=$(yq '.security.codeql.step_names.build' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_codeql_analyze=$(yq '.security.codeql.step_names.analyze' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_danger_export_config=$(yq '.danger.step_names.export_config' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_danger_install_deps=$(yq '.danger.step_names.install_deps' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_danger_run=$(yq '.danger.step_names.run' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_danger_install_gh=$(yq '.danger.step_names.install_gh' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_danger_approve=$(yq '.danger.step_names.approve' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_commitlint_generate_config=$(yq '.security.commitlint.step_names.generate_config' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_commitlint_install=$(yq '.security.commitlint.step_names.install' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_commitlint_run=$(yq '.security.commitlint.step_names.run' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_size_build_apk=$(yq '.size_check.step_names.build_apk' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_size_compare=$(yq '.size_check.step_names.compare' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_gate_build_report=$(yq '.pr_gate.step_names.build_report' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_gate_post_report=$(yq '.pr_gate.step_names.post_report' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_gate_verify=$(yq '.pr_gate.step_names.verify' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
   checks_stage_1:
     needs: [prepare]
@@ -45,12 +155,13 @@ jobs:
       matrix:
         check: ${{ fromJson(needs.prepare.outputs.checks_stage_1) }}
     runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
     name: ${{ matrix.check.display_name }}
     steps:
-      - name: Checkout code
+      - name: ${{ needs.prepare.outputs.step_checkout }}
         uses: actions/checkout@v4
 
-      - name: Setup Environment
+      - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
         with:
           jdk-version: ${{ needs.prepare.outputs.jdk_version }}
@@ -58,14 +169,14 @@ jobs:
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
-      - name: Run Check
+      - name: ${{ needs.prepare.outputs.step_run_check }}
         run: |
           chmod +x gradlew
           ${{ matrix.check.command }}
         env:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
-      - name: Comment Failure
+      - name: ${{ needs.prepare.outputs.step_comment_failure }}
         if: ${{ failure() && matrix.check.pr_comment.failure != null }}
         uses: mb2dev/github-action-comment-pull-request@1.0.0
         with:
@@ -73,7 +184,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
           reactions: "-1 | confused"
 
-      - name: Comment Success
+      - name: ${{ needs.prepare.outputs.step_comment_success }}
         if: ${{ success() && matrix.check.pr_comment.success != null }}
         uses: mb2dev/github-action-comment-pull-request@1.0.0
         with:
@@ -92,12 +203,13 @@ jobs:
       matrix:
         check: ${{ fromJson(needs.prepare.outputs.checks_stage_2) }}
     runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
     name: ${{ matrix.check.display_name }}
     steps:
-      - name: Checkout code
+      - name: ${{ needs.prepare.outputs.step_checkout }}
         uses: actions/checkout@v4
 
-      - name: Setup Environment
+      - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
         with:
           jdk-version: ${{ needs.prepare.outputs.jdk_version }}
@@ -105,14 +217,14 @@ jobs:
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
-      - name: Run Check
+      - name: ${{ needs.prepare.outputs.step_run_check }}
         run: |
           chmod +x gradlew
           ${{ matrix.check.command }}
         env:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
-      - name: Comment Failure
+      - name: ${{ needs.prepare.outputs.step_comment_failure }}
         if: ${{ failure() && matrix.check.pr_comment.failure != null }}
         uses: mb2dev/github-action-comment-pull-request@1.0.0
         with:
@@ -120,7 +232,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
           reactions: "-1 | confused"
 
-      - name: Comment Success
+      - name: ${{ needs.prepare.outputs.step_comment_success }}
         if: ${{ success() && matrix.check.pr_comment.success != null }}
         uses: mb2dev/github-action-comment-pull-request@1.0.0
         with:
@@ -135,12 +247,13 @@ jobs:
       needs.prepare.outputs.coverage_enabled == 'true' &&
       (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped')
     runs-on: ubuntu-24.04
-    name: ${{ needs.prepare.outputs.coverage_display_name }}
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
+    name: 📊 Test Coverage Gate
     steps:
-      - name: Checkout code
+      - name: ${{ needs.prepare.outputs.step_checkout }}
         uses: actions/checkout@v4
 
-      - name: Setup Environment
+      - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
         with:
           jdk-version: ${{ needs.prepare.outputs.jdk_version }}
@@ -148,7 +261,7 @@ jobs:
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
-      - name: Run Coverage Verification
+      - name: ${{ needs.prepare.outputs.step_coverage_run }}
         run: |
           COMMAND=$(yq '.coverage.kover.command' .github/pipeline-config.yaml)
           chmod +x gradlew
@@ -156,14 +269,14 @@ jobs:
         env:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
-      - name: Upload Coverage Report
+      - name: ${{ needs.prepare.outputs.step_coverage_upload }}
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: kover-html-report
           path: build/reports/kover/html/
 
-      - name: Comment Failure
+      - name: ${{ needs.prepare.outputs.step_comment_failure }}
         if: ${{ failure() }}
         uses: mb2dev/github-action-comment-pull-request@1.0.0
         with:
@@ -171,10 +284,337 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
           reactions: "-1 | confused"
 
-      - name: Comment Success
+      - name: ${{ needs.prepare.outputs.step_comment_success }}
         if: ${{ success() }}
         uses: mb2dev/github-action-comment-pull-request@1.0.0
         with:
           message: ${{ needs.prepare.outputs.coverage_pr_success }}
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
           reactions: "+1"
+
+  instrumented-tests:
+    needs: [prepare, checks_stage_1]
+    if: |
+      always() &&
+      needs.prepare.outputs.instrumented_enabled == 'true' &&
+      (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped')
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.instrumented_timeout) }}
+    name: 📱 Instrumented Tests (UI)
+    steps:
+      - name: ${{ needs.prepare.outputs.step_checkout }}
+        uses: actions/checkout@v4
+
+      - name: ${{ needs.prepare.outputs.step_setup_env }}
+        uses: ./.github/actions/setup-env
+        with:
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
+
+      - name: ${{ needs.prepare.outputs.step_instrumented_kvm }}
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: ${{ needs.prepare.outputs.step_instrumented_run }}
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ needs.prepare.outputs.instrumented_api_level }}
+          target: ${{ needs.prepare.outputs.instrumented_target }}
+          arch: ${{ needs.prepare.outputs.instrumented_arch }}
+          disable-animations: true
+          script: |
+            chmod +x gradlew
+            ${{ needs.prepare.outputs.instrumented_command }}
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
+
+      - name: ${{ needs.prepare.outputs.step_comment_failure }}
+        if: ${{ failure() }}
+        uses: mb2dev/github-action-comment-pull-request@1.0.0
+        with:
+          message: ${{ needs.prepare.outputs.instrumented_pr_failure }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          reactions: "-1 | confused"
+
+      - name: ${{ needs.prepare.outputs.step_comment_success }}
+        if: ${{ success() }}
+        uses: mb2dev/github-action-comment-pull-request@1.0.0
+        with:
+          message: ${{ needs.prepare.outputs.instrumented_pr_success }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          reactions: "+1"
+
+  codeql:
+    needs: [prepare]
+    if: needs.prepare.outputs.codeql_enabled == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
+    name: 🔒 Security Analysis (CodeQL)
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - name: ${{ needs.prepare.outputs.step_checkout }}
+        uses: actions/checkout@v4
+
+      - name: ${{ needs.prepare.outputs.step_setup_env }}
+        uses: ./.github/actions/setup-env
+        with:
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
+
+      - name: ${{ needs.prepare.outputs.step_codeql_init }}
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ needs.prepare.outputs.codeql_languages }}
+          build-mode: manual
+
+      - name: ${{ needs.prepare.outputs.step_codeql_build }}
+        run: |
+          chmod +x gradlew
+          ${{ needs.prepare.outputs.codeql_build_command }}
+
+      - name: ${{ needs.prepare.outputs.step_codeql_analyze }}
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ needs.prepare.outputs.codeql_languages }}"
+
+  danger:
+    needs: [prepare]
+    if: needs.prepare.outputs.danger_enabled == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
+    name: 🦋 PR Hygiene (Danger)
+    steps:
+      - name: ${{ needs.prepare.outputs.step_checkout }}
+        uses: actions/checkout@v4
+
+      - name: ${{ needs.prepare.outputs.step_danger_export_config }}
+        run: yq -o=json . .github/pipeline-config.yaml > .github/pipeline-config.json
+
+      - name: ${{ needs.prepare.outputs.step_setup_node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ needs.prepare.outputs.danger_node_version }}
+
+      - name: ${{ needs.prepare.outputs.step_danger_install_deps }}
+        run: npm install -g danger conventional-changelog
+
+      - name: ${{ needs.prepare.outputs.step_danger_run }}
+        run: danger ci --dangerfile .github/danger/dangerfile.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
+      - name: ${{ needs.prepare.outputs.step_danger_install_gh }}
+        run: sudo apt-get install -y gh
+
+      - name: ${{ needs.prepare.outputs.step_danger_approve }}
+        if: success()
+        run: |
+          if [[ "${{ github.actor }}" == "${{ github.event.pull_request.user.login }}" ]]; then
+            echo "Self-approval is not allowed. Please ask a reviewer to approve."
+          else
+            gh pr review "${{ github.event.pull_request.number }}" --approve --body "Approved automatically by CI."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
+  commitlint:
+    needs: [prepare]
+    if: needs.prepare.outputs.commitlint_enabled == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
+    name: 📝 Commit Lint
+    steps:
+      - name: ${{ needs.prepare.outputs.step_checkout }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: ${{ needs.prepare.outputs.step_setup_node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ needs.prepare.outputs.commitlint_node_version }}
+
+      # security.commitlint.allowed_types drives this instead of a static
+      # commitlint.config.js because version.sh's semver bump decision reads
+      # the same commit-type prefixes - keeping one list in pipeline-config.yaml
+      # means they can't silently drift apart.
+      - name: ${{ needs.prepare.outputs.step_commitlint_generate_config }}
+        run: |
+          TYPES=$(yq -o=json '.security.commitlint.allowed_types' .github/pipeline-config.yaml)
+          cat > commitlint.config.js <<CONFIG_EOF
+          module.exports = {
+            extends: ['@commitlint/config-conventional'],
+            rules: {
+              'type-enum': [2, 'always', $TYPES]
+            }
+          };
+          CONFIG_EOF
+
+      - name: ${{ needs.prepare.outputs.step_commitlint_install }}
+        run: npm install --no-save @commitlint/cli @commitlint/config-conventional
+
+      - name: ${{ needs.prepare.outputs.step_commitlint_run }}
+        uses: wagoid/commitlint-github-action@v6
+
+  apk-size-check:
+    needs: [prepare, checks_stage_1]
+    if: |
+      always() &&
+      needs.prepare.outputs.size_enabled == 'true' &&
+      (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped')
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
+    name: 📏 APK Size Check
+    steps:
+      - name: ${{ needs.prepare.outputs.step_checkout }}
+        uses: actions/checkout@v4
+
+      - name: ${{ needs.prepare.outputs.step_setup_env }}
+        uses: ./.github/actions/setup-env
+        with:
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
+
+      - name: ${{ needs.prepare.outputs.step_size_build_apk }}
+        run: |
+          chmod +x gradlew
+          ./gradlew "${{ needs.prepare.outputs.size_module }}:${{ needs.prepare.outputs.size_gradle_task }}"
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
+
+      # baseline_bytes is updated by build.yml's `update-size-baseline` job
+      # after every successful push to develop, so it always reflects the
+      # last APK actually shipped to internal testers - no cross-workflow
+      # artifact fetching needed here, just read the value already committed
+      # in pipeline-config.yaml.
+      - name: ${{ needs.prepare.outputs.step_size_compare }}
+        run: |
+          APK_FILE=$(ls ${{ needs.prepare.outputs.size_apk_glob }} | head -n 1)
+          CURRENT_BYTES=$(stat -c%s "$APK_FILE")
+          BASELINE_BYTES=$(yq '.size_check.baseline_bytes' .github/pipeline-config.yaml)
+
+          {
+            echo "### 📏 APK Size"
+            echo "- Atual: $CURRENT_BYTES bytes"
+            echo "- Baseline: $BASELINE_BYTES bytes"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$BASELINE_BYTES" -eq 0 ]; then
+            echo "::notice::Nenhum baseline definido ainda - build.yml grava um após o próximo push em develop."
+            exit 0
+          fi
+
+          MAX_PERCENT=$(yq '.size_check.max_increase_percent' .github/pipeline-config.yaml)
+          DIFF_PERCENT=$(( (CURRENT_BYTES - BASELINE_BYTES) * 100 / BASELINE_BYTES ))
+          echo "- Variação: ${DIFF_PERCENT}%" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$DIFF_PERCENT" -gt "$MAX_PERCENT" ]; then
+            echo "::error::APK cresceu ${DIFF_PERCENT}% frente ao baseline (limite: ${MAX_PERCENT}%)."
+            exit 1
+          fi
+
+      - name: ${{ needs.prepare.outputs.step_comment_failure }}
+        if: ${{ failure() }}
+        uses: mb2dev/github-action-comment-pull-request@1.0.0
+        with:
+          message: ${{ needs.prepare.outputs.size_pr_failure }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          reactions: "-1 | confused"
+
+      - name: ${{ needs.prepare.outputs.step_comment_success }}
+        if: ${{ success() }}
+        uses: mb2dev/github-action-comment-pull-request@1.0.0
+        with:
+          message: ${{ needs.prepare.outputs.size_pr_success }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          reactions: "+1"
+
+  # Single stable-named job that branch protection actually requires. Every
+  # job above it can be freely renamed/added/removed via pipeline-config.yaml
+  # (checks_stage_1/2 are a config-driven matrix, display names come from
+  # config, etc.) without ever touching what master's required status check
+  # list points at - this is the one name that has to stay put.
+  pr-gate:
+    name: ✅ PR Gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    needs:
+      - prepare
+      - checks_stage_1
+      - checks_stage_2
+      - coverage-check
+      - instrumented-tests
+      - codeql
+      - danger
+      - commitlint
+      - apk-size-check
+    if: always()
+    steps:
+      # Human-readable names for each `needs` key above, since job ids like
+      # "checks_stage_1" mean nothing to someone reading the PR comment -
+      # this is metadata about the pipeline's own shape, not app behavior,
+      # so it lives here rather than pipeline-config.yaml.
+      - name: ${{ needs.prepare.outputs.step_gate_build_report }}
+        if: always()
+        run: |
+          declare -A LABELS=(
+            [checks_stage_1]="🧹 Stage 1 (lint)"
+            [checks_stage_2]="🔍 Stage 2 (detekt + unit tests)"
+            [coverage-check]="📊 Test Coverage Gate"
+            [instrumented-tests]="📱 Instrumented Tests (UI)"
+            [codeql]="🔒 Security Analysis (CodeQL)"
+            [danger]="🦋 PR Hygiene (Danger)"
+            [commitlint]="📝 Commit Lint"
+            [apk-size-check]="📏 APK Size Check"
+          )
+          {
+            echo "<!-- pipeline-report -->"
+            echo "## 🧾 Relatório da Pipeline"
+            echo ""
+            echo "| Check | Status |"
+            echo "|---|---|"
+          } > report.md
+          for key in "${!LABELS[@]}"; do
+            result=$(echo '${{ toJson(needs) }}' | jq -r --arg k "$key" '.[$k].result // "n/a"')
+            case "$result" in
+              success) icon="✅ passou";;
+              failure) icon="❌ falhou";;
+              skipped) icon="⏭️ pulado (desabilitado no pipeline-config.yaml)";;
+              cancelled) icon="🚫 cancelado";;
+              *) icon="❔ $result";;
+            esac
+            echo "| ${LABELS[$key]} | $icon |" >> report.md
+          done
+          {
+            echo ""
+            echo "[Ver logs completos desta execução →](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          } >> report.md
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: ${{ needs.prepare.outputs.step_gate_post_report }}
+        if: always()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pipeline-report
+          path: report.md
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
+      - name: ${{ needs.prepare.outputs.step_gate_verify }}
+        run: |
+          if echo '${{ toJson(needs) }}' | jq -e 'to_entries | all(.value.result == "success" or .value.result == "skipped")' > /dev/null; then
+            echo "Todos os checks obrigatórios passaram (ou foram pulados por configuração)."
+          else
+            echo "::error::Um ou mais checks obrigatórios falharam - veja o relatório no comentário do PR."
+            exit 1
+          fi

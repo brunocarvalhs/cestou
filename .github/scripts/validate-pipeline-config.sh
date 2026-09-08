@@ -80,6 +80,33 @@ if [ "$(yq '.coverage.kover.enabled' "$CONFIG_FILE")" == "true" ]; then
   require_field '.coverage.kover.display_name'
 fi
 
+# --- instrumented_tests: only needed when enabled, mirrors coverage.kover ---
+require_field '.instrumented_tests.enabled'
+if [ "$(yq '.instrumented_tests.enabled' "$CONFIG_FILE")" == "true" ]; then
+  require_field '.instrumented_tests.command'
+  require_field '.instrumented_tests.display_name'
+  require_field '.instrumented_tests.api_level'
+fi
+
+# --- size_check: only needed when enabled ---
+require_field '.size_check.enabled'
+if [ "$(yq '.size_check.enabled' "$CONFIG_FILE")" == "true" ]; then
+  require_field '.size_check.target'
+  require_field '.size_check.variant'
+  require_field '.size_check.gradle_task'
+  require_field '.size_check.max_increase_percent'
+fi
+
+# --- security.commitlint: only needed when enabled ---
+require_field '.security.commitlint.enabled'
+if [ "$(yq '.security.commitlint.enabled' "$CONFIG_FILE")" == "true" ]; then
+  require_field '.security.commitlint.node_version'
+  types_count=$(yq '.security.commitlint.allowed_types | length' "$CONFIG_FILE")
+  if [ "$types_count" -eq 0 ]; then
+    fail "security.commitlint.allowed_types[] não pode ser vazio quando commitlint está habilitado"
+  fi
+fi
+
 if [ "$errors" -gt 0 ]; then
   echo ""
   echo "$errors problema(s) encontrado(s) em $CONFIG_FILE."
@@ -87,3 +114,9 @@ if [ "$errors" -gt 0 ]; then
 fi
 
 echo "OK: $CONFIG_FILE válido ($checks_count checks, $targets_count build targets)."
+
+# .github/dependabot.yml is GitHub-native config, parsed outside any
+# workflow - this is what actually keeps security.dependabot above as its
+# real source of truth instead of just documentation.
+chmod +x .github/scripts/generate-dependabot.sh
+.github/scripts/generate-dependabot.sh --check
