@@ -73,8 +73,10 @@ jobs:
           echo "size_enabled=$(yq '.size_check.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "size_target=$(yq '.size_check.target' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           SIZE_TARGET=$(yq '.size_check.target' .github/pipeline-config.yaml)
+          export SIZE_TARGET
           SIZE_VARIANT=$(yq '.size_check.variant' .github/pipeline-config.yaml)
-          echo "size_apk_glob=$(yq --arg t "$SIZE_TARGET" --arg v "$SIZE_VARIANT" '.build.targets[] | select(.name == $t) | .variants[] | select(.name == $v) | .path' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          export SIZE_VARIANT
+          echo "size_apk_glob=$(yq '.build.targets[] | select(.name == strenv(SIZE_TARGET)) | .variants[] | select(.name == strenv(SIZE_VARIANT)) | .path' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "dev_branch=$(yq '.git.branches.develop' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "bot_name=$(yq '.git.bot_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "bot_email=$(yq '.git.bot_email' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT

@@ -117,9 +117,11 @@ jobs:
           echo "size_pr_success=$(yq '.size_check.pr_comment.success' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "size_pr_failure=$(yq '.size_check.pr_comment.failure' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           SIZE_TARGET=$(yq '.size_check.target' .github/pipeline-config.yaml)
+          export SIZE_TARGET
           SIZE_VARIANT=$(yq '.size_check.variant' .github/pipeline-config.yaml)
-          echo "size_module=$(yq --arg t "$SIZE_TARGET" '.build.targets[] | select(.name == $t) | .module' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "size_apk_glob=$(yq --arg t "$SIZE_TARGET" --arg v "$SIZE_VARIANT" '.build.targets[] | select(.name == $t) | .variants[] | select(.name == $v) | .path' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          export SIZE_VARIANT
+          echo "size_module=$(yq '.build.targets[] | select(.name == strenv(SIZE_TARGET)) | .module' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "size_apk_glob=$(yq '.build.targets[] | select(.name == strenv(SIZE_TARGET)) | .variants[] | select(.name == strenv(SIZE_VARIANT)) | .path' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_checkout=$(yq '.build.step_names.checkout' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_setup_env=$(yq '.build.step_names.setup_environment' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_run_check=$(yq '.build.step_names.run_check' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
@@ -444,13 +446,19 @@ jobs:
           node-version: ${{ needs.prepare.outputs.commitlint_node_version }}
 
       # security.commitlint.allowed_types drives this instead of a static
-      # commitlint.config.js because version.sh's semver bump decision reads
+      # commitlint.config.cjs because version.sh's semver bump decision reads
       # the same commit-type prefixes - keeping one list in pipeline-config.yaml
-      # means they can't silently drift apart.
+      # means they can't silently drift apart. ".cjs", not ".js": the
+      # wagoid/commitlint-github-action container has no package.json above
+      # /github/workspace of its own other than its bundled one, which sets
+      # "type": "module" - a plain ".js" file with `module.exports` gets
+      # parsed as ESM there and fails with "module is not defined in ES
+      # module scope". ".cjs" forces CommonJS regardless of any ancestor
+      # package.json's "type" field.
       - name: ${{ needs.prepare.outputs.step_commitlint_generate_config }}
         run: |
           TYPES=$(yq -o=json '.security.commitlint.allowed_types' .github/pipeline-config.yaml)
-          cat > commitlint.config.js <<CONFIG_EOF
+          cat > commitlint.config.cjs <<CONFIG_EOF
           module.exports = {
             extends: ['@commitlint/config-conventional'],
             rules: {
@@ -464,6 +472,8 @@ jobs:
 
       - name: ${{ needs.prepare.outputs.step_commitlint_run }}
         uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: ./commitlint.config.cjs
 
   apk-size-check:
     needs: [prepare, checks_stage_1]
