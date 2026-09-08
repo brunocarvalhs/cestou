@@ -13,6 +13,7 @@ jobs:
       gradle_opts: ${{ steps.config.outputs.gradle_opts }}
       app_name: ${{ steps.config.outputs.app_name }}
       variants: ${{ steps.config.outputs.variants }}
+      variant_names: ${{ steps.config.outputs.variant_names }}
       checks_stage_1: ${{ steps.config.outputs.checks_stage_1 }}
       checks_stage_2: ${{ steps.config.outputs.checks_stage_2 }}
       build_enabled: ${{ steps.config.outputs.build_enabled }}
@@ -32,6 +33,7 @@ jobs:
           echo "gradle_opts=$(yq '.build.gradle_opts' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "app_name=$(yq '.project.name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "variants=$(yq -o=json '[.build.targets[] as $t | $t.variants[] | select(.enabled) | . + {"target": $t.name, "module": $t.module}]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
+          echo "variant_names=$(yq -o=json '[.build.targets[].variants[] | select(.enabled) | .name] | unique' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
           echo "checks_stage_1=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 1)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
           echo "checks_stage_2=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 2)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
           echo "build_enabled=true" >> $GITHUB_OUTPUT
@@ -106,13 +108,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: ${{ fromJson(needs.prepare.outputs.variants) }}
+        # Grouped by variant name (debug/release), not by target: every
+        # enabled target (app, wear, ...) for that variant is built and
+        # distributed as steps inside ONE job, via the bash loops below,
+        # instead of fanning out into one job per target/variant
+        # combination. Keeps the job list to one entry per variant
+        # regardless of how many targets pipeline-config.yaml declares.
+        variant_name: ${{ fromJson(needs.prepare.outputs.variant_names) }}
     runs-on: ubuntu-24.04
-    # One job per target/variant does both build and (if enabled) Firebase
-    # distribution, instead of two separate matrix jobs - halves the number
-    # of entries in the run's job list and skips an artifact upload/download
-    # round trip, since the APK never needs to leave this runner.
-    name: 📦 ${{ matrix.variant.target }}/${{ matrix.variant.name }}
+    name: 📦 ${{ matrix.variant_name }} (all targets)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -125,65 +129,71 @@ jobs:
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
-      - name: Build APK
+      - name: Build APKs
+        id: build
         run: |
           chmod +x gradlew
-          ./gradlew ${{ matrix.variant.module }}:${{ matrix.variant.gradle_task }}
+          PATHS=""
+          while IFS= read -r VARIANT; do
+            MODULE=$(echo "$VARIANT" | jq -r '.module')
+            GRADLE_TASK=$(echo "$VARIANT" | jq -r '.gradle_task')
+            PATH_GLOB=$(echo "$VARIANT" | jq -r '.path')
+            echo "::group::Building $MODULE:$GRADLE_TASK"
+            ./gradlew "$MODULE:$GRADLE_TASK"
+            echo "::endgroup::"
+            PATHS="$PATHS"$'\n'"$PATH_GLOB"
+          done < <(echo '${{ needs.prepare.outputs.variants }}' | jq -c --arg v "${{ matrix.variant_name }}" '.[] | select(.name == $v)')
+          {
+            echo 'apk_paths<<APK_PATHS_EOF'
+            echo "$PATHS"
+            echo 'APK_PATHS_EOF'
+          } >> "$GITHUB_OUTPUT"
         env:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: Upload APK
+      - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.variant.artifact_name }}
-          path: ${{ matrix.variant.path }}
-
-      - name: Check Deployment and Get Label
-        id: firebase_config
-        if: needs.prepare.outputs.deploy_enabled == 'true'
-        run: |
-          # Use data directly from the matrix variant (agnostic approach)
-          LABEL="${{ matrix.variant.deploy.firebase.label }}"
-          APP_ID="${{ matrix.variant.deploy.firebase.app_id }}"
-
-          if [ -z "$APP_ID" ] || [ "$APP_ID" == "null" ]; then
-            # Fallback to secret if not defined in flavor
-            APP_ID="${{ secrets.FIREBASE_APP_ID }}"
-          fi
-
-          if [ -n "$APP_ID" ] && [ "$APP_ID" != "null" ]; then
-            echo "should_deploy=true" >> $GITHUB_OUTPUT
-            echo "label=$LABEL" >> $GITHUB_OUTPUT
-            echo "app_id=$APP_ID" >> $GITHUB_OUTPUT
-          else
-            echo "should_deploy=false" >> $GITHUB_OUTPUT
-          fi
+          name: ${{ needs.prepare.outputs.app_name }}-${{ matrix.variant_name }}
+          path: ${{ steps.build.outputs.apk_paths }}
 
       - name: Install Firebase CLI
-        if: needs.prepare.outputs.deploy_enabled == 'true' && steps.firebase_config.outputs.should_deploy == 'true'
+        if: needs.prepare.outputs.deploy_enabled == 'true'
         run: curl -sL https://firebase.tools | bash
 
-      - name: Upload APK to Firebase App Distribution
-        if: needs.prepare.outputs.deploy_enabled == 'true' && steps.firebase_config.outputs.should_deploy == 'true'
+      - name: Distribute to Firebase App Distribution
+        if: needs.prepare.outputs.deploy_enabled == 'true'
         run: |
-          APP_ID="${{ steps.firebase_config.outputs.app_id }}"
           RAW_NOTES=$(yq '.release.firebase.release_notes // "release automatica"' .github/pipeline-config.yaml)
 
           # Create service account file from secret
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > service-account.json
           export GOOGLE_APPLICATION_CREDENTIALS=$PWD/service-account.json
 
-          # Prefix notes with variant label
-          LABEL="${{ steps.firebase_config.outputs.label }}"
-          NOTES="[$LABEL] $RAW_NOTES"
+          while IFS= read -r VARIANT; do
+            LABEL=$(echo "$VARIANT" | jq -r '.deploy.firebase.label')
+            APP_ID=$(echo "$VARIANT" | jq -r '.deploy.firebase.app_id // empty')
 
-          # The APK is already on this runner - built a few steps above.
-          APK_FILE=$(find "$(dirname "${{ matrix.variant.path }}")" -name "*.apk" | head -n 1)
+            if [ -z "$APP_ID" ]; then
+              # Fallback to secret if not defined in the target/variant
+              APP_ID="${{ secrets.FIREBASE_APP_ID }}"
+            fi
 
-          # Distribute using service account credentials
-          firebase appdistribution:distribute "$APK_FILE" \
-            --app "$APP_ID" \
-            --release-notes "$NOTES"
+            if [ -z "$APP_ID" ]; then
+              echo "No app_id resolved for $LABEL, skipping distribution"
+              continue
+            fi
+
+            PATH_GLOB=$(echo "$VARIANT" | jq -r '.path')
+            APK_FILE=$(find "$(dirname "$PATH_GLOB")" -name "*.apk" | head -n 1)
+            NOTES="[$LABEL] $RAW_NOTES"
+
+            echo "::group::Distributing $LABEL"
+            firebase appdistribution:distribute "$APK_FILE" \
+              --app "$APP_ID" \
+              --release-notes "$NOTES"
+            echo "::endgroup::"
+          done < <(echo '${{ needs.prepare.outputs.variants }}' | jq -c --arg v "${{ matrix.variant_name }}" '.[] | select(.name == $v)')
