@@ -13,7 +13,7 @@ jobs:
       gradle_opts: ${{ steps.config.outputs.gradle_opts }}
       app_name: ${{ steps.config.outputs.app_name }}
       variants: ${{ steps.config.outputs.variants }}
-      variant_names: ${{ steps.config.outputs.variant_names }}
+      target_names: ${{ steps.config.outputs.target_names }}
       checks_stage_1: ${{ steps.config.outputs.checks_stage_1 }}
       checks_stage_2: ${{ steps.config.outputs.checks_stage_2 }}
       build_enabled: ${{ steps.config.outputs.build_enabled }}
@@ -33,7 +33,7 @@ jobs:
           echo "gradle_opts=$(yq '.build.gradle_opts' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "app_name=$(yq '.project.name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "variants=$(yq -o=json '[.build.targets[] as $t | $t.variants[] | select(.enabled) | . + {"target": $t.name, "module": $t.module}]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
-          echo "variant_names=$(yq -o=json '[.build.targets[].variants[] | select(.enabled) | .name] | unique' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
+          echo "target_names=$(yq -o=json '[.build.targets[] | select([.variants[].enabled] | any) | .name]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
           echo "checks_stage_1=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 1)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
           echo "checks_stage_2=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 2)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
           echo "build_enabled=true" >> $GITHUB_OUTPUT
@@ -108,15 +108,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Grouped by variant name (debug/release), not by target: every
-        # enabled target (app, wear, ...) for that variant is built and
-        # distributed as steps inside ONE job, via the bash loops below,
-        # instead of fanning out into one job per target/variant
-        # combination. Keeps the job list to one entry per variant
-        # regardless of how many targets pipeline-config.yaml declares.
-        variant_name: ${{ fromJson(needs.prepare.outputs.variant_names) }}
+        # Grouped by target (app, wear, ...), not by variant: every enabled
+        # variant (debug, release, ...) for that target is built as steps
+        # inside ONE job, via the bash loop below, instead of fanning out
+        # into one job per target/variant combination. Keeps the job list to
+        # one entry per target regardless of how many variants a target
+        # declares.
+        target_name: ${{ fromJson(needs.prepare.outputs.target_names) }}
     runs-on: ubuntu-24.04
-    name: 📦 ${{ matrix.variant_name }} (all targets)
+    name: 📦 Build ${{ matrix.target_name }} (all variants)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -142,7 +142,7 @@ jobs:
             ./gradlew "$MODULE:$GRADLE_TASK"
             echo "::endgroup::"
             PATHS="$PATHS"$'\n'"$PATH_GLOB"
-          done < <(echo '${{ needs.prepare.outputs.variants }}' | jq -c --arg v "${{ matrix.variant_name }}" '.[] | select(.name == $v)')
+          done < <(echo '${{ needs.prepare.outputs.variants }}' | jq -c --arg t "${{ matrix.target_name }}" '.[] | select(.target == $t)')
           {
             echo 'apk_paths<<APK_PATHS_EOF'
             echo "$PATHS"
@@ -157,15 +157,32 @@ jobs:
       - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ needs.prepare.outputs.app_name }}-${{ matrix.variant_name }}
+          name: ${{ needs.prepare.outputs.app_name }}-${{ matrix.target_name }}
           path: ${{ steps.build.outputs.apk_paths }}
 
+  deploy:
+    needs: [prepare, build]
+    if: needs.prepare.outputs.deploy_enabled == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        target_name: ${{ fromJson(needs.prepare.outputs.target_names) }}
+    runs-on: ubuntu-24.04
+    name: 🚀 Update ${{ matrix.target_name }} (all variants)
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download APKs
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.prepare.outputs.app_name }}-${{ matrix.target_name }}
+          path: output/
+
       - name: Install Firebase CLI
-        if: needs.prepare.outputs.deploy_enabled == 'true'
         run: curl -sL https://firebase.tools | bash
 
       - name: Distribute to Firebase App Distribution
-        if: needs.prepare.outputs.deploy_enabled == 'true'
         run: |
           RAW_NOTES=$(yq '.release.firebase.release_notes // "release automatica"' .github/pipeline-config.yaml)
 
@@ -187,8 +204,11 @@ jobs:
               continue
             fi
 
-            PATH_GLOB=$(echo "$VARIANT" | jq -r '.path')
-            APK_FILE=$(find "$(dirname "$PATH_GLOB")" -name "*.apk" | head -n 1)
+            VARIANT_NAME=$(echo "$VARIANT" | jq -r '.name')
+            APK_FILE=$(find output/ -iname "*${VARIANT_NAME}*.apk" | head -n 1)
+            if [ -z "$APK_FILE" ]; then
+              APK_FILE=$(find output/ -name "*.apk" | head -n 1)
+            fi
             NOTES="[$LABEL] $RAW_NOTES"
 
             echo "::group::Distributing $LABEL"
@@ -196,4 +216,4 @@ jobs:
               --app "$APP_ID" \
               --release-notes "$NOTES"
             echo "::endgroup::"
-          done < <(echo '${{ needs.prepare.outputs.variants }}' | jq -c --arg v "${{ matrix.variant_name }}" '.[] | select(.name == $v)')
+          done < <(echo '${{ needs.prepare.outputs.variants }}' | jq -c --arg t "${{ matrix.target_name }}" '.[] | select(.target == $t)')

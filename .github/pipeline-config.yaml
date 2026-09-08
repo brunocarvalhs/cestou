@@ -119,7 +119,7 @@ checks:
   - name: "detekt"
     display_name: "🔍 Static Analysis (Detekt)"
     enabled: true
-    stage: 1
+    stage: 2
     command: "./gradlew detekt"
     pr_comment:
       success: "✅ Todos os detekts passaram com sucesso! Bom trabalho."
@@ -134,8 +134,10 @@ checks:
       success: "✅ Todos os testes unitários passaram com sucesso! Bom trabalho."
       failure: "❌ Ops, encontrado falhas nos testes unitários, por favor corrija."
 
-# Test Coverage Gate (kept separate from checks[]: it depends on unit_tests
-# having run first, and it publishes an HTML report artifact).
+# Test Coverage Gate (kept separate from checks[] because it publishes an
+# HTML report artifact). Runs in parallel with stage 2 - koverVerify has its
+# own Gradle task dependency on the test task, so it doesn't need
+# unit_tests's job to finish first, only stage 1 (lint) to have passed.
 coverage:
   kover:
     name: "Kover"

@@ -129,12 +129,11 @@ jobs:
           reactions: "+1"
 
   coverage-check:
-    needs: [prepare, checks_stage_1, checks_stage_2]
+    needs: [prepare, checks_stage_1]
     if: |
       always() &&
       needs.prepare.outputs.coverage_enabled == 'true' &&
-      (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped') &&
-      (needs.checks_stage_2.result == 'success' || needs.checks_stage_2.result == 'skipped')
+      (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped')
     runs-on: ubuntu-24.04
     name: ${{ needs.prepare.outputs.coverage_display_name }}
     steps:
