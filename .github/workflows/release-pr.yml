@@ -24,10 +24,16 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
+      # develop is branch-protected (require PR) - the default GITHUB_TOKEN
+      # this step would get without an explicit `token:` isn't an admin
+      # identity and can't push directly even with enforce_admins: false,
+      # unlike secrets.TOKEN (a real admin PAT). This job's whole mechanism
+      # is a direct push to develop below, so this isn't optional.
       - name: 📥 Checkout develop
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.TOKEN }}
 
       - name: Load Config
         id: config
