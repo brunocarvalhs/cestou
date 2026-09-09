@@ -115,6 +115,16 @@ internal class ProductSearchViewModel @Inject constructor(
             recipe.ingredients.forEach { product ->
                 saveUseCase(product = product.copy(id = UUID.randomUUID().toString()), shoppingId = shopping.id)
             }
+            if (recipe.ingredients.isNotEmpty()) {
+                analyticsTracker.trackEvent(
+                    AnalyticsEvents.PRODUCT_ADDED,
+                    mapOf(
+                        AnalyticsParams.SHOPPING_ID to shopping.id,
+                        AnalyticsParams.SOURCE to "recipe",
+                        AnalyticsParams.ITEMS_COUNT to recipe.ingredients.size
+                    )
+                )
+            }
             _uiState.update { it.copy(selectedRecipe = null, query = "", recipes = emptyList()) }
         }
     }

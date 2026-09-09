@@ -2,6 +2,9 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingJoinUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.ScannerIntent
@@ -9,9 +12,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val JOIN_METHOD_QR_SCAN = "qr_scan"
+
 @HiltViewModel
 internal class ScannerViewModel @Inject constructor(
-    private val shoppingJoinUseCase: ShoppingJoinUseCase
+    private val shoppingJoinUseCase: ShoppingJoinUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private var _navigator: Navigator? = null
@@ -28,6 +34,10 @@ internal class ScannerViewModel @Inject constructor(
         onDismiss = { _navigator?.goBack() }
     )
 
+    init {
+        analyticsTracker.trackScreenView(screenName = "shopping_join_scanner", screenClass = "ScannerViewModel")
+    }
+
     fun setNavigator(navigator: Navigator) {
         _navigator = navigator
     }
@@ -38,11 +48,22 @@ internal class ScannerViewModel @Inject constructor(
         viewModelScope.launch {
             shoppingJoinUseCase(token)
                 .onSuccess {
+                    analyticsTracker.trackEvent(
+                        AnalyticsEvents.SHOPPING_LIST_JOINED,
+                        mapOf(AnalyticsParams.JOIN_METHOD to JOIN_METHOD_QR_SCAN)
+                    )
                     // Leave isJoining = true: the screen is navigating away, so no further scans
                     // should be processed for the lifetime of this ViewModel.
                     _navigator?.goBack()
                 }
-                .onFailure {
+                .onFailure { error ->
+                    analyticsTracker.trackEvent(
+                        AnalyticsEvents.SHOPPING_LIST_JOIN_FAILED,
+                        mapOf(
+                            AnalyticsParams.JOIN_METHOD to JOIN_METHOD_QR_SCAN,
+                            AnalyticsParams.REASON to (error.message ?: error::class.simpleName.orEmpty())
+                        )
+                    )
                     // Allow retrying with a different/re-aligned code after a failed join.
                     isJoining = false
                 }
