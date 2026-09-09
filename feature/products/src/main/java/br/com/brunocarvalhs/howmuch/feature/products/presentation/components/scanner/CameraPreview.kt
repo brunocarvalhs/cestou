@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import androidx.camera.core.Preview as PreviewCamera
 
@@ -23,7 +24,11 @@ import androidx.camera.core.Preview as PreviewCamera
 fun CameraPreview(
     modifier: Modifier = Modifier,
     onBarcodeScanned: (String) -> Unit = {},
-    onCameraReady: ((Camera) -> Unit)? = null
+    onCameraReady: ((Camera) -> Unit)? = null,
+    // Testing seam only: lets instrumented tests inject a trackable ExecutorService to assert
+    // it's shut down when this composable leaves the composition (regression test for G11 —
+    // this executor used to leak one background thread per scanner-screen visit).
+    executorFactory: () -> ExecutorService = { Executors.newSingleThreadExecutor() }
 ) {
     if (LocalInspectionMode.current) {
         Box(modifier = modifier.background(Color.Black))
@@ -31,7 +36,7 @@ fun CameraPreview(
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
-    val executor = remember { Executors.newSingleThreadExecutor() }
+    val executor = remember { executorFactory() }
 
     DisposableEffect(executor) {
         onDispose { executor.shutdown() }
