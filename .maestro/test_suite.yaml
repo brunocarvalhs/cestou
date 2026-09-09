@@ -1,5 +1,10 @@
 appId: br.com.brunocarvalhs.howmuch
 ---
+# NOTE: onboarding_flow.yaml is intentionally NOT part of this suite. It uses
+# clearState, which logs the device out of its Google Sign-In session — every flow
+# below this line assumes an already-authenticated session and would fail right
+# after it. Run onboarding_flow.yaml on its own, and log back in manually
+# afterwards before running this suite again.
 - runFlow: flows/home_flow.yaml
 - runFlow: flows/create_list_flow.yaml
 - runFlow: flows/product_management_flow.yaml

@@ -2,25 +2,26 @@ appId: br.com.brunocarvalhs.howmuch
 name: Finish Purchase Flow
 ---
 # Depends on: create_list_flow.yaml + product_management_flow.yaml
-# (uses the "value" list with the "Arroz" item already added).
+# (uses the "value" list with the "Arroz" item already added). Does NOT use
+# clearState (see home_flow.yaml for why).
 - launchApp
 - tapOn: "value"
 - waitForAnimationToEnd:
     timeout: 2000
 
-- assertVisible: "Finish"
-- tapOn: "Finish"
+- assertVisible: "Finalizar"
+- tapOn: "Finalizar"
 - waitForAnimationToEnd:
     timeout: 1000
-- assertVisible: "Finish Purchase"
-- assertVisible: "Enter the total amount paid and the purchase location."
-- assertVisible: "Total Amount"
-- assertVisible: "Establishment (Optional)"
-- assertVisible: "Confirm and Save"
+- assertVisible: "Finalizar Compra"
+- assertVisible: "Informe o valor total pago e o local da compra."
+- assertVisible: "Valor Total"
+- assertVisible: "Estabelecimento (Opcional)"
+- assertVisible: "Confirmar e Salvar"
 - inputText: "value"
-- tapOn: "Confirm and Save"
+- tapOn: "Confirmar e Salvar"
 
-- assertVisible: "Finished List"
-- assertVisible: "This list is locked for changes."
-- tapOn: "Back"
+- assertVisible: "Lista Finalizada"
+- assertVisible: "Esta lista está bloqueada para alterações."
+- tapOn: "Voltar"
 - assertVisible: "Cestou"

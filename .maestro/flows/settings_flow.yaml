@@ -1,34 +1,35 @@
 appId: br.com.brunocarvalhs.howmuch
 name: Settings Flow
 ---
-- launchApp:
-    clearState: true
+# Depends on: an already-authenticated session (see onboarding_flow.yaml / README).
+# Does NOT use clearState (see home_flow.yaml for why).
+- launchApp
 
-- tapOn: "Profile"
-- assertVisible: "Notification Preferences"
-- assertVisible: "Theme, Currency and Language"
-- assertVisible: "About the App"
-- tapOn: "Theme, Currency and Language"
+- tapOn: "Perfil"
+- assertVisible: "Preferências de Notificação"
+- assertVisible: "Tema, Moeda e Idioma"
+- assertVisible: "Sobre o App"
+- tapOn: "Tema, Moeda e Idioma"
 
-- assertVisible: "Settings"
-- assertVisible: "General"
-- assertVisible: "AI"
-- assertVisible: "Shopping"
-- assertVisible: "Data"
-- assertVisible: "Notifications"
-- assertVisible: "Support"
-- assertVisible: "About"
-- assertVisible: "Theme"
-- assertVisible: "Language"
-- assertVisible: "Currency"
+- assertVisible: "Configurações"
+- assertVisible: "Geral"
+- assertVisible: "IA"
+- assertVisible: "Compras"
+- assertVisible: "Dados"
+- assertVisible: "Notificações"
+- assertVisible: "Suporte"
+- assertVisible: "Sobre"
+- assertVisible: "Tema"
+- assertVisible: "Idioma"
+- assertVisible: "Moeda"
 
-- tapOn: "Theme"
-- assertVisible: "Select Theme"
-- assertVisible: "System"
-- assertVisible: "Light"
-- assertVisible: "Dark"
+- tapOn: "Tema"
+- assertVisible: "Selecione o Tema"
+- assertVisible: "Sistema"
+- assertVisible: "Claro"
+- assertVisible: "Escuro"
 - back
 - back
 
-- assertVisible: "Notification Preferences"
-- assertVisible: "Sign Out"
+- assertVisible: "Preferências de Notificação"
+- assertVisible: "Sair"

@@ -1,34 +1,35 @@
 appId: br.com.brunocarvalhs.howmuch
 name: Account & Data Flow
 ---
-- launchApp:
-    clearState: true
+# Depends on: an already-authenticated session (see onboarding_flow.yaml / README).
+# Does NOT use clearState (see home_flow.yaml for why).
+- launchApp
 
-- tapOn: "Profile"
-- tapOn: "Theme, Currency and Language"
-- assertVisible: "Data"
-- tapOn: "Data"
+- tapOn: "Perfil"
+- tapOn: "Tema, Moeda e Idioma"
+- assertVisible: "Dados"
+- tapOn: "Dados"
 
-- assertVisible: "Clear cache"
-- assertVisible: "Delete all data"
-- assertVisible: "Delete Account"
+- assertVisible: "Limpar cache"
+- assertVisible: "Apagar todos os dados"
+- assertVisible: "Excluir Conta"
 
 # Delete-all-data confirmation sheet: verify it appears and Cancel dismisses
 # it without touching data. Never confirm this flow — it would wipe fixtures
 # the other regression flows depend on.
-- tapOn: "Delete all data"
-- assertVisible: "Delete all data?"
-- assertVisible: "Yes, delete everything"
-- tapOn: "Cancel"
-- assertNotVisible: "Delete all data?"
+- tapOn: "Apagar todos os dados"
+- assertVisible: "Apagar todos os dados?"
+- assertVisible: "Sim, apagar tudo"
+- tapOn: "Cancelar"
+- assertNotVisible: "Apagar todos os dados?"
 
 # Delete-account confirmation sheet: same pattern — assert it opens and can
 # be cancelled. Never confirm: it would permanently delete the test account.
-- tapOn: "Delete Account"
-- assertVisible: "Delete account?"
-- assertVisible: "Yes, delete my account"
-- tapOn: "Cancel"
-- assertNotVisible: "Delete account?"
+- tapOn: "Excluir Conta"
+- assertVisible: "Excluir conta?"
+- assertVisible: "Sim, excluir minha conta"
+- tapOn: "Cancelar"
+- assertNotVisible: "Excluir conta?"
 
 - back
-- assertVisible: "Sign Out"
+- assertVisible: "Sair"

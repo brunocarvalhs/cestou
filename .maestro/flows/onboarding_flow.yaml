@@ -1,0 +1,20 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Onboarding Flow
+---
+# WARNING: clearState wipes the local session (see .maestro/README.md). This is the
+# ONLY flow in the suite allowed to use clearState, and it is intentionally excluded
+# from test_suite.yaml for that reason — running it logs the device out.
+# Do not run this against a device with an active session you care about without
+# warning whoever owns that session first.
+#
+# Only covers the pre-login Welcome screen. It deliberately never taps "Continuar com
+# Google": automating the Google account picker/OAuth consent is out of scope for
+# Maestro (real account, UI outside app control) — see README "Notes / known gaps".
+- launchApp:
+    clearState: true
+
+- assertVisible: "Cestou"
+- assertVisible: "Suas compras, mais inteligentes"
+- assertVisible: "Crie listas dinâmicas, compartilhe em tempo real com quem quiser e use nossa inteligência artificial para economizar."
+- assertVisible: "Continuar com Google"
+- assertVisible: "Ao continuar, você concorda com nossos Termos de Uso e Política de Privacidade."

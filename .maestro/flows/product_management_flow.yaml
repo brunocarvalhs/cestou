@@ -1,43 +1,44 @@
 appId: br.com.brunocarvalhs.howmuch
 name: Product Management Flow
 ---
-# Depends on: create_list_flow.yaml (uses the "value" list fixture).
+# Depends on: create_list_flow.yaml (uses the "value" list fixture). Does NOT use
+# clearState (see home_flow.yaml for why).
 - launchApp
 - tapOn: "value"
 - waitForAnimationToEnd:
     timeout: 2000
 
-# Add product bottom sheet — now opens on Quick Add by default instead of AI chat
+# Add product bottom sheet — opens on Quick Add by default instead of AI chat
 # (Options.QUICK_ADD replaces Options.AI as the startDestination; item-add-authorship spec P3,
 # PR5 / feat/iaa-quick-add). Quick Add shows a text field, common-product chips, and a
 # scan/photo shortcut on one screen, no tab switching needed for a plain item.
 - tapOn:
     point: 80%,88%
-- assertVisible: "Item name"
-- assertVisible: "Common items"
+- assertVisible: "Nome do item"
+- assertVisible: "Itens comuns"
 - assertVisible: "Arroz"
 # AI/Search/Photo/Suggestions stay reachable as secondary options via the header selector,
 # unchanged in behavior (spec P3 AC3). Quick Add itself has no header chip — it's the landing
 # surface, not a tab you switch back into.
-- assertVisible: "AI Chat"
-- assertVisible: "Search"
-- assertVisible: "Photo"
-- assertVisible: "Suggestions"
+- assertVisible: "Chat com IA"
+- assertVisible: "Pesquisar"
+- assertVisible: "Foto"
+- assertVisible: "Sugestões"
 
-- tapOn: "Search"
-- assertVisible: "Products"
-- assertVisible: "Recipes"
-- assertVisible: "Search product"
-- tapOn: "Recipes"
-- assertVisible: "Find recipes and add the ingredients."
-- assertVisible: "You can also use AI to automatically recognize the content."
+- tapOn: "Pesquisar"
+- assertVisible: "Produtos"
+- assertVisible: "Receitas"
+- assertVisible: "Buscar produto"
+- tapOn: "Receitas"
+- assertVisible: "Encontre receitas e adicione os ingredientes."
+- assertVisible: "Também é possível utilizar IA para reconhecer automaticamente o conteúdo."
 
-- tapOn: "Suggestions"
+- tapOn: "Sugestões"
 - tapOn: "Arroz"
 
 # Product added to the list
-- assertVisible: "Grocery"
-- assertVisible: "Mark as purchased"
+- assertVisible: "Mercearia"
+- assertVisible: "Marcar como comprado"
 - assertVisible: "Arroz"
 - assertVisible: "• Mercearia"
 # NOTE (pre-existing drift, unrelated to PR5 / feat/iaa-quick-add — not fixed here per
@@ -45,25 +46,24 @@ name: Product Management Flow
 # ProductListItem.kt, where edit/delete live behind onLongClick + swipe-to-dismiss with no
 # visible "More options" affordance. Left as-is rather than silently reworked.
 - tapOn:
-    text: "More options"
+    text: "Mais opções"
     index: 1
-- assertVisible: "Edit"
-- assertVisible: "Delete"
+- assertVisible: "Editar"
+- assertVisible: "Excluir"
 
 # Edit the product
-- tapOn: "Edit"
-- assertVisible: "Edit Product"
-- assertVisible: "Product Name"
-- assertVisible: "Category"
-- assertVisible: "Unit Price"
-- assertVisible: "Quantity"
-- assertVisible: "Unit"
-- tapOn: "Unit Price"
+- tapOn: "Editar"
+- assertVisible: "Editar Produto"
+- assertVisible: "Nome do Produto"
+- assertVisible: "Categoria"
+- assertVisible: "Preço Unitário"
+- assertVisible: "Quantidade"
+- tapOn: "Preço Unitário"
 - inputText: "10000"
-- assertVisible: "Save Changes"
-- tapOn: "Save Changes"
+- assertVisible: "Salvar Alterações"
+- tapOn: "Salvar Alterações"
 - waitForAnimationToEnd:
     timeout: 1000
 
-- tapOn: "Back"
+- tapOn: "Voltar"
 - assertVisible: "Cestou"

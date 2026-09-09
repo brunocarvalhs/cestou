@@ -1,20 +1,21 @@
 appId: br.com.brunocarvalhs.howmuch
 name: Chat Flow
 ---
-- launchApp:
-    clearState: true
+# Depends on: an already-authenticated session (see onboarding_flow.yaml / README).
+# Does NOT use clearState (see home_flow.yaml for why).
+- launchApp
 
 - tapOn: "IA Chat"
-- assertVisible: "AI Assistant"
-- assertVisible: "Message"
-- assertVisible: "Settings"
+- assertVisible: "IA Assistente"
+- assertVisible: "Mensagem"
+- assertVisible: "Configurações"
 
-- tapOn: "Message"
+- tapOn: "Mensagem"
 - inputText: "Oi"
-- tapOn: "Send message"
+- tapOn: "Enviar mensagem"
 - waitForAnimationToEnd:
     timeout: 3000
 - assertVisible: "Oi"
 
-- tapOn: "Lists"
+- tapOn: "Listas"
 - assertVisible: "Cestou"

@@ -1,36 +1,36 @@
 appId: br.com.brunocarvalhs.howmuch
 name: Create List Flow
 ---
-# Depends on: none. Creates the "value" list fixture used by
-# product_management_flow.yaml and finish_purchase_flow.yaml.
-- launchApp:
-    clearState: true
+# Depends on: an already-authenticated session (see onboarding_flow.yaml / README).
+# Creates the "value" list fixture used by product_management_flow.yaml and
+# finish_purchase_flow.yaml. Does NOT use clearState (see home_flow.yaml for why).
+- launchApp
 
-- tapOn:
-    point: 77%,4%
-    retryTapIfNoChange: true
-- assertVisible: "New List"
-- assertVisible: "Give your new shopping list a name"
-- assertVisible: "List Title"
-- assertVisible: "Description (Optional)"
-- assertVisible: "Cancel"
-- assertVisible: "Create"
-- tapOn: "List Title"
+# Create-list FAB, tapped by its content description instead of a screen-percentage
+# point — the old "77%,4%" coordinate targeted the top bar, but the actual create
+# button is a FloatingActionButton (bottom-right), not a top-bar icon.
+- tapOn: "Criar lista"
+- assertVisible: "Nova Lista"
+- assertVisible: "Dê um nome para sua nova lista de compras"
+- assertVisible: "Título da Lista"
+- assertVisible: "Descrição (Opcional)"
+- assertVisible: "Cancelar"
+- assertVisible: "Criar"
+- tapOn: "Título da Lista"
 - inputText: "value"
-- tapOn: "Description (Optional)"
+- tapOn: "Descrição (Opcional)"
 - inputText: "value"
 - waitForAnimationToEnd:
     timeout: 1000
-- tapOn: "Create"
+- tapOn: "Criar"
 
 - waitForAnimationToEnd:
     timeout: 5000
 - assertVisible: "value"
-- assertVisible: "Share list"
-- assertVisible: "Back"
-- assertVisible: "$0.00"
-- assertVisible: "0 of 0"
-- assertVisible: "Your list is empty"
-- assertVisible: "Add products or ask the AI for help!"
-- tapOn: "Back"
+- assertVisible: "Compartilhar lista"
+- assertVisible: "Voltar"
+- assertVisible: "0 de 0"
+- assertVisible: "Sua lista está vazia"
+- assertVisible: "Adicione produtos ou peça ajuda à IA!"
+- tapOn: "Voltar"
 - assertVisible: "Cestou"

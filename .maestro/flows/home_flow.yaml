@@ -1,25 +1,30 @@
 appId: br.com.brunocarvalhs.howmuch
 name: Home Flow
 ---
-- launchApp:
-    clearState: true
+# Depends on: an already-authenticated session (see onboarding_flow.yaml / README).
+# Does NOT use clearState — clearing state logs the device out (Google Sign-In session
+# is local), and this flow has no way to log back in without a human at the Google
+# account picker. It also cannot assert a truly empty list state: a real, persisted
+# account may already have lists from previous runs/fixtures (data syncs from
+# Firestore, not just local storage). Assertions below are state-agnostic.
+- launchApp
 
-# Empty state (first launch, no lists yet)
 - assertVisible: "Cestou"
-- assertVisible: "No list found"
-- assertVisible: "Create a new shopping list or try searching for another term."
 
 # Bottom navigation tabs
-- assertVisible: "Lists"
+- assertVisible: "Listas"
 - assertVisible: "IA Chat"
-- assertVisible: "Profile"
+- assertVisible: "Perfil"
 
-# Join a list dialog, opened from the top bar icon
-- tapOn: "Join List"
-- assertVisible: "Join a list"
-- assertVisible: "Ask the list owner for the code or QR Code."
-- assertVisible: "List code"
-- assertVisible: "Scan QR Code"
+# Join a list dialog, opened from the top bar icon (content description comes from
+# shopping_management_button_join, reused for both the icon and the dialog's submit
+# button — core/ui's content_description_join_list string is unused/dead code, not
+# what's actually wired to this icon).
+- tapOn: "Entrar na Lista"
+- assertVisible: "Entrar em uma lista"
+- assertVisible: "Peça o código ou QR Code para o proprietário da lista."
+- assertVisible: "Código da lista"
+- assertVisible: "Escanear QR Code"
 - back
 
 - assertVisible: "Cestou"

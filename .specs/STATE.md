@@ -71,10 +71,44 @@
 - **In-progress**: G9 (`ShoppingRepositoryImpl.updatePositions` no-op) has an open, unmerged fix —
   PR #67 (`fix/shopping-update-positions`) — review/merge is a call for the repo owner, not
   something to duplicate.
-- **Next step**: See `.specs/MVP-ROADMAP.md` Phase 0–2 for the remaining launch blockers (all need
-  either a device/emulator or an owner decision, not more code from this environment).
-- **Blockers**: No adb/emulator in this environment — Maestro suite and Google Sign-In QA (F0.3,
-  F2.2) still cannot be executed here, only authored/reviewed statically.
-- **Uncommitted files**: none (this session's changes are committed on
-  `claude/app-launch-action-plan-y614t5`)
-- **Branch**: claude/app-launch-action-plan-y614t5 (PR target: develop)
+- **2026-09-09 (this session, `test/maestro-e2e-coverage`)**: First-ever real execution of the
+  Maestro suite (Samsung SM-A146M, Android 15, `persist.sys.locale=pt-BR`, wireless adb). Confirmed
+  two bugs in the suite itself (not the app):
+  1. `home_flow.yaml`'s `launchApp: clearState: true` logs the device out of Google Sign-In (local
+     session only) instead of landing on an authenticated empty home. Fixed by splitting off
+     `.maestro/flows/onboarding_flow.yaml` (the only flow allowed to use `clearState`, deliberately
+     excluded from `test_suite.yaml`) and rewriting `home_flow.yaml` to assume an existing session
+     and not assert an empty-list state (a real persisted account may already have lists synced
+     from Firestore).
+  2. All 8 flows asserted hardcoded English strings (`values/strings.xml`) against the device's
+     real pt-BR strings (`values-pt-rBR/strings.xml` per module). Audited and fixed every flow.
+     Also found and fixed, while auditing: `create_list_flow.yaml` tapped a stale screen-percentage
+     point (`77%,4%`) for the create-list FAB instead of its actual content description
+     (`"Criar lista"`); `product_management_flow.yaml` asserted a `"Unit"` field in the Edit Product
+     sheet that does not exist in `EditItemContent.kt` (only Product Name / Category / Unit Price /
+     Quantity do) — removed.
+  - `onboarding_flow.yaml` ran against the device and **passed in full** (all 5 assertions).
+  - **Effect of this session's own test run**: running `onboarding_flow.yaml`'s `clearState` (and
+    an earlier, prior-session run that first surfaced the two bugs) logged the device out. All
+    other flows need an authenticated session and cannot run until a human logs back in via
+    "Continuar com Google" on the device — this cannot be automated (real Google account picker/
+    OAuth consent, out of scope for Maestro). **Paused here, waiting on bruno to log in manually**
+    before running the rest of the corrected suite and any new coverage flows.
+  - Real app finding surfaced during navigation-map audit, not fixed here (belongs to
+    android-engineer-features via tech-lead triage): `core/navigation/mobile/MobileRoutes.kt`'s
+    `Notifications` destination is registered in `ShoppingGraph.kt` but has no reachable UI entry
+    point anywhere in the app (`core/ui`'s `content_description_join_list` string is also dead —
+    unused, superseded by `shopping_management_button_join`). Neither blocks Maestro coverage, both
+    worth a ticket.
+- **Next step**: once bruno confirms a manual login on the device, resume running the corrected
+  8-flow suite + `onboarding_flow.yaml`, fix whatever real drift the actual runs turn up (not
+  guesses), then audit `core/navigation` + each `feature/*/navigation` entry point against the 8
+  existing flows to add coverage for currently-untested screens (candidates identified so far:
+  `ProductHistoryRoute`/`ConfirmItemRoute`/`ShareOptionsRoute` in `feature/cart`, the About/Support
+  legal screens in `feature/settings`, the AI/Shopping settings sub-screens).
+- **Blockers**: device session logged out by this session's own test run — needs bruno to log back
+  into the Cestou app manually (Google Sign-In) before any further authenticated flow can run.
+- **Uncommitted files**: none (this session's changes are on `test/maestro-e2e-coverage`, PR not
+  yet opened — waiting to finish the run before requesting tech-lead review)
+- **Branch**: test/maestro-e2e-coverage (PR target: develop, from `develop` @ the commit this
+  branch forked from)

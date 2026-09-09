@@ -24,14 +24,48 @@ To run a specific flow:
 maestro test .maestro/flows/home_flow.yaml
 ```
 
+## Language / locale
+
+Assertions in every flow use the real strings from `values-pt-rBR/strings.xml` of whichever module
+owns that screen (`core/ui`, `feature/shopping`, `feature/products`, `feature/profile`,
+`feature/settings`, `feature/chat`), not the English `values/strings.xml` defaults. This matches
+the target market (pt-BR) and the actual string shown on a device with `persist.sys.locale=pt-BR`.
+If you add a new flow, grep the real pt-BR string before hardcoding an assert — the English default
+often reads plausibly but is not what's on screen.
+
+## Authentication
+
+The app uses real Google Sign-In. Maestro cannot drive the Google account picker/OAuth consent
+UI reliably or safely (it's outside the app's control and specific to whichever Google account is
+on the test device) — **no flow in this suite attempts it.**
+
+- **`onboarding_flow.yaml`** is the only flow that uses `launchApp: clearState: true`. Clearing
+  state logs the device out of its (local-only) Google Sign-In session, so this flow only asserts
+  the pre-login Welcome screen and never taps "Continuar com Google". It is deliberately **excluded
+  from `test_suite.yaml`** — running it logs the device out, which would break every other flow
+  that assumes an authenticated session. Run it on its own, and only if you've confirmed with
+  whoever owns the device's session that it's OK to log out (or the session is already logged out).
+- Every other flow assumes an already-authenticated session and uses plain `launchApp` (no
+  `clearState`). If the device isn't logged in, they fail immediately on the first post-login
+  assertion — that's expected, not a suite bug. Log in manually via "Continuar com Google" on the
+  device, then re-run.
+
 ## Test Flows
 
 The full regression suite (`test_suite.yaml`) runs these flows in order. The order matters:
 `create_list_flow` creates the "value" list fixture that `product_management_flow` and
 `finish_purchase_flow` depend on, and `finish_purchase_flow` finishes (locks) that list,
-so nothing after it may rely on it staying editable.
+so nothing after it may rely on it staying editable. All of them require an authenticated session
+already on the device (see "Authentication" above) — `test_suite.yaml` does not include
+`onboarding_flow.yaml`.
 
-- **home_flow.yaml**: Tests the home screen empty state, bottom navigation tabs, and the "Join a list" dialog entry point.
+- **onboarding_flow.yaml** (not in `test_suite.yaml`, run separately): Tests the pre-login Welcome
+  screen (title, description, "Continuar com Google" button, terms footer). Uses `clearState` —
+  logs the device out as a side effect.
+- **home_flow.yaml**: Tests the home screen's app bar, bottom navigation tabs, and the "Join a
+  list" dialog entry point. Does not assert an empty-list state — a real, persisted account may
+  already have lists (data syncs from Firestore, not just local storage), so the empty state can't
+  be assumed for an authenticated session that isn't freshly created.
 - **create_list_flow.yaml**: Tests creating a shopping list ("value") and lands on its (empty) detail screen.
 - **product_management_flow.yaml**: Tests adding a product from Suggestions, browsing Search/Recipes, and editing the added product's price.
 - **finish_purchase_flow.yaml**: Tests finishing a purchase (total amount, confirm) and confirms the list becomes locked.
@@ -45,9 +79,21 @@ so nothing after it may rely on it staying editable.
 
 ## Notes / known gaps
 
-- Sharing/collaboration between two real accounts, Wear OS pairing, and AI photo/barcode
+- Sharing/collaboration between two real accounts, Wear OS pairing (`PairingCode`/`LinkPhone`/
+  `LinkWearDevice` routes in `core/navigation/mobile/MobileRoutes.kt`), and AI photo/barcode
   recognition are not covered here — they need either a second device/account or a live camera
   feed, which Maestro flows alone can't provide.
+- `core/navigation/mobile/MobileRoutes.kt`'s `Notifications` destination is registered in
+  `ShoppingGraph.kt` but (as of 2026-09-09) has no reachable UI entry point anywhere in the app —
+  not a Maestro gap, a real app gap worth its own ticket (see `.specs/STATE.md`).
+- `feature/cart`'s `ProductHistoryRoute` (item history sheet), `ConfirmItemRoute` (confirm
+  price/quantity when checking an item off), and `ShareOptionsRoute` (Invite to Collaborate / Share
+  as Text) are reachable from the list detail screen but not yet covered by any flow here.
+- `feature/settings`'s About/Support screens (Terms, Privacy, Open Source Licenses, Release Notes,
+  Contact/Bug Report/Feedback/Rate) are reachable from Settings but not yet covered — several of
+  them (`SupportContact`, `SupportBugReport`, `SupportFeedback`, `AppRate`) hand off to an external
+  app (email client, Play Store) on tap, which Maestro can observe leaving the app for but not
+  meaningfully assert inside.
 
 ## CI Integration
 

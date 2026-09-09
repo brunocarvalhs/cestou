@@ -54,9 +54,16 @@ regression suite (#16), this doc (#17), account & data deletion (#18), dead soci
 `updatePositions` fix (#67, open).
 
 **Still genuinely open, none of them fixable from this environment:**
-- **F0.3 / F2.2** — no adb/emulator here, so the Maestro suite and the Google Sign-In flow have
-  never actually run. This session added `account_data_flow.yaml` to the suite and fixed the
-  `AiChatScreen` settings-icon accessibility gap (F3.4), but still needs a device to execute.
+- **F0.3** — first real execution (2026-09-09, Samsung SM-A146M, Android 15, wireless adb) found
+  two suite-authoring bugs, both fixed on `test/maestro-e2e-coverage`: (1) `home_flow.yaml`'s
+  `launchApp: clearState: true` logs the device out of Google Sign-In instead of landing on an
+  authenticated empty home — split into a separate `onboarding_flow.yaml` (clearState allowed,
+  excluded from `test_suite.yaml`) and a `home_flow.yaml` that assumes an existing session; (2) all
+  8 flows asserted hardcoded English strings against a pt-BR device/app — replaced with the real
+  `values-pt-rBR/strings.xml` strings across all 8 flows. `onboarding_flow.yaml` ran and passed in
+  full. The rest of the suite is blocked on a human logging back into the device (this session's own
+  test run cleared the session) — see `.specs/STATE.md` handoff for the exact ask. F2.2 (Google
+  Sign-In QA) still needs a manual pass; Maestro can't drive the Google account picker.
 - Screenshots/feature graphic (part of G4) need a device to capture.
 - The privacy/terms pages (G3) need a hosting decision before the in-app links can point anywhere.
 - Firestore security rules for the new `notifications` writes (G5) live outside this repo and need
