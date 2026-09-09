@@ -131,6 +131,9 @@ specifically:
    make, same as G1 was.
 6. Schedule a design pass for G10 (cross-feature coupling) before it grows further — not a launch
    blocker, but the longer it's left the more feature modules will depend on it.
+7. Prioritize **G15** (hardcoded Gemini API key, no remote-rotation path) among the new bug-audit
+   items — it's the only one with a security angle, the rest (G12–G14, G16) are correctness/UX bugs
+   without a compromise scenario.
 
 ## Bug audit — 2026-09-09
 
@@ -138,7 +141,20 @@ A pass over ViewModels, repository implementations, and Compose screens for comm
 (coroutine scope leaks, unguarded `!!`, missing Firestore listener cleanup, `LaunchedEffect`/
 `remember` key mistakes). Findings beyond what was already tracked (G9, F3.4):
 
-<!-- bug-audit-findings -->
+| # | Gap | File | Fix status |
+|---|---|---|---|
+| ~~G11~~ | ~~Camera analyzer thread leak~~ — `CameraPreview`'s single-thread `Executor` was created via `remember` but never shut down; every scanner screen visit (open → back → reopen) leaked a background thread | `feature/products/.../components/scanner/CameraPreview.kt:33` | **Fixed this session** — added `DisposableEffect` to shut down the executor |
+| G12 | `CartViewModel.observeData()` leaks duplicate Flow collectors — its settings `collect{}` calls `observeProducts()`, which launches a *new* `viewModelScope` collector each time instead of using `flatMapLatest`; every DataStore settings write anywhere in the app (theme, language, AI prefs) adds one more permanent product collector, each re-running `sortProductsUseCase`/`resolveMemberProfiles` | `feature/cart/.../viewmodel/CartViewModel.kt:98-127` | Open — needs its own PR, moderate risk (touches the cart's core observe loop) |
+| G13 | QR-code list join has no scan debounce — `BarcodeAnalyzer` fires `onBarcodeScanned` on every analyzed camera frame with no throttle/one-shot guard, and `ScannerViewModel.onTokenScanned` has no "already processing" flag; holding a code in frame re-triggers `ShoppingJoinUseCase`, which loops a notification write per other member on every duplicate join | `feature/products/.../scanner/BarcodeAnalyzer.kt:22`, `feature/shopping/.../viewmodel/ScannerViewModel.kt:28-35`, `ShoppingJoinUseCase.kt:33-38` | Open — needs its own PR; also spams other members with duplicate push notifications |
+| G14 | `ProfileViewModel.observeProfile()` subscribes to the Firestore profile but discards the emitted value, always rebuilding state from cached `authService.currentUser` instead — a Firestore-only profile edit never reaches the UI, and the listener runs forever for no effect | `feature/profile/.../viewmodel/ProfileViewModel.kt:47-54` | Open — needs its own PR; needs care to confirm `UserProfile` vs. `authService.currentUser` field parity before merging them |
+| G15 | Gemini API key is compiled into the APK (`BuildConfig.GEMINI_API_KEY`) in three places, and the remote-config key meant for server-side rotation (`RemoteVariableKeys.GEMINI_API_KEY`) is never actually read — so a compromised/abused key can't be revoked without a new release | `feature/products/.../ProductRepositoryImpl.kt:44-47`, `RecipeRepositoryImpl.kt:29-32`, `feature/ai-agent/.../GeminiAiAgent.kt:29-30`, `core/remote-config/.../RemoteConfigKeys.kt:19` | Open — security-relevant; needs its own PR wiring the repositories to read from Remote Config with the compiled key as fallback |
+| G16 | `ProductSearchViewModel.search()` has no debounce or request cancellation — every keystroke past 3 chars launches a fresh, untracked coroutine; a slower earlier response can arrive after a faster later one and overwrite `_uiState` with stale results for a query the user no longer typed | `feature/products/.../viewmodel/ProductSearchViewModel.kt:55-90` | Open — needs its own PR (debounce + cancel-previous-job pattern) |
+
+G12–G16 are documented here rather than fixed in this branch on purpose: none of them can be
+exercised on a device in this environment, and each touches a different feature's core behavior
+(cart observation, QR join, profile sync, AI cost/security, search) — bundling behavioral fixes
+like these into one PR is exactly the risk the "Process" section below exists to avoid. G11 was
+fixed here because it's a pure resource-cleanup change with zero behavior change.
 
 ## Process
 
