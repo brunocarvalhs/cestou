@@ -57,7 +57,7 @@ fun AiChatScreen(
                     IconButton(onClick = intent.onSettings) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = null
+                            contentDescription = stringResource(R.string.ai_chat_settings_content_description)
                         )
                     }
                 }
