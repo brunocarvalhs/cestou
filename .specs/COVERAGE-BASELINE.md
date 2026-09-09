@@ -1,7 +1,9 @@
 # Coverage baseline — Cestou (How-Much)
 
 Status: real, measured baseline (Kover, JVM unit tests only) — first time this number has actually
-been computed, not estimated from test-file counts.
+been computed, not estimated from test-file counts. Update: a real device became available mid-task
+(see "androidTest: G11 regression, verified on device" below) — the first `androidTest` in any
+library module in this repo now exists and passes.
 Owner: bruno
 Last updated: 2026-09-09
 
@@ -168,6 +170,43 @@ G15, not duplicating it here.
   fall outside this task's stated priority (`domain/`+`data/` of shopping/products/cart/profile);
   left for a future coverage pass.
 
+## androidTest: G11 regression, verified on device
+
+`.specs/BETA-LAUNCH-PLAN.md`'s real T3 task queue (revision 2, `docs/beta-launch-planning` PR #70 —
+not yet on `develop`, hence not visible earlier in this branch's history) has a fourth item this
+document didn't originally cover: "backfill a regression test for G11 (camera executor shutdown,
+fixed earlier with no test attached)". A real device (Samsung SM-A146M, Android 15) became available
+mid-task, so this was closed with an actual instrumented test instead of being deferred again:
+
+- `CameraPreview` (feature/products) gained a default-valued `executorFactory` testing seam (zero
+  behavior change for the one production call site) so a test can inject a trackable
+  `ExecutorService`.
+- `CameraPreviewExecutorLifecycleTest` (new, `feature/products/src/androidTest/`) mounts/disposes
+  the composable 4 times and asserts every executor it created is shut down. **Verified to actually
+  catch the regression**: temporarily reverting the `DisposableEffect` fix and rerunning on-device
+  fails with `"Executor #0 created by CameraPreview was not shut down ... this is the G11 thread
+  leak regressing"`; restoring the fix passes.
+- Getting this to run at all surfaced a real, repo-wide gap: **every library module's `androidTest`
+  crashes at process start** with `IllegalStateException: Default FirebaseApp is not initialized`.
+  Only `:app`/`:wear` apply the Google Services plugin, but `core/common`'s `FirebaseInitializer`
+  androidx.startup entry is merged into every module's manifest, and `TimberInitializer`,
+  `AuthInitializer` (core/auth) and `RemoteConfigInitializer` (core/remote-config) each declare it as
+  an androidx.startup dependency — androidx.startup constructs declared dependencies transitively
+  **regardless of manifest meta-data removal**, so all five initializers had to be stripped via a new
+  `feature/products/src/androidTest/AndroidManifest.xml` (scoped to that module's isolated test APK
+  only). This is almost certainly why the repo had exactly one `androidTest` file before this PR
+  (`app/src/androidTest/.../ExampleInstrumentedTest.kt`, unused boilerplate) — **any future
+  `androidTest` in a `core/*` or `feature/*` module will hit this same crash** and needs the same
+  manifest pattern.
+- Device also needed two one-time adb settings changes to run any Compose instrumented test at all
+  (`always_finish_activities` Developer Option was `1`, and the screen was dozing/asleep, which
+  `ActivityScenario` can't launch into): `adb shell settings put global always_finish_activities 0`
+  and waking the screen. Neither is a code change; noting it here so whoever runs the next
+  instrumented test on this device doesn't have to rediscover it.
+- Not run: the `.maestro/` suite (F0.3) — out of scope for this task even with a device now reachable
+  (owned by bruno per `STATE.md`/`MVP-ROADMAP.md`, and this session only validated one unit-level
+  Compose component, not an end-to-end flow).
+
 ## Maestro
 
 No `.maestro/` flows were added or changed in this PR — this was a JVM-unit-test-only task. Per
@@ -200,9 +239,16 @@ Extended existing tests:
 - `feature/shopping/src/test/.../domain/usecase/ShoppingMultiDeleteUseCaseTest.kt` (`execute()`)
 - `feature/shopping/src/test/.../domain/usecase/ShoppingCreateUseCaseTest.kt` (`execute()`)
 
+New instrumented test (verified on a real device, see above):
+- `feature/products/src/androidTest/java/.../scanner/CameraPreviewExecutorLifecycleTest.kt`
+- `feature/products/src/androidTest/AndroidManifest.xml` (strips Firebase-dependent startup
+  initializers from this module's isolated test APK)
+
 Config:
 - `gradle/libs.versions.toml` (added `ktor-client-mock` library entry)
 - `core/data/build.gradle.kts` (added the `testImplementation`)
+- `feature/products/build.gradle.kts` (added `androidTestImplementation`s + the `executorFactory`
+  testing seam in `CameraPreview.kt`, default-valued, no behavior change)
 
 No changes to `buildSrc/src/main/kotlin/howmuch.kover.gradle.kts`, `.github/workflows/tests.yml`,
 or `.github/pipeline-config.yaml` — the coverage gate and CI wiring were already correct.
