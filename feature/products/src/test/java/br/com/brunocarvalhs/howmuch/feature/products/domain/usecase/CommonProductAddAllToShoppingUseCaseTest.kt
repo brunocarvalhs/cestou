@@ -39,7 +39,9 @@ class CommonProductAddAllToShoppingUseCaseTest {
         }
         coVerify(exactly = 1) {
             productRepository.saveProduct(
-                match<Product> { it.name == "Arroz" && it.category == "Graos" && it.quantity == 1.0 && it.price == 0.0 },
+                match<Product> {
+                    it.name == "Arroz" && it.category == "Graos" && it.quantity == 1.0 && it.price == 0.0
+                },
                 "shopping-1"
             )
         }
