@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
@@ -17,6 +19,7 @@ import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseC
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -46,6 +49,7 @@ class QuickAddViewModelTest {
     private val productSaveUseCase = mockk<ProductSaveUseCase>(relaxed = true)
     private val productDuplicateCheckUseCase = mockk<ProductDuplicateCheckUseCase>()
     private val userRepository = mockk<UserRepository>()
+    private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
 
     private fun shopping(budget: Double? = null) = Shopping(
         id = "list1",
@@ -66,7 +70,8 @@ class QuickAddViewModelTest {
             productsUseCase,
             productSaveUseCase,
             productDuplicateCheckUseCase,
-            userRepository
+            userRepository,
+            analyticsTracker
         )
     }
 
@@ -119,6 +124,7 @@ class QuickAddViewModelTest {
         coVerify { productSaveUseCase(name = "Arroz", quantity = 1.0, shoppingId = "list1") }
         assertEquals("", vm.uiState.value.newItemName)
         assertFalse(vm.uiState.value.isSaving)
+        verify { analyticsTracker.trackEvent(AnalyticsEvents.PRODUCT_ADDED, any()) }
 
         vm.intent.onNewItemNameChange("   ")
         vm.intent.onSubmit()
@@ -142,6 +148,7 @@ class QuickAddViewModelTest {
         assertEquals("Arroz", vm.uiState.value.newItemName)
         assertTrue(vm.uiState.value.saveError!!.contains("Arroz"))
         assertFalse(vm.uiState.value.isSaving)
+        verify(exactly = 0) { analyticsTracker.trackEvent(AnalyticsEvents.PRODUCT_ADDED, any()) }
 
         vm.intent.onSaveErrorShown()
 

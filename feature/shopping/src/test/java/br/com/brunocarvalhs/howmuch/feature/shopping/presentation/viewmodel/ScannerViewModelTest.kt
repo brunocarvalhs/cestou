@@ -1,5 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel
 
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingJoinUseCase
 import io.mockk.coEvery
@@ -24,7 +26,8 @@ class ScannerViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private val shoppingJoinUseCase = mockk<ShoppingJoinUseCase>()
     private val navigator = mockk<Navigator>(relaxed = true)
-    private val viewModel = ScannerViewModel(shoppingJoinUseCase)
+    private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
+    private val viewModel = ScannerViewModel(shoppingJoinUseCase, analyticsTracker)
 
     @Before
     fun setup() {
@@ -44,6 +47,7 @@ class ScannerViewModelTest {
         viewModel.intent.onTokenScanned("ABC123")
 
         verify { navigator.goBack() }
+        verify { analyticsTracker.trackEvent(AnalyticsEvents.SHOPPING_LIST_JOINED, any()) }
     }
 
     @Test
@@ -53,6 +57,7 @@ class ScannerViewModelTest {
         viewModel.intent.onTokenScanned("bad-token")
 
         verify(exactly = 0) { navigator.goBack() }
+        verify { analyticsTracker.trackEvent(AnalyticsEvents.SHOPPING_LIST_JOIN_FAILED, any()) }
     }
 
     @Test

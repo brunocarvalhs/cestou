@@ -5,6 +5,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.domain.model.CommonProduct
@@ -13,9 +16,9 @@ import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.CommonProduc
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.CommonProductGetAllUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.CommonProductRemoveUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.intent.CommonProductIntent
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.state.CommonProductUiState
-import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +28,8 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 
+private const val SOURCE_COMMON_PRODUCT = "common_product"
+
 @HiltViewModel
 internal class CommonProductViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -33,7 +38,8 @@ internal class CommonProductViewModel @Inject constructor(
     private val addUseCase: CommonProductAddUseCase,
     private val removeUseCase: CommonProductRemoveUseCase,
     private val addAllToShoppingUseCase: CommonProductAddAllToShoppingUseCase,
-    private val productSaveUseCase: ProductSaveUseCase
+    private val productSaveUseCase: ProductSaveUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
     private val shopping = savedStateHandle.toRoute<ProductPickerRoute>(ProductPickerRoute.typeMap).shopping
 
@@ -50,6 +56,7 @@ internal class CommonProductViewModel @Inject constructor(
     )
 
     init {
+        analyticsTracker.trackScreenView(screenName = "common_products", screenClass = "CommonProductViewModel")
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             getAllUseCase().collect { items ->
@@ -83,7 +90,15 @@ internal class CommonProductViewModel @Inject constructor(
                     category = item.category,
                 ),
                 shoppingId = shopping.id
-            )
+            ).onSuccess {
+                analyticsTracker.trackEvent(
+                    AnalyticsEvents.PRODUCT_ADDED,
+                    mapOf(
+                        AnalyticsParams.SHOPPING_ID to shopping.id,
+                        AnalyticsParams.SOURCE to SOURCE_COMMON_PRODUCT
+                    )
+                )
+            }
             _uiState.update {
                 it.copy(message = context.getString(R.string.common_products_item_added, item.name))
             }
@@ -95,7 +110,16 @@ internal class CommonProductViewModel @Inject constructor(
         if (items.isEmpty()) return
 
         viewModelScope.launch {
-            addAllToShoppingUseCase(shopping.id)
+            addAllToShoppingUseCase(shopping.id).onSuccess {
+                analyticsTracker.trackEvent(
+                    AnalyticsEvents.PRODUCT_ADDED,
+                    mapOf(
+                        AnalyticsParams.SHOPPING_ID to shopping.id,
+                        AnalyticsParams.SOURCE to SOURCE_COMMON_PRODUCT,
+                        AnalyticsParams.ITEMS_COUNT to items.size
+                    )
+                )
+            }
             _uiState.update {
                 it.copy(message = context.getString(R.string.common_products_all_added))
             }
