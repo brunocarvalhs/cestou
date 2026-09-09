@@ -63,20 +63,27 @@ these flows: `shopping_join_scanner`, `shopping_join`, `shopping_edit`, `cart_fi
 
 ### Note on "escanear código de barras"
 
-The codebase has two different "scan" concepts and the PM checklist's phrase maps to the second, not
-the first:
+**Correction (tech-lead review):** the original version of this section claimed `BarcodeAnalyzer` was
+dead code. That was wrong — it is live and is the actual QR-join scanner, and it is also G13. The
+codebase has two different "scan" concepts:
 
-1. `BarcodeAnalyzer`/`CameraPreview` (ML Kit barcode scanning) exists under
-   `feature/products/.../scanner/`, but its `onBarcodeScanned` callback is **not wired to any use
-   case** — dead code, not a real user flow today. Nothing to instrument because nothing calls it.
-2. `ProductPhotoViewModel` (`ProductPhotoForm` + `CameraCaptureView`) is the actual "point the camera
-   at products/a price tag and let AI add them" flow used in the product picker. This is what beta
-   testers experience as "scanning" — so `product_photo_scan_performed` / `_failed` /
-   `product_added(source=photo_scan)` is the funnel that answers the PM's question.
+1. `BarcodeAnalyzer` (ML Kit) is declared `internal` under
+   `feature/products/.../presentation/components/scanner/`, but it is consumed cross-module: 
+   `feature/shopping`'s `QrCodeScanner.kt:53` wires `onBarcodeScanned = onTokenScanned`, which feeds
+   `ScannerViewModel` — this is the QR-code-to-join-a-shared-list flow, and it fires per camera frame
+   with no debounce (G13, the scanner spam bug already tracked in the roadmap and now instrumented via
+   `shopping_list_joined`/`shopping_list_join_failed` above). This cross-module `internal` access is
+   also a live instance of the G10 module-coupling issue (AD-005) — flagged for `tech-lead`, not this
+   doc's problem to fix.
+2. `ProductPhotoViewModel` (`ProductPhotoForm` + `CameraCaptureView`) is the "point the camera at
+   products/a price tag and let AI add them" flow used in the product picker — a materially different
+   capability (AI vision vs. SKU lookup) from the QR-join scanner above. `product_photo_scan_performed`
+   / `_failed` / `product_added(source=photo_scan)` covers this one.
 
-If `android-engineer-features` later wires up the literal barcode scanner to a real use case, it needs
-its own event (e.g. `product_barcode_scanned`) — not folded into the photo-scan events above, since
-it's a materially different capability (SKU lookup vs. AI vision).
+Both flows now have events: the QR-join scanner via `shopping_list_joined` (`join_method=qr_scan`) and
+the photo-scan flow via the events in the table above. No new event is needed for G13 itself — once
+`android-engineer-features` adds the debounce, the existing `shopping_list_join_failed` volume should
+simply drop.
 
 ## Funnels to watch during the beta, and the decision each one informs
 
