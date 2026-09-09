@@ -4,6 +4,8 @@ import br.com.brunocarvalhs.howmuch.core.common.BuildConfig
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import br.com.brunocarvalhs.howmuch.core.domain.services.make
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.RemoteVariableService
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.RemoteVariableKeys
 import br.com.brunocarvalhs.howmuch.feature.products.domain.model.Recipe
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.RecipeRepository
 import com.google.ai.client.generativeai.GenerativeModel
@@ -22,13 +24,19 @@ import javax.inject.Inject
 import javax.inject.Named
 
 class RecipeRepositoryImpl @Inject constructor(
-    @Named("CloudNetwork") private val networkService: NetworkService
+    @Named("CloudNetwork") private val networkService: NetworkService,
+    private val remoteVariableService: RemoteVariableService
 ) : RecipeRepository {
 
+    // AD-008: this repository is @Singleton and the key is read once into a `by lazy`, so a
+    // rotated remote key only takes effect after an app restart, not on the next fetch/activate.
     private val generativeModel by lazy {
         GenerativeModel(
             modelName = BuildConfig.GEMINI_AGENT,
-            apiKey = BuildConfig.GEMINI_API_KEY
+            apiKey = remoteVariableService.getString(
+                key = RemoteVariableKeys.GEMINI_API_KEY,
+                default = BuildConfig.GEMINI_API_KEY
+            ).takeIf { it.isNotBlank() } ?: BuildConfig.GEMINI_API_KEY
         )
     }
 

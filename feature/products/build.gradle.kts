@@ -47,6 +47,7 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:auth"))
     implementation(project(":core:ai"))
+    implementation(project(":core:remote-config"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:chat"))
 
