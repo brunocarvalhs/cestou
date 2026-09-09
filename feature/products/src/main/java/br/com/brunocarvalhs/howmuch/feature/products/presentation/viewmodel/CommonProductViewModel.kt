@@ -16,9 +16,9 @@ import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.CommonProduc
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.CommonProductGetAllUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.CommonProductRemoveUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.intent.CommonProductIntent
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.state.CommonProductUiState
-import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
