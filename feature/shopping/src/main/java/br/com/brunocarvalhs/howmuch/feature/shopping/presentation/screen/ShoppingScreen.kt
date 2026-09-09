@@ -40,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -105,7 +106,10 @@ internal fun ShoppingScreen(
             topBar = {
                 CenterAlignedTopAppBar(
                     actions = {
-                        IconButton(onClick = intent.onShowJoinDialog) {
+                        IconButton(
+                            onClick = intent.onShowJoinDialog,
+                            modifier = Modifier.testTag("join_list_icon")
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.QrCodeScanner,
                                 contentDescription = stringResource(
@@ -127,7 +131,10 @@ internal fun ShoppingScreen(
                 )
             },
             floatingActionButton = {
-                FloatingActionButton(onClick = intent.onCreate) {
+                FloatingActionButton(
+                    onClick = intent.onCreate,
+                    modifier = Modifier.testTag("create_list_fab")
+                ) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = stringResource(

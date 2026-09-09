@@ -10,6 +10,12 @@ name: Onboarding Flow
 # Only covers the pre-login Welcome screen. It deliberately never taps "Continuar com
 # Google": automating the Google account picker/OAuth consent is out of scope for
 # Maestro (real account, UI outside app control) — see README "Notes / known gaps".
+#
+# Text assertions below are safe as plain text regardless of device locale: WelcomeScreen.kt's
+# strings.xml (feature/auth) has no values-*/strings.xml override at all — only the single
+# default resource, already written in Portuguese — so every one of these renders identically no
+# matter what locale the device is set to. See .maestro/README.md "Language / locale" for the
+# general policy (testTag for anything that *does* vary by locale).
 - launchApp:
     clearState: true
 

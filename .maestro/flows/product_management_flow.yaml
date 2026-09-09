@@ -3,6 +3,12 @@ name: Product Management Flow
 ---
 # Depends on: create_list_flow.yaml (uses the "value" list fixture). Does NOT use
 # clearState (see home_flow.yaml for why).
+#
+# Selectors are testTag-based (id:), not display text — see .maestro/README.md
+# "Language / locale". "value" and "Arroz" are literal/locale-invariant content
+# (user-entered list name, and a hardcoded common-product name defined directly in
+# Kotlin source — br.com.brunocarvalhs.howmuch.feature.products.data.repository —
+# not a translated string resource), safe as plain text.
 - launchApp
 - tapOn: "value"
 - waitForAnimationToEnd:
@@ -13,57 +19,67 @@ name: Product Management Flow
 # PR5 / feat/iaa-quick-add). Quick Add shows a text field, common-product chips, and a
 # scan/photo shortcut on one screen, no tab switching needed for a plain item.
 - tapOn:
-    point: 80%,88%
-- assertVisible: "Nome do item"
-- assertVisible: "Itens comuns"
+    id: "cart_add_product_button"
+- assertVisible:
+    id: "quick_add_name_field"
+- assertVisible:
+    id: "quick_add_common_items_title"
 - assertVisible: "Arroz"
 # AI/Search/Photo/Suggestions stay reachable as secondary options via the header selector,
 # unchanged in behavior (spec P3 AC3). Quick Add itself has no header chip — it's the landing
 # surface, not a tab you switch back into.
-- assertVisible: "Chat com IA"
-- assertVisible: "Pesquisar"
-- assertVisible: "Foto"
-- assertVisible: "Sugestões"
+- assertVisible:
+    id: "product_option_AI"
+- assertVisible:
+    id: "product_option_SEARCH"
+- assertVisible:
+    id: "product_option_PHOTO"
+- assertVisible:
+    id: "product_option_SUGGESTIONS"
 
-- tapOn: "Pesquisar"
-- assertVisible: "Produtos"
-- assertVisible: "Receitas"
-- assertVisible: "Buscar produto"
-- tapOn: "Receitas"
-- assertVisible: "Encontre receitas e adicione os ingredientes."
-- assertVisible: "Também é possível utilizar IA para reconhecer automaticamente o conteúdo."
+- tapOn:
+    id: "product_option_SEARCH"
+- assertVisible:
+    id: "product_search_tab_products"
+- assertVisible:
+    id: "product_search_tab_recipes"
+- tapOn:
+    id: "product_search_tab_recipes"
+- assertVisible:
+    id: "product_search_empty_text"
+- assertVisible:
+    id: "product_search_ai_hint"
 
-- tapOn: "Sugestões"
+- tapOn:
+    id: "product_option_SUGGESTIONS"
 - tapOn: "Arroz"
 
-# Product added to the list
-- assertVisible: "Mercearia"
-- assertVisible: "Marcar como comprado"
+# Product added to the list. NOTE (found 2026-09-09 while adding Maestro testTag coverage,
+# superseding the earlier "pre-existing drift... not fixed here per tasks.md T15" note): the
+# strings this section used to assert ("Mark as purchased" / product_item_mark_purchased,
+# "More options" / product_item_more_options) are dead resources — grep confirms neither is
+# referenced anywhere in feature/cart or feature/products. There never was a "More options" menu
+# to find; ProductListItem.kt only exposes onLongClick (edit) and swipe-to-dismiss (delete).
+# Rewritten to match the real interaction instead of asserting UI that doesn't exist.
 - assertVisible: "Arroz"
 - assertVisible: "• Mercearia"
-# NOTE (pre-existing drift, unrelated to PR5 / feat/iaa-quick-add — not fixed here per
-# tasks.md T15): this "More options" -> Edit/Delete interaction does not match current
-# ProductListItem.kt, where edit/delete live behind onLongClick + swipe-to-dismiss with no
-# visible "More options" affordance. Left as-is rather than silently reworked.
+- longPressOn: "Arroz"
+- assertVisible:
+    id: "edit_item_title"
+- assertVisible:
+    id: "edit_item_name_field"
+- assertVisible:
+    id: "edit_item_category_field"
 - tapOn:
-    text: "Mais opções"
-    index: 1
-- assertVisible: "Editar"
-- assertVisible: "Excluir"
-
-# Edit the product
-- tapOn: "Editar"
-- assertVisible: "Editar Produto"
-- assertVisible: "Nome do Produto"
-- assertVisible: "Categoria"
-- assertVisible: "Preço Unitário"
-- assertVisible: "Quantidade"
-- tapOn: "Preço Unitário"
+    id: "edit_item_price_field"
 - inputText: "10000"
-- assertVisible: "Salvar Alterações"
-- tapOn: "Salvar Alterações"
+- assertVisible:
+    id: "edit_item_save_button"
+- tapOn:
+    id: "edit_item_save_button"
 - waitForAnimationToEnd:
     timeout: 1000
 
-- tapOn: "Voltar"
+- tapOn:
+    id: "cart_back_button"
 - assertVisible: "Cestou"

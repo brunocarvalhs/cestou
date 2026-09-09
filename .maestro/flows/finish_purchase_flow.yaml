@@ -4,24 +4,39 @@ name: Finish Purchase Flow
 # Depends on: create_list_flow.yaml + product_management_flow.yaml
 # (uses the "value" list with the "Arroz" item already added). Does NOT use
 # clearState (see home_flow.yaml for why).
+#
+# Selectors are testTag-based (id:), not display text — see .maestro/README.md
+# "Language / locale". "value" is user-entered content, safe as plain text.
 - launchApp
 - tapOn: "value"
 - waitForAnimationToEnd:
     timeout: 2000
 
-- assertVisible: "Finalizar"
-- tapOn: "Finalizar"
+# NOTE (found 2026-09-09 while adding Maestro testTag coverage): the trigger button here is
+# hardcoded English "Checkout" in CartBottomBar.kt — not a stringResource, so it never localizes
+# and would never have matched either the old "Finish" or the previous "Finalizar" assert. Real
+# app bug, not fixed here; flagged in .specs/STATE.md for tech-lead triage. Selecting by testTag
+# instead of the (currently wrong-language) button text works either way.
+- assertVisible:
+    id: "cart_finish_button"
+- tapOn:
+    id: "cart_finish_button"
 - waitForAnimationToEnd:
     timeout: 1000
-- assertVisible: "Finalizar Compra"
-- assertVisible: "Informe o valor total pago e o local da compra."
-- assertVisible: "Valor Total"
-- assertVisible: "Estabelecimento (Opcional)"
-- assertVisible: "Confirmar e Salvar"
+- assertVisible:
+    id: "finish_purchase_title"
+- assertVisible:
+    id: "finish_purchase_total_field"
+- assertVisible:
+    id: "finish_purchase_establishment_field"
+- assertVisible:
+    id: "finish_purchase_confirm_button"
 - inputText: "value"
-- tapOn: "Confirmar e Salvar"
+- tapOn:
+    id: "finish_purchase_confirm_button"
 
-- assertVisible: "Lista Finalizada"
-- assertVisible: "Esta lista está bloqueada para alterações."
-- tapOn: "Voltar"
+- assertVisible:
+    id: "cart_locked_banner"
+- tapOn:
+    id: "cart_back_button"
 - assertVisible: "Cestou"

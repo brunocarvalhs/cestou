@@ -100,14 +100,43 @@
     point anywhere in the app (`core/ui`'s `content_description_join_list` string is also dead —
     unused, superseded by `shopping_management_button_join`). Neither blocks Maestro coverage, both
     worth a ticket.
-- **Next step**: once bruno confirms a manual login on the device, resume running the corrected
-  8-flow suite + `onboarding_flow.yaml`, fix whatever real drift the actual runs turn up (not
-  guesses), then audit `core/navigation` + each `feature/*/navigation` entry point against the 8
-  existing flows to add coverage for currently-untested screens (candidates identified so far:
-  `ProductHistoryRoute`/`ConfirmItemRoute`/`ShareOptionsRoute` in `feature/cart`, the About/Support
-  legal screens in `feature/settings`, the AI/Shopping settings sub-screens).
+  - **Scope correction (same session, before the login blocker above)**: the initial fix for bug 2
+    replaced hardcoded English asserts with hardcoded pt-BR asserts — still a fixed-language
+    hardcode, just a different one, so it would still break on a CI emulator (typically en-US
+    default) even though it now passes on this pt-BR physical device. Caught before merging.
+    Reworked to a `testTag`-based selector strategy instead: added `Modifier.testTag(...)` to every
+    Compose element the 8 flows actually interact with (bottom nav, dialogs/sheets, form fields,
+    buttons, settings items — ~25 files across `core/ui`, `feature/shopping`, `feature/cart`,
+    `feature/products`, `feature/settings`, `feature/profile`, `feature/chat`), scoped only to
+    what's touched, not a blanket sweep. Flow YAML now selects by `id:` (the testTag) instead of
+    display text for anything structural; plain text is kept only where the text itself is the
+    thing under test (one instance: `join_list_flow.yaml`'s invalid-token error message), and that
+    one assertion is parameterized as `${JOIN_ERROR_TEXT}` and resolved by the new
+    `.maestro/scripts/run.sh` from the device's actual `persist.sys.locale` at run time, not a
+    fixed language either direction. `app:assembleDebug` succeeds with all the `testTag` additions;
+    installed on the device (`adb install -r`, data-preserving) and `onboarding_flow.yaml` reran
+    clean against the new build. Full rationale in `.maestro/README.md` "Language / locale".
+  - Two more real app bugs surfaced while wiring testTags (found by reading the actual Compose
+    source, not the flow — neither fixed here, both worth a tech-lead ticket): (a)
+    `CartBottomBar.kt`'s purchase-trigger button is hardcoded `Text("Checkout")` — not a
+    `stringResource` at all, so it never localizes and would never have matched the old English
+    *or* pt-BR flow assert either way; (b) `SettingsHeader.kt`'s back-icon `contentDescription` is
+    hardcoded literal `"Voltar"` (harmless on a pt-BR device, but not translated for any other
+    locale).
+- **Next step**: once bruno confirms a manual login on the device, run the corrected 8-flow suite +
+  `onboarding_flow.yaml` via `.maestro/scripts/run.sh`, fix whatever real drift the actual runs turn
+  up (not guesses — the `settings_flow.yaml`/`account_data_flow.yaml` back-navigation step counts in
+  particular are unverified assumptions, flagged inline in those files), then audit `core/navigation`
+  + each `feature/*/navigation` entry point against the 8 existing flows to add coverage for
+  currently-untested screens (candidates identified so far: `ProductHistoryRoute`/`ConfirmItemRoute`/
+  `ShareOptionsRoute` in `feature/cart`, the About/Support legal screens in `feature/settings`, the
+  AI/Shopping settings sub-screens).
 - **Blockers**: device session logged out by this session's own test run — needs bruno to log back
   into the Cestou app manually (Google Sign-In) before any further authenticated flow can run.
+  Confirmed 2026-09-09 (later in the session) that bruno was the one interacting with the device
+  (system Settings > Language was open momentarily) and it's fine to keep using it — but the app
+  itself was still on the pre-login Welcome screen the last time it was checked, so the login itself
+  hadn't happened yet.
 - **Uncommitted files**: none (this session's changes are on `test/maestro-e2e-coverage`, PR not
   yet opened — waiting to finish the run before requesting tech-lead review)
 - **Branch**: test/maestro-e2e-coverage (PR target: develop, from `develop` @ the commit this

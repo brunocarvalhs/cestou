@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,7 +54,7 @@ internal fun CartBottomBar(
         ) {
             FilledTonalButton(
                 onClick = onFinished,
-                modifier = Modifier.height(56.dp).weight(3f),
+                modifier = Modifier.height(56.dp).weight(3f).testTag("cart_finish_button"),
                 shape = RoundedCornerShape(16.dp),
             ) {
                 Row(
@@ -61,6 +62,10 @@ internal fun CartBottomBar(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // NOTE (found 2026-09-09 while adding Maestro testTag coverage): "Checkout" is
+                    // hardcoded English, not a stringResource — it never localizes to pt-BR (or
+                    // any other language) regardless of device locale. Real app bug, not touched
+                    // here; flagged in .specs/STATE.md for tech-lead triage.
                     Text("Checkout", fontWeight = FontWeight.Bold)
                     Text(
                         text = currencyFormatter.format(totalAmount),
@@ -73,7 +78,7 @@ internal fun CartBottomBar(
 
             Button(
                 onClick = onAdd,
-                modifier = Modifier.height(56.dp).weight(1f),
+                modifier = Modifier.height(56.dp).weight(1f).testTag("cart_add_product_button"),
                 shape = RoundedCornerShape(16.dp),
             ) {
                 Icon(Icons.Default.Add, null)

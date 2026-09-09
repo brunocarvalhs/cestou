@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,11 +51,15 @@ fun AiChatScreen(
                     Text(
                         text = stringResource(R.string.ai_chat_title),
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.testTag("ai_chat_title")
                     )
                 },
                 actions = {
-                    IconButton(onClick = intent.onSettings) {
+                    IconButton(
+                        onClick = intent.onSettings,
+                        modifier = Modifier.testTag("ai_chat_settings_button")
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = stringResource(R.string.ai_chat_settings_content_description)
@@ -75,9 +80,13 @@ fun AiChatScreen(
                     value = state.input,
                     onValueChange = { intent.onInputChange(it) },
                     label = stringResource(R.string.ai_chat_input_label),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    fieldTestTag = "ai_chat_message_field"
                 )
-                IconButton(onClick = { intent.onSendMessage() }) {
+                IconButton(
+                    onClick = { intent.onSendMessage() },
+                    modifier = Modifier.testTag("ai_chat_send_button")
+                ) {
                     Icon(
                         Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(
                             br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_send_message

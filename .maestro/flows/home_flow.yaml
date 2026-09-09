@@ -6,25 +6,33 @@ name: Home Flow
 # is local), and this flow has no way to log back in without a human at the Google
 # account picker. It also cannot assert a truly empty list state: a real, persisted
 # account may already have lists from previous runs/fixtures (data syncs from
-# Firestore, not just local storage). Assertions below are state-agnostic.
+# Firestore, not just local storage).
+#
+# Selectors are testTag-based (id:), not display text, so this flow doesn't care which
+# language the device/app is set to — see .maestro/README.md "Language / locale".
+# "Cestou" is the one exception: app_name is identical across every values*/strings.xml
+# in the repo (there's no translation to diverge from), so it's locale-safe as plain text.
 - launchApp
 
 - assertVisible: "Cestou"
 
 # Bottom navigation tabs
-- assertVisible: "Listas"
-- assertVisible: "IA Chat"
-- assertVisible: "Perfil"
+- assertVisible:
+    id: "nav_ShoppingList"
+- assertVisible:
+    id: "nav_AiChat"
+- assertVisible:
+    id: "nav_Profile"
 
-# Join a list dialog, opened from the top bar icon (content description comes from
-# shopping_management_button_join, reused for both the icon and the dialog's submit
-# button — core/ui's content_description_join_list string is unused/dead code, not
-# what's actually wired to this icon).
-- tapOn: "Entrar na Lista"
-- assertVisible: "Entrar em uma lista"
-- assertVisible: "Peça o código ou QR Code para o proprietário da lista."
-- assertVisible: "Código da lista"
-- assertVisible: "Escanear QR Code"
+# Join a list dialog, opened from the top bar icon
+- tapOn:
+    id: "join_list_icon"
+- assertVisible:
+    id: "join_list_dialog_title"
+- assertVisible:
+    id: "join_list_token_field"
+- assertVisible:
+    id: "join_list_scan_button"
 - back
 
 - assertVisible: "Cestou"

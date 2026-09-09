@@ -18,6 +18,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -38,16 +40,24 @@ internal fun SettingsScreen(
         topBar = {
             SettingsHeader(
                 title = stringResource(R.string.settings_title),
+                titleTestTag = "settings_screen_title",
                 onBack = { intent.onBack() }
             )
         }
     ) { paddingValues ->
+        val context = LocalContext.current
         LazyColumn(
             modifier = Modifier.padding(paddingValues)
         ) {
             state.sections.forEach { section ->
                 item {
-                    SettingsSection(section.title.asString())
+                    // Tagged by the string resource *name* backing the section title (e.g.
+                    // "settings_section_general"), not the localized display text — stable
+                    // regardless of device locale (see .maestro/README.md "Language / locale").
+                    SettingsSection(
+                        title = section.title.asString(),
+                        testTag = section.title.stableKey(context)
+                    )
                 }
 
                 items(section.items) { item ->
@@ -57,7 +67,12 @@ internal fun SettingsScreen(
                         icon = item.icon,
                         onClick = {
                             item.route?.let { intent.onNavigate(it) }
-                        }
+                        },
+                        // Tagged by the destination route's class name when there is one (stable,
+                        // locale-independent); items with no route (e.g. app version) fall back to
+                        // the title's resource-name key.
+                        testTag = "settings_item_" +
+                            (item.route?.let { it::class.simpleName } ?: item.title.stableKey(context))
                     )
                 }
             }
@@ -65,19 +80,32 @@ internal fun SettingsScreen(
     }
 }
 
+// Stable, locale-independent identifier for a UiText, used only as a Maestro testTag suffix —
+// never shown to the user. StringResource resolves to the resource *entry name* (e.g.
+// "settings_section_general", same string regardless of which values-*/strings.xml supplied the
+// text); DynamicString (used for truly dynamic content like an email address or app version,
+// never a translated label) falls back to its raw value.
+private fun UiText.stableKey(context: android.content.Context): String = when (this) {
+    is UiText.StringResource -> context.resources.getResourceEntryName(resId)
+    is UiText.DynamicString -> value
+}
+
 @Composable
 fun SettingsSection(
     title: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    testTag: String? = null
 ) {
     Text(
         text = title,
-        modifier = modifier.padding(
-            start = 16.dp,
-            end = 16.dp,
-            top = 24.dp,
-            bottom = 8.dp
-        ),
+        modifier = modifier
+            .let { if (testTag != null) it.testTag(testTag) else it }
+            .padding(
+                start = 16.dp,
+                end = 16.dp,
+                top = 24.dp,
+                bottom = 8.dp
+            ),
         style = MaterialTheme.typography.titleSmall,
         color = MaterialTheme.colorScheme.primary
     )
@@ -88,10 +116,13 @@ fun SettingsItem(
     title: String,
     subtitle: String? = null,
     icon: ImageVector,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    testTag: String? = null
 ) {
     ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = Modifier
+            .let { if (testTag != null) it.testTag(testTag) else it }
+            .clickable(onClick = onClick),
         leadingContent = {
             Icon(
                 imageVector = icon,

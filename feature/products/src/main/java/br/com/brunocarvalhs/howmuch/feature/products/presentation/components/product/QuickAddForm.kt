@@ -37,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -100,7 +101,7 @@ internal fun QuickAddForm(
             OutlinedTextField(
                 value = uiState.newItemName,
                 onValueChange = { intent.onNewItemNameChange(it) },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).testTag("quick_add_name_field"),
                 placeholder = { Text(stringResource(R.string.quick_add_placeholder)) },
                 singleLine = true,
                 enabled = !uiState.isSaving,
@@ -141,7 +142,7 @@ internal fun QuickAddForm(
 
         Text(
             text = stringResource(R.string.quick_add_common_products_title),
-            modifier = Modifier.padding(horizontal = 20.dp),
+            modifier = Modifier.padding(horizontal = 20.dp).testTag("quick_add_common_items_title"),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold
         )

@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -57,7 +58,8 @@ internal fun FinishPurchaseContent(
         Text(
             text = stringResource(R.string.shopping_list_finish_title),
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.testTag("finish_purchase_title")
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -76,7 +78,7 @@ internal fun FinishPurchaseContent(
             },
             label = { Text(stringResource(R.string.shopping_list_label_total_value)) },
             prefix = { Text(currencyFormatter.currency?.symbol ?: "R$") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("finish_purchase_total_field"),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             visualTransformation = visualTransformation,
             shape = RoundedCornerShape(12.dp)
@@ -89,7 +91,7 @@ internal fun FinishPurchaseContent(
             onValueChange = { establishment = it },
             label = { Text(stringResource(R.string.shopping_list_label_establishment)) },
             placeholder = { Text(stringResource(R.string.shopping_list_placeholder_establishment)) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("finish_purchase_establishment_field"),
             shape = RoundedCornerShape(12.dp),
             leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) }
         )
@@ -103,7 +105,8 @@ internal fun FinishPurchaseContent(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(56.dp)
+                .testTag("finish_purchase_confirm_button"),
             shape = RoundedCornerShape(16.dp)
         ) {
             Text(stringResource(R.string.shopping_list_confirm_save))

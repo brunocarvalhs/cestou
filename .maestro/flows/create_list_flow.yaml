@@ -4,33 +4,44 @@ name: Create List Flow
 # Depends on: an already-authenticated session (see onboarding_flow.yaml / README).
 # Creates the "value" list fixture used by product_management_flow.yaml and
 # finish_purchase_flow.yaml. Does NOT use clearState (see home_flow.yaml for why).
+#
+# Selectors are testTag-based (id:), not display text — see .maestro/README.md
+# "Language / locale". "value" and "Cestou" are literal/locale-invariant content
+# (user-entered text and the app name), safe as plain text.
 - launchApp
 
-# Create-list FAB, tapped by its content description instead of a screen-percentage
-# point — the old "77%,4%" coordinate targeted the top bar, but the actual create
-# button is a FloatingActionButton (bottom-right), not a top-bar icon.
-- tapOn: "Criar lista"
-- assertVisible: "Nova Lista"
-- assertVisible: "Dê um nome para sua nova lista de compras"
-- assertVisible: "Título da Lista"
-- assertVisible: "Descrição (Opcional)"
-- assertVisible: "Cancelar"
-- assertVisible: "Criar"
-- tapOn: "Título da Lista"
+- tapOn:
+    id: "create_list_fab"
+- assertVisible:
+    id: "create_list_dialog_title"
+- assertVisible:
+    id: "create_list_title_field"
+- assertVisible:
+    id: "create_list_description_field"
+- assertVisible:
+    id: "create_list_cancel_button"
+- assertVisible:
+    id: "create_list_create_button"
+- tapOn:
+    id: "create_list_title_field"
 - inputText: "value"
-- tapOn: "Descrição (Opcional)"
+- tapOn:
+    id: "create_list_description_field"
 - inputText: "value"
 - waitForAnimationToEnd:
     timeout: 1000
-- tapOn: "Criar"
+- tapOn:
+    id: "create_list_create_button"
 
 - waitForAnimationToEnd:
     timeout: 5000
 - assertVisible: "value"
-- assertVisible: "Compartilhar lista"
-- assertVisible: "Voltar"
-- assertVisible: "0 de 0"
-- assertVisible: "Sua lista está vazia"
-- assertVisible: "Adicione produtos ou peça ajuda à IA!"
-- tapOn: "Voltar"
+- assertVisible:
+    id: "cart_share_button"
+- assertVisible:
+    id: "cart_back_button"
+- assertVisible:
+    id: "cart_empty_state"
+- tapOn:
+    id: "cart_back_button"
 - assertVisible: "Cestou"

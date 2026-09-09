@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -39,6 +40,7 @@ internal fun ThemeSettingsScreen(
         topBar = {
             SettingsHeader(
                 title = stringResource(R.string.settings_item_theme),
+                titleTestTag = "theme_settings_screen_title",
                 onBack = { intent.onBack() }
             )
         }
@@ -49,7 +51,9 @@ internal fun ThemeSettingsScreen(
                 .padding(16.dp)
         ) {
             ListItem(
-                modifier = Modifier.clickable { showThemeBottomSheet = true },
+                modifier = Modifier
+                    .testTag("theme_settings_open_button")
+                    .clickable { showThemeBottomSheet = true },
                 headlineContent = { Text(stringResource(R.string.settings_item_theme)) },
                 supportingContent = {
                     val currentThemeLabel = when (state.themeMode) {
@@ -91,7 +95,7 @@ private fun ThemeBottomSheet(
             Text(
                 text = stringResource(R.string.settings_theme_select),
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(16.dp).testTag("theme_select_title")
             )
             ThemeOption(stringResource(R.string.settings_theme_system), ThemeMode.SYSTEM, onSelect)
             ThemeOption(stringResource(R.string.settings_theme_light), ThemeMode.LIGHT, onSelect)
@@ -109,6 +113,9 @@ private fun ThemeOption(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            // Tagged by the ThemeMode enum name (stable, locale-independent), not the display
+            // label passed in above.
+            .testTag("theme_option_${mode.name}")
             .clickable { onSelect(mode) }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically

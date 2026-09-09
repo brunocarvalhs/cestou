@@ -43,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -84,12 +85,14 @@ internal fun ProductSearchForm(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 FilterChip(
+                    modifier = Modifier.testTag("product_search_tab_products"),
                     selected = uiState.searchMode == ProductSearchUiState.SearchMode.PRODUCT,
                     onClick = { intent.onSearchModeChange(ProductSearchUiState.SearchMode.PRODUCT) },
                     label = { Text(stringResource(R.string.product_search_products_label)) },
                     leadingIcon = { Icon(Icons.Default.ShoppingBag, null, modifier = Modifier.size(18.dp)) }
                 )
                 FilterChip(
+                    modifier = Modifier.testTag("product_search_tab_recipes"),
                     selected = uiState.searchMode == ProductSearchUiState.SearchMode.RECIPE,
                     onClick = { intent.onSearchModeChange(ProductSearchUiState.SearchMode.RECIPE) },
                     label = { Text(stringResource(R.string.product_search_recipes_label)) },
@@ -136,7 +139,8 @@ internal fun ProductSearchForm(
                     Text(
                         text = stringResource(emptyTextRes),
                         style = MaterialTheme.typography.headlineSmall,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.testTag("product_search_empty_text")
                     )
 
                     Spacer(Modifier.height(16.dp))
@@ -144,7 +148,8 @@ internal fun ProductSearchForm(
                     Text(
                         text = stringResource(R.string.product_search_ai_hint),
                         style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.testTag("product_search_ai_hint")
                     )
 
                     Spacer(Modifier.height(40.dp))

@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
@@ -81,6 +82,10 @@ fun CestouBottomNavigation(
         items.forEach { item ->
             val selected = currentRoute != null && currentRoute::class == item.route::class
             NavigationBarItem(
+                // Stable, locale-independent selector for Maestro (the visible label is
+                // stringResource(item.titleRes) and changes with device locale) — derived from
+                // the route's class name, not the display text.
+                modifier = Modifier.testTag("nav_${item.route::class.simpleName}"),
                 selected = selected,
                 onClick = { onNavigate(item.route) },
                 icon = {

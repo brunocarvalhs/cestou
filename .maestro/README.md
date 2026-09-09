@@ -12,26 +12,62 @@ This directory contains Maestro tests for the Cestou app (`br.com.brunocarvalhs.
 
 ## Running Tests
 
-To run the full regression suite:
+Prefer the wrapper script over calling `maestro test` directly — it resolves the device's real
+locale for the couple of assertions that need it (see "Language / locale" below) instead of
+assuming one:
+
+```bash
+.maestro/scripts/run.sh                              # full regression suite
+.maestro/scripts/run.sh flows/home_flow.yaml          # a specific flow
+```
+
+Calling `maestro test` directly still works for every flow whose assertions are all `id:`-based
+(most of them, see below) — it only matters for `join_list_flow.yaml`, which needs
+`-e JOIN_ERROR_TEXT=...` supplied (the script does this for you):
 
 ```bash
 maestro test .maestro/test_suite.yaml
-```
-
-To run a specific flow:
-
-```bash
 maestro test .maestro/flows/home_flow.yaml
 ```
 
 ## Language / locale
 
-Assertions in every flow use the real strings from `values-pt-rBR/strings.xml` of whichever module
-owns that screen (`core/ui`, `feature/shopping`, `feature/products`, `feature/profile`,
-`feature/settings`, `feature/chat`), not the English `values/strings.xml` defaults. This matches
-the target market (pt-BR) and the actual string shown on a device with `persist.sys.locale=pt-BR`.
-If you add a new flow, grep the real pt-BR string before hardcoding an assert — the English default
-often reads plausibly but is not what's on screen.
+**Rule: `testTag`/`id:` for anything structural, plain text only for content that's actually under
+test.** The app has zero `Modifier.testTag` usage before this suite's first real run (2026-09-09) —
+every flow used to anchor on visible display text, which broke two ways depending on which
+environment ran it: hardcoded English text failed on a real pt-BR device, and (if "fixed" by
+hardcoding pt-BR instead, which this suite briefly did before catching it) would just as surely
+fail on a CI emulator defaulting to en-US. Neither language is the "right" hardcode — the suite
+needs to not care.
+
+So:
+
+- **Structural assertions** (the right screen was reached, a button/field/tab exists, navigation
+  worked) use `Modifier.testTag(...)` added directly to the Compose element, and
+  `tapOn:`/`assertVisible: { id: "..." }` in the flow YAML. Tags are scoped to only the elements a
+  flow actually touches — this isn't a blanket `testTag` sweep of the whole app. Where the element
+  is data-driven (e.g. `SettingItem`/`SettingSection` in `SettingsScreen.kt`), the tag is derived
+  from something locale-independent already in the data — the destination route's class name, or
+  the string resource's *entry name* (via `context.resources.getResourceEntryName(resId)`) — never
+  the localized display text itself.
+- **Content assertions** (does this specific error message say the right thing) still use plain
+  text, because the text itself is what's under test. There's exactly one of these in the suite
+  today: `join_list_flow.yaml`'s invalid-token error. It's parameterized as `${JOIN_ERROR_TEXT}`
+  and resolved by `.maestro/scripts/run.sh` from `adb shell getprop persist.sys.locale` — pt-BR
+  gets the real pt-BR string, everything else falls back to the English default. If you run that
+  flow with plain `maestro test` instead of the wrapper script, pass `-e JOIN_ERROR_TEXT="..."`
+  yourself or the assertion will fail on an unresolved `${JOIN_ERROR_TEXT}` literal.
+- A few assertions are plain text *and* locale-safe by construction, not because we picked a
+  language: `"Cestou"` (app_name is identical across every `values*/strings.xml` in the repo — no
+  translation exists to diverge from), user-entered fixture data (`"value"`, `"Oi"`), and
+  `"Arroz"` (a hardcoded common-product name in Kotlin source, not a string resource at all).
+  `onboarding_flow.yaml` is entirely in this bucket: `feature/auth`'s Welcome-screen strings have
+  no `values-*/strings.xml` override, so the single default resource (already Portuguese) renders
+  the same regardless of device locale.
+
+If you add a new flow: default to adding a `testTag` at the element you need to select, not to
+grepping for the "right" language string. Only reach for plain text when the test's actual point
+is verifying the text.
 
 ## Authentication
 

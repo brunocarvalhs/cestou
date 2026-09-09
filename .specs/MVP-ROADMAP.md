@@ -59,11 +59,14 @@ regression suite (#16), this doc (#17), account & data deletion (#18), dead soci
   `launchApp: clearState: true` logs the device out of Google Sign-In instead of landing on an
   authenticated empty home — split into a separate `onboarding_flow.yaml` (clearState allowed,
   excluded from `test_suite.yaml`) and a `home_flow.yaml` that assumes an existing session; (2) all
-  8 flows asserted hardcoded English strings against a pt-BR device/app — replaced with the real
-  `values-pt-rBR/strings.xml` strings across all 8 flows. `onboarding_flow.yaml` ran and passed in
-  full. The rest of the suite is blocked on a human logging back into the device (this session's own
-  test run cleared the session) — see `.specs/STATE.md` handoff for the exact ask. F2.2 (Google
-  Sign-In QA) still needs a manual pass; Maestro can't drive the Google account picker.
+  8 flows asserted hardcoded strings against the device — first "fixed" to hardcoded pt-BR (still
+  fragile: would've broken again on a CI emulator defaulting to en-US), then corrected to a
+  `Modifier.testTag`-based selector strategy so flows don't depend on device locale either way
+  (~25 Compose files touched, scoped to only what the flows touch; see `.maestro/README.md`
+  "Language / locale"). `onboarding_flow.yaml` ran and passed in full, both before and after the
+  testTag rework. The rest of the suite is blocked on a human logging back into the device (this
+  session's own test run cleared the session) — see `.specs/STATE.md` handoff for the exact ask.
+  F2.2 (Google Sign-In QA) still needs a manual pass; Maestro can't drive the Google account picker.
 - Screenshots/feature graphic (part of G4) need a device to capture.
 - The privacy/terms pages (G3) need a hosting decision before the in-app links can point anywhere.
 - Firestore security rules for the new `notifications` writes (G5) live outside this repo and need

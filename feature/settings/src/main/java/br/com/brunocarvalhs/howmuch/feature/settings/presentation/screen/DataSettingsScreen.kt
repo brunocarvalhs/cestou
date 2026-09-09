@@ -27,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -60,6 +61,7 @@ internal fun DataSettingsScreen(
         topBar = {
             SettingsHeader(
                 title = stringResource(R.string.settings_section_data),
+                titleTestTag = "data_settings_screen_title",
                 onBack = { intent.onBack() }
             )
         },
@@ -71,13 +73,17 @@ internal fun DataSettingsScreen(
                 .padding(16.dp)
         ) {
             ListItem(
-                modifier = Modifier.clickable { intent.onClearCache() },
+                modifier = Modifier
+                    .testTag("data_settings_clear_cache")
+                    .clickable { intent.onClearCache() },
                 headlineContent = { Text(stringResource(R.string.settings_data_clear_cache)) },
                 supportingContent = { Text(stringResource(R.string.settings_data_clear_cache_hint)) }
             )
 
             ListItem(
-                modifier = Modifier.clickable { showDeleteAllConfirmation = true },
+                modifier = Modifier
+                    .testTag("data_settings_delete_all")
+                    .clickable { showDeleteAllConfirmation = true },
                 headlineContent = {
                     Text(
                         text = stringResource(R.string.settings_data_delete_all),
@@ -88,7 +94,9 @@ internal fun DataSettingsScreen(
             )
 
             ListItem(
-                modifier = Modifier.clickable { showDeleteAccountConfirmation = true },
+                modifier = Modifier
+                    .testTag("data_settings_delete_account")
+                    .clickable { showDeleteAccountConfirmation = true },
                 headlineContent = {
                     Text(
                         text = stringResource(R.string.settings_data_delete_account),
@@ -107,7 +115,8 @@ internal fun DataSettingsScreen(
             confirmLabel = stringResource(R.string.settings_data_delete_button),
             sheetState = deleteAllSheetState,
             onConfirm = intent.onDeleteAllData,
-            onDismiss = { showDeleteAllConfirmation = false }
+            onDismiss = { showDeleteAllConfirmation = false },
+            testTagPrefix = "delete_all"
         )
     }
 
@@ -118,7 +127,8 @@ internal fun DataSettingsScreen(
             confirmLabel = stringResource(R.string.settings_data_delete_account_button),
             sheetState = deleteAccountSheetState,
             onConfirm = intent.onDeleteAccount,
-            onDismiss = { showDeleteAccountConfirmation = false }
+            onDismiss = { showDeleteAccountConfirmation = false },
+            testTagPrefix = "delete_account"
         )
     }
 }
@@ -131,7 +141,8 @@ private fun DeleteConfirmationSheet(
     confirmLabel: String,
     sheetState: SheetState,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    testTagPrefix: String
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -146,7 +157,8 @@ private fun DeleteConfirmationSheet(
             Text(
                 text = title,
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.testTag("${testTagPrefix}_confirmation_title")
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
@@ -161,7 +173,7 @@ private fun DeleteConfirmationSheet(
                     onConfirm()
                     onDismiss()
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("${testTagPrefix}_confirm_button"),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
             ) {
                 Text(confirmLabel)
@@ -169,7 +181,7 @@ private fun DeleteConfirmationSheet(
             Spacer(modifier = Modifier.height(12.dp))
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().testTag("${testTagPrefix}_cancel_button")
             ) {
                 Text(stringResource(R.string.action_cancel))
             }

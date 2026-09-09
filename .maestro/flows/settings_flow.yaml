@@ -3,33 +3,72 @@ name: Settings Flow
 ---
 # Depends on: an already-authenticated session (see onboarding_flow.yaml / README).
 # Does NOT use clearState (see home_flow.yaml for why).
+#
+# Selectors are testTag-based (id:), not display text — see .maestro/README.md
+# "Language / locale". Settings section/item tags are derived from the underlying
+# string-resource *name* or destination route class (SettingsScreen.kt), never the
+# localized label, so this flow is agnostic to device locale.
 - launchApp
 
-- tapOn: "Perfil"
-- assertVisible: "Preferências de Notificação"
-- assertVisible: "Tema, Moeda e Idioma"
-- assertVisible: "Sobre o App"
-- tapOn: "Tema, Moeda e Idioma"
+- tapOn:
+    id: "nav_Profile"
+- assertVisible:
+    id: "profile_screen_title"
+- assertVisible:
+    id: "profile_menu_notifications"
+- assertVisible:
+    id: "profile_menu_theme"
+- assertVisible:
+    id: "profile_menu_about"
+- tapOn:
+    id: "profile_menu_theme"
 
-- assertVisible: "Configurações"
-- assertVisible: "Geral"
-- assertVisible: "IA"
-- assertVisible: "Compras"
-- assertVisible: "Dados"
-- assertVisible: "Notificações"
-- assertVisible: "Suporte"
-- assertVisible: "Sobre"
-- assertVisible: "Tema"
-- assertVisible: "Idioma"
-- assertVisible: "Moeda"
+- assertVisible:
+    id: "settings_screen_title"
+- assertVisible:
+    id: "settings_section_general"
+- assertVisible:
+    id: "settings_section_ai"
+- assertVisible:
+    id: "settings_section_shopping"
+- assertVisible:
+    id: "settings_section_data"
+- assertVisible:
+    id: "settings_section_notifications"
+- assertVisible:
+    id: "settings_section_support"
+- assertVisible:
+    id: "settings_section_about"
+- assertVisible:
+    id: "settings_item_ThemeSettings"
+- assertVisible:
+    id: "settings_item_LanguageSettings"
+- assertVisible:
+    id: "settings_item_CurrencySettings"
 
-- tapOn: "Tema"
-- assertVisible: "Selecione o Tema"
-- assertVisible: "Sistema"
-- assertVisible: "Claro"
-- assertVisible: "Escuro"
+- tapOn:
+    id: "settings_item_ThemeSettings"
+- assertVisible:
+    id: "theme_settings_screen_title"
+- tapOn:
+    id: "theme_settings_open_button"
+- assertVisible:
+    id: "theme_select_title"
+- assertVisible:
+    id: "theme_option_SYSTEM"
+- assertVisible:
+    id: "theme_option_LIGHT"
+- assertVisible:
+    id: "theme_option_DARK"
 - back
+- assertVisible:
+    id: "theme_settings_screen_title"
+- back
+- assertVisible:
+    id: "settings_screen_title"
 - back
 
-- assertVisible: "Preferências de Notificação"
-- assertVisible: "Sair"
+- assertVisible:
+    id: "profile_menu_notifications"
+- assertVisible:
+    id: "profile_menu_sign_out"

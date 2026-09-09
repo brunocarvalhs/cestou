@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -64,7 +65,8 @@ internal fun ProfileScreen(
                     Text(
                         text = stringResource(R.string.profile_title),
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.testTag("profile_screen_title")
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -97,19 +99,22 @@ internal fun ProfileScreen(
                 ProfileMenuOption(
                     title = stringResource(R.string.profile_menu_notification_preferences),
                     icon = Icons.Default.Notifications,
-                    onClick = { intent.onNavigate(Unit) }
+                    onClick = { intent.onNavigate(Unit) },
+                    testTag = "profile_menu_notifications"
                 )
                 ProfileMenuDivider()
                 ProfileMenuOption(
                     title = stringResource(R.string.profile_menu_theme_currency_language),
                     icon = Icons.Default.Language,
-                    onClick = { intent.onNavigate(Unit) }
+                    onClick = { intent.onNavigate(Unit) },
+                    testTag = "profile_menu_theme"
                 )
                 ProfileMenuDivider()
                 ProfileMenuOption(
                     title = stringResource(R.string.profile_menu_about),
                     icon = Icons.Default.Info,
-                    onClick = { intent.onNavigate(Unit) }
+                    onClick = { intent.onNavigate(Unit) },
+                    testTag = "profile_menu_about"
                 )
             }
 
@@ -130,7 +135,8 @@ internal fun ProfileScreen(
                     title = stringResource(R.string.profile_menu_sign_out),
                     icon = Icons.AutoMirrored.Filled.ExitToApp,
                     onClick = { intent.onSignOut() },
-                    contentColor = MaterialTheme.colorScheme.error
+                    contentColor = MaterialTheme.colorScheme.error,
+                    testTag = "profile_menu_sign_out"
                 )
             }
 
@@ -222,12 +228,14 @@ private fun ProfileMenuOption(
     title: String,
     icon: ImageVector,
     onClick: () -> Unit,
-    contentColor: Color = MaterialTheme.colorScheme.onSurface
+    contentColor: Color = MaterialTheme.colorScheme.onSurface,
+    testTag: String? = null
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
+            .let { if (testTag != null) it.testTag(testTag) else it }
             .clickable(onClick = onClick)
             .padding(vertical = 14.dp)
     ) {
