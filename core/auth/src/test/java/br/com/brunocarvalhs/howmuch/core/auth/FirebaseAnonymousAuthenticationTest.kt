@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.core.auth
 
+import app.cash.turbine.test
 import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
@@ -184,5 +185,38 @@ class FirebaseAnonymousAuthenticationTest {
         listenerSlot.captured.onAuthStateChanged(auth)
 
         assertEquals("user-3", service.currentUser?.id)
+    }
+
+    @Test
+    fun `authState emits the FirebaseUser unchanged when there is no synced id`() = runTest {
+        every { auth.currentUser } returns fakeUser("user-1")
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
+
+        service.authState.test {
+            assertEquals("user-1", awaitItem()?.id)
+        }
+    }
+
+    @Test
+    fun `authState emits an AuthenticatedUser built from the synced id when there is no FirebaseUser`() = runTest {
+        every { storage.observe<String>("synced_user_id", String::class, any()) } returns flowOf("synced-only")
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
+
+        service.authState.test {
+            assertEquals("synced-only", awaitItem()?.id)
+        }
+    }
+
+    @Test
+    fun `authState overrides the FirebaseUser id with the synced id when both are present`() = runTest {
+        every { auth.currentUser } returns fakeUser("firebase-id")
+        every { storage.observe<String>("synced_user_id", String::class, any()) } returns flowOf("linked-id")
+        val service = FirebaseAnonymousAuthentication(auth, crashlytics, storage)
+
+        service.authState.test {
+            val emitted = awaitItem()
+            assertEquals("linked-id", emitted?.id)
+            assertEquals("user@test.com", emitted?.email)
+        }
     }
 }

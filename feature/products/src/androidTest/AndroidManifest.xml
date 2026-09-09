@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Test-only manifest, merged only into feature/products' isolated androidTest APK — never into
+    the shipped app. `feature/products` has no google-services.json of its own (only `:app`/`:wear`
+    apply the Google Services plugin, per `.github/pipeline-config.yaml`), so
+    `core/common`'s `FirebaseInitializer` androidx.startup entry crashes this module's standalone
+    instrumented tests at process start with "Default FirebaseApp is not initialized". Removing
+    that one manifest entry isn't enough: `AuthInitializer` (core/auth), `RemoteConfigInitializer`
+    (core/remote-config) and `TimberInitializer` (core/common) all declare
+    `FirebaseInitializer::class.java` (and `TimberInitializer` also `CrashlyticsInitializer::class.java`)
+    in their own `dependencies()` — androidx.startup constructs declared dependencies transitively
+    regardless of the manifest, so every initializer that (directly or transitively) pulls in
+    Firebase/Crashlytics must be removed here. Scoped to this module's androidTest APK only;
+    `core/common`'s manifest (which every module, including `:app`, still needs as-is) is untouched.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application>
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="br.com.brunocarvalhs.howmuch.core.common.initializer.FirebaseInitializer"
+                tools:node="remove" />
+            <meta-data
+                android:name="br.com.brunocarvalhs.howmuch.core.common.initializer.CrashlyticsInitializer"
+                tools:node="remove" />
+            <meta-data
+                android:name="br.com.brunocarvalhs.howmuch.core.common.initializer.TimberInitializer"
+                tools:node="remove" />
+            <meta-data
+                android:name="br.com.brunocarvalhs.howmuch.core.auth.initializer.AuthInitializer"
+                tools:node="remove" />
+            <meta-data
+                android:name="br.com.brunocarvalhs.howmuch.core.remoteconfig.initializer.RemoteConfigInitializer"
+                tools:node="remove" />
+        </provider>
+    </application>
+</manifest>
