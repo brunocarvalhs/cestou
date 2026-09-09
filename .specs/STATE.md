@@ -60,11 +60,21 @@
 
 ## Handoff
 
-- **Feature**: .specs/features/sdd-initialization
-- **Phase / Task**: Execution / Completed
-- **Completed**: AD-005 documented, Core and Feature modules refactored, FeatureInitializers implemented, Reverse specs created.
-- **In-progress**: Final verification
-- **Next step**: Run full build and tests
-- **Blockers**: none
-- **Uncommitted files**: All files modified during refactor
-- **Branch**: main
+- **Feature**: launch-action-plan (see `.specs/MVP-ROADMAP.md`)
+- **Phase / Task**: Execution / In progress
+- **Completed**: `feat/new-layout` merged into `develop` via PR #30 (closes G1 — this doc's previous
+  handoff and MVP-ROADMAP.md's "biggest risk item" were stale). CI rebuilt around Git Flow with
+  staged checks (`ci/restructure-pipeline-stages`, PR #47). Fixed `AiChatScreen` settings icon
+  missing `contentDescription` (accessibility/testability gap noted in `.maestro/README.md`).
+  Added `.maestro/flows/account_data_flow.yaml` covering the previously-untested Delete
+  all data / Delete Account confirmation sheets (cancel-only, non-destructive).
+- **In-progress**: G9 (`ShoppingRepositoryImpl.updatePositions` no-op) has an open, unmerged fix —
+  PR #67 (`fix/shopping-update-positions`) — review/merge is a call for the repo owner, not
+  something to duplicate.
+- **Next step**: See `.specs/MVP-ROADMAP.md` Phase 0–2 for the remaining launch blockers (all need
+  either a device/emulator or an owner decision, not more code from this environment).
+- **Blockers**: No adb/emulator in this environment — Maestro suite and Google Sign-In QA (F0.3,
+  F2.2) still cannot be executed here, only authored/reviewed statically.
+- **Uncommitted files**: none (this session's changes are committed on
+  `claude/app-launch-action-plan-y614t5`)
+- **Branch**: claude/app-launch-action-plan-y614t5 (PR target: develop)

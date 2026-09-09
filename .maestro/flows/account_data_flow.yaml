@@ -1,0 +1,34 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Account & Data Flow
+---
+- launchApp:
+    clearState: true
+
+- tapOn: "Profile"
+- tapOn: "Theme, Currency and Language"
+- assertVisible: "Data"
+- tapOn: "Data"
+
+- assertVisible: "Clear cache"
+- assertVisible: "Delete all data"
+- assertVisible: "Delete Account"
+
+# Delete-all-data confirmation sheet: verify it appears and Cancel dismisses
+# it without touching data. Never confirm this flow — it would wipe fixtures
+# the other regression flows depend on.
+- tapOn: "Delete all data"
+- assertVisible: "Delete all data?"
+- assertVisible: "Yes, delete everything"
+- tapOn: "Cancel"
+- assertNotVisible: "Delete all data?"
+
+# Delete-account confirmation sheet: same pattern — assert it opens and can
+# be cancelled. Never confirm: it would permanently delete the test account.
+- tapOn: "Delete Account"
+- assertVisible: "Delete account?"
+- assertVisible: "Yes, delete my account"
+- tapOn: "Cancel"
+- assertNotVisible: "Delete account?"
+
+- back
+- assertVisible: "Sign Out"
