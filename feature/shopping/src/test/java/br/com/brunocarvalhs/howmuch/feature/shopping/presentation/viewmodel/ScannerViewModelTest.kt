@@ -16,6 +16,8 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
+private const val REPEATED_SCAN_FRAME_COUNT = 5
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class ScannerViewModelTest {
 
@@ -60,7 +62,7 @@ class ScannerViewModelTest {
 
             // Simulates BarcodeAnalyzer firing onBarcodeScanned repeatedly while the same QR code
             // stays in frame (see MVP-ROADMAP G13) — only the first frame should trigger a join.
-            repeat(5) { viewModel.intent.onTokenScanned("ABC123") }
+            repeat(REPEATED_SCAN_FRAME_COUNT) { viewModel.intent.onTokenScanned("ABC123") }
 
             coVerify(exactly = 1) { shoppingJoinUseCase("ABC123") }
             verify(exactly = 1) { navigator.goBack() }
