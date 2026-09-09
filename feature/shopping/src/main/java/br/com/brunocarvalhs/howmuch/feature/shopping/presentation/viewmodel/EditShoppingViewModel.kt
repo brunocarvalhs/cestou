@@ -4,6 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
@@ -24,7 +27,8 @@ import javax.inject.Inject
 internal class EditShoppingViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: ShoppingRepository,
-    private val shoppingUpdateUseCase: ShoppingUpdateUseCase
+    private val shoppingUpdateUseCase: ShoppingUpdateUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val initialShopping = savedStateHandle.toRoute<EditShopping>(EditShopping.typeMap).shopping
@@ -40,6 +44,10 @@ internal class EditShoppingViewModel @Inject constructor(
         onErrorShown = { _uiState.update { it.copy(error = null) } }
     )
 
+    init {
+        analyticsTracker.trackScreenView(screenName = "shopping_edit", screenClass = "EditShoppingViewModel")
+    }
+
     fun setNavigator(navigator: Navigator) {
         _navigator = navigator
     }
@@ -49,6 +57,7 @@ internal class EditShoppingViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             shoppingUpdateUseCase(shopping.id, shopping)
                 .onSuccess {
+                    trackBudgetChangeIfNeeded(shopping)
                     _uiState.update { it.copy(isLoading = false) }
                     _navigator?.goBack()
                 }
@@ -56,6 +65,21 @@ internal class EditShoppingViewModel @Inject constructor(
                     _uiState.update { it.copy(isLoading = false, error = error.message) }
                 }
         }
+    }
+
+    // Beta needs to know how many lists actually get a spending limit (PM checklist item
+    // "definir limite de gastos"). Only fires when the budget value actually changed on this
+    // save, so re-saving the same edit form doesn't inflate the funnel.
+    private fun trackBudgetChangeIfNeeded(shopping: Shopping) {
+        val budget = shopping.budget
+        if (budget == initialShopping.budget) return
+        analyticsTracker.trackEvent(
+            AnalyticsEvents.SHOPPING_BUDGET_SET,
+            mapOf(
+                AnalyticsParams.SHOPPING_ID to shopping.id,
+                AnalyticsParams.HAS_BUDGET to (budget != null && budget > 0.0)
+            )
+        )
     }
 
     private fun shareToken(shoppingId: String) {
