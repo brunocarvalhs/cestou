@@ -1,11 +1,14 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
+import br.com.brunocarvalhs.howmuch.core.ai.BuildConfig
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.RemoteVariableService
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.RemoteVariableKeys
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AiAgentSession
 import javax.inject.Inject
 
@@ -19,11 +22,19 @@ import javax.inject.Inject
 internal class AiAgentFactoryImpl @Inject constructor(
     private val session: AiAgentSession,
     private val registry: AgentRegistry,
-    private val featureFlagService: FeatureFlagService
+    private val featureFlagService: FeatureFlagService,
+    private val remoteVariableService: RemoteVariableService
 ) : AiAgentFactory {
 
     override fun create(settings: AppSettings): AiAgent {
-        val gemini = GeminiAiAgent(session, registry)
+        // Re-read on every call (unlike the @Singleton `by lazy` repositories in
+        // feature/products), so a rotated key here takes effect immediately, without an
+        // app restart.
+        val geminiApiKey = remoteVariableService.getString(
+            key = RemoteVariableKeys.GEMINI_API_KEY,
+            default = BuildConfig.GEMINI_API_KEY
+        ).takeIf { it.isNotBlank() } ?: BuildConfig.GEMINI_API_KEY
+        val gemini = GeminiAiAgent(session, registry, apiKey = geminiApiKey)
             .takeIf { featureFlagService.isEnabled(FeatureFlagKeys.AI_GEMINI_ENABLED, default = true) }
         val openRouter = OpenRouterAiAgent(session, registry)
             .takeIf { featureFlagService.isEnabled(FeatureFlagKeys.AI_OPENROUTER_ENABLED, default = true) }
