@@ -11,6 +11,9 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.data.mapper.toModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.model.ShoppingModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
@@ -132,8 +135,20 @@ class ShoppingRepositoryImpl @Inject constructor(
 
     override suspend fun updatePositions(shoppings: List<Shopping>): Result<Unit> = withContext(ioDispatcher) {
         runCatching {
-            // Firestore updates would be needed here for each shopping's position
-            // For now, we assume success or implement a batch update if needed
+            coroutineScope {
+                shoppings.map { shopping ->
+                    async {
+                        networkService.make(
+                            request = NetworkService.NetworkRequest(
+                                endpoint = "$ENDPOINT/${shopping.id}",
+                                method = NetworkService.Method.PUT,
+                                payload = mapOf("position" to shopping.position)
+                            ),
+                            response = Boolean::class
+                        )
+                    }
+                }.awaitAll()
+            }
             Unit
         }
     }
