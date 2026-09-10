@@ -34,6 +34,7 @@ internal fun OpenSourceLicensesScreen(
         topBar = {
             SettingsHeader(
                 title = "Licenças",
+                titleTestTag = "open_source_licenses_screen_title",
                 onBack = onBack
             )
         }

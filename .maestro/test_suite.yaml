@@ -5,11 +5,18 @@ appId: br.com.brunocarvalhs.howmuch
 # below this line assumes an already-authenticated session and would fail right
 # after it. Run onboarding_flow.yaml on its own, and log back in manually
 # afterwards before running this suite again.
+#
+# Order matters: create_list_flow creates the "value" list fixture that
+# product_management_flow, cart_interactions_flow, and finish_purchase_flow all depend on.
+# cart_interactions_flow must run before finish_purchase_flow, which locks the list (no more
+# purchasing/checking off items after that).
 - runFlow: flows/home_flow.yaml
 - runFlow: flows/create_list_flow.yaml
 - runFlow: flows/product_management_flow.yaml
+- runFlow: flows/cart_interactions_flow.yaml
 - runFlow: flows/finish_purchase_flow.yaml
 - runFlow: flows/join_list_flow.yaml
 - runFlow: flows/settings_flow.yaml
+- runFlow: flows/settings_about_flow.yaml
 - runFlow: flows/account_data_flow.yaml
 - runFlow: flows/chat_flow.yaml

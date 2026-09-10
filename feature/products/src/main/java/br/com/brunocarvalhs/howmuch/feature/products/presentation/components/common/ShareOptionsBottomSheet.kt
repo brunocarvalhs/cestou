@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -49,14 +50,14 @@ fun ShareOptionsBottomSheet(
                 text = stringResource(R.string.shopping_list_share_options_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 24.dp)
+                modifier = Modifier.padding(bottom = 24.dp).testTag("share_options_title")
             )
 
             Surface(
                 onClick = onInviteMember,
                 shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = SURFACE_ALPHA),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().testTag("share_options_invite_button")
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -90,7 +91,7 @@ fun ShareOptionsBottomSheet(
                 onClick = onShareAsText,
                 shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = SURFACE_ALPHA),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().testTag("share_options_text_button")
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),

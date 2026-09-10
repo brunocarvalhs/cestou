@@ -117,7 +117,8 @@ internal fun QuickAddForm(
             }
             IconButton(
                 onClick = { intent.onSubmit() },
-                enabled = uiState.newItemName.isNotBlank() && !uiState.isSaving
+                enabled = uiState.newItemName.isNotBlank() && !uiState.isSaving,
+                modifier = Modifier.testTag("quick_add_submit_button")
             ) {
                 if (uiState.isSaving) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp))

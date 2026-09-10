@@ -160,7 +160,8 @@ private fun NavGraphBuilder.legalSettings(navigator: Navigator) {
         LegalContentScreen(
             title = stringResource(R.string.settings_item_terms),
             content = stringResource(R.string.settings_terms_content),
-            onBack = { navigator.goBack() }
+            onBack = { navigator.goBack() },
+            titleTestTag = "terms_of_use_screen_title"
         )
     }
 
@@ -168,7 +169,8 @@ private fun NavGraphBuilder.legalSettings(navigator: Navigator) {
         LegalContentScreen(
             title = stringResource(R.string.settings_item_privacy),
             content = stringResource(R.string.settings_privacy_content),
-            onBack = { navigator.goBack() }
+            onBack = { navigator.goBack() },
+            titleTestTag = "privacy_policy_screen_title"
         )
     }
 

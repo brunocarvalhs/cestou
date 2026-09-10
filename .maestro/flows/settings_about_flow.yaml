@@ -1,0 +1,55 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Settings About Flow
+---
+# Depends on: an already-authenticated session (see onboarding_flow.yaml / README).
+# Does NOT use clearState (see home_flow.yaml for why).
+#
+# Covers the About section screens reachable without leaving the app (Terms, Privacy, Open
+# Source Licenses, Release Notes). Does NOT tap the Support section items
+# (SupportContact/SupportBugReport/SupportFeedback/AppRate): each one hands off immediately to
+# an external app (email client, or the Play Store — SettingsGraph.kt's
+# composable<SupportContact> etc. fire the intent and call goBack() in the same step, so there's
+# no in-app state left for Maestro to assert against). Their visibility is already covered by
+# settings_flow.yaml's "settings_section_support" assertion; actually tapping them would launch
+# a real external app/email compose window, which this suite shouldn't do unattended.
+#
+# Selectors are testTag-based (id:) — see .maestro/README.md "Language / locale".
+- launchApp
+
+- tapOn:
+    id: "nav_Profile"
+- tapOn:
+    id: "profile_menu_theme"
+- assertVisible:
+    id: "settings_section_about"
+
+- tapOn:
+    id: "settings_item_TermsOfUse"
+- assertVisible:
+    id: "terms_of_use_screen_title"
+- assertVisible:
+    id: "legal_content_body"
+- back
+
+- tapOn:
+    id: "settings_item_PrivacyPolicy"
+- assertVisible:
+    id: "privacy_policy_screen_title"
+- assertVisible:
+    id: "legal_content_body"
+- back
+
+- tapOn:
+    id: "settings_item_OpenSourceLicenses"
+- assertVisible:
+    id: "open_source_licenses_screen_title"
+- back
+
+- tapOn:
+    id: "settings_item_ReleaseNotes"
+- assertVisible:
+    id: "release_notes_screen_title"
+- back
+
+- assertVisible:
+    id: "settings_screen_title"

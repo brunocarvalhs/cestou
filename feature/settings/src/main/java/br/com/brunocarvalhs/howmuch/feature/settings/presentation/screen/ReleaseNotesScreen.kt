@@ -33,6 +33,7 @@ internal fun ReleaseNotesScreen(
         topBar = {
             SettingsHeader(
                 title = "Novidades",
+                titleTestTag = "release_notes_screen_title",
                 onBack = onBack
             )
         }

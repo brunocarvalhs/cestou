@@ -65,7 +65,7 @@ internal fun ProductHeader(
                 }
             },
             actions = {
-                IconButton(onClick = onBack) {
+                IconButton(onClick = onBack, modifier = Modifier.testTag("product_header_close_button")) {
                     Icon(
                         Icons.Default.Close,
                         contentDescription = stringResource(CoreR.string.content_description_back)

@@ -1,0 +1,68 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Cart Interactions Flow
+---
+# Depends on: create_list_flow.yaml (the "value" list fixture). Must run before
+# finish_purchase_flow.yaml, which locks the list for changes. Does NOT use clearState
+# (see home_flow.yaml for why).
+#
+# Covers feature/cart's ShareOptionsRoute and ConfirmItemRoute — the two CartFlow bottom-sheet
+# destinations reachable from a single account/device. ProductHistoryRoute is NOT covered here:
+# it only renders once a list has 2+ members (CartScreen.kt's `showAttribution`), which needs a
+# second real account/device to set up — out of scope for a single-device Maestro flow, same
+# category as join_list_flow's real-join path. See .maestro/README.md "Notes / known gaps".
+#
+# Selectors are testTag-based (id:) — see .maestro/README.md "Language / locale". "value" and
+# "Feijão" are literal content (user-entered list name, and a product name we type ourselves),
+# safe as plain text.
+- launchApp
+- tapOn: "value"
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Share options sheet (Invite to Collaborate / Share as Text) — assert it opens with both
+# options, then back out without tapping either: Invite generates a real Firestore token, and
+# Share as Text hands off to the OS share sheet, neither of which this flow should act on.
+- tapOn:
+    id: "cart_share_button"
+- assertVisible:
+    id: "share_options_title"
+- assertVisible:
+    id: "share_options_invite_button"
+- assertVisible:
+    id: "share_options_text_button"
+- back
+
+# Add a second product via Quick Add with no price set — QuickAddViewModel.submit() saves it
+# directly with no price prompt, so marking it purchased below triggers ConfirmItemRoute
+# (CartViewModel.togglePurchased only opens the confirm sheet when product.price <= 0).
+- tapOn:
+    id: "cart_add_product_button"
+- tapOn:
+    id: "quick_add_name_field"
+- inputText: "Feijão"
+- tapOn:
+    id: "quick_add_submit_button"
+- waitForAnimationToEnd:
+    timeout: 1000
+- tapOn:
+    id: "product_header_close_button"
+
+- assertVisible: "Feijão"
+- tapOn: "Feijão"
+- assertVisible:
+    id: "confirm_item_title"
+- assertVisible:
+    id: "confirm_item_price_field"
+- assertVisible:
+    id: "confirm_item_quantity_field"
+- tapOn:
+    id: "confirm_item_price_field"
+- inputText: "500"
+- tapOn:
+    id: "confirm_item_confirm_button"
+- waitForAnimationToEnd:
+    timeout: 1000
+
+- tapOn:
+    id: "cart_back_button"
+- assertVisible: "Cestou"
