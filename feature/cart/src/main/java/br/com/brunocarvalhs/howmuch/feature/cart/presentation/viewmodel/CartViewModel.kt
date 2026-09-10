@@ -27,13 +27,17 @@ import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.SortProducts
 import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 internal class CartViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -97,10 +101,20 @@ internal class CartViewModel @Inject constructor(
 
     private fun observeData() {
         viewModelScope.launch {
-            getSettingsUseCase().collect { settings ->
-                _uiState.update { it.copy(sortingMode = settings.sortingMode) }
-                observeProducts()
-            }
+            // `flatMapLatest` cancels the previous `useCase(shopping.id)` product collector as soon
+            // as a newer settings emission arrives, so a settings write (theme, language, AI prefs,
+            // sorting mode) anywhere in the app never leaves a stale collector running alongside the
+            // new one (see G12 in .specs/MVP-ROADMAP.md).
+            getSettingsUseCase()
+                .flatMapLatest { settings ->
+                    _uiState.update { it.copy(sortingMode = settings.sortingMode) }
+                    useCase(shopping.id).map { products -> settings.sortingMode to products }
+                }
+                .collect { (sortingMode, products) ->
+                    val sortedProducts = sortProductsUseCase(products, sortingMode)
+                    _uiState.update { it.copy(products = StableList(sortedProducts)) }
+                    resolveMemberProfiles()
+                }
         }
         viewModelScope.launch {
             repository.observeById(shopping.id).collect { updatedShopping ->
@@ -113,16 +127,6 @@ internal class CartViewModel @Inject constructor(
         viewModelScope.launch {
             repository.observeAll().collect { lists ->
                 _uiState.update { it.copy(allShoppings = StableList(lists.filter { it.id != shopping.id })) }
-            }
-        }
-    }
-
-    private fun observeProducts() {
-        viewModelScope.launch {
-            useCase(shopping.id).collect { products ->
-                val sortedProducts = sortProductsUseCase(products, _uiState.value.sortingMode)
-                _uiState.update { it.copy(products = StableList(sortedProducts)) }
-                resolveMemberProfiles()
             }
         }
     }

@@ -18,6 +18,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -77,6 +78,7 @@ class ProductSearchViewModelTest {
         val vm = viewModel()
 
         vm.intent.onQueryChange("ab")
+        testScheduler.advanceUntilIdle()
 
         coVerify(exactly = 0) { searchUseCase(any()) }
     }
@@ -88,6 +90,7 @@ class ProductSearchViewModelTest {
         val vm = viewModel()
 
         vm.intent.onQueryChange("milk")
+        testScheduler.advanceUntilIdle()
 
         assertEquals(listOf(product), vm.uiState.value.results)
         verify {
@@ -96,6 +99,42 @@ class ProductSearchViewModelTest {
                 mapOf("search_mode" to "product", "query_length" to 4, "result_count" to 1)
             )
         }
+    }
+
+    @Test
+    fun `rapid keystrokes only trigger a single debounced search for the final query`() = runTest {
+        coEvery { searchUseCase(any()) } returns Result.success(emptyList())
+        val vm = viewModel()
+
+        vm.intent.onQueryChange("mil")
+        vm.intent.onQueryChange("milk")
+        vm.intent.onQueryChange("milk ")
+        testScheduler.advanceUntilIdle()
+
+        coVerify(exactly = 1) { searchUseCase("milk ") }
+        coVerify(exactly = 0) { searchUseCase("mil") }
+        coVerify(exactly = 0) { searchUseCase("milk") }
+    }
+
+    @Test
+    fun `a slow response for a stale query does not overwrite a faster newer result`() = runTest {
+        val staleProduct = Product(id = "old", name = "Old Result", quantity = 1.0, price = 1.0)
+        val freshProduct = Product(id = "new", name = "New Result", quantity = 1.0, price = 2.0)
+        coEvery { searchUseCase("old query") } coAnswers {
+            delay(SLOW_RESPONSE_DELAY_MILLIS)
+            Result.success(listOf(staleProduct))
+        }
+        coEvery { searchUseCase("new query") } returns Result.success(listOf(freshProduct))
+        val vm = viewModel()
+
+        vm.intent.onQueryChange("old query")
+        testScheduler.advanceTimeBy(DEBOUNCE_WINDOW_MILLIS)
+        testScheduler.runCurrent()
+
+        vm.intent.onQueryChange("new query")
+        testScheduler.advanceUntilIdle()
+
+        assertEquals(listOf(freshProduct), vm.uiState.value.results)
     }
 
     @Test
@@ -134,5 +173,12 @@ class ProductSearchViewModelTest {
                 mapOf("shopping_id" to "list1", "source" to "recipe", "items_count" to 1)
             )
         }
+    }
+
+    private companion object {
+        // Matches ProductSearchViewModel's private SEARCH_DEBOUNCE_MILLIS; kept here in sync
+        // because the constant is private to the ViewModel and not exposed to tests.
+        const val DEBOUNCE_WINDOW_MILLIS = 350L
+        const val SLOW_RESPONSE_DELAY_MILLIS = 5_000L
     }
 }
