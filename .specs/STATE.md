@@ -78,6 +78,108 @@
   half (publish `gemini_api_key`, revoke the old key at the provider) is **still owed by bruno**;
   until then the decision is implemented but delivers no actual mitigation.
 
+### AD-009
+- **Decision**: Firestore access control lives in a versioned `firestore.rules` at the repo root
+  (with a minimal `firebase.json` pointing at it), derived from the data layer, and is the single
+  authoritative authorization boundary. Client-side ownership checks (e.g.
+  `ShoppingListViewModel` gating delete on `roles[uid] == OWNER`) are UX affordances that the rules
+  now mirror, never the security boundary itself. **Proposed on `docs/firestore-security-rules`
+  (PR #84); not deployed** — the console still runs the default placeholder
+  (`allow read, write: if request.time < <date>`), which grants anyone with the project config
+  full read/write/delete over every collection. Deploying is bruno's call:
+  `firebase deploy --only firestore:rules --project cestou-86785`.
+- **Reason**: G5. There is no server tier (Spark plan, no Cloud Functions — see AD-001 context in
+  `MVP-ROADMAP.md`), so *every* write is a client write and rules are the only place authorization
+  can exist at all. Keeping them in the repo makes them reviewable, diffable, and testable instead
+  of being console state nobody can audit.
+- **Data model the rules are derived from** (every Firestore path the app actually touches; recipes
+  come from TheMealDB and product search from OpenFoodFacts over plain HTTP via `CloudNetwork`, and
+  app settings live in DataStore, so none of those are collections):
+
+  | Path | Written by | Access model |
+  |---|---|---|
+  | `/shopping/{id}` | `ShoppingRepositoryImpl` | shared list — `users: List<String>` + `roles: Map<uid, "OWNER"\|"EDITOR">` |
+  | `/shopping/{id}/products/{id}` | `ProductRepositoryImpl` | inherits the parent list's membership |
+  | `/users/{uid}` | `UserRepositoryImpl` | own document; readable by other signed-in users |
+  | `/users/{uid}/common-products/{id}` | `CommonProductRepositoryImpl` | strictly private |
+  | `/notifications/{id}` | `NotificationRepositoryImpl` | recipient reads; any signed-in user may create one addressed to someone else |
+
+- **Rule-by-rule reasoning**:
+  - **`/shopping` read** — membership only (`uid in users`). `observeAll/getAll` query
+    `whereArrayContains("users", uid)`, the one query shape Firestore can prove safe against this
+    rule. Anything looser means "any signed-in user can dump every shopping list", which is the
+    hole being closed.
+  - **`/shopping` create** — creator must be inside `users`, `roles` may only name actual members,
+    and the `id` field must equal the document id (`FirebaseFirestoreManager.post()` writes at
+    `data["id"]`, so a mismatch means tampering). It deliberately does *not* require the creator to
+    be `OWNER`, because `ShoppingDuplicateUseCase` copies `users`/`roles` verbatim (see open
+    questions).
+  - **`/shopping` update** — three shapes: (a) owner may change anything but must stay a member,
+    since a self-lockout is unrecoverable without a server tier; (b) a non-owner member may edit
+    content but not `users`, `roles` or `shortCode` — normal edits rewrite the whole document with
+    those fields unchanged, so only escalation attempts trip it; (c) a non-member may append
+    *itself* to `users` and nothing else, which is exactly `ShoppingRepositoryImpl.join()`
+    (`{"users": [uid]}`, resolved to an `arrayUnion`). The joiner therefore cannot add third
+    parties, drop members, grant itself a role or edit content in the same write.
+  - **`/shopping` delete** — owner only, making the existing client check authoritative.
+  - **`/shopping/{id}/products`** — everyone on a list is a peer editor of its items; that is the
+    product. Access mirrors the parent document's membership via `get()` (one extra document read
+    per evaluation, acceptable at this volume, and the only way to express it). The `FINISH` lock
+    (`ProductRepositoryImpl.checkIsLocked`) is intentionally *not* enforced: it is a product rule,
+    not a trust boundary, and moving it server-side would be an unrelated behaviour change.
+  - **`/users/{uid}` read** — any signed-in user may `get` a profile, `list` is denied. Wider than
+    "own profile" on purpose: `CartViewModel.resolveMemberProfiles`, `ProductSaveUseCase` and
+    `QuickAddViewModel` resolve the names/photos of *other* members, and a rule cannot ask "do
+    these two users share a list?" without a list id in the request. Denying `list` keeps the
+    collection non-enumerable, so exposure is bounded by already knowing a uid.
+  - **`/users/{uid}` write** — own document only, field-allowlisted, `create` included because
+    `UserRepositoryImpl` only ever PUTs (→ `update()`, which fails on a missing document).
+  - **`/users/{uid}/common-products`** — private despite the name; the path is always built from
+    the caller's own id and the "cesta básica" defaults are seeded per user.
+  - **`/notifications`** — the one legitimate cross-user write, because with no Cloud Functions the
+    triggering client is the writer (`ShoppingJoinUseCase`, `FinishPurchaseViewModel`). Reads are
+    recipient-only (matching `whereEqualTo("userId", uid)`), creation is pinned to the exact
+    `NotificationModel` shape with the two real `type` values, `isRead == false` and size caps so
+    the collection cannot be used as arbitrary storage, updates may only flip `isRead` to true, and
+    deletes are denied because no code path deletes.
+  - **catch-all `if false`** — explicit so a collection added by a future feature fails loudly in
+    development instead of silently inheriting a broader rule.
+- **Trade-off / known breakage on deploy**:
+  1. **Join by short code stops working.** `getByShortCode` queries
+     `whereEqualTo("shortCode", code)` as a non-member, and rules cannot inspect a query's
+     where-clauses — "read only the list whose code I know" is inexpressible without also allowing
+     "read every list". Fix (client work, not a rules change): a `shortCodes/{CODE}` index document
+     holding only `{ shoppingId }`, readable by any signed-in user, written by the owner at create
+     time; the joiner resolves code → id, performs the blind self-join (already allowed by rule
+     (c)), and only then reads the list as a member. Not added to `firestore.rules` here because
+     the collection does not exist yet.
+  2. **Wear OS traffic stops working entirely.** The watch never signs in to Firebase — pairing
+     just copies the phone's uid into DataStore (`WearAuthListenerService` → `updateUserId`), so
+     `request.auth` is null on every watch request while `AuthService` still reports an id. Any
+     uid-based rule denies it. Needs a real credential on the watch (its own sign-in, or passing a
+     custom/ID token during pairing).
+- **Open questions for bruno (do not resolve by loosening rules)**:
+  - `ShoppingDuplicateUseCase` copies `users`, `roles` *and* `shortCode` from the source list, so
+    duplicating a shared list silently shares the copy with the same people, leaves the duplicator
+    as a non-owner of their own copy, and creates a second list answering to the same share code
+    (`getByShortCode` takes `firstOrNull`). Should duplicate reset ownership/membership/code?
+  - `NotificationModel` has no `senderId`, so the rules cannot verify that a notification's writer
+    shares a list with its recipient — any signed-in user who knows a uid can send that user a
+    well-formed notification. Closing it needs `senderId` + `shoppingId` on the model.
+  - `users/{uid}` stores `email` alongside name/photo, and co-members need to read the document.
+    Split public (name/photo) from private (email) fields?
+  - No "leave list" action exists: with owner-only delete, a guest's only exit is
+    `DeleteAccountUseCase`, whose `users - userId` write is itself a no-op because
+    `FirebaseFirestoreManager` maps `users` through `arrayUnion` (removals are impossible through
+    the current data layer).
+- **Verification**: `firestore-tests/rules.test.mjs` — 60 assertions against the local Firestore
+  emulator (`firebase emulators:exec --only firestore --project demo-cestou`), all green, covering
+  every rule above including the join, escalation and notification-forgery attempts. Local only; it
+  never contacts the real project and is not wired into Gradle/CI.
+- **Scope**: All Firestore access from `:app`, `:wear` and every `feature/*` data layer.
+- **Date**: 2026-09-10
+- **Status**: proposed — awaiting bruno's review and manual deploy
+
 ## Handoff
 - **Feature**: beta-launch (see `.specs/BETA-LAUNCH-PLAN.md` — the ordered task queue T1–T6 — and
   `.specs/MVP-ROADMAP.md` § "Beta Launch Priority" for the `pm`'s persona-based gating)
@@ -147,4 +249,4 @@
   `develop` → `master` decision, which stays exclusively his.
 - **Uncommitted files**: none — the three-owner working-tree tangle described in the previous handoff
   was resolved; every piece landed on its own branch and PR.
-- **Branch**: `docs/beta-readiness-recheck` (this readiness re-check) → PR into `develop`.
+- **Branch**: `docs/firestore-security-rules` (G5 rules proposal, this PR) → PR into `develop`.
