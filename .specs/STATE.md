@@ -123,21 +123,47 @@
     *or* pt-BR flow assert either way; (b) `SettingsHeader.kt`'s back-icon `contentDescription` is
     hardcoded literal `"Voltar"` (harmless on a pt-BR device, but not translated for any other
     locale).
-- **Next step**: once bruno confirms a manual login on the device, run the corrected 8-flow suite +
+- **2026-09-10 (same session, continued)**: While waiting on device/login, added two more flows
+  identified in the earlier navigation-map audit: `cart_interactions_flow.yaml` (covers
+  `ShareOptionsRoute` and `ConfirmItemRoute` in `feature/cart` — adds a second, unpriced product
+  and marks it purchased to trigger the confirm-price sheet) and `settings_about_flow.yaml`
+  (covers Terms/Privacy/Open Source Licenses/Release Notes in `feature/settings`; deliberately does
+  not tap Support section items, which hand off to an external app with no in-app state to assert
+  against). `ProductHistoryRoute` is *not* covered and moved from "not yet covered" to a documented
+  known gap: it only renders once a shopping list has 2+ members (`CartScreen.kt`'s
+  `showAttribution`), which a single test account structurally cannot produce — same category as
+  joining a real list. Added the `Modifier.testTag`s these two new flows need (`ConfirmItemContent`,
+  `ProductHistoryContent`, `ShareOptionsBottomSheet`, `QuickAddForm`'s submit button,
+  `ProductHeader`'s close button, three settings screens' titles via `SettingsHeader`'s existing
+  `titleTestTag` param). `test_suite.yaml` updated with correct ordering (`cart_interactions_flow`
+  must run before `finish_purchase_flow`, which locks the list). `app:assembleDebug` still succeeds
+  (11 flows total now). Cross-checked every `Modifier.testTag(...)` literal in source against every
+  `id:` reference in every flow YAML (`comm`/`grep` diff) — one gap found and fixed
+  (`edit_item_quantity_field` had a tag but nothing asserted it). Ran `maestro check-syntax` on
+  `test_suite.yaml` and all 11 flow files (works without a device) — all OK. This validates YAML
+  structure only, not that the `id:`s actually resolve on a running device — that still needs a
+  real run.
+  - Opened **PR #75** (`test/maestro-e2e-coverage` → `develop`) as a **draft**, explicitly marked
+    "WORK IN PROGRESS / blocked on device" with a checklist of what's left, so the testTag approach
+    and code are reviewable now instead of waiting indefinitely. Not ready to take out of draft:
+    none of the 10 authenticated flows have run against a real session yet (only
+    `onboarding_flow.yaml`, twice, pre-login).
+  - Device connectivity has been intermittent all session (wireless adb): connected → app on
+    Welcome screen (not logged in) → disconnected entirely (`adb devices -l` / `adb mdns services`
+    both empty) as of this entry. Two bounded background polls (`adb devices -l` every 4–5s, ~6 and
+    ~9.5 min windows) both timed out with no device found. Coordinator confirmed bruno is aware and
+    intends to have QA log in and validate soon.
+- **Next step**: once the device reconnects AND the app shows an authenticated session (not just
+  device connectivity — confirm both before running anything), run the corrected 10-flow suite +
   `onboarding_flow.yaml` via `.maestro/scripts/run.sh`, fix whatever real drift the actual runs turn
   up (not guesses — the `settings_flow.yaml`/`account_data_flow.yaml` back-navigation step counts in
-  particular are unverified assumptions, flagged inline in those files), then audit `core/navigation`
-  + each `feature/*/navigation` entry point against the 8 existing flows to add coverage for
-  currently-untested screens (candidates identified so far: `ProductHistoryRoute`/`ConfirmItemRoute`/
-  `ShareOptionsRoute` in `feature/cart`, the About/Support legal screens in `feature/settings`, the
-  AI/Shopping settings sub-screens).
-- **Blockers**: device session logged out by this session's own test run — needs bruno to log back
-  into the Cestou app manually (Google Sign-In) before any further authenticated flow can run.
-  Confirmed 2026-09-09 (later in the session) that bruno was the one interacting with the device
-  (system Settings > Language was open momentarily) and it's fine to keep using it — but the app
-  itself was still on the pre-login Welcome screen the last time it was checked, so the login itself
-  hadn't happened yet.
-- **Uncommitted files**: none (this session's changes are on `test/maestro-e2e-coverage`, PR not
-  yet opened — waiting to finish the run before requesting tech-lead review)
+  particular are unverified assumptions, flagged inline in those files), then take PR #75 out of
+  draft once cited with real pass/fail output.
+- **Blockers**: device disconnected (wireless adb) as of this entry, and even once reconnected, a
+  human still needs to log into the Cestou app manually (Google Sign-In) before any authenticated
+  flow can run — this session's own test run cleared the session earlier and it hasn't been
+  restored yet. Do not attempt to automate the Google account picker.
+- **Uncommitted files**: none — everything through this entry is committed and pushed to
+  `test/maestro-e2e-coverage` (commits `fd5dcf95`, `cdd0ed9c`, `065d865f`, `59b300a1`)
 - **Branch**: test/maestro-e2e-coverage (PR target: develop, from `develop` @ the commit this
-  branch forked from)
+  branch forked from). PR: https://github.com/brunocarvalhs/How-Much/pull/75 (draft)
