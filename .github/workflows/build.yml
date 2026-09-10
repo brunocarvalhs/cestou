@@ -290,8 +290,15 @@ jobs:
     timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
     name: 📏 Update APK Size Baseline
     steps:
+      # develop is now branch-protected (require PR) - the default
+      # GITHUB_TOKEN this step gets without an explicit `token:` isn't an
+      # admin identity and can't push directly even with enforce_admins:
+      # false, unlike secrets.TOKEN (a real admin PAT, same as
+      # sync-develop's checkout in release.yml).
       - name: ${{ needs.prepare.outputs.step_checkout }}
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.TOKEN }}
 
       - name: ${{ needs.prepare.outputs.step_size_download_apks }}
         uses: actions/download-artifact@v4
