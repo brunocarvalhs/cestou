@@ -1,0 +1,306 @@
+rules_version = '2';
+
+// =============================================================================
+// Cestou / How Much — Firestore Security Rules
+// -----------------------------------------------------------------------------
+// STATUS: PROPOSAL — NOT DEPLOYED.
+// These rules were derived by reading the data layer, not by inspecting the live
+// database. They replace the Firebase console placeholder
+// ("allow read, write: if request.time < <date>"), which grants full read/write/
+// delete on every collection to anyone holding the project config (G5).
+//
+// Deploying is a production infrastructure change and is bruno's call only:
+//   firebase deploy --only firestore:rules --project cestou-86785
+// Test first with the emulator or the Rules Playground in the console.
+//
+// READ THIS BEFORE DEPLOYING: `.specs/STATE.md` § AD-009 documents the reasoning
+// behind every rule below, the two behaviours these rules intentionally break
+// (join-by-shortCode and all Wear OS traffic) and the open questions that must be
+// answered first. Deploying blind will break list sharing.
+//
+// Collections below are exactly the ones the app touches. Everything else is
+// denied by the catch-all at the end.
+//   /shopping/{id}                              (feature/shopping ShoppingRepositoryImpl)
+//   /shopping/{id}/products/{id}                (feature/products ProductRepositoryImpl)
+//   /users/{uid}                                (core/data UserRepositoryImpl)
+//   /users/{uid}/common-products/{id}           (feature/products CommonProductRepositoryImpl)
+//   /notifications/{id}                         (core/data NotificationRepositoryImpl)
+// Recipes (TheMealDB) and product search (OpenFoodFacts) are plain HTTP through
+// CloudNetwork — they are not Firestore collections. App settings live in
+// DataStore on-device. `shopping/{id}/products/{id}/prices` appears only as a
+// KDoc example in FirebaseFirestoreManager and is never written: denied.
+// =============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------------
+    // Identity helpers
+    // ---------------------------------------------------------------------
+    // Anonymous sign-in was removed (FirebaseAnonymousAuthentication treats an
+    // anonymous session as "not authenticated"), so every legitimate request
+    // carries a real provider uid. No rule below grants anything to a
+    // non-authenticated caller.
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    // ---------------------------------------------------------------------
+    // Shared-list helpers
+    // ---------------------------------------------------------------------
+    // A shopping list carries `users: List<String>` (every member's uid) and
+    // `roles: Map<String, String>` (uid -> "OWNER" | "EDITOR"). Only the creator
+    // is written into `roles` today (ShoppingCreateUseCase); joiners are appended
+    // to `users` only. Both are read with a default so documents written before
+    // those fields existed fail closed instead of erroring.
+    function members(data) {
+      return data.get('users', []);
+    }
+
+    function roles(data) {
+      return data.get('roles', {});
+    }
+
+    function isMember(data) {
+      return isSignedIn() && uid() in members(data);
+    }
+
+    function isOwner(data) {
+      return isSignedIn() && roles(data).get(uid(), '') == 'OWNER';
+    }
+
+    // ---------------------------------------------------------------------
+    // /shopping/{shoppingId} — shared shopping lists
+    // ---------------------------------------------------------------------
+    match /shopping/{shoppingId} {
+
+      // READ: membership is the only key. `get` covers observeById/getById;
+      // `list` covers observeAll/getAll, whose query is
+      // whereArrayContains("users", uid) — the canonical shape Firestore can
+      // prove safe against this rule.
+      //
+      // WARNING: this deliberately breaks ShoppingRepositoryImpl.getByShortCode,
+      // which queries whereEqualTo("shortCode", code) as a NON-member. Firestore
+      // rules cannot inspect a query's where-clauses, so there is no way to allow
+      // "read only the one list whose code I already know" without also allowing
+      // "read every list". Allowing the latter is precisely the hole G5 is about,
+      // so it stays closed here and the join flow needs the client-side change
+      // described in AD-009 (a shortCode -> shoppingId index document).
+      allow get: if isMember(resource.data);
+      allow list: if isMember(resource.data);
+
+      // CREATE: the creator must be inside the list they are creating, the doc id
+      // must match the `id` field (FirebaseFirestoreManager.post() writes the doc
+      // at data["id"], so a mismatch means tampering), and `roles` may only name
+      // people who are actually members.
+      //
+      // Note this does NOT require the creator to be the OWNER: ShoppingDuplicateUseCase
+      // copies `users` and `roles` verbatim from the source list, so a member
+      // duplicating a shared list legitimately produces a list owned by someone
+      // else. That is a client-side bug (see AD-009 open questions), not something
+      // to paper over by loosening the rule further.
+      allow create: if isSignedIn()
+                    && request.resource.data.get('id', '') == shoppingId
+                    && uid() in members(request.resource.data)
+                    && roles(request.resource.data).keys().hasOnly(members(request.resource.data));
+
+      // UPDATE: three legitimate shapes, nothing else.
+      //
+      // (a) The OWNER may change anything, including membership and roles, as
+      //     long as they do not write themselves out of the list (a self-lockout
+      //     would be unrecoverable — there is no admin path on the Spark plan).
+      //
+      // (b) A non-owner member (EDITOR) may edit list content — title, budget,
+      //     status, favourite, position, emoji, price — but may not change the
+      //     membership set, the roles map, or the share code. Every normal edit
+      //     rewrites the whole document (ShoppingModel.toMap()) with those fields
+      //     unchanged, so equality holds for legitimate traffic and only a
+      //     privilege-escalation attempt trips it.
+      //
+      // (c) A user who is NOT yet a member may add THEMSELVES and nothing else —
+      //     this is ShoppingRepositoryImpl.join(), which PUTs {"users": [uid]} and
+      //     is resolved by FirebaseFirestoreManager into an arrayUnion. The rule
+      //     pins the resulting set to exactly (old members + me), so the join
+      //     cannot be used to add third parties, drop members, grant itself a
+      //     role, or touch any other field.
+      allow update: if isSignedIn() && (
+        // (a) owner
+        (
+          isOwner(resource.data)
+          && uid() in members(request.resource.data)
+        )
+        ||
+        // (b) member, no privilege changes
+        (
+          isMember(resource.data)
+          && members(request.resource.data).toSet() == members(resource.data).toSet()
+          && roles(request.resource.data) == roles(resource.data)
+          && request.resource.data.get('shortCode', '') == resource.data.get('shortCode', '')
+        )
+        ||
+        // (c) self-join
+        (
+          !(uid() in members(resource.data))
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['users'])
+          && members(request.resource.data).toSet()
+             == members(resource.data).toSet().union([uid()].toSet())
+        )
+      );
+
+      // DELETE: owner only. This already matches the client
+      // (ShoppingListViewModel checks roles[uid] == OWNER before deleting and
+      // shows shopping_management_error_only_owner_delete otherwise); the rule
+      // makes the check authoritative instead of cosmetic. A guest who wants out
+      // of a shared list needs a "leave list" action, which does not exist yet
+      // (see AD-009 open questions).
+      allow delete: if isOwner(resource.data);
+
+      // -------------------------------------------------------------------
+      // /shopping/{shoppingId}/products/{productId} — items of a shared list
+      // -------------------------------------------------------------------
+      // Everyone on the list is a peer editor of its items: that is the whole
+      // point of a shared cart, and the app has no per-item ownership concept
+      // (`history[].userId` is attribution, not permission). Access therefore
+      // mirrors the parent document's membership, which costs one document read
+      // per rule evaluation — acceptable at this data volume and the only way to
+      // express "member of the parent list" in Firestore rules.
+      //
+      // Note the FINISH lock (ProductRepositoryImpl.checkIsLocked) is NOT
+      // enforced here: it is a product rule, not a security boundary, and the
+      // cart flow legitimately writes to lists in several states. Locking it
+      // server-side would be a behaviour change of its own.
+      match /products/{productId} {
+
+        function parentList() {
+          return get(/databases/$(database)/documents/shopping/$(shoppingId)).data;
+        }
+
+        allow read: if isMember(parentList());
+        allow create: if isMember(parentList())
+                      && request.resource.data.get('id', '') == productId;
+        allow update, delete: if isMember(parentList());
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    // /users/{userId} — user profile (id, name, email, photoUrl)
+    // ---------------------------------------------------------------------
+    match /users/{userId} {
+
+      // READ (single document): any signed-in user. This is wider than "own
+      // profile" on purpose — CartViewModel.resolveMemberProfiles, ProductSaveUseCase
+      // and QuickAddViewModel resolve the name/photo of OTHER members of a shared
+      // list, and a rule cannot ask "do these two users share a list?" without a
+      // list id in the request. Exposure is bounded by having to know the target
+      // uid: `list` is denied, so the collection cannot be enumerated or dumped.
+      //
+      // OPEN ISSUE (AD-009): the profile document also stores `email`, so any
+      // signed-in user who learns a uid learns that user's e-mail. The fix is a
+      // schema split (public name/photo vs. private email), not a looser rule.
+      allow get: if isSignedIn();
+      allow list: if false;
+
+      // WRITE: own document only, and the `id` field must agree with the doc id.
+      // `create` is included because UserRepositoryImpl only ever issues a PUT,
+      // which FirebaseFirestoreManager maps to update() — that fails on a missing
+      // document, so first-write profile creation needs a create path to work at
+      // all (see AD-009 open questions).
+      allow create, update: if isSignedIn()
+                            && uid() == userId
+                            && request.resource.data.get('id', userId) == userId
+                            && request.resource.data.keys().hasOnly(['id', 'name', 'email', 'photoUrl']);
+
+      // DELETE: own document only — this is the account-deletion path
+      // (DeleteAccountUseCase -> UserRepository.deleteProfile), which must run
+      // while the user is still authenticated.
+      allow delete: if isSignedIn() && uid() == userId;
+
+      // -------------------------------------------------------------------
+      // /users/{userId}/common-products/{itemId} — per-user "cesta básica"
+      // -------------------------------------------------------------------
+      // Strictly private. Despite the name this is NOT a shared catalogue:
+      // CommonProductRepositoryImpl always builds the path from the caller's own
+      // id ("users/$userId/common-products") and seeds the defaults per user, so
+      // nobody else has any reason to read or write it.
+      match /common-products/{itemId} {
+        allow read: if isSignedIn() && uid() == userId;
+        allow create: if isSignedIn() && uid() == userId
+                      && request.resource.data.get('id', '') == itemId
+                      && request.resource.data.keys().hasOnly(['id', 'name', 'category', 'unit']);
+        allow update, delete: if isSignedIn() && uid() == userId;
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    // /notifications/{notificationId} — collaboration notifications
+    // ---------------------------------------------------------------------
+    // The only place where a user legitimately writes a document addressed to
+    // SOMEONE ELSE. There are no Cloud Functions (Spark plan), so the client that
+    // triggers the event is the writer: ShoppingJoinUseCase notifies the existing
+    // members that someone joined, FinishPurchaseViewModel notifies them that the
+    // purchase was finished.
+    match /notifications/{notificationId} {
+
+      function isRecipient() {
+        return isSignedIn() && resource.data.get('userId', '') == uid();
+      }
+
+      // READ: recipient only. observeNotifications queries
+      // whereEqualTo("userId", uid), which matches this rule exactly, so no
+      // other user's notification feed is reachable.
+      allow get: if isRecipient();
+      allow list: if isRecipient();
+
+      // CREATE: any signed-in user may address a notification to another user,
+      // but only a notification — the payload is pinned to the exact shape of
+      // NotificationModel, the type to the two values the app actually emits, and
+      // `isRead` to false so a notification cannot be delivered pre-dismissed.
+      // Size caps keep this from being used as free storage for arbitrary blobs.
+      //
+      // OPEN ISSUE (AD-009): NotificationModel has no `senderId`, so these rules
+      // cannot verify that the writer shares a list with the recipient. Any
+      // signed-in user who knows a uid can therefore send that user a well-formed
+      // notification. Closing that requires a schema change (senderId +
+      // shoppingId, then verify both uids against the list's members) — recorded
+      // as a follow-up rather than guessed at here.
+      allow create: if isSignedIn()
+                    && request.resource.data.keys().hasOnly(
+                         ['id', 'userId', 'title', 'message', 'type', 'isRead', 'timestamp'])
+                    && request.resource.data.keys().hasAll(
+                         ['id', 'userId', 'title', 'message', 'type', 'isRead', 'timestamp'])
+                    && request.resource.data.id == notificationId
+                    && request.resource.data.userId is string
+                    && request.resource.data.userId.size() > 0
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() <= 200
+                    && request.resource.data.message is string
+                    && request.resource.data.message.size() <= 500
+                    && request.resource.data.type in ['list_joined', 'list_finished']
+                    && request.resource.data.isRead == false
+                    && request.resource.data.timestamp is int;
+
+      // UPDATE: the recipient may only flip isRead to true — the exact payload
+      // NotificationRepositoryImpl.markAsRead sends. Nobody can rewrite the title
+      // or message of a notification already sitting in someone's feed.
+      allow update: if isRecipient()
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead'])
+                    && request.resource.data.isRead == true;
+
+      // DELETE: no code path deletes a notification. Denied until one exists.
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // Everything else is denied. Explicit, so that a new collection added by a
+    // future feature fails loudly in development instead of silently inheriting
+    // access from a broader rule.
+    // ---------------------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

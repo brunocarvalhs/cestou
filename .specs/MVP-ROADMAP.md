@@ -59,8 +59,13 @@ regression suite (#16), this doc (#17), account & data deletion (#18), dead soci
   `AiChatScreen` settings-icon accessibility gap (F3.4), but still needs a device to execute.
 - Screenshots/feature graphic (part of G4) need a device to capture.
 - The privacy/terms pages (G3) need a hosting decision before the in-app links can point anywhere.
-- Firestore security rules for the new `notifications` writes (G5) live outside this repo and need
-  a manual check in the Firebase Console.
+- **G5 Firestore rules** are no longer unwritten *or* outside the repo: a full rule set covering
+  every collection the app uses now lives in `firestore.rules`, reasoned through in AD-009
+  (`.specs/STATE.md`) and checked by 60 emulator assertions. Production still runs the console
+  placeholder, so what's left is yours: review, then
+  `firebase deploy --only firestore:rules --project cestou-86785`. Read AD-009's "known breakage on
+  deploy" first — as written the rules stop join-by-short-code and all Wear OS traffic until the
+  client catches up.
 - **G9** needs your review/merge of PR #67 — don't duplicate the fix.
 - **G10** needs a design decision (which shared contracts move to `core/*`) before it's worth
   spec'ing as its own initiative; flagged here so it doesn't silently grow.
@@ -81,7 +86,7 @@ just "not yet perfect."
 |---|---|---|---|
 | **G3** — hosted legal pages | Todas — mas sobretudo Dona Célia ("rejeita qualquer feature que exija entender um conceito novo") e Marina (sem paciência para passo extra); um link morto de Termos/Privacidade é a primeira "prova de amadorismo" que qualquer uma delas encontra. | Play Store submission requirement; hoje os links de Privacidade/Termos no app não levam a lugar nenhum. | Needs bruno's hosting decision (`cestou.app` vs. GitHub Pages) |
 | **G4 (remainder)** — screenshots/feature graphic | Todas — pré-condição para a listagem existir na Play Store; nenhuma persona chega ao app sem isso. | Play Console requires these to publish even a closed testing track — no listing, no beta. | Needs a device |
-| **G5** — Firestore rules for `notifications` writes | Lucas (depende do token de compartilhamento funcionar com integridade), Bianca-e-Diego (lista viva compartilhada) — regra não verificada permite escrever notificação "de" um usuário "para" outro sem checagem. | Primeira fronteira real de confiança que o app cruza com dados de pessoas reais, não dados de teste. Barato de checar, alto downside se errado. | Needs bruno, Firebase Console |
+| **G5** — Firestore rules for `notifications` writes | Lucas (depende do token de compartilhamento funcionar com integridade), Bianca-e-Diego (lista viva compartilhada) — regra não verificada permite escrever notificação "de" um usuário "para" outro sem checagem. | Primeira fronteira real de confiança que o app cruza com dados de pessoas reais, não dados de teste. Barato de checar, alto downside se errado. | Rules written and emulator-tested (`firestore.rules`, AD-009) — still needs bruno's review + manual deploy; the proposal also breaks join-by-short-code and Wear until two client follow-ups land |
 | **G9** — `updatePositions` no-op | Dona Marlene ("lista de compras confiável do que realmente falta", rejeita "fluxo que dificulte"), Bianca-e-Diego ("lista viva... sem depender de lembrar de cabeça") — reordenar e ver a lista voltar sozinha é exatamente o tipo de falha que quebra a confiança que essas duas personas mais dependem. | Drag-to-reorder já é uma affordance visível e shipada; reverter silenciosamente no próximo sync lê como perda de dado. Fix pronto e testado (PR #67); é decisão de merge, não trabalho novo. | Needs bruno to review/merge PR #67 |
 | **G13** — QR-join scanner has no debounce, spams duplicate notifications | Lucas ("rejeita qualquer feature que só funcione bem com um único usuário"), Bianca-e-Diego ("rejeitam qualquer solução que dependa de um canal separado para ficarem alinhados") — é o ponto de entrada real dessas duas personas na feature-headline do app (carrinho compartilhado). | Segurar o telefone parado sobre um código — comportamento normal — já spamma todo membro no primeiro join. Reprodução quase garantida num fluxo central, não um edge case. | `android-engineer-features` |
 | **G15** — Gemini API key compiled into the APK, no rotation path | Não é uma dor de persona específica (é risco de negócio/segurança), mas afeta indiretamente todas as personas que usam IA/scanner (Marina, Dona Marlene, Juliana*, Camila-e-Pedro) se a chave for abusada e o provedor cortar o serviço por excesso de uso. | Chave embutida no APK vira superfície de abuso real assim que o build sai de mãos internas para os dispositivos dos beta testers. Fix já em andamento em `fix/gemini-key-remote-config` (`ProductRepositoryImpl`, `AiAgentFactoryImpl` já leem do Remote Config com a chave compilada como fallback) — quase pronto. | `android-engineer-features`, PR in progress |
@@ -194,7 +199,10 @@ specifically:
    now includes `account_data_flow.yaml`), do the Google Sign-In QA pass (F2.2), and capture the
    screenshots/feature graphic (rest of G4).
 3. Pick a host for the legal pages (G3) and wire the URL in.
-4. Check the Firestore rules for the new notification writes (G5) in the Firebase Console.
+4. Review the proposed `firestore.rules` (G5 / AD-009), decide on the two client follow-ups it
+   depends on, then deploy it yourself:
+   `firebase deploy --only firestore:rules --project cestou-86785`. Nobody else touches production
+   rules.
 5. When ready, decide on `develop` → `master` for the actual store release — that merge is yours to
    make, same as G1 was.
 6. Schedule a design pass for G10 (cross-feature coupling) before it grows further — not a launch
