@@ -402,7 +402,7 @@ jobs:
         run: yq -o=json . .github/pipeline-config.yaml > .github/pipeline-config.json
 
       - name: ${{ needs.prepare.outputs.step_setup_node }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ needs.prepare.outputs.danger_node_version }}
 
@@ -441,7 +441,7 @@ jobs:
           fetch-depth: 0
 
       - name: ${{ needs.prepare.outputs.step_setup_node }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ needs.prepare.outputs.commitlint_node_version }}
 
