@@ -216,7 +216,7 @@ jobs:
           echo "version=$VERSION_NAME" >> $GITHUB_OUTPUT
 
       - name: ${{ needs.prepare.outputs.step_release_create }}
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         if: steps.version.outputs.version != ''
         with:
           tag_name: ${{ steps.version.outputs.version }}
