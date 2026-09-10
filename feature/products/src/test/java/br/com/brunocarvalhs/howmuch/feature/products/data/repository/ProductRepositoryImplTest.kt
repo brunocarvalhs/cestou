@@ -1,13 +1,17 @@
 package br.com.brunocarvalhs.howmuch.feature.products.data.repository
 
 import android.graphics.Bitmap
+import br.com.brunocarvalhs.howmuch.core.common.BuildConfig
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.RemoteVariableService
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.RemoteVariableKeys
 import br.com.brunocarvalhs.howmuch.feature.products.data.model.ProductModel
 import br.com.brunocarvalhs.howmuch.feature.products.data.services.PriceTagResult
 import br.com.brunocarvalhs.howmuch.feature.products.data.services.ProductImageTextRecognizer
+import com.google.ai.client.generativeai.GenerativeModel
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -28,6 +32,7 @@ class ProductRepositoryImplTest {
     private val cloudNetwork = mockk<NetworkService>()
     private val shoppingRepository = mockk<ShoppingRepository>()
     private val imageTextRecognizer = mockk<ProductImageTextRecognizer>()
+    private val remoteVariableService = mockk<RemoteVariableService>()
     private lateinit var repository: ProductRepositoryImpl
 
     private val shoppingInProgress = Shopping(
@@ -46,7 +51,13 @@ class ProductRepositoryImplTest {
 
     @Before
     fun setup() {
-        repository = ProductRepositoryImpl(networkService, cloudNetwork, shoppingRepository, imageTextRecognizer)
+        repository = ProductRepositoryImpl(
+            networkService,
+            cloudNetwork,
+            shoppingRepository,
+            imageTextRecognizer,
+            remoteVariableService
+        )
     }
 
     @Test
@@ -197,5 +208,51 @@ class ProductRepositoryImplTest {
         val first = repository.getQuestionSuggestions("s1").first()
 
         assertEquals(3, first.size)
+    }
+
+    @Test
+    fun `generativeModel is built with the remote key when Remote Config returns a valid value`() {
+        every {
+            remoteVariableService.getString(
+                key = RemoteVariableKeys.GEMINI_API_KEY,
+                default = BuildConfig.GEMINI_API_KEY
+            )
+        } returns "remote-rotated-key"
+
+        assertEquals("remote-rotated-key", repository.actualGeminiApiKey())
+    }
+
+    @Test
+    fun `generativeModel falls back to the BuildConfig key when Remote Config has no value`() {
+        // Mirrors FirebaseRemoteConfigService's real fallback contract: an unfetched/unactivated
+        // key returns the caller-supplied default.
+        every {
+            remoteVariableService.getString(
+                key = RemoteVariableKeys.GEMINI_API_KEY,
+                default = BuildConfig.GEMINI_API_KEY
+            )
+        } returns BuildConfig.GEMINI_API_KEY
+
+        assertEquals(BuildConfig.GEMINI_API_KEY, repository.actualGeminiApiKey())
+    }
+
+    @Test
+    fun `generativeModel falls back to the BuildConfig key when Remote Config returns a blank value`() {
+        every {
+            remoteVariableService.getString(
+                key = RemoteVariableKeys.GEMINI_API_KEY,
+                default = BuildConfig.GEMINI_API_KEY
+            )
+        } returns "   "
+
+        assertEquals(BuildConfig.GEMINI_API_KEY, repository.actualGeminiApiKey())
+    }
+
+    /** Forces the private `generativeModel by lazy` and reads the key it was actually built with. */
+    private fun ProductRepositoryImpl.actualGeminiApiKey(): String {
+        val field = ProductRepositoryImpl::class.java.getDeclaredField("generativeModel\$delegate")
+        field.isAccessible = true
+        val lazyModel = field.get(this) as Lazy<*>
+        return (lazyModel.value as GenerativeModel).apiKey
     }
 }

@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel
 
 import android.content.Context
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
@@ -31,7 +32,9 @@ class FinishPurchaseViewModelTest {
     private val authService = mockk<AuthService>()
     private val notificationRepository = mockk<NotificationRepository>(relaxed = true)
     private val navigator = mockk<Navigator>(relaxed = true)
-    private val viewModel = FinishPurchaseViewModel(context, repository, authService, notificationRepository)
+    private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
+    private val viewModel =
+        FinishPurchaseViewModel(context, repository, authService, notificationRepository, analyticsTracker)
 
     private val shopping = Shopping(
         id = "list1",
