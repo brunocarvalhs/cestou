@@ -26,6 +26,7 @@
     <string name="settings_item_rate_desc">Leave your review</string>
     <string name="settings_item_terms">Terms of Use</string>
     <string name="settings_item_privacy">Privacy Policy</string>
+    <string name="settings_legal_view_online">View full version online</string>
     <string name="settings_item_licenses">Open Source Licenses</string>
     <string name="settings_item_release_notes">Version News</string>
     <string name="settings_item_release_notes_desc">See what\'s changed</string>
