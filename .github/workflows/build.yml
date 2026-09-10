@@ -230,7 +230,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: ${{ needs.prepare.outputs.step_deploy_download_apks }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ needs.prepare.outputs.app_name }}-${{ matrix.target_name }}
           path: output/
@@ -301,7 +301,7 @@ jobs:
           token: ${{ secrets.TOKEN }}
 
       - name: ${{ needs.prepare.outputs.step_size_download_apks }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ needs.prepare.outputs.app_name }}-${{ needs.prepare.outputs.size_target }}
           path: output/
