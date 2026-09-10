@@ -40,6 +40,13 @@ google-services.json
 .env
 .env.local
 
+# Firebase emulator artifacts (firestore-tests/)
+node_modules/
+firestore-debug.log
+ui-debug.log
+firebase-debug.log
+.firebase/
+
 # Misc
 .DS_Store
 .artifacts
