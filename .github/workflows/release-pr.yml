@@ -30,7 +30,7 @@ jobs:
       # unlike secrets.TOKEN (a real admin PAT). This job's whole mechanism
       # is a direct push to develop below, so this isn't optional.
       - name: 📥 Checkout develop
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.TOKEN }}
