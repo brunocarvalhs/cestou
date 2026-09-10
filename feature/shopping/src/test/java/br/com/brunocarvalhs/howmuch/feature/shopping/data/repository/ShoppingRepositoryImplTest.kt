@@ -191,9 +191,39 @@ class ShoppingRepositoryImplTest {
 
     @Test
     fun `updatePositions succeeds`() = runTest {
+        coEvery { networkService.make<Boolean>(any(), any(), any()) } returns true
+
         val result = repository.updatePositions(listOf(model.toDomainForTest()))
 
         assertTrue(result.isSuccess)
+    }
+
+    @Test
+    fun `updatePositions writes each shopping's position`() = runTest {
+        val requests = mutableListOf<NetworkService.NetworkRequest>()
+        coEvery { networkService.make<Boolean>(capture(requests), any(), any()) } returns true
+
+        val shoppings = listOf(
+            model.copy(id = "s1", position = 0).toDomainForTest(),
+            model.copy(id = "s2", position = 1).toDomainForTest()
+        )
+
+        repository.updatePositions(shoppings)
+
+        assertEquals(2, requests.size)
+        assertTrue(requests.any { it.endpoint == "shopping/s1" && it.payload == mapOf("position" to 0) })
+        assertTrue(requests.any { it.endpoint == "shopping/s2" && it.payload == mapOf("position" to 1) })
+    }
+
+    @Test
+    fun `updatePositions fails when network throws`() = runTest {
+        coEvery {
+            networkService.make<Boolean>(any(), any(), any())
+        } throws NetworkService.NetworkException(message = "offline")
+
+        val result = repository.updatePositions(listOf(model.toDomainForTest()))
+
+        assertTrue(result.isFailure)
     }
 
     private fun ShoppingModel.toDomainForTest(): Shopping = Shopping(
@@ -203,6 +233,7 @@ class ShoppingRepositoryImplTest {
         price = price,
         status = status,
         users = users,
-        roles = roles
+        roles = roles,
+        position = position
     )
 }
