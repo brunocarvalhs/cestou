@@ -80,8 +80,8 @@
   (with a minimal `firebase.json` pointing at it), derived from the data layer, and is the single
   authoritative authorization boundary. Client-side ownership checks (e.g.
   `ShoppingListViewModel` gating delete on `roles[uid] == OWNER`) are UX affordances that the rules
-  now mirror, never the security boundary itself. **Proposed on `docs/firestore-security-rules`;
-  not deployed** — the console still runs the default placeholder
+  now mirror, never the security boundary itself. **Proposed on `docs/firestore-security-rules`
+  (PR #84); not deployed** — the console still runs the default placeholder
   (`allow read, write: if request.time < <date>`), which grants anyone with the project config
   full read/write/delete over every collection. Deploying is bruno's call:
   `firebase deploy --only firestore:rules --project cestou-86785`.
@@ -192,7 +192,7 @@
   grouping reflected shared discovery date (one bug audit), not shared risk. Reviewed the G15 fix and
   recorded AD-008.
 - **Completed (2026-09-10, `tech-lead`, G5 rules)**: Mapped every Firestore path the app actually
-  uses and proposed a real rule set on `docs/firestore-security-rules` — `firestore.rules`,
+  uses and proposed a real rule set on `docs/firestore-security-rules` (PR #84) — `firestore.rules`,
   `firebase.json` and an emulator-backed `firestore-tests/rules.test.mjs` (60 assertions, green).
   Reasoning, trade-offs and open questions are **AD-009**. The rules are a **proposal only**: the
   production project still runs the console placeholder, and deploying is bruno's decision. Read
@@ -223,7 +223,7 @@
 - **Blockers**: No adb/emulator here — F0.3 (Maestro) and F2.2 (Google Sign-In) can only be authored
   or reviewed statically, never reported as passing. G3 hosting, G4 screenshots, the post-T1 Gemini
   key rotation/revocation, and any `develop` → `master` decision are all bruno's. **G5 Firestore
-  rules**: no longer "unwritten" — the proposal is on `docs/firestore-security-rules` (AD-009); what
+  rules**: no longer "unwritten" — the proposal is PR #84 / AD-009; what
   remains is bruno's review, the two client-side follow-ups AD-009 lists, and the manual
   `firebase deploy --only firestore:rules`. Nobody else deploys it.
 - **Uncommitted files**: **yes — do not `git add .`.** The working tree mixes three owners' work:
