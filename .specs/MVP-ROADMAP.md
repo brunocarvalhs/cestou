@@ -43,7 +43,7 @@ shipped independently.
 | ~~G6~~ | ~~`lint-rules/` module has uncommitted deleted files~~ | Done — orphaned index state from an abandoned attempt, unstaged. | S |
 | ~~G7~~ | ~~Dead `signInWithGoogle`/`signInWithApple`~~ | Done — PR #19 | S |
 | ~~G8~~ | ~~Apple Sign-In never offered~~ | Removed the unreachable UI branch rather than implementing it — PR #19 | S |
-| G9 | `ShoppingRepositoryImpl.updatePositions` is a no-op (`ShoppingRepositoryImpl.kt:133-139`) — reordering lists by drag updates local state optimistically (`ShoppingListViewModel.kt:269`) but never writes to Firestore, so the order silently reverts on next sync | Feature is already exposed in the UI and looks like it works; found during a 2026-09-04 Tech Lead audit | **Fix pushed, PR #67 open against `develop`, not yet merged/reviewed** |
+| G9 | `ShoppingRepositoryImpl.updatePositions` is a no-op (`ShoppingRepositoryImpl.kt:133-139`) — reordering lists by drag updates local state optimistically (`ShoppingListViewModel.kt:269`) but never writes to Firestore, so the order silently reverts on next sync | Feature is already exposed in the UI and looks like it works; found during a 2026-09-04 Tech Lead audit | **Fix pushed, PR #67 open — but not mergeable as of 2026-09-10: Detekt fails on one >120-char line in `ShoppingRepositoryImplTest.kt:220` (so `PR Gate` is red) and the branch is 18 commits behind `develop`. Tracked as T7 in `BETA-LAUNCH-PLAN.md`.** |
 | G10 | Cross-feature module coupling: `cart`/`shopping`/`chat`/`ai-agent`/`profile` import `feature.settings` directly, `cart` imports `feature.chat`/`feature.products`, `products` imports `feature.chat`, `shopping` imports `feature.products` | Violates AD-005 (feature modules should only expose a `navigation` entry point); makes each feature module's real dependency graph wider than documented, raising the risk of accidental coupling as the app grows | M — needs a design pass (extract shared contracts to `core/*`), not a quick fix |
 
 Every item marked done above shipped as its own branch + PR (none merged without review): shared
@@ -66,7 +66,9 @@ regression suite (#16), this doc (#17), account & data deletion (#18), dead soci
   `firebase deploy --only firestore:rules --project cestou-86785`. Read AD-009's "known breakage on
   deploy" first — as written the rules stop join-by-short-code and all Wear OS traffic until the
   client catches up.
-- **G9** needs your review/merge of PR #67 — don't duplicate the fix.
+- **G9** needs your review/merge of PR #67 — don't duplicate the fix. T7's Detekt fix and the
+  18-commit branch update have already landed on the PR; it is green and up to date with `develop`
+  again as of 2026-09-10. Merging is still exclusively yours.
 - **G10** needs a design decision (which shared contracts move to `core/*`) before it's worth
   spec'ing as its own initiative; flagged here so it doesn't silently grow.
 
@@ -207,9 +209,10 @@ specifically:
    make, same as G1 was.
 6. Schedule a design pass for G10 (cross-feature coupling) before it grows further — not a launch
    blocker, but the longer it's left the more feature modules will depend on it.
-7. Prioritize **G15** (hardcoded Gemini API key, no remote-rotation path) among the new bug-audit
-   items — it's the only one with a security angle, the rest (G12–G14, G16) are correctness/UX bugs
-   without a compromise scenario.
+7. ~~Prioritize **G15** (hardcoded Gemini API key, no remote-rotation path) among the new bug-audit
+   items~~ — done, PR #69, along with the rest of G12–G16. What's left of G15 is yours: publish
+   `gemini_api_key` in Remote Config and **revoke the old key at the provider** — until then nothing
+   is actually mitigated.
 
 ## Bug audit — 2026-09-09
 
@@ -220,11 +223,20 @@ A pass over ViewModels, repository implementations, and Compose screens for comm
 | # | Gap | File | Fix status |
 |---|---|---|---|
 | ~~G11~~ | ~~Camera analyzer thread leak~~ — `CameraPreview`'s single-thread `Executor` was created via `remember` but never shut down; every scanner screen visit (open → back → reopen) leaked a background thread | `feature/products/.../components/scanner/CameraPreview.kt:33` | **Fixed this session** — added `DisposableEffect` to shut down the executor |
-| G12 | `CartViewModel.observeData()` leaks duplicate Flow collectors — its settings `collect{}` calls `observeProducts()`, which launches a *new* `viewModelScope` collector each time instead of using `flatMapLatest`; every DataStore settings write anywhere in the app (theme, language, AI prefs) adds one more permanent product collector, each re-running `sortProductsUseCase`/`resolveMemberProfiles` | `feature/cart/.../viewmodel/CartViewModel.kt:98-127` | Open — needs its own PR, moderate risk (touches the cart's core observe loop) |
-| G13 | QR-code list join has no scan debounce — `BarcodeAnalyzer` fires `onBarcodeScanned` on every analyzed camera frame with no throttle/one-shot guard, and `ScannerViewModel.onTokenScanned` has no "already processing" flag; holding a code in frame re-triggers `ShoppingJoinUseCase`, which loops a notification write per other member on every duplicate join | `feature/products/.../scanner/BarcodeAnalyzer.kt:22`, `feature/shopping/.../viewmodel/ScannerViewModel.kt:28-35`, `ShoppingJoinUseCase.kt:33-38` | Open — needs its own PR; also spams other members with duplicate push notifications |
-| G14 | `ProfileViewModel.observeProfile()` subscribes to the Firestore profile but discards the emitted value, always rebuilding state from cached `authService.currentUser` instead — a Firestore-only profile edit never reaches the UI, and the listener runs forever for no effect | `feature/profile/.../viewmodel/ProfileViewModel.kt:47-54` | Open — needs its own PR; needs care to confirm `UserProfile` vs. `authService.currentUser` field parity before merging them |
-| G15 | Gemini API key is compiled into the APK (`BuildConfig.GEMINI_API_KEY`) in three places, and the remote-config key meant for server-side rotation (`RemoteVariableKeys.GEMINI_API_KEY`) is never actually read — so a compromised/abused key can't be revoked without a new release | `feature/products/.../ProductRepositoryImpl.kt:44-47`, `RecipeRepositoryImpl.kt:29-32`, `feature/ai-agent/.../GeminiAiAgent.kt:29-30`, `core/remote-config/.../RemoteConfigKeys.kt:19` | Open — security-relevant; needs its own PR wiring the repositories to read from Remote Config with the compiled key as fallback |
-| G16 | `ProductSearchViewModel.search()` has no debounce or request cancellation — every keystroke past 3 chars launches a fresh, untracked coroutine; a slower earlier response can arrive after a faster later one and overwrite `_uiState` with stale results for a query the user no longer typed | `feature/products/.../viewmodel/ProductSearchViewModel.kt:55-90` | Open — needs its own PR (debounce + cancel-previous-job pattern) |
+| ~~G12~~ | ~~`CartViewModel.observeData()` leaks duplicate Flow collectors — its settings `collect{}` calls `observeProducts()`, which launches a *new* `viewModelScope` collector each time instead of using `flatMapLatest`; every DataStore settings write anywhere in the app (theme, language, AI prefs) adds one more permanent product collector, each re-running `sortProductsUseCase`/`resolveMemberProfiles`~~ | `feature/cart/.../viewmodel/CartViewModel.kt:98-127` | **Fixed — PR #78** (`flatMapLatest`). Unit tests only, no device verification. |
+| ~~G13~~ | ~~QR-code list join has no scan debounce — `BarcodeAnalyzer` fires `onBarcodeScanned` on every analyzed camera frame with no throttle/one-shot guard, and `ScannerViewModel.onTokenScanned` has no "already processing" flag; holding a code in frame re-triggers `ShoppingJoinUseCase`, which loops a notification write per other member on every duplicate join~~ | `feature/products/.../scanner/BarcodeAnalyzer.kt:22`, `feature/shopping/.../viewmodel/ScannerViewModel.kt:28-35`, `ShoppingJoinUseCase.kt:33-38` | **Fixed — PR #73** (`ScannerViewModel.isJoining` guard, released on failure and held on success, + analyzer throttle). Unit tests only, no device/camera verification. |
+| ~~G14~~ | ~~`ProfileViewModel.observeProfile()` subscribes to the Firestore profile but discards the emitted value, always rebuilding state from cached `authService.currentUser` instead — a Firestore-only profile edit never reaches the UI, and the listener runs forever for no effect~~ | `feature/profile/.../viewmodel/ProfileViewModel.kt:47-54` | **Fixed — PR #79** (emission reconciled into state). Unit tests only, no device verification. |
+| ~~G15~~ | ~~Gemini API key is compiled into the APK (`BuildConfig.GEMINI_API_KEY`) in three places, and the remote-config key meant for server-side rotation (`RemoteVariableKeys.GEMINI_API_KEY`) is never actually read — so a compromised/abused key can't be revoked without a new release~~ | `feature/products/.../ProductRepositoryImpl.kt:44-47`, `RecipeRepositoryImpl.kt:29-32`, `feature/ai-agent/.../GeminiAiAgent.kt:29-30`, `core/remote-config/.../RemoteConfigKeys.kt:19` | **Code fixed — PR #69** (AD-008: Remote Config + blank-value guard + compiled fallback). **Not yet mitigated in practice:** publishing `gemini_api_key` and revoking the old key in the consoles is still owed by bruno. Rotation is restart-scoped for the two `@Singleton` repositories. |
+| ~~G16~~ | ~~`ProductSearchViewModel.search()` has no debounce or request cancellation — every keystroke past 3 chars launches a fresh, untracked coroutine; a slower earlier response can arrive after a faster later one and overwrite `_uiState` with stale results for a query the user no longer typed~~ | `feature/products/.../viewmodel/ProductSearchViewModel.kt:55-90` | **Fixed — PR #77** (debounce + cancel-previous job). Unit tests only, no device verification. |
+
+**Update 2026-09-10:** G12–G16 are all closed — each shipped as its own branch and PR (#78, #73,
+#79, #69, #77 respectively), exactly as the paragraph below intended. Recorded plainly: apart from
+G11's `androidTest`, none of these fixes has been exercised on a device or emulator — their evidence
+is JVM unit tests plus review. Accepted for their risk class (cancellation/flow-plumbing changes that
+fail as a stale UI update, not as data corruption), but do not restate them as "verified". G15's code
+is done while its console-side rotation/revocation is not; see its row.
+
+Original note, kept as the record of why they were split:
 
 G12–G16 are documented here rather than fixed in this branch on purpose: none of them can be
 exercised on a device in this environment, and each touches a different feature's core behavior

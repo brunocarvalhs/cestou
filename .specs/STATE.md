@@ -73,7 +73,10 @@
   returns verbatim.
 - **Scope**: Any API key or secret currently sourced from `BuildConfig` (today: `GEMINI_API_KEY`).
 - **Date**: 2026-09-09
-- **Status**: active (introduced by the G15 fix on `fix/gemini-key-remote-config`)
+- **Status**: active — landed on `develop` via **PR #69**. All three call sites also apply the
+  blank-value guard (`.takeIf { it.isNotBlank() } ?: BuildConfig.GEMINI_API_KEY`). The console-side
+  half (publish `gemini_api_key`, revoke the old key at the provider) is **still owed by bruno**;
+  until then the decision is implemented but delivers no actual mitigation.
 
 ### AD-009
 - **Decision**: Firestore access control lives in a versioned `firestore.rules` at the repo root
@@ -186,51 +189,65 @@
   CI rebuilt around Git Flow with staged checks (PR #47). `AiChatScreen` settings-icon
   `contentDescription` fixed (F3.4). `.maestro/flows/account_data_flow.yaml` added. G11 camera
   executor leak fixed.
-- **Completed (this session, `tech-lead`)**: Reconciled `BETA-LAUNCH-PLAN.md` with the `pm` priority
-  pass. **Resolved the flagged discrepancy: accepted the split of "G12–G16 closed" — G13 and G15 gate
-  the beta; G12/G14/G16 ship inside the beta window but do not gate go/no-go.** Rationale: the flat
-  grouping reflected shared discovery date (one bug audit), not shared risk. Reviewed the G15 fix and
-  recorded AD-008.
-- **Completed (2026-09-10, `tech-lead`, G5 rules)**: Mapped every Firestore path the app actually
-  uses and proposed a real rule set on `docs/firestore-security-rules` (PR #84) — `firestore.rules`,
-  `firebase.json` and an emulator-backed `firestore-tests/rules.test.mjs` (60 assertions, green).
-  Reasoning, trade-offs and open questions are **AD-009**. The rules are a **proposal only**: the
-  production project still runs the console placeholder, and deploying is bruno's decision. Read
-  AD-009's "known breakage on deploy" first — as written the rules stop join-by-short-code and all
-  Wear OS traffic, both of which need client changes, not looser rules.
-- **In-progress / needs care before touching code**:
-  - **G15 fix is uncommitted and on the wrong branch.** The working tree carries a near-complete fix
-    (`AiAgentFactoryImpl.kt`, `ProductRepositoryImpl.kt`, `RecipeRepositoryImpl.kt`, their tests,
-    `feature/products/build.gradle.kts`) while HEAD is `feat/beta-analytics-instrumentation`. The
-    correct branch `fix/gemini-key-remote-config` exists and is currently equal to `develop`. Moving
-    is verified safe (no overlap between the modified paths and the analytics commit). Full recovery
-    procedure is task **T1 step 0** in `BETA-LAUNCH-PLAN.md` — never `checkout -f`/`reset --hard`/
-    `clean`. Review verdict: all three G15 call sites are covered (`GeminiAiAgent` needs no edit — the
-    key is injected via its existing `apiKey` constructor default from its only construction site),
-    but the fix is **not ready**: no regression test asserts remote-value-vs-fallback, and a blank
-    remote value is returned verbatim and would break all AI at once.
-  - **G9** — fix open and unmerged as PR #67; a repo-owner merge decision, not work to duplicate.
-  - **Analytics** — `data-engineer` committed instrumentation on `feat/beta-analytics-instrumentation`
-    (tests green), documented in `.specs/ANALYTICS-PLAN.md`. `tech-lead` found one factual error in
-    that doc: it calls `BarcodeAnalyzer.onBarcodeScanned` dead code, but it is wired from
-    `feature/shopping`'s `QrCodeScanner` → so it *is* live and *is* the G13 blocker. `data-engineer`
-    to correct its own document. This cross-module import is also a fresh instance of G10/AD-005.
-  - **`.specs/BETA-KPI.md`** — owned by `marketing`, in progress. Do not create or edit it.
-- **Next step**: Release the Android engineers on the T1–T6 queue in `BETA-LAUNCH-PLAN.md`.
-  `android-engineer-features` starts at T1 (G15); `android-engineer-quality` starts T3 (Jacoco
-  baseline) in parallel. T4 (G16) additionally waits on the analytics branch merging, since both edit
-  `ProductSearchViewModel.kt`.
-- **Blockers**: No adb/emulator here — F0.3 (Maestro) and F2.2 (Google Sign-In) can only be authored
-  or reviewed statically, never reported as passing. G3 hosting, G4 screenshots, the post-T1 Gemini
-  key rotation/revocation, and any `develop` → `master` decision are all bruno's. **G5 Firestore
-  rules**: no longer "unwritten" — the proposal is PR #84 / AD-009; what
-  remains is bruno's review, the two client-side follow-ups AD-009 lists, and the manual
-  `firebase deploy --only firestore:rules`. Nobody else deploys it.
-- **Uncommitted files**: **yes — do not `git add .`.** The working tree mixes three owners' work:
-  the G15 code fix (8 paths, `android-engineer-features` → `fix/gemini-key-remote-config`),
-  `.specs/MVP-ROADMAP.md` (`pm`'s Beta Launch Priority section), and
-  `.specs/BETA-LAUNCH-PLAN.md` + `.specs/STATE.md` (`tech-lead`, this session). Each belongs to a
-  different branch/PR. `tech-lead` deliberately did not commit, to avoid entangling them further —
-  bruno should confirm how to split these before anyone commits.
-- **Branch**: HEAD is `feat/beta-analytics-instrumentation` (wrong for the uncommitted work — see
-  above). Target branch for the G15 fix: `fix/gemini-key-remote-config` → PR into `develop`.
+- **Completed (session of 2026-09-09, `tech-lead`)**: Reconciled `BETA-LAUNCH-PLAN.md` with the `pm`
+  priority pass. **Resolved the flagged discrepancy: accepted the split of "G12–G16 closed" — G13 and
+  G15 gate the beta; G12/G14/G16 ship inside the beta window but do not gate go/no-go.** Rationale:
+  the flat grouping reflected shared discovery date (one bug audit), not shared risk. Reviewed the
+  G15 fix and recorded AD-008. Corrected `ANALYTICS-PLAN.md`'s claim that `BarcodeAnalyzer` was dead
+  code — it is wired from `feature/shopping`'s `QrCodeScanner`, which is exactly why G13 was real.
+- **Completed (session of 2026-09-09/10, whole team — all merged into `develop`, verified against
+  `origin/develop`, not against PR descriptions)**:
+  - **G15** — Gemini key via Remote Config with blank-value guard — **PR #69**
+  - **Analytics** — beta funnel instrumentation + `ANALYTICS-PLAN.md` — **PR #71**
+  - **Coverage** — real Kover baseline **82.00% → 84.47%** line (branch 46.9% → 48.9%), zero-coverage
+    gaps closed in `CloudNetwork`, four `feature/products` use cases and `core/auth.authState`, plus
+    the repo's first library-module `androidTest` (G11 regression, **actually run on a device**) —
+    **PR #72**, documented in `.specs/COVERAGE-BASELINE.md`
+  - **G13** — QR-join scan debounce (`ScannerViewModel.isJoining` + analyzer throttle) — **PR #73**
+  - **G16** — `ProductSearchViewModel` debounce + cancel-previous — **PR #77**
+  - **G12** — `CartViewModel` collector leak fixed with `flatMapLatest` — **PR #78**
+  - **G14** — `ProfileViewModel` reconciles the Firestore emission — **PR #79**
+  - New subagents: `android-engineer-architecture` (owns G10), `android-engineer-release`,
+    `android-engineer-wear` (**PR #76**). `docs/wear-qa-agent` (**PR #80**, Wear Maestro QA agent) is
+    still **open**, not merged.
+- **Verification honesty — read before reporting any of the above as "done"**: G12, G13, G14 and G16
+  are backed by **JVM unit tests and code review only**. Nothing merged this round has been exercised
+  on a device except the G11 regression test. This is accepted for their risk class (all are
+  cancellation/flow-plumbing changes whose failure mode is a stale or missing UI update, never data
+  corruption), but it must not be restated elsewhere as "verified". The first hardware exercise of
+  these four will be the beta cohort unless F0.3 covers them deliberately.
+- **In-progress / needs care**:
+  - **G9 / PR #67 is NOT merely awaiting bruno's merge click** — this corrects the previous handoff.
+    CI is **red**: `Detekt` fails on a single `MaximumLineLength` (>120 chars) at
+    `feature/shopping/src/test/java/.../ShoppingRepositoryImplTest.kt:220` ("Analysis failed with 1
+    weighted issues"), which fails the `PR Gate`; and the branch is **18 commits behind `develop`**
+    (`mergeStateStatus: BEHIND`). Tracked as **T7** in `BETA-LAUNCH-PLAN.md`: wrap the line, merge
+    `develop` in (do not force-push), re-request review. Merging still belongs to bruno.
+  - **Analytics are code-complete but DebugView-unverified** — `ANALYTICS-PLAN.md` states this
+    plainly. Merging #71 satisfied only half of that checklist line; the checklist now splits it.
+    Fold the verification into the F0.3 device pass, DebugView open, one walk per funnel.
+  - **Maestro / F0.3** — draft **PR #75** fixed two real suite bugs (`clearState` logging the session
+    out of Google Sign-In; hardcoded English selectors replaced by `testTag`, after a first attempt
+    that merely swapped them for hardcoded pt-BR). Only `onboarding_flow.yaml` has ever passed
+    end-to-end; the other flows need an authenticated session on a device whose wireless adb keeps
+    dropping. Do not merge and do not report the suite as passing.
+  - **`.specs/BETA-KPI.md`** — owned by `marketing`, still "Draft — para revisão do `pm`". Concrete
+    floors already written (activation ≥60%, purchase completion ≥50%, join success ≥70%). Needs
+    `pm` sign-off, not new work. Do not create or edit it as `tech-lead`.
+  - **Residual risks logged, not promoted to gates** (see `BETA-LAUNCH-PLAN.md` § "Residual risks"):
+    hardcoded `Text("Checkout")` in `CartBottomBar.kt:64` (English button on the pt-BR purchase flow,
+    found via PR #75), literal `"Voltar"` content descriptions in `SettingsHeader.kt:51` /
+    `LinkWearDeviceScreen.kt:44`, unreachable `MobileRoutes.Notifications`, restart-scoped key
+    rotation for the two `@Singleton` repositories, and `AnalyticsTracker.setUserId` never plugged in.
+- **Next step**: **T7** (`android-engineer-features`) — the only open engineering item on the beta
+  gate. Everything else on the gate needs bruno.
+- **Blockers (all bruno, none resolvable by any agent here)**: rotate/revoke the Gemini key in the
+  Firebase + Google AI Studio consoles (the code change alone mitigates nothing until the old key is
+  revoked); merge PR #67 once T7 turns it green; decide G3 hosting, then wire the URL into
+  `CustomMethodPickerTerms`, Settings and the Play Console field; capture G4 screenshots + feature
+  graphic; confirm G5 Firestore rules in the console; run F0.3 (Maestro, authenticated session) and
+  F2.2 (Google Sign-In) on a device; complete the Play Console Internal-testing track; and the
+  `develop` → `master` decision, which stays exclusively his.
+- **Uncommitted files**: none — the three-owner working-tree tangle described in the previous handoff
+  was resolved; every piece landed on its own branch and PR.
+- **Branch**: `docs/firestore-security-rules` (G5 rules proposal, this PR) → PR into `develop`.
