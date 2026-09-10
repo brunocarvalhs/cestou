@@ -30,13 +30,12 @@ internal class AiAgentFactoryImpl @Inject constructor(
         // Re-read on every call (unlike the @Singleton `by lazy` repositories in
         // feature/products), so a rotated key here takes effect immediately, without an
         // app restart.
-        val geminiApiKey = remoteVariableService.getString(
-            key = RemoteVariableKeys.GEMINI_API_KEY,
-            default = BuildConfig.GEMINI_API_KEY
-        ).takeIf { it.isNotBlank() } ?: BuildConfig.GEMINI_API_KEY
+        val geminiApiKey = resolveApiKey(RemoteVariableKeys.GEMINI_API_KEY, BuildConfig.GEMINI_API_KEY)
         val gemini = GeminiAiAgent(session, registry, apiKey = geminiApiKey)
             .takeIf { featureFlagService.isEnabled(FeatureFlagKeys.AI_GEMINI_ENABLED, default = true) }
-        val openRouter = OpenRouterAiAgent(session, registry)
+        val openRouterApiKey =
+            resolveApiKey(RemoteVariableKeys.OPEN_ROUTER_API_KEY, BuildConfig.OPEN_ROUTER_API_KEY)
+        val openRouter = OpenRouterAiAgent(session, registry, apiKey = openRouterApiKey)
             .takeIf { featureFlagService.isEnabled(FeatureFlagKeys.AI_OPENROUTER_ENABLED, default = true) }
 
         return when (settings.aiProvider) {
@@ -50,4 +49,12 @@ internal class AiAgentFactoryImpl @Inject constructor(
             }
         }
     }
+
+    /** Reads [key] from Remote Config, guarding against a blank remote value (see AD-008)
+     * by falling back to the compiled [default] verbatim, just as an unfetched/unactivated
+     * console value would.
+     */
+    private fun resolveApiKey(key: String, default: String): String =
+        remoteVariableService.getString(key = key, default = default)
+            .takeIf { it.isNotBlank() } ?: default
 }
