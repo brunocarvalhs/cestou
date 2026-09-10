@@ -53,4 +53,21 @@ class ShoppingCreateUseCaseTest {
 
         assertEquals("🍕", result.getOrNull()?.emoji)
     }
+
+    @Test
+    fun `execute creates a shopping list from AI agent arguments`() = runTest {
+        val userId = "user-123"
+        coEvery { authService.getOrCreateUserId() } returns AuthenticatedUser(id = userId, email = "test@test.com")
+
+        val result = useCase.execute(
+            arguments = mapOf("title" to "Churrasco", "description" to "Amigos no sabado"),
+            session = mockk(relaxed = true),
+            metadata = emptyMap()
+        )
+
+        assertTrue(result.isSuccess)
+        assertEquals("Churrasco", result.getOrNull()?.title)
+        assertEquals("Amigos no sabado", result.getOrNull()?.description)
+        coVerify { repository.create(any()) }
+    }
 }

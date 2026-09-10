@@ -190,14 +190,15 @@ instrumented_tests:
   api_level: 34
   target: "google_apis"
   arch: "x86_64"
-  # Scoped to :app, not a bare `connectedDebugAndroidTest` - that aggregates
-  # every module's connectedDebugAndroidTest task, and modules with no
-  # androidTest source at all (everything except :app, currently) fail with
-  # "Could not load test results" instead of skipping cleanly - a real AGP
-  # behavior hit running this for the first time in CI, not a config typo.
+  # Scoped to explicit :module targets, not a bare `connectedDebugAndroidTest`
+  # - that aggregates every module's connectedDebugAndroidTest task, and
+  # modules with no androidTest source at all fail with "Could not load test
+  # results" instead of skipping cleanly - a real AGP behavior hit running
+  # this for the first time in CI, not a config typo.
   # Add more `:module:connectedDebugAndroidTest` targets here once another
-  # module actually has androidTest sources.
-  command: "./gradlew :app:connectedDebugAndroidTest"
+  # module actually has androidTest sources. feature/products is the first
+  # (G11 camera-executor regression, .specs/COVERAGE-BASELINE.md).
+  command: "./gradlew :app:connectedDebugAndroidTest :feature:products:connectedDebugAndroidTest"
   # Overrides build.default_timeout_minutes - emulator boot + test run is the
   # single slowest, most hang-prone step in the whole pipeline.
   timeout_minutes: 30

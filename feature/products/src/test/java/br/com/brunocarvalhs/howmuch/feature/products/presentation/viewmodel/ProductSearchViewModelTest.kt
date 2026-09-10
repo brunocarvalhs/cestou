@@ -128,5 +128,11 @@ class ProductSearchViewModelTest {
 
         coVerify { saveUseCase(match { it.name == "Flour" }, "list1") }
         assertEquals(null, vm.uiState.value.selectedRecipe)
+        verify {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.PRODUCT_ADDED,
+                mapOf("shopping_id" to "list1", "source" to "recipe", "items_count" to 1)
+            )
+        }
     }
 }

@@ -7,6 +7,8 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import br.com.brunocarvalhs.howmuch.core.domain.services.observe
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.RemoteVariableService
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.RemoteVariableKeys
 import br.com.brunocarvalhs.howmuch.core.ui.entity.ProductCategory
 import br.com.brunocarvalhs.howmuch.feature.products.data.extensions.toDomain
 import br.com.brunocarvalhs.howmuch.feature.products.data.extensions.toModel
@@ -37,13 +39,19 @@ class ProductRepositoryImpl @Inject constructor(
     @Named("CloudNetwork")
     private val cloudNetwork: NetworkService,
     private val shoppingRepository: ShoppingRepository,
-    private val imageTextRecognizer: ProductImageTextRecognizer
+    private val imageTextRecognizer: ProductImageTextRecognizer,
+    private val remoteVariableService: RemoteVariableService
 ) : ProductRepository {
 
+    // AD-008: this repository is @Singleton and the key is read once into a `by lazy`, so a
+    // rotated remote key only takes effect after an app restart, not on the next fetch/activate.
     private val generativeModel by lazy {
         GenerativeModel(
             modelName = BuildConfig.GEMINI_AGENT,
-            apiKey = BuildConfig.GEMINI_API_KEY
+            apiKey = remoteVariableService.getString(
+                key = RemoteVariableKeys.GEMINI_API_KEY,
+                default = BuildConfig.GEMINI_API_KEY
+            ).takeIf { it.isNotBlank() } ?: BuildConfig.GEMINI_API_KEY
         )
     }
 

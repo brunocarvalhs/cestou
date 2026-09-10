@@ -5,6 +5,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductDuplicateCheckUseCase
@@ -22,6 +25,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val SOURCE_QUICK_ADD = "quick_add"
+
 /**
  * Backs [Options.QUICK_ADD] (`.specs/features/item-add-authorship/design.md`): a lightweight
  * mini header showing the list's running total/budget, plus the free-text "type and add" field.
@@ -38,7 +43,8 @@ internal class QuickAddViewModel @Inject constructor(
     private val productsUseCase: ProductsUseCase,
     private val productSaveUseCase: ProductSaveUseCase,
     private val productDuplicateCheckUseCase: ProductDuplicateCheckUseCase,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val shopping = savedStateHandle.toRoute<ProductPickerRoute>(ProductPickerRoute.typeMap).shopping
@@ -77,6 +83,16 @@ internal class QuickAddViewModel @Inject constructor(
             val duplicate = productDuplicateCheckUseCase(name, shopping.id)
 
             val result = productSaveUseCase(name = name, quantity = 1.0, shoppingId = shopping.id)
+
+            if (result.isSuccess) {
+                analyticsTracker.trackEvent(
+                    AnalyticsEvents.PRODUCT_ADDED,
+                    mapOf(
+                        AnalyticsParams.SHOPPING_ID to shopping.id,
+                        AnalyticsParams.SOURCE to SOURCE_QUICK_ADD
+                    )
+                )
+            }
 
             _uiState.update {
                 if (result.isSuccess) {
