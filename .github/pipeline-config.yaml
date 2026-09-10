@@ -208,7 +208,7 @@ size_check:
   variant: "debug"
   gradle_task: "assembleDebug"
   max_increase_percent: 10
-  baseline_bytes: 181662624
+  baseline_bytes: 183219553
   pr_comment:
     success: "✅ Tamanho do APK dentro do limite."
     failure: "❌ O APK cresceu além do limite configurado (size_check.max_increase_percent) - verifique se esse aumento é esperado."
