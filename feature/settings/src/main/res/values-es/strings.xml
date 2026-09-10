@@ -26,6 +26,7 @@
     <string name="settings_item_rate_desc">Deje su reseña</string>
     <string name="settings_item_terms">Términos de Uso</string>
     <string name="settings_item_privacy">Política de Privacidad</string>
+    <string name="settings_legal_view_online">Ver versión completa en línea</string>
     <string name="settings_item_licenses">Licencias de Código Abierto</string>
     <string name="settings_item_release_notes">Novedades de la Versión</string>
     <string name="settings_item_release_notes_desc">Vea qué ha cambiado</string>

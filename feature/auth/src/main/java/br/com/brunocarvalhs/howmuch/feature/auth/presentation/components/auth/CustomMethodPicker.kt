@@ -1,7 +1,9 @@
 package br.com.brunocarvalhs.howmuch.feature.auth.presentation.components.auth
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,8 +21,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.common.extensions.openBrowser
+import br.com.brunocarvalhs.howmuch.core.common.util.LegalUrls
 import com.firebase.ui.auth.configuration.auth_provider.AuthProvider
 
 @Composable
@@ -74,14 +79,40 @@ private fun SocialButton(
 }
 
 @Composable
-internal fun CustomMethodPickerTerms() {
-    Text(
-        text = "Ao continuar, você concorda com nossos Termos de Uso e Política de Privacidade.",
-        style = MaterialTheme.typography.bodySmall,
-        textAlign = TextAlign.Center,
+internal fun CustomMethodPickerTerms(
+    onOpenTermsOfUse: (() -> Unit)? = null,
+    onOpenPrivacyPolicy: (() -> Unit)? = null
+) {
+    val context = LocalContext.current
+    val openTermsOfUse = onOpenTermsOfUse ?: { context.openBrowser(LegalUrls.TERMS_OF_USE_URL) }
+    val openPrivacyPolicy = onOpenPrivacyPolicy ?: { context.openBrowser(LegalUrls.PRIVACY_POLICY_URL) }
+
+    val bodyStyle = MaterialTheme.typography.bodySmall
+    val bodyColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val linkColor = MaterialTheme.colorScheme.primary
+
+    FlowRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Text(text = "Ao continuar, você concorda com nossos ", style = bodyStyle, color = bodyColor)
+        Text(
+            text = "Termos de Uso",
+            style = bodyStyle,
+            color = linkColor,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.clickable(onClick = openTermsOfUse)
+        )
+        Text(text = " e ", style = bodyStyle, color = bodyColor)
+        Text(
+            text = "Política de Privacidade",
+            style = bodyStyle,
+            color = linkColor,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.clickable(onClick = openPrivacyPolicy)
+        )
+        Text(text = ".", style = bodyStyle, color = bodyColor)
+    }
 }
