@@ -16,13 +16,21 @@ import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRou
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.intent.ProductSearchIntent
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.state.ProductSearchUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 internal class ProductSearchViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -36,8 +44,11 @@ internal class ProductSearchViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ProductSearchUiState())
     val uiState = _uiState.asStateFlow()
 
+    private val searchTrigger = MutableSharedFlow<String>(extraBufferCapacity = 1)
+
     init {
         analyticsTracker.trackScreenView(screenName = "product_search", screenClass = "ProductSearchViewModel")
+        observeSearchTrigger()
     }
 
     val intent = ProductSearchIntent(
@@ -55,39 +66,55 @@ internal class ProductSearchViewModel @Inject constructor(
     private fun onQueryChange(newQuery: String) {
         _uiState.update { it.copy(query = newQuery) }
         if (newQuery.length >= MIN_QUERY_LENGTH) {
-            search()
+            searchTrigger.tryEmit(newQuery)
         }
     }
 
     private companion object {
         const val MIN_QUERY_LENGTH = 3
+        const val SEARCH_DEBOUNCE_MILLIS = 300L
     }
 
-    private fun search() {
+    /**
+     * Debounces rapid keystrokes and, once the user pauses, runs a single search. `flatMapLatest`
+     * cancels any still-running search as soon as a newer query is debounced through, so a slow
+     * response for a stale query can never arrive late and overwrite a faster, more recent result
+     * (see G16 in .specs/MVP-ROADMAP.md).
+     */
+    private fun observeSearchTrigger() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isSearching = true) }
-            val query = _uiState.value.query
-            if (_uiState.value.searchMode == ProductSearchUiState.SearchMode.PRODUCT) {
-                searchUseCase(query)
-                    .onSuccess { results ->
-                        _uiState.update { it.copy(results = results, isSearching = false) }
-                        trackSearchPerformed(query = query, mode = "product", resultCount = results.size)
-                    }
-                    .onFailure { e ->
-                        _uiState.update { it.copy(isSearching = false, errorMessage = e.message) }
-                    }
-            } else {
-                recipeSearchUseCase(query)
-                    .onSuccess { results ->
-                        _uiState.update { it.copy(recipes = results, isSearching = false) }
-                        trackSearchPerformed(query = query, mode = "recipe", resultCount = results.size)
-                    }
-                    .onFailure { e ->
-                        _uiState.update { it.copy(isSearching = false, errorMessage = e.message) }
-                    }
-            }
+            searchTrigger
+                .debounce(SEARCH_DEBOUNCE_MILLIS)
+                .flatMapLatest { query -> performSearch(query) }
+                .collect { reducer -> _uiState.update(reducer) }
         }
     }
+
+    private fun performSearch(
+        query: String
+    ): Flow<(ProductSearchUiState) -> ProductSearchUiState> = flow {
+        emit { state: ProductSearchUiState -> state.copy(isSearching = true) }
+        when (_uiState.value.searchMode) {
+            ProductSearchUiState.SearchMode.PRODUCT -> emit(searchProducts(query))
+            ProductSearchUiState.SearchMode.RECIPE -> emit(searchRecipes(query))
+        }
+    }
+
+    private suspend fun searchProducts(query: String): (ProductSearchUiState) -> ProductSearchUiState =
+        searchUseCase(query)
+            .onSuccess { results -> trackSearchPerformed(query = query, mode = "product", resultCount = results.size) }
+            .fold(
+                onSuccess = { results -> { state -> state.copy(results = results, isSearching = false) } },
+                onFailure = { e -> { state -> state.copy(isSearching = false, errorMessage = e.message) } }
+            )
+
+    private suspend fun searchRecipes(query: String): (ProductSearchUiState) -> ProductSearchUiState =
+        recipeSearchUseCase(query)
+            .onSuccess { results -> trackSearchPerformed(query = query, mode = "recipe", resultCount = results.size) }
+            .fold(
+                onSuccess = { results -> { state -> state.copy(recipes = results, isSearching = false) } },
+                onFailure = { e -> { state -> state.copy(isSearching = false, errorMessage = e.message) } }
+            )
 
     private fun trackSearchPerformed(query: String, mode: String, resultCount: Int) {
         analyticsTracker.trackEvent(
