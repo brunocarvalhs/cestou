@@ -1,6 +1,6 @@
 [versions]
-agp = "9.1.1"
-appcompat = "1.7.0"
+agp = "9.4.0"
+appcompat = "1.8.0"
 compileSdk = "37"
 minSdk = "28"
 targetSdk = "37"
@@ -50,7 +50,7 @@ imageLabeling = "16.0.8"
 textRecognition = "16.0.1"
 timber = "5.0.1"
 hilt = "2.60.1"
-hiltNavigationCompose = "1.2.0"
+hiltNavigationCompose = "1.4.0"
 firebaseBom = "34.16.0"
 googleServices = "4.5.0"
 firebaseCrashlytics = "3.0.8"
@@ -77,7 +77,7 @@ composeNavigation = "1.6.2"
 wearRemoteInteractions = "1.1.0"
 konsist = "0.17.3"
 workRuntimeKtx = "2.10.1"
-hiltWork = "1.2.0"
+hiltWork = "1.4.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -180,6 +180,7 @@ ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-conte
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
 ktor-client-auth = { group = "io.ktor", name = "ktor-client-auth", version.ref = "ktor" }
+ktor-client-mock = { group = "io.ktor", name = "ktor-client-mock", version.ref = "ktor" }
 play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
 androidx-wear-tooling-preview = { group = "androidx.wear", name = "wear-tooling-preview", version.ref = "wearToolingPreview" }
 androidx-compose-navigation = { group = "androidx.wear.compose", name = "compose-navigation", version.ref = "composeNavigation" }

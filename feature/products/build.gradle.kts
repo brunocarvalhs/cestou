@@ -47,6 +47,7 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:auth"))
     implementation(project(":core:ai"))
+    implementation(project(":core:remote-config"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:chat"))
 
@@ -96,4 +97,10 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.androidx.compose.ui.test.manifest)
+
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.runner)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

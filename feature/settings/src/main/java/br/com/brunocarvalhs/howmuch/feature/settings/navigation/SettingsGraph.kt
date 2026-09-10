@@ -6,6 +6,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import br.com.brunocarvalhs.howmuch.core.common.util.LegalUrls
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiSettings
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.R
@@ -157,18 +158,24 @@ private fun NavGraphBuilder.supportSettings(navigator: Navigator) {
 
 private fun NavGraphBuilder.legalSettings(navigator: Navigator) {
     composable<TermsOfUse> {
+        val viewModel: SettingsViewModel = hiltViewModel()
         LegalContentScreen(
             title = stringResource(R.string.settings_item_terms),
             content = stringResource(R.string.settings_terms_content),
+            url = LegalUrls.TERMS_OF_USE_URL,
+            onOpenUrl = viewModel.intent.onOpenUrl,
             onBack = { navigator.goBack() },
             titleTestTag = "terms_of_use_screen_title"
         )
     }
 
     composable<PrivacyPolicy> {
+        val viewModel: SettingsViewModel = hiltViewModel()
         LegalContentScreen(
             title = stringResource(R.string.settings_item_privacy),
             content = stringResource(R.string.settings_privacy_content),
+            url = LegalUrls.PRIVACY_POLICY_URL,
+            onOpenUrl = viewModel.intent.onOpenUrl,
             onBack = { navigator.goBack() },
             titleTestTag = "privacy_policy_screen_title"
         )

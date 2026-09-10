@@ -48,7 +48,7 @@ jobs:
       # Bootstrap exception (see step_names comment in pipeline-config.yaml):
       # this step downloads the very file its own name would come from.
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Bootstrap exception too: runs before the config-loading step below,
       # so no step_names.* output exists yet at this point.
@@ -103,7 +103,7 @@ jobs:
     name: ${{ matrix.check.display_name }}
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
@@ -135,7 +135,7 @@ jobs:
     name: ${{ matrix.check.display_name }}
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
@@ -174,7 +174,7 @@ jobs:
     name: 📦 Build ${{ matrix.target_name }} (all variants)
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
@@ -210,7 +210,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: ${{ needs.prepare.outputs.step_build_upload_apks }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ needs.prepare.outputs.app_name }}-${{ matrix.target_name }}
           path: ${{ steps.build.outputs.apk_paths }}
@@ -227,10 +227,10 @@ jobs:
     name: 🚀 Update ${{ matrix.target_name }} (all variants)
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: ${{ needs.prepare.outputs.step_deploy_download_apks }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ needs.prepare.outputs.app_name }}-${{ matrix.target_name }}
           path: output/
@@ -290,11 +290,18 @@ jobs:
     timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
     name: 📏 Update APK Size Baseline
     steps:
+      # develop is now branch-protected (require PR) - the default
+      # GITHUB_TOKEN this step gets without an explicit `token:` isn't an
+      # admin identity and can't push directly even with enforce_admins:
+      # false, unlike secrets.TOKEN (a real admin PAT, same as
+      # sync-develop's checkout in release.yml).
       - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.TOKEN }}
 
       - name: ${{ needs.prepare.outputs.step_size_download_apks }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ needs.prepare.outputs.app_name }}-${{ needs.prepare.outputs.size_target }}
           path: output/

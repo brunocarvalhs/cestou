@@ -10,6 +10,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductAnalyzeImageUseCase
@@ -25,17 +28,24 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val SOURCE_PHOTO_SCAN = "photo_scan"
+
 @HiltViewModel
 internal class ProductPhotoViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle,
     private val analyzeImageUseCase: ProductAnalyzeImageUseCase,
-    private val saveUseCase: ProductSaveUseCase
+    private val saveUseCase: ProductSaveUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
     private val shopping = savedStateHandle.toRoute<ProductPickerRoute>(ProductPickerRoute.typeMap).shopping
 
     private val _uiState = MutableStateFlow(ProductPhotoUiState())
     val uiState = _uiState.asStateFlow()
+
+    init {
+        analyticsTracker.trackScreenView(screenName = "product_photo_scan", screenClass = "ProductPhotoViewModel")
+    }
 
     val intent = ProductPhotoIntent(
         onImageCaptured = { uri -> onImageCaptured(uri) },
@@ -76,6 +86,13 @@ internal class ProductPhotoViewModel @Inject constructor(
 
             analyzeImageUseCase(bitmap)
                 .onSuccess { products ->
+                    analyticsTracker.trackEvent(
+                        AnalyticsEvents.PRODUCT_PHOTO_SCAN_PERFORMED,
+                        mapOf(
+                            AnalyticsParams.SHOPPING_ID to shopping.id,
+                            AnalyticsParams.RESULT_COUNT to products.size
+                        )
+                    )
                     _uiState.update {
                         it.copy(
                             isAnalyzing = false,
@@ -88,7 +105,14 @@ internal class ProductPhotoViewModel @Inject constructor(
                         )
                     }
                 }
-                .onFailure {
+                .onFailure { error ->
+                    analyticsTracker.trackEvent(
+                        AnalyticsEvents.PRODUCT_PHOTO_SCAN_FAILED,
+                        mapOf(
+                            AnalyticsParams.REASON to
+                                (error.message ?: error::class.simpleName.orEmpty())
+                        )
+                    )
                     _uiState.update {
                         it.copy(
                             isAnalyzing = false,
@@ -116,6 +140,16 @@ internal class ProductPhotoViewModel @Inject constructor(
     private fun onProductConfirmed(product: Product) {
         viewModelScope.launch {
             saveUseCase(product = product, shoppingId = shopping.id)
+                .onSuccess {
+                    analyticsTracker.trackEvent(
+                        AnalyticsEvents.PRODUCT_ADDED,
+                        mapOf(
+                            AnalyticsParams.SHOPPING_ID to shopping.id,
+                            AnalyticsParams.PRODUCT_ID to product.id,
+                            AnalyticsParams.SOURCE to SOURCE_PHOTO_SCAN
+                        )
+                    )
+                }
             _uiState.update { state ->
                 state.copy(
                     analysisResult = state.analysisResult.filterNot { it.id == product.id },
@@ -147,6 +181,14 @@ internal class ProductPhotoViewModel @Inject constructor(
 
         viewModelScope.launch {
             items.forEach { product -> saveUseCase(product = product, shoppingId = shopping.id) }
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.PRODUCT_ADDED,
+                mapOf(
+                    AnalyticsParams.SHOPPING_ID to shopping.id,
+                    AnalyticsParams.SOURCE to SOURCE_PHOTO_SCAN,
+                    AnalyticsParams.ITEMS_COUNT to items.size
+                )
+            )
             _uiState.update {
                 it.copy(
                     analysisResult = emptyList(),

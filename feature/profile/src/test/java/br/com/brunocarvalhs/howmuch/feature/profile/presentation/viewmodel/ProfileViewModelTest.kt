@@ -14,6 +14,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -44,15 +45,37 @@ class ProfileViewModelTest {
     }
 
     @Test
-    fun `init tracks screen_view and loads the current user profile`() {
-        val user = AuthenticatedUser(id = "u1")
+    fun `init tracks screen_view and merges the Firestore profile into the user state`() {
+        val user = AuthenticatedUser(id = "u1", email = "old@example.com")
         every { authService.currentUser } returns user
-        coEvery { userRepository.getUserProfile("u1") } returns flowOf(UserProfile(id = "u1", name = "Ana"))
+        coEvery { userRepository.getUserProfile("u1") } returns flowOf(
+            UserProfile(id = "u1", name = "Ana", photoUrl = "https://example.com/ana.png")
+        )
 
         val vm = ProfileViewModel(authService, userRepository, analyticsTracker)
 
         verify { analyticsTracker.trackScreenView("profile", "ProfileViewModel") }
-        assertEquals(user, vm.uiState.value.user)
+        assertEquals(
+            user.copy(displayName = "Ana", photoUrl = "https://example.com/ana.png"),
+            vm.uiState.value.user
+        )
+    }
+
+    @Test
+    fun `a new Firestore profile emission updates the exposed user state`() = runTest {
+        val user = AuthenticatedUser(id = "u1", displayName = "Old Name")
+        val profileFlow = MutableSharedFlow<UserProfile?>(replay = 1)
+        every { authService.currentUser } returns user
+        coEvery { userRepository.getUserProfile("u1") } returns profileFlow
+
+        val vm = ProfileViewModel(authService, userRepository, analyticsTracker)
+        assertEquals("Old Name", vm.uiState.value.user?.displayName)
+
+        // Simulates a profile edit made from a second device, synced through Firestore.
+        profileFlow.emit(UserProfile(id = "u1", name = "Edited On Other Device"))
+
+        assertEquals("Edited On Other Device", vm.uiState.value.user?.displayName)
+        assertEquals("u1", vm.uiState.value.user?.id)
     }
 
     @Test

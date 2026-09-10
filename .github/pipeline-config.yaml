@@ -5,7 +5,6 @@ project:
   name: "HowMuch"
   display_name: "HowMuch"
   package_name: "br.com.brunocarvalhs.howmuch"
-
 # Git bot configuration for automated commits
 git:
   bot_name: "github-actions[bot]"
@@ -17,8 +16,7 @@ git:
   # rollback.yml and release.yml's sync-develop job.
   step_names:
     load_config: "⚙️ Load Config"
-    configure_git: "🔧 Configure git"
-
+    configure_git: "\U0001F527 Configure git"
 # File paths used across the pipeline
 paths:
   gradle_file: "app/build.gradle.kts"
@@ -27,7 +25,6 @@ paths:
   apk_debug: "app/build/outputs/apk/debug/*.apk"
   apk_release: "app/build/outputs/apk/release/*.apk"
   aab_release: "app/build/outputs/bundle/release/*.aab"
-
 # Global Build Settings
 build:
   java-distribution: "temurin"
@@ -41,7 +38,6 @@ build:
   # bigger budget). Exists so a hung step (stuck Gradle daemon, wedged
   # network call) can't burn CI time indefinitely.
   default_timeout_minutes: 15
-
   # checkout/setup_environment/run_check/comment_* are generic build/CI
   # infrastructure steps reused by the checks[] matrix and by every other
   # section below that doesn't declare its own step_names override (coverage,
@@ -49,15 +45,14 @@ build:
   # of repeating "Checkout code" in five places). build_apks/upload_apks are
   # specific to build.yml's own `build` job.
   step_names:
-    checkout: "📥 Checkout code"
+    checkout: "\U0001F4E5 Checkout code"
     setup_environment: "⚙️ Setup Environment"
-    setup_node: "🟢 Set up Node.js"
+    setup_node: "\U0001F7E2 Set up Node.js"
     run_check: "▶️ Run Check"
-    comment_failure: "💬 Comment Failure"
-    comment_success: "💬 Comment Success"
-    build_apks: "🏗️ Build APKs"
-    upload_apks: "📤 Upload APKs"
-
+    comment_failure: "\U0001F4AC Comment Failure"
+    comment_success: "\U0001F4AC Comment Success"
+    build_apks: "\U0001F3D7️ Build APKs"
+    upload_apks: "\U0001F4E4 Upload APKs"
   # Build targets: one entry per distributable app module (phone, Wear OS, Android
   # Auto, ...). Onboarding a new device only means adding a target here with its
   # own module path and variants - no workflow file changes are required. Each
@@ -84,7 +79,6 @@ build:
             firebase:
               label: "APP DEBUG"
               app_id: "1:801865394084:android:442edb0a4a22174689c331"
-
         - name: "release"
           description: "Production Ready APK"
           gradle_task: "assembleRelease"
@@ -95,7 +89,6 @@ build:
             firebase:
               label: "APP RELEASE"
               app_id: "1:801865394084:android:442edb0a4a22174689c331"
-
     - name: "wear"
       module: ":wear"
       description: "Wear OS companion app"
@@ -111,7 +104,6 @@ build:
             firebase:
               label: "WEAR DEBUG"
               app_id: "1:801865394084:android:3d8cd6308873dd4789c331"
-
         - name: "release"
           description: "Production Ready APK"
           gradle_task: "assembleRelease"
@@ -122,7 +114,6 @@ build:
             firebase:
               label: "WEAR RELEASE"
               app_id: "1:801865394084:android:3d8cd6308873dd4789c331"
-
 # Checks run by every pipeline (PR validation, develop build, master release).
 # Adding, removing, renaming or disabling a check is a pure config change here -
 # no workflow file edits needed. `pr_comment` is optional; when set, tests.yml
@@ -135,32 +126,29 @@ build:
 # keep fast static analysis in stage 1 to fail fast before the slower stage).
 checks:
   - name: "lint"
-    display_name: "🧹 Code Style (Lint)"
+    display_name: "\U0001F9F9 Code Style (Lint)"
     enabled: true
     stage: 1
     command: "./gradlew lintDebug"
     pr_comment:
       success: "✅ Todos os lints passaram com sucesso! Bom trabalho."
       failure: "❌ Ops, encontrado falhas no lint, por favor corrija."
-
   - name: "detekt"
-    display_name: "🔍 Static Analysis (Detekt)"
+    display_name: "\U0001F50D Static Analysis (Detekt)"
     enabled: true
     stage: 2
     command: "./gradlew detekt"
     pr_comment:
       success: "✅ Todos os detekts passaram com sucesso! Bom trabalho."
       failure: "❌ Ops, encontrado falhas no detekt, por favor corrija."
-
   - name: "unit_tests"
-    display_name: "🧪 Unit Testing"
+    display_name: "\U0001F9EA Unit Testing"
     enabled: true
     stage: 2
     command: "./gradlew testDebug"
     pr_comment:
       success: "✅ Todos os testes unitários passaram com sucesso! Bom trabalho."
       failure: "❌ Ops, encontrado falhas nos testes unitários, por favor corrija."
-
 # Test Coverage Gate (kept separate from checks[] because it publishes an
 # HTML report artifact). Runs in parallel with stage 2 - koverVerify has its
 # own Gradle task dependency on the test task, so it doesn't need
@@ -168,7 +156,7 @@ checks:
 coverage:
   kover:
     name: "Kover"
-    display_name: "📊 Test Coverage Gate (min. 80%)"
+    display_name: "\U0001F4CA Test Coverage Gate (min. 80%)"
     description: "Minimum aggregated line coverage gate (80%), enforced via kover { reports { total { verify { rule { minBound(80) } } } } } in the root build.gradle.kts"
     enabled: true
     command: "./gradlew koverVerify"
@@ -177,27 +165,27 @@ coverage:
       success: "✅ Cobertura de testes acima de 80%! Bom trabalho."
       failure: "❌ A cobertura de testes ficou abaixo do mínimo de 80%, por favor complemente os testes."
     step_names:
-      run: "📊 Run Coverage Verification"
-      upload_report: "📤 Upload Coverage Report"
-
+      run: "\U0001F4CA Run Coverage Verification"
+      upload_report: "\U0001F4E4 Upload Coverage Report"
 # Instrumented (UI) Tests Gate. Kept separate from checks[] because it needs
 # a running emulator (reactivecircus/android-emulator-runner), not a plain
 # `./gradlew <command>` step like the checks[] matrix runs. Gated only on
 # stage 1 (lint) passing, same as coverage - runs in parallel with stage 2.
 instrumented_tests:
   enabled: true
-  display_name: "📱 Instrumented Tests (UI)"
+  display_name: "\U0001F4F1 Instrumented Tests (UI)"
   api_level: 34
   target: "google_apis"
   arch: "x86_64"
-  # Scoped to :app, not a bare `connectedDebugAndroidTest` - that aggregates
-  # every module's connectedDebugAndroidTest task, and modules with no
-  # androidTest source at all (everything except :app, currently) fail with
-  # "Could not load test results" instead of skipping cleanly - a real AGP
-  # behavior hit running this for the first time in CI, not a config typo.
+  # Scoped to explicit :module targets, not a bare `connectedDebugAndroidTest`
+  # - that aggregates every module's connectedDebugAndroidTest task, and
+  # modules with no androidTest source at all fail with "Could not load test
+  # results" instead of skipping cleanly - a real AGP behavior hit running
+  # this for the first time in CI, not a config typo.
   # Add more `:module:connectedDebugAndroidTest` targets here once another
-  # module actually has androidTest sources.
-  command: "./gradlew :app:connectedDebugAndroidTest"
+  # module actually has androidTest sources. feature/products is the first
+  # (G11 camera-executor regression, .specs/COVERAGE-BASELINE.md).
+  command: "./gradlew :app:connectedDebugAndroidTest :feature:products:connectedDebugAndroidTest"
   # Overrides build.default_timeout_minutes - emulator boot + test run is the
   # single slowest, most hang-prone step in the whole pipeline.
   timeout_minutes: 30
@@ -205,9 +193,8 @@ instrumented_tests:
     success: "✅ Todos os testes instrumentados passaram com sucesso! Bom trabalho."
     failure: "❌ Ops, encontrado falhas nos testes instrumentados, por favor corrija."
   step_names:
-    enable_kvm: "🖥️ Enable KVM"
+    enable_kvm: "\U0001F5A5️ Enable KVM"
     run: "▶️ Run Instrumented Tests"
-
 # APK Size Regression Gate. Compares a freshly built debug APK against
 # size_check.baseline_bytes, which build.yml keeps updated after every
 # successful push to develop (see the `update-size-baseline` job there) -
@@ -221,27 +208,25 @@ size_check:
   variant: "debug"
   gradle_task: "assembleDebug"
   max_increase_percent: 10
-  baseline_bytes: 0
+  baseline_bytes: 181662624
   pr_comment:
     success: "✅ Tamanho do APK dentro do limite."
     failure: "❌ O APK cresceu além do limite configurado (size_check.max_increase_percent) - verifique se esse aumento é esperado."
   step_names:
-    build_apk: "🏗️ Build APK"
-    compare: "📏 Compare against baseline"
+    build_apk: "\U0001F3D7️ Build APK"
+    compare: "\U0001F4CF Compare against baseline"
     # build.yml's `update-size-baseline` job (not the PR check above)
-    download_apks: "📥 Download built APKs"
-    update_baseline: "📏 Update baseline_bytes"
-
+    download_apks: "\U0001F4E5 Download built APKs"
+    update_baseline: "\U0001F4CF Update baseline_bytes"
 # tests.yml's final job: aggregates every check/gate above into one
 # stable-named required status check (see branch protection rules on
 # master) and posts the PR comment summarizing what passed/failed/was
 # skipped and why.
 pr_gate:
   step_names:
-    build_report: "🧾 Build pipeline report"
-    post_report: "💬 Post pipeline report to PR"
+    build_report: "\U0001F9FE Build pipeline report"
+    post_report: "\U0001F4AC Post pipeline report to PR"
     verify: "✅ Verify every required job passed or was intentionally skipped"
-
 # Store & GitHub Release Settings
 release:
   enabled: true
@@ -263,25 +248,25 @@ release:
   # this same release process, just running pre-merge on develop instead of
   # post-merge on master).
   step_names:
-    build_aab: "🏗️ Build AAB"
-    upload_aab: "📤 Upload AAB Artifact"
-    read_version: "🔢 Read current version"
-    create_release: "🏷️ Create Release"
-    sync_merge: "🔀 Merge master into develop"
+    build_aab: "\U0001F3D7️ Build AAB"
+    upload_aab: "\U0001F4E4 Upload AAB Artifact"
+    read_version: "\U0001F522 Read current version"
+    create_release: "\U0001F3F7️ Create Release"
+    sync_merge: "\U0001F500 Merge master into develop"
     sync_open_pr_conflict: "⚠️ Open PR on conflict"
     # release-pr.yml
-    bump_version: "🔢 Bump version and changelog"
-    commit_push_develop: "📤 Commit and push to develop"
-    open_pr: "🔀 Open PR develop → master"
-    noop: "💤 No releasable changes"
+    bump_version: "\U0001F522 Bump version and changelog"
+    commit_push_develop: "\U0001F4E4 Commit and push to develop"
+    open_pr: "\U0001F500 Open PR develop → master"
+    noop: "\U0001F4A4 No releasable changes"
   firebase:
     enabled: true
     groups: "testers"
     notifications: false
     step_names:
-      download_apks: "📥 Download APKs"
-      install_cli: "🔥 Install Firebase CLI"
-      distribute: "🚀 Distribute to Firebase App Distribution"
+      download_apks: "\U0001F4E5 Download APKs"
+      install_cli: "\U0001F525 Install Firebase CLI"
+      distribute: "\U0001F680 Distribute to Firebase App Distribution"
   github_release:
     draft: false
     prerelease: false
@@ -301,22 +286,20 @@ release:
     # points at, it doesn't create or configure one.
     environment_name: "production"
     step_names:
-      download_aab: "📥 Download AAB Artifact"
-      upload: "🚀 Upload to Google Play"
-
+      download_aab: "\U0001F4E5 Download AAB Artifact"
+      upload: "\U0001F680 Upload to Google Play"
 # Incident rollback (rollback.yml): pick a previously released tag and this
 # restores master's tracked files to that tag's content. Has its own section
 # (rather than nesting under release:) because it's a distinct flow with its
 # own steps, not a variant of the normal release.
 rollback:
   step_names:
-    checkout_target_branch: "📥 Checkout target branch explicitly"
-    validate_tag: "🔍 Validate tag exists"
-    create_branch: "🌿 Create rollback branch"
+    checkout_target_branch: "\U0001F4E5 Checkout target branch explicitly"
+    validate_tag: "\U0001F50D Validate tag exists"
+    create_branch: "\U0001F33F Create rollback branch"
     restore_code: "⏪ Restore code to target tag"
-    bump_version: "🔢 Bump version and changelog"
-    push_open_pr: "🔀 Push and open PR"
-
+    bump_version: "\U0001F522 Bump version and changelog"
+    push_open_pr: "\U0001F500 Push and open PR"
 # Security & Supply-Chain Scanning.
 # - codeql / commitlint: `codeql`/`commitlint` jobs in tests.yml (part of PR
 #   validation, alongside `danger`) export these fields and no-op every step
@@ -343,9 +326,9 @@ security:
     # `codeql` job as a PR check - a periodic re-scan of unchanged code would
     # be pure redundancy.
     step_names:
-      init: "🔒 Initialize CodeQL"
-      build: "🏗️ Build"
-      analyze: "🔍 Perform CodeQL Analysis"
+      init: "\U0001F512 Initialize CodeQL"
+      build: "\U0001F3D7️ Build"
+      analyze: "\U0001F50D Perform CodeQL Analysis"
   commitlint:
     enabled: true
     node_version: 24
@@ -355,9 +338,9 @@ security:
     # contract honest.
     allowed_types: ["feat", "fix", "perf", "refactor", "revert", "chore", "docs", "style", "test", "build", "ci"]
     step_names:
-      generate_config: "📝 Generate commitlint config"
-      install: "📦 Install commitlint"
-      run: "🔍 Lint PR commits"
+      generate_config: "\U0001F4DD Generate commitlint config"
+      install: "\U0001F4E6 Install commitlint"
+      run: "\U0001F50D Lint PR commits"
   secret_scanning:
     enabled: true
     push_protection: true
@@ -372,16 +355,15 @@ security:
       - id: "github-actions"
         directory: "/"
         labels: ["ci"]
-
 # Danger JS Rules and Settings
 danger:
   enabled: true
   node_version: 24
   step_names:
-    export_config: "📤 Export pipeline-config.yaml as JSON"
-    install_deps: "📦 Install dependencies"
-    run: "🦋 Run Danger"
-    install_gh: "📥 Install GitHub CLI"
+    export_config: "\U0001F4E4 Export pipeline-config.yaml as JSON"
+    install_deps: "\U0001F4E6 Install dependencies"
+    run: "\U0001F98B Run Danger"
+    install_gh: "\U0001F4E5 Install GitHub CLI"
     approve: "✅ Approve PR"
   rules:
     pr_size_limit: 500

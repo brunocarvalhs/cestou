@@ -43,7 +43,7 @@ shipped independently.
 | ~~G6~~ | ~~`lint-rules/` module has uncommitted deleted files~~ | Done — orphaned index state from an abandoned attempt, unstaged. | S |
 | ~~G7~~ | ~~Dead `signInWithGoogle`/`signInWithApple`~~ | Done — PR #19 | S |
 | ~~G8~~ | ~~Apple Sign-In never offered~~ | Removed the unreachable UI branch rather than implementing it — PR #19 | S |
-| G9 | `ShoppingRepositoryImpl.updatePositions` is a no-op (`ShoppingRepositoryImpl.kt:133-139`) — reordering lists by drag updates local state optimistically (`ShoppingListViewModel.kt:269`) but never writes to Firestore, so the order silently reverts on next sync | Feature is already exposed in the UI and looks like it works; found during a 2026-09-04 Tech Lead audit | **Fix pushed, PR #67 open against `develop`, not yet merged/reviewed** |
+| G9 | `ShoppingRepositoryImpl.updatePositions` is a no-op (`ShoppingRepositoryImpl.kt:133-139`) — reordering lists by drag updates local state optimistically (`ShoppingListViewModel.kt:269`) but never writes to Firestore, so the order silently reverts on next sync | Feature is already exposed in the UI and looks like it works; found during a 2026-09-04 Tech Lead audit | **Fix pushed, PR #67 open — but not mergeable as of 2026-09-10: Detekt fails on one >120-char line in `ShoppingRepositoryImplTest.kt:220` (so `PR Gate` is red) and the branch is 18 commits behind `develop`. Tracked as T7 in `BETA-LAUNCH-PLAN.md`.** |
 | G10 | Cross-feature module coupling: `cart`/`shopping`/`chat`/`ai-agent`/`profile` import `feature.settings` directly, `cart` imports `feature.chat`/`feature.products`, `products` imports `feature.chat`, `shopping` imports `feature.products` | Violates AD-005 (feature modules should only expose a `navigation` entry point); makes each feature module's real dependency graph wider than documented, raising the risk of accidental coupling as the app grows | M — needs a design pass (extract shared contracts to `core/*`), not a quick fix |
 
 Every item marked done above shipped as its own branch + PR (none merged without review): shared
@@ -71,9 +71,79 @@ regression suite (#16), this doc (#17), account & data deletion (#18), dead soci
 - The privacy/terms pages (G3) need a hosting decision before the in-app links can point anywhere.
 - Firestore security rules for the new `notifications` writes (G5) live outside this repo and need
   a manual check in the Firebase Console.
-- **G9** needs your review/merge of PR #67 — don't duplicate the fix.
+- **G9** needs your review/merge of PR #67 — don't duplicate the fix. As of 2026-09-10 the PR is
+  **red and stale** (one Detekt line-length violation, 18 commits behind `develop`), so it cannot be
+  merged until T7 in `BETA-LAUNCH-PLAN.md` fixes that.
 - **G10** needs a design decision (which shared contracts move to `core/*`) before it's worth
   spec'ing as its own initiative; flagged here so it doesn't silently grow.
+
+## Beta Launch Priority (owned by `pm`)
+
+Cross-checked against the 12 personas in `.specs/PERSONA-ACTION-PLAN.md` /
+`.claude/skills/customer-personas/SKILL.md`. `.specs/BETA-LAUNCH-PLAN.md` (tech-lead's document)
+sequences *how* the remaining work gets done and by whom; this section defines *what actually gates*
+inviting real customers into the first closed beta vs. what can land after they're already in. A
+"beta blocker" here means: a real beta tester hits it on a first-use happy path (login, add a
+product, share/join a list, finish a purchase) and it reads as broken, unsafe, or non-compliant — not
+just "not yet perfect."
+
+### Beta blocker — must close before inviting real customers
+
+| Item | Persona(s) & dor central afetada | Why it blocks | Status / owner |
+|---|---|---|---|
+| **G3** — hosted legal pages | Todas — mas sobretudo Dona Célia ("rejeita qualquer feature que exija entender um conceito novo") e Marina (sem paciência para passo extra); um link morto de Termos/Privacidade é a primeira "prova de amadorismo" que qualquer uma delas encontra. | Play Store submission requirement; hoje os links de Privacidade/Termos no app não levam a lugar nenhum. | Needs bruno's hosting decision (`cestou.app` vs. GitHub Pages) |
+| **G4 (remainder)** — screenshots/feature graphic | Todas — pré-condição para a listagem existir na Play Store; nenhuma persona chega ao app sem isso. | Play Console requires these to publish even a closed testing track — no listing, no beta. | Needs a device |
+| **G5** — Firestore rules for `notifications` writes | Lucas (depende do token de compartilhamento funcionar com integridade), Bianca-e-Diego (lista viva compartilhada) — regra não verificada permite escrever notificação "de" um usuário "para" outro sem checagem. | Primeira fronteira real de confiança que o app cruza com dados de pessoas reais, não dados de teste. Barato de checar, alto downside se errado. | Needs bruno, Firebase Console |
+| **G9** — `updatePositions` no-op | Dona Marlene ("lista de compras confiável do que realmente falta", rejeita "fluxo que dificulte"), Bianca-e-Diego ("lista viva... sem depender de lembrar de cabeça") — reordenar e ver a lista voltar sozinha é exatamente o tipo de falha que quebra a confiança que essas duas personas mais dependem. | Drag-to-reorder já é uma affordance visível e shipada; reverter silenciosamente no próximo sync lê como perda de dado. Fix pronto e testado (PR #67); é decisão de merge, não trabalho novo. | Needs bruno to review/merge PR #67 |
+| **G13** — QR-join scanner has no debounce, spams duplicate notifications | Lucas ("rejeita qualquer feature que só funcione bem com um único usuário"), Bianca-e-Diego ("rejeitam qualquer solução que dependa de um canal separado para ficarem alinhados") — é o ponto de entrada real dessas duas personas na feature-headline do app (carrinho compartilhado). | Segurar o telefone parado sobre um código — comportamento normal — já spamma todo membro no primeiro join. Reprodução quase garantida num fluxo central, não um edge case. | `android-engineer-features` |
+| **G15** — Gemini API key compiled into the APK, no rotation path | Não é uma dor de persona específica (é risco de negócio/segurança), mas afeta indiretamente todas as personas que usam IA/scanner (Marina, Dona Marlene, Juliana*, Camila-e-Pedro) se a chave for abusada e o provedor cortar o serviço por excesso de uso. | Chave embutida no APK vira superfície de abuso real assim que o build sai de mãos internas para os dispositivos dos beta testers. Fix já em andamento em `fix/gemini-key-remote-config` (`ProductRepositoryImpl`, `AiAgentFactoryImpl` já leem do Remote Config com a chave compilada como fallback) — quase pronto. | `android-engineer-features`, PR in progress |
+| **F0.3** — Maestro suite has never executed on a device | Todas — cobre compra/compartilhamento/login, os fluxos que qualquer persona percorre primeiro. | Um beta com clientes reais é o lugar errado para descobrir que o próprio caminho feliz está quebrado. | Needs bruno, device |
+| **F2.2** — Google Sign-In QA pass on a device | Todas, mas Dona Célia é o caso extremo: baixíssima paciência para fricção — se o login falha, ela simplesmente abandona o app, sem tentar de novo. | Login é a porta de entrada literal; config verificada estaticamente, mas o fluxo ao vivo (SHA-1, tela de consentimento OAuth) nunca rodou. Se isso quebra, não há beta. | Needs bruno, device |
+| Analytics on key flows (create list, add product, scan, share/join, finish purchase, set budget) | Indireta a todas — sem esses eventos não dá para saber, por persona, onde o beta cohort está travando (ex.: Dona Célia abandona no cadastro? Lucas nunca usa o token?). | Sem eventos chegando ao Firebase não há como observar o que os beta testers realmente fazem — medir é o próprio motivo de rodar um beta em vez de só lançar. | `data-engineer` (see `BETA-LAUNCH-PLAN.md`) |
+| Regression coverage on purchase/share/login paths | Todas — mesma lógica do F0.3/F2.2 na camada de teste automatizado. | Não deixar clientes reais serem os primeiros a exercitar esses caminhos de ponta a ponta. | `android-engineer-quality` |
+
+\* Juliana é a persona associada à captura por foto (item 6 do `PERSONA-ACTION-PLAN.md`, ainda em fase de spike) — hoje ela também depende do mesmo `GeminiAiAgent` para qualquer interação de texto com a IA, por isso entra na lista de afetadas indiretamente por G15.
+
+### Desirable, not a beta blocker — fix soon, doesn't gate go/no-go
+
+| Item | Persona(s) & dor central | Why it doesn't block | Owner |
+|---|---|---|---|
+| **G12** — `CartViewModel` duplicate Flow collectors | Avaliado contra as 12 personas (skill `customer-personas`): **neutro** para todas no horizonte de um beta curto. Marina e Dona Marlene só se importam com o total estar certo ("total sempre correto e visível") — o bug degrada performance/gera leituras redundantes no Firestore, mas não corrompe o total mostrado. Gatilho exige trocar configurações repetidamente, comportamento atípico de um beta tester. | Não corrompe o valor que a persona realmente precisa confiar; baixa probabilidade de disparo num beta pequeno e curto. Monitorar via Crashlytics; corrigir cedo na janela do beta, sem travar o go/no-go. | `android-engineer-features` |
+| **G14** — `ProfileViewModel` discards the Firestore profile emission | Avaliado contra as 12 personas: **neutro** para todas — nenhuma delas descreve uso multi-dispositivo simultâneo; todas operam "um celular na mão". | Só afeta um perfil editado num *segundo* dispositivo chegando à UI deste dispositivo — edge case de multi-device, não o fluxo primário de nenhuma das 12 personas. | `android-engineer-features` |
+| **G16** — `ProductSearchViewModel` has no debounce/cancellation | Avaliado contra as 12 personas: caso mais duvidoso do lote. Dona Célia (rejeita telas confusas) e Eduardo (rejeita qualquer fluxo impreciso) são os mais sensíveis a resultado errado na tela — mas o usuário ainda confirma explicitamente o item antes de adicioná-lo à lista, então o pior caso é um "flicker", não um item errado persistido sem confirmação. Verdict: **neutro-a-levemente-atrapalha**, não **atrapalha** o suficiente para travar o beta. | Resultado obsoleto só afeta o dropdown antes do toque de confirmação — incômodo, não corrupção silenciosa de uma lista persistida — e exige digitação rápida + rede lenta para disparar. Fix barato, vale fazer logo, só não é um gate. | `android-engineer-features` |
+| Beta/store readiness details beyond assets (release notes, disclaimer copy, feedback channel) | Indireta a todas — melhora a experiência de convite/onboarding do beta, não o produto em si. | Necessário antes de *convidar* testers, mas pode terminar em paralelo com o último bloqueador de código. | `marketing` |
+
+### Post-beta (Phase 3 / architecture debt)
+
+| Item | Persona(s) & dor central | Why it's post-beta | Owner |
+|---|---|---|---|
+| **G10** — cross-feature module coupling | Nenhuma — checado contra as 12 personas do skill, nenhum "o que valoriza"/"o que rejeita" toca fronteira de módulo. Débito puramente interno. | Zero diferença observável para qualquer persona. | `tech-lead` design pass, no rush |
+| **F3.1** biometric app-lock, **F3.2** `StorageService` adoption in settings, **F3.3** branded notification icon, **F3.5** G10 implementation | Nenhuma persona lista "trava por biometria" ou "ícone com marca" como algo que valoriza; as personas mais próximas de segurança/confiança (Dona Marlene, Rafael) pedem precisão de orçamento e histórico confiável, não trava de dispositivo. | Polish genuíno; retomar depois que feedback real do beta pedir, em vez de supor agora. | Post-beta backlog |
+
+### Explicitly out of scope for this beta priority pass
+
+The Persona Action Plan's "Agora" items (`item-add-authorship`, `item-row-affordances`,
+`recipe-list-origin`) are **product evolution, not beta blockers** — they make the app better for
+personas who can already use it end to end today, not a precondition for a first small beta cohort to
+complete the core loop (sign in → build a list → shop/share → finish). This matches
+`.specs/PERSONA-ACTION-PLAN.md`'s own framing as a companion doc, not a launch-blocker doc. Don't pull
+these into beta scope without a deliberate call from bruno.
+
+### Discrepancy flagged for tech-lead
+
+`.specs/BETA-LAUNCH-PLAN.md`'s "Definition of ready for beta" checklist currently lists "G12–G16
+closed" as one flat requirement. This PM pass disagrees with holding all five to the same bar: G13 and
+G15 read as genuine blockers (headline flow, near-certain reproduction / real security exposure to
+external testers), while G12/G14/G16 read as desirable-not-blocking (edge-case trigger conditions, no
+data corruption, low tester-visible frequency for a small closed cohort). Flagging for the tech-lead to
+either split that checklist line or state explicitly why all five should be held to the same bar before
+beta — not deciding it here, since `BETA-LAUNCH-PLAN.md` is the tech-lead's document.
+
+### Gap not tracked
+
+None found in this pass. The dead-end legal links, the QR-join notification spam, and the compiled-in
+API key — the three items with the clearest persona-facing "this feels broken/unsafe" angle — are
+already tracked as G3, G13, and G15 respectively.
 
 ## Plan — features broken by user value
 
@@ -141,9 +211,10 @@ specifically:
    make, same as G1 was.
 6. Schedule a design pass for G10 (cross-feature coupling) before it grows further — not a launch
    blocker, but the longer it's left the more feature modules will depend on it.
-7. Prioritize **G15** (hardcoded Gemini API key, no remote-rotation path) among the new bug-audit
-   items — it's the only one with a security angle, the rest (G12–G14, G16) are correctness/UX bugs
-   without a compromise scenario.
+7. ~~Prioritize **G15** (hardcoded Gemini API key, no remote-rotation path) among the new bug-audit
+   items~~ — done, PR #69, along with the rest of G12–G16. What's left of G15 is yours: publish
+   `gemini_api_key` in Remote Config and **revoke the old key at the provider** — until then nothing
+   is actually mitigated.
 
 ## Bug audit — 2026-09-09
 
@@ -154,11 +225,20 @@ A pass over ViewModels, repository implementations, and Compose screens for comm
 | # | Gap | File | Fix status |
 |---|---|---|---|
 | ~~G11~~ | ~~Camera analyzer thread leak~~ — `CameraPreview`'s single-thread `Executor` was created via `remember` but never shut down; every scanner screen visit (open → back → reopen) leaked a background thread | `feature/products/.../components/scanner/CameraPreview.kt:33` | **Fixed this session** — added `DisposableEffect` to shut down the executor |
-| G12 | `CartViewModel.observeData()` leaks duplicate Flow collectors — its settings `collect{}` calls `observeProducts()`, which launches a *new* `viewModelScope` collector each time instead of using `flatMapLatest`; every DataStore settings write anywhere in the app (theme, language, AI prefs) adds one more permanent product collector, each re-running `sortProductsUseCase`/`resolveMemberProfiles` | `feature/cart/.../viewmodel/CartViewModel.kt:98-127` | Open — needs its own PR, moderate risk (touches the cart's core observe loop) |
-| G13 | QR-code list join has no scan debounce — `BarcodeAnalyzer` fires `onBarcodeScanned` on every analyzed camera frame with no throttle/one-shot guard, and `ScannerViewModel.onTokenScanned` has no "already processing" flag; holding a code in frame re-triggers `ShoppingJoinUseCase`, which loops a notification write per other member on every duplicate join | `feature/products/.../scanner/BarcodeAnalyzer.kt:22`, `feature/shopping/.../viewmodel/ScannerViewModel.kt:28-35`, `ShoppingJoinUseCase.kt:33-38` | Open — needs its own PR; also spams other members with duplicate push notifications |
-| G14 | `ProfileViewModel.observeProfile()` subscribes to the Firestore profile but discards the emitted value, always rebuilding state from cached `authService.currentUser` instead — a Firestore-only profile edit never reaches the UI, and the listener runs forever for no effect | `feature/profile/.../viewmodel/ProfileViewModel.kt:47-54` | Open — needs its own PR; needs care to confirm `UserProfile` vs. `authService.currentUser` field parity before merging them |
-| G15 | Gemini API key is compiled into the APK (`BuildConfig.GEMINI_API_KEY`) in three places, and the remote-config key meant for server-side rotation (`RemoteVariableKeys.GEMINI_API_KEY`) is never actually read — so a compromised/abused key can't be revoked without a new release | `feature/products/.../ProductRepositoryImpl.kt:44-47`, `RecipeRepositoryImpl.kt:29-32`, `feature/ai-agent/.../GeminiAiAgent.kt:29-30`, `core/remote-config/.../RemoteConfigKeys.kt:19` | Open — security-relevant; needs its own PR wiring the repositories to read from Remote Config with the compiled key as fallback |
-| G16 | `ProductSearchViewModel.search()` has no debounce or request cancellation — every keystroke past 3 chars launches a fresh, untracked coroutine; a slower earlier response can arrive after a faster later one and overwrite `_uiState` with stale results for a query the user no longer typed | `feature/products/.../viewmodel/ProductSearchViewModel.kt:55-90` | Open — needs its own PR (debounce + cancel-previous-job pattern) |
+| ~~G12~~ | ~~`CartViewModel.observeData()` leaks duplicate Flow collectors — its settings `collect{}` calls `observeProducts()`, which launches a *new* `viewModelScope` collector each time instead of using `flatMapLatest`; every DataStore settings write anywhere in the app (theme, language, AI prefs) adds one more permanent product collector, each re-running `sortProductsUseCase`/`resolveMemberProfiles`~~ | `feature/cart/.../viewmodel/CartViewModel.kt:98-127` | **Fixed — PR #78** (`flatMapLatest`). Unit tests only, no device verification. |
+| ~~G13~~ | ~~QR-code list join has no scan debounce — `BarcodeAnalyzer` fires `onBarcodeScanned` on every analyzed camera frame with no throttle/one-shot guard, and `ScannerViewModel.onTokenScanned` has no "already processing" flag; holding a code in frame re-triggers `ShoppingJoinUseCase`, which loops a notification write per other member on every duplicate join~~ | `feature/products/.../scanner/BarcodeAnalyzer.kt:22`, `feature/shopping/.../viewmodel/ScannerViewModel.kt:28-35`, `ShoppingJoinUseCase.kt:33-38` | **Fixed — PR #73** (`ScannerViewModel.isJoining` guard, released on failure and held on success, + analyzer throttle). Unit tests only, no device/camera verification. |
+| ~~G14~~ | ~~`ProfileViewModel.observeProfile()` subscribes to the Firestore profile but discards the emitted value, always rebuilding state from cached `authService.currentUser` instead — a Firestore-only profile edit never reaches the UI, and the listener runs forever for no effect~~ | `feature/profile/.../viewmodel/ProfileViewModel.kt:47-54` | **Fixed — PR #79** (emission reconciled into state). Unit tests only, no device verification. |
+| ~~G15~~ | ~~Gemini API key is compiled into the APK (`BuildConfig.GEMINI_API_KEY`) in three places, and the remote-config key meant for server-side rotation (`RemoteVariableKeys.GEMINI_API_KEY`) is never actually read — so a compromised/abused key can't be revoked without a new release~~ | `feature/products/.../ProductRepositoryImpl.kt:44-47`, `RecipeRepositoryImpl.kt:29-32`, `feature/ai-agent/.../GeminiAiAgent.kt:29-30`, `core/remote-config/.../RemoteConfigKeys.kt:19` | **Code fixed — PR #69** (AD-008: Remote Config + blank-value guard + compiled fallback). **Not yet mitigated in practice:** publishing `gemini_api_key` and revoking the old key in the consoles is still owed by bruno. Rotation is restart-scoped for the two `@Singleton` repositories. |
+| ~~G16~~ | ~~`ProductSearchViewModel.search()` has no debounce or request cancellation — every keystroke past 3 chars launches a fresh, untracked coroutine; a slower earlier response can arrive after a faster later one and overwrite `_uiState` with stale results for a query the user no longer typed~~ | `feature/products/.../viewmodel/ProductSearchViewModel.kt:55-90` | **Fixed — PR #77** (debounce + cancel-previous job). Unit tests only, no device verification. |
+
+**Update 2026-09-10:** G12–G16 are all closed — each shipped as its own branch and PR (#78, #73,
+#79, #69, #77 respectively), exactly as the paragraph below intended. Recorded plainly: apart from
+G11's `androidTest`, none of these fixes has been exercised on a device or emulator — their evidence
+is JVM unit tests plus review. Accepted for their risk class (cancellation/flow-plumbing changes that
+fail as a stale UI update, not as data corruption), but do not restate them as "verified". G15's code
+is done while its console-side rotation/revocation is not; see its row.
+
+Original note, kept as the record of why they were split:
 
 G12–G16 are documented here rather than fixed in this branch on purpose: none of them can be
 exercised on a device in this environment, and each touches a different feature's core behavior

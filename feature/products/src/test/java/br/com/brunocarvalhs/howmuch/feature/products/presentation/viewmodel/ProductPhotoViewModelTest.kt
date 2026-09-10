@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
@@ -13,6 +15,7 @@ import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.Prod
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -36,6 +39,7 @@ class ProductPhotoViewModelTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private val analyzeImageUseCase = mockk<ProductAnalyzeImageUseCase>()
     private val saveUseCase = mockk<ProductSaveUseCase>(relaxed = true)
+    private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
 
     private val shopping = Shopping(
         id = "list1",
@@ -49,7 +53,7 @@ class ProductPhotoViewModelTest {
 
     private fun viewModel(): ProductPhotoViewModel {
         val savedStateHandle = SavedStateHandle(mapOf("shopping" to navJson.encodeToString(shopping)))
-        return ProductPhotoViewModel(context, savedStateHandle, analyzeImageUseCase, saveUseCase)
+        return ProductPhotoViewModel(context, savedStateHandle, analyzeImageUseCase, saveUseCase, analyticsTracker)
     }
 
     @Before
@@ -75,11 +79,15 @@ class ProductPhotoViewModelTest {
     @Test
     fun `onProductConfirmed saves the product into the current shopping list`() = runTest {
         val product = Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0)
+        coEvery { saveUseCase(product, "list1") } returns Result.success(Unit)
         val vm = viewModel()
 
         vm.intent.onProductConfirmed(product)
 
         coVerify { saveUseCase(product, "list1") }
+        verify {
+            analyticsTracker.trackEvent(AnalyticsEvents.PRODUCT_ADDED, any())
+        }
     }
 
     @Test

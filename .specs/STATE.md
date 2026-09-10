@@ -58,112 +58,93 @@
 - **Date**: 2026-08-24
 - **Status**: active
 
-## Handoff
+### AD-008
+- **Decision**: Remotely-rotatable secrets read via `RemoteVariableService`, with the compiled
+  `BuildConfig` value as fallback default — never as the direct source.
+- **Reason**: A key compiled into the APK cannot be revoked without shipping a release. Reading it
+  through Remote Config makes rotation a console operation. `FirebaseRemoteConfigService.getString`
+  returns the caller's `default` when the key was never fetched/activated, so an unconfigured console
+  degrades to today's behaviour instead of breaking the feature.
+- **Trade-off**: The compiled fallback still ships inside the APK, so this buys *fast rotation*, not
+  *secrecy* — the old key stays valid until manually revoked at the provider. Callers holding the
+  client `by lazy` in a `@Singleton` (`ProductRepositoryImpl`, `RecipeRepositoryImpl`) only pick up a
+  rotated key after an app restart. Callers that re-read per invocation (`AiAgentFactoryImpl.create()`)
+  rotate immediately. Each call site must also guard against a blank remote value, which `getString`
+  returns verbatim.
+- **Scope**: Any API key or secret currently sourced from `BuildConfig` (today: `GEMINI_API_KEY`).
+- **Date**: 2026-09-09
+- **Status**: active — landed on `develop` via **PR #69**. All three call sites also apply the
+  blank-value guard (`.takeIf { it.isNotBlank() } ?: BuildConfig.GEMINI_API_KEY`). The console-side
+  half (publish `gemini_api_key`, revoke the old key at the provider) is **still owed by bruno**;
+  until then the decision is implemented but delivers no actual mitigation.
 
-- **Feature**: launch-action-plan (see `.specs/MVP-ROADMAP.md`)
-- **Phase / Task**: Execution / In progress
-- **Completed**: `feat/new-layout` merged into `develop` via PR #30 (closes G1 — this doc's previous
-  handoff and MVP-ROADMAP.md's "biggest risk item" were stale). CI rebuilt around Git Flow with
-  staged checks (`ci/restructure-pipeline-stages`, PR #47). Fixed `AiChatScreen` settings icon
-  missing `contentDescription` (accessibility/testability gap noted in `.maestro/README.md`).
-  Added `.maestro/flows/account_data_flow.yaml` covering the previously-untested Delete
-  all data / Delete Account confirmation sheets (cancel-only, non-destructive).
-- **In-progress**: G9 (`ShoppingRepositoryImpl.updatePositions` no-op) has an open, unmerged fix —
-  PR #67 (`fix/shopping-update-positions`) — review/merge is a call for the repo owner, not
-  something to duplicate.
-- **2026-09-09 (this session, `test/maestro-e2e-coverage`)**: First-ever real execution of the
-  Maestro suite (Samsung SM-A146M, Android 15, `persist.sys.locale=pt-BR`, wireless adb). Confirmed
-  two bugs in the suite itself (not the app):
-  1. `home_flow.yaml`'s `launchApp: clearState: true` logs the device out of Google Sign-In (local
-     session only) instead of landing on an authenticated empty home. Fixed by splitting off
-     `.maestro/flows/onboarding_flow.yaml` (the only flow allowed to use `clearState`, deliberately
-     excluded from `test_suite.yaml`) and rewriting `home_flow.yaml` to assume an existing session
-     and not assert an empty-list state (a real persisted account may already have lists synced
-     from Firestore).
-  2. All 8 flows asserted hardcoded English strings (`values/strings.xml`) against the device's
-     real pt-BR strings (`values-pt-rBR/strings.xml` per module). Audited and fixed every flow.
-     Also found and fixed, while auditing: `create_list_flow.yaml` tapped a stale screen-percentage
-     point (`77%,4%`) for the create-list FAB instead of its actual content description
-     (`"Criar lista"`); `product_management_flow.yaml` asserted a `"Unit"` field in the Edit Product
-     sheet that does not exist in `EditItemContent.kt` (only Product Name / Category / Unit Price /
-     Quantity do) — removed.
-  - `onboarding_flow.yaml` ran against the device and **passed in full** (all 5 assertions).
-  - **Effect of this session's own test run**: running `onboarding_flow.yaml`'s `clearState` (and
-    an earlier, prior-session run that first surfaced the two bugs) logged the device out. All
-    other flows need an authenticated session and cannot run until a human logs back in via
-    "Continuar com Google" on the device — this cannot be automated (real Google account picker/
-    OAuth consent, out of scope for Maestro). **Paused here, waiting on bruno to log in manually**
-    before running the rest of the corrected suite and any new coverage flows.
-  - Real app finding surfaced during navigation-map audit, not fixed here (belongs to
-    android-engineer-features via tech-lead triage): `core/navigation/mobile/MobileRoutes.kt`'s
-    `Notifications` destination is registered in `ShoppingGraph.kt` but has no reachable UI entry
-    point anywhere in the app (`core/ui`'s `content_description_join_list` string is also dead —
-    unused, superseded by `shopping_management_button_join`). Neither blocks Maestro coverage, both
-    worth a ticket.
-  - **Scope correction (same session, before the login blocker above)**: the initial fix for bug 2
-    replaced hardcoded English asserts with hardcoded pt-BR asserts — still a fixed-language
-    hardcode, just a different one, so it would still break on a CI emulator (typically en-US
-    default) even though it now passes on this pt-BR physical device. Caught before merging.
-    Reworked to a `testTag`-based selector strategy instead: added `Modifier.testTag(...)` to every
-    Compose element the 8 flows actually interact with (bottom nav, dialogs/sheets, form fields,
-    buttons, settings items — ~25 files across `core/ui`, `feature/shopping`, `feature/cart`,
-    `feature/products`, `feature/settings`, `feature/profile`, `feature/chat`), scoped only to
-    what's touched, not a blanket sweep. Flow YAML now selects by `id:` (the testTag) instead of
-    display text for anything structural; plain text is kept only where the text itself is the
-    thing under test (one instance: `join_list_flow.yaml`'s invalid-token error message), and that
-    one assertion is parameterized as `${JOIN_ERROR_TEXT}` and resolved by the new
-    `.maestro/scripts/run.sh` from the device's actual `persist.sys.locale` at run time, not a
-    fixed language either direction. `app:assembleDebug` succeeds with all the `testTag` additions;
-    installed on the device (`adb install -r`, data-preserving) and `onboarding_flow.yaml` reran
-    clean against the new build. Full rationale in `.maestro/README.md` "Language / locale".
-  - Two more real app bugs surfaced while wiring testTags (found by reading the actual Compose
-    source, not the flow — neither fixed here, both worth a tech-lead ticket): (a)
-    `CartBottomBar.kt`'s purchase-trigger button is hardcoded `Text("Checkout")` — not a
-    `stringResource` at all, so it never localizes and would never have matched the old English
-    *or* pt-BR flow assert either way; (b) `SettingsHeader.kt`'s back-icon `contentDescription` is
-    hardcoded literal `"Voltar"` (harmless on a pt-BR device, but not translated for any other
-    locale).
-- **2026-09-10 (same session, continued)**: While waiting on device/login, added two more flows
-  identified in the earlier navigation-map audit: `cart_interactions_flow.yaml` (covers
-  `ShareOptionsRoute` and `ConfirmItemRoute` in `feature/cart` — adds a second, unpriced product
-  and marks it purchased to trigger the confirm-price sheet) and `settings_about_flow.yaml`
-  (covers Terms/Privacy/Open Source Licenses/Release Notes in `feature/settings`; deliberately does
-  not tap Support section items, which hand off to an external app with no in-app state to assert
-  against). `ProductHistoryRoute` is *not* covered and moved from "not yet covered" to a documented
-  known gap: it only renders once a shopping list has 2+ members (`CartScreen.kt`'s
-  `showAttribution`), which a single test account structurally cannot produce — same category as
-  joining a real list. Added the `Modifier.testTag`s these two new flows need (`ConfirmItemContent`,
-  `ProductHistoryContent`, `ShareOptionsBottomSheet`, `QuickAddForm`'s submit button,
-  `ProductHeader`'s close button, three settings screens' titles via `SettingsHeader`'s existing
-  `titleTestTag` param). `test_suite.yaml` updated with correct ordering (`cart_interactions_flow`
-  must run before `finish_purchase_flow`, which locks the list). `app:assembleDebug` still succeeds
-  (11 flows total now). Cross-checked every `Modifier.testTag(...)` literal in source against every
-  `id:` reference in every flow YAML (`comm`/`grep` diff) — one gap found and fixed
-  (`edit_item_quantity_field` had a tag but nothing asserted it). Ran `maestro check-syntax` on
-  `test_suite.yaml` and all 11 flow files (works without a device) — all OK. This validates YAML
-  structure only, not that the `id:`s actually resolve on a running device — that still needs a
-  real run.
-  - Opened **PR #75** (`test/maestro-e2e-coverage` → `develop`) as a **draft**, explicitly marked
-    "WORK IN PROGRESS / blocked on device" with a checklist of what's left, so the testTag approach
-    and code are reviewable now instead of waiting indefinitely. Not ready to take out of draft:
-    none of the 10 authenticated flows have run against a real session yet (only
-    `onboarding_flow.yaml`, twice, pre-login).
-  - Device connectivity has been intermittent all session (wireless adb): connected → app on
-    Welcome screen (not logged in) → disconnected entirely (`adb devices -l` / `adb mdns services`
-    both empty) as of this entry. Two bounded background polls (`adb devices -l` every 4–5s, ~6 and
-    ~9.5 min windows) both timed out with no device found. Coordinator confirmed bruno is aware and
-    intends to have QA log in and validate soon.
-- **Next step**: once the device reconnects AND the app shows an authenticated session (not just
-  device connectivity — confirm both before running anything), run the corrected 10-flow suite +
-  `onboarding_flow.yaml` via `.maestro/scripts/run.sh`, fix whatever real drift the actual runs turn
-  up (not guesses — the `settings_flow.yaml`/`account_data_flow.yaml` back-navigation step counts in
-  particular are unverified assumptions, flagged inline in those files), then take PR #75 out of
-  draft once cited with real pass/fail output.
-- **Blockers**: device disconnected (wireless adb) as of this entry, and even once reconnected, a
-  human still needs to log into the Cestou app manually (Google Sign-In) before any authenticated
-  flow can run — this session's own test run cleared the session earlier and it hasn't been
-  restored yet. Do not attempt to automate the Google account picker.
-- **Uncommitted files**: none — everything through this entry is committed and pushed to
-  `test/maestro-e2e-coverage` (commits `fd5dcf95`, `cdd0ed9c`, `065d865f`, `59b300a1`)
-- **Branch**: test/maestro-e2e-coverage (PR target: develop, from `develop` @ the commit this
-  branch forked from). PR: https://github.com/brunocarvalhs/How-Much/pull/75 (draft)
+## Handoff
+- **Feature**: beta-launch (see `.specs/BETA-LAUNCH-PLAN.md` — the ordered task queue T1–T6 — and
+  `.specs/MVP-ROADMAP.md` § "Beta Launch Priority" for the `pm`'s persona-based gating)
+- **Phase / Task**: Execution / Beta blocker closure
+- **Completed (earlier sessions)**: `feat/new-layout` merged into `develop` via PR #30 (closes G1).
+  CI rebuilt around Git Flow with staged checks (PR #47). `AiChatScreen` settings-icon
+  `contentDescription` fixed (F3.4). `.maestro/flows/account_data_flow.yaml` added. G11 camera
+  executor leak fixed.
+- **Completed (session of 2026-09-09, `tech-lead`)**: Reconciled `BETA-LAUNCH-PLAN.md` with the `pm`
+  priority pass. **Resolved the flagged discrepancy: accepted the split of "G12–G16 closed" — G13 and
+  G15 gate the beta; G12/G14/G16 ship inside the beta window but do not gate go/no-go.** Rationale:
+  the flat grouping reflected shared discovery date (one bug audit), not shared risk. Reviewed the
+  G15 fix and recorded AD-008. Corrected `ANALYTICS-PLAN.md`'s claim that `BarcodeAnalyzer` was dead
+  code — it is wired from `feature/shopping`'s `QrCodeScanner`, which is exactly why G13 was real.
+- **Completed (session of 2026-09-09/10, whole team — all merged into `develop`, verified against
+  `origin/develop`, not against PR descriptions)**:
+  - **G15** — Gemini key via Remote Config with blank-value guard — **PR #69**
+  - **Analytics** — beta funnel instrumentation + `ANALYTICS-PLAN.md` — **PR #71**
+  - **Coverage** — real Kover baseline **82.00% → 84.47%** line (branch 46.9% → 48.9%), zero-coverage
+    gaps closed in `CloudNetwork`, four `feature/products` use cases and `core/auth.authState`, plus
+    the repo's first library-module `androidTest` (G11 regression, **actually run on a device**) —
+    **PR #72**, documented in `.specs/COVERAGE-BASELINE.md`
+  - **G13** — QR-join scan debounce (`ScannerViewModel.isJoining` + analyzer throttle) — **PR #73**
+  - **G16** — `ProductSearchViewModel` debounce + cancel-previous — **PR #77**
+  - **G12** — `CartViewModel` collector leak fixed with `flatMapLatest` — **PR #78**
+  - **G14** — `ProfileViewModel` reconciles the Firestore emission — **PR #79**
+  - New subagents: `android-engineer-architecture` (owns G10), `android-engineer-release`,
+    `android-engineer-wear` (**PR #76**). `docs/wear-qa-agent` (**PR #80**, Wear Maestro QA agent) is
+    still **open**, not merged.
+- **Verification honesty — read before reporting any of the above as "done"**: G12, G13, G14 and G16
+  are backed by **JVM unit tests and code review only**. Nothing merged this round has been exercised
+  on a device except the G11 regression test. This is accepted for their risk class (all are
+  cancellation/flow-plumbing changes whose failure mode is a stale or missing UI update, never data
+  corruption), but it must not be restated elsewhere as "verified". The first hardware exercise of
+  these four will be the beta cohort unless F0.3 covers them deliberately.
+- **In-progress / needs care**:
+  - **G9 / PR #67 is NOT merely awaiting bruno's merge click** — this corrects the previous handoff.
+    CI is **red**: `Detekt` fails on a single `MaximumLineLength` (>120 chars) at
+    `feature/shopping/src/test/java/.../ShoppingRepositoryImplTest.kt:220` ("Analysis failed with 1
+    weighted issues"), which fails the `PR Gate`; and the branch is **18 commits behind `develop`**
+    (`mergeStateStatus: BEHIND`). Tracked as **T7** in `BETA-LAUNCH-PLAN.md`: wrap the line, merge
+    `develop` in (do not force-push), re-request review. Merging still belongs to bruno.
+  - **Analytics are code-complete but DebugView-unverified** — `ANALYTICS-PLAN.md` states this
+    plainly. Merging #71 satisfied only half of that checklist line; the checklist now splits it.
+    Fold the verification into the F0.3 device pass, DebugView open, one walk per funnel.
+  - **Maestro / F0.3** — draft **PR #75** fixed two real suite bugs (`clearState` logging the session
+    out of Google Sign-In; hardcoded English selectors replaced by `testTag`, after a first attempt
+    that merely swapped them for hardcoded pt-BR). Only `onboarding_flow.yaml` has ever passed
+    end-to-end; the other flows need an authenticated session on a device whose wireless adb keeps
+    dropping. Do not merge and do not report the suite as passing.
+  - **`.specs/BETA-KPI.md`** — owned by `marketing`, still "Draft — para revisão do `pm`". Concrete
+    floors already written (activation ≥60%, purchase completion ≥50%, join success ≥70%). Needs
+    `pm` sign-off, not new work. Do not create or edit it as `tech-lead`.
+  - **Residual risks logged, not promoted to gates** (see `BETA-LAUNCH-PLAN.md` § "Residual risks"):
+    hardcoded `Text("Checkout")` in `CartBottomBar.kt:64` (English button on the pt-BR purchase flow,
+    found via PR #75), literal `"Voltar"` content descriptions in `SettingsHeader.kt:51` /
+    `LinkWearDeviceScreen.kt:44`, unreachable `MobileRoutes.Notifications`, restart-scoped key
+    rotation for the two `@Singleton` repositories, and `AnalyticsTracker.setUserId` never plugged in.
+- **Next step**: **T7** (`android-engineer-features`) — the only open engineering item on the beta
+  gate. Everything else on the gate needs bruno.
+- **Blockers (all bruno, none resolvable by any agent here)**: rotate/revoke the Gemini key in the
+  Firebase + Google AI Studio consoles (the code change alone mitigates nothing until the old key is
+  revoked); merge PR #67 once T7 turns it green; decide G3 hosting, then wire the URL into
+  `CustomMethodPickerTerms`, Settings and the Play Console field; capture G4 screenshots + feature
+  graphic; confirm G5 Firestore rules in the console; run F0.3 (Maestro, authenticated session) and
+  F2.2 (Google Sign-In) on a device; complete the Play Console Internal-testing track; and the
+  `develop` → `master` decision, which stays exclusively his.
+- **Uncommitted files**: none — the three-owner working-tree tangle described in the previous handoff
+  was resolved; every piece landed on its own branch and PR.
+- **Branch**: `docs/beta-readiness-recheck` (this readiness re-check) → PR into `develop`.

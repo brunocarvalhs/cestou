@@ -3,6 +3,9 @@ package br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
@@ -21,10 +24,15 @@ internal class FinishPurchaseViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: ShoppingRepository,
     private val authService: AuthService,
-    private val notificationRepository: NotificationRepository
+    private val notificationRepository: NotificationRepository,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private var _navigator: Navigator? = null
+
+    init {
+        analyticsTracker.trackScreenView(screenName = "cart_finish_purchase", screenClass = "FinishPurchaseViewModel")
+    }
 
     fun setNavigator(navigator: Navigator) {
         _navigator = navigator
@@ -38,6 +46,13 @@ internal class FinishPurchaseViewModel @Inject constructor(
                 status = Shopping.Status.FINISH
             )
             repository.update(updatedShopping)
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.CART_FINISH_PURCHASE_COMPLETED,
+                mapOf(
+                    AnalyticsParams.SHOPPING_ID to shopping.id,
+                    AnalyticsParams.AMOUNT to price
+                )
+            )
             notifyOtherMembers(updatedShopping)
             _navigator?.goBack()
         }
