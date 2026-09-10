@@ -1,9 +1,10 @@
 # Beta Launch Plan — Cestou (How-Much)
 
-Status: Active — reconciled with the `pm` Beta Launch Priority pass and with the real state of the
-working tree.
+Status: Active — **all code items in the T1–T6 queue are merged into `develop`.** What remains is
+device/console/owner work, not engineering work. See "Revision 3" and the annotated readiness
+checklist at the bottom.
 Owner: `tech-lead` (document), bruno (go/no-go)
-Last updated: 2026-09-09 (revision 2)
+Last updated: 2026-09-10 (revision 3)
 
 This document sits on top of `.specs/MVP-ROADMAP.md` (the gap list and its numbering are the source
 of truth for *what* is broken) and `.specs/STATE.md` (architecture decisions + handoff). It exists to
@@ -20,6 +21,55 @@ Companion documents, owned by other agents — do not edit them here:
 **Ground rule (unchanged from `MVP-ROADMAP.md`):** one item = one branch off `develop` = one PR back
 into `develop`. Never commit or merge directly. `develop` → `master` (or whatever branch actually
 builds the beta release) stays a decision only bruno makes.
+
+---
+
+## Revision 3 — readiness re-check (2026-09-10)
+
+The whole T1–T6 queue landed in one execution round. Verified against `origin/develop` (not against
+PR descriptions): `git log origin/develop` carries the merge commits for #69, #71, #72, #73, #77,
+#78, #79, and the fixes are present in the code (`ScannerViewModel.isJoining`,
+`CartViewModel.flatMapLatest`, `ProductSearchViewModel.debounce`, the `.takeIf { it.isNotBlank() }`
+guard at all three Gemini key call sites).
+
+Three things this re-check changes, none of them cosmetic:
+
+### 1. G9 / PR #67 is **not** "waiting on a merge click" — it is red and stale
+
+This was recorded in revision 2 (and in `MVP-ROADMAP.md`) as a pure repo-owner decision. That is now
+wrong, and it is the single most misleading line in the previous revision:
+
+- **CI is failing.** `🔍 Static Analysis (Detekt)` fails, and with it the `✅ PR Gate`. The cause is
+  one line: `feature/shopping/src/test/java/.../ShoppingRepositoryImplTest.kt:220` — `MaximumLineLength`
+  (>120 chars). One weighted issue, one line to wrap.
+- **The branch is 18 commits behind `develop`** (`mergeStateStatus: BEHIND`), predating every merge
+  from this round.
+
+So bruno cannot merge it even if he wants to. Somebody has to wrap that line and update the branch
+first. Assigned below as **T7**; it is a ~5-minute job that has been silently blocking the oldest
+open beta blocker since 2026-09-09.
+
+### 2. "Analytics instrumented **and verified**" was one checklist line covering two states
+
+The instrumentation merged (#71), but `ANALYTICS-PLAN.md` says plainly: "None of the new events have
+been confirmed in DebugView yet — the instrumentation is code-complete." Merging the PR does not
+satisfy the verification half. The checklist below splits the line so the unverified half stays
+visible instead of being absorbed by the merged half.
+
+### 3. G16 / G12 / G14 shipped on unit tests only — recorded, not glossed over
+
+None of the three has been exercised on a device or in an emulator. Their evidence is JVM unit tests
+(rapid-keystrokes-single-search, N-settings-emissions-one-collector, Firestore-emission-reaches-state)
+plus code review. That is **accepted** — all three were graded non-blocking precisely because their
+triggers are atypical, and all three are cancellation/flow-plumbing changes whose failure mode is a
+stale or missing UI update, not data corruption. But "unit-tested" is not "verified", and the
+distinction belongs in writing: if any of the three regresses, it will surface in the beta cohort,
+not in CI. Whoever runs F0.3 on a device should walk product search, the cart with a settings change
+mid-session, and a profile edit, and say so.
+
+Also noted, deliberately **not** promoted to a gate (see "Residual risks" at the end): the Maestro
+work in draft PR #75 surfaced a hardcoded English `Text("Checkout")` on the cart's primary
+finish-purchase button, which never localizes for a pt-BR cohort.
 
 ---
 
@@ -94,9 +144,45 @@ A near-finished G15 fix exists as **uncommitted working-tree changes**, currentl
 
 ## Task queue — ordered, assignable
 
-Both Android engineers are idle pending this queue. Tasks are listed in execution order. Follow SDD
-(`.agents/skills/spec-driven/SKILL.md`): each task = one spec, one branch off `develop`, one PR into
-`develop`.
+**Queue status as of 2026-09-10 — T1–T6 all merged into `develop`. Only T7 is open.**
+
+| Task | Item | PR | Status |
+|---|---|---|---|
+| T1 | G15 — Gemini key via Remote Config | #69 | Merged 2026-09-09. Blank-value guard included. **Console rotation still owed by bruno.** |
+| T2 | G13 — QR-join scan debounce | #73 | Merged 2026-09-09 |
+| T3 | Coverage baseline + critical-path tests | #72 | Merged 2026-09-09. Kover (not Jacoco) was already configured; real baseline 82.00% → **84.47%** line. Includes the G11 regression test, which **did** run on a device. |
+| T4 | G16 — product search debounce | #77 | Merged 2026-09-10. Unit tests only. |
+| T5 | G14 — profile emission reconciled | #79 | Merged 2026-09-10. Unit tests only. |
+| T6 | G12 — cart collector leak (`flatMapLatest`) | #78 | Merged 2026-09-10. Unit tests only. |
+| — | Analytics instrumentation | #71 | Merged 2026-09-09. **Code-complete, not DebugView-verified.** |
+| **T7** | **Unblock PR #67 (G9): Detekt + rebase** | — | **Open — see below. Blocks the oldest beta blocker.** |
+
+The original briefs for T1–T6 are kept below unchanged, as the record of what was asked for.
+
+Tasks are listed in execution order. Follow SDD (`.agents/skills/spec-driven/SKILL.md`): each task =
+one spec, one branch off `develop`, one PR into `develop`.
+
+---
+
+### T7 — unblock PR #67 (G9) so it is actually mergeable `[BLOCKER]`
+
+- **Owner:** `android-engineer-features`
+- **Branch:** `fix/shopping-update-positions` (the existing PR #67 branch — this is the one case where
+  the work goes onto an existing branch, because the goal is to make *that* PR green, not to open a
+  competing one)
+- **Do not** re-implement the fix. The fix itself is done and reviewed; only its CI is red.
+
+Two things, nothing else:
+
+1. Wrap `feature/shopping/src/test/java/br/com/brunocarvalhs/howmuch/feature/shopping/data/repository/ShoppingRepositoryImplTest.kt:220`
+   to ≤120 chars. That single `MaximumLineLength` violation is the entire Detekt failure
+   ("Analysis failed with 1 weighted issues") and therefore the entire `PR Gate` failure.
+2. Bring the branch up to date with `develop` (it is 18 commits behind, `mergeStateStatus: BEHIND`),
+   the same way the other PRs in this round did it — merge `develop` in, do not force-push a rebase
+   over a branch bruno may already be looking at.
+
+Then re-request review. **Merging remains bruno's call** — this task only removes the reason he
+cannot.
 
 ### Legend
 
@@ -322,7 +408,7 @@ Regression test: N settings emissions produce exactly one active product collect
 
 | Item | What's needed | Notes |
 |---|---|---|
-| **G9** | Review/merge PR #67 | Fix is done and tested; a merge decision, not more code. |
+| **G9** | Review/merge PR #67 — **after T7 turns it green** | Superseded by revision 3: the fix is done and tested, but CI is red (one Detekt line-length violation) and the branch is 18 commits behind. Not mergeable today. |
 | **G3** | Pick a host for `docs/legal/privacy.html` / `terms.html` (`cestou.app` vs. GitHub Pages) | Blocks wiring the URL into `CustomMethodPickerTerms`, Settings, and the Play Console listing — also a Play Store submission requirement. |
 | **G4 (remainder)** | Screenshots + feature graphic | Needs a real device/emulator — none available in this environment. |
 | **G5** | Manually confirm Firestore rules allow a user to create a `notifications` doc addressed to someone else | Lives in the Firebase Console, outside this repo. |
@@ -333,37 +419,101 @@ Regression test: N settings emissions produce exactly one active product collect
 
 ---
 
-## Definition of "ready for beta"
+## Definition of "ready for beta" — re-checked 2026-09-10
 
 Split per the `pm` pass (see revision note §1). Owned by `pm`, cross-checked with `tech-lead`.
+Every line below is graded against `origin/develop` and the live PR state, not against intent.
+
+Legend: **[CLOSED]** verified on `develop` · **[IN PROGRESS]** engineering work still owed ·
+**[BLOCKED — bruno]** no agent can advance it.
 
 ### Gates go/no-go — must all be true before inviting real customers
 
-- [ ] **G15** closed (T1 merged) **and** the key rotated + old key revoked in the Firebase/Gemini consoles
-- [ ] **G13** closed (T2 merged)
-- [ ] **G9** (PR #67) merged
-- [ ] **G3** hosting decided and legal links wired in-app
-- [ ] **G4** screenshots/feature graphic captured
-- [ ] **G5** Firestore rules manually confirmed
-- [ ] **F0.3** Maestro suite executed on a real device — first time it has ever run
-- [ ] **F2.2** Google Sign-In QA pass on a real device
-- [ ] Critical flows instrumented and verified visible in Firebase DebugView (analytics PR merged)
-- [ ] Jacoco baseline established and critical-path `domain`/`data` coverage raised (T3)
-- [ ] Play Console beta track checklist complete, release notes written
-- [ ] Beta success thresholds agreed (`marketing`, `.specs/BETA-KPI.md`)
+- [x] **G15 code** — **[CLOSED — PR #69]**. All three call sites read `RemoteVariableKeys.GEMINI_API_KEY`
+      with `.takeIf { it.isNotBlank() } ?: BuildConfig.GEMINI_API_KEY`. AD-008 recorded.
+- [ ] **G15 rotation** — **[BLOCKED — bruno]**. Publish `gemini_api_key` in Firebase Remote Config and
+      **revoke the compiled key at Google AI Studio**. Until the old key is revoked, G15's actual risk
+      (an extractable key on testers' devices) is unchanged — the code only made rotation *possible*.
+      This is the half of G15 that matters for go/no-go.
+- [x] **G13** — **[CLOSED — PR #73]**. `ScannerViewModel.isJoining` guard + `BarcodeAnalyzer` throttle;
+      guard released on failure, held on success. Not exercised on a device (no camera here).
+- [ ] **G9 (PR #67)** — **[IN PROGRESS → then BLOCKED — bruno]**. Not merge-ready: Detekt fails on one
+      >120-char line in `ShoppingRepositoryImplTest.kt:220`, and the branch is 18 commits behind
+      `develop`. **T7** fixes both; the merge itself stays bruno's.
+- [ ] **G3** — **[BLOCKED — bruno]**. Decide `cestou.app` vs. GitHub Pages. Then the URL must be wired
+      in **three** places, not one: `CustomMethodPickerTerms`, Settings, and the Play Console
+      "Privacy Policy URL" field. The wiring is a small engineering task that cannot start before the
+      decision.
+- [ ] **G4 (remainder)** — **[BLOCKED — bruno]**. Screenshots (min. 2) + 1024×500 feature graphic.
+      Needs a device; Play Console refuses to publish even a test track without them.
+- [ ] **G5** — **[BLOCKED — bruno]**. Confirm in the Firebase Console that the rules let a user create
+      a `notifications` doc addressed to another user. Cheap to check, high downside if wrong — this
+      is the first rule the app exercises against other people's real data.
+- [ ] **F0.3** — **[BLOCKED — bruno, partially in progress]**. Draft PR #75 fixed two real suite bugs
+      (`clearState` logging the session out; hardcoded English selectors → `testTag`). Only
+      `onboarding_flow.yaml` has ever passed end-to-end. The other 8 flows need an authenticated
+      session on the device, whose wireless adb keeps dropping. **Nobody has yet seen the core loop
+      pass end-to-end on hardware.**
+- [ ] **F2.2** — **[BLOCKED — bruno]**. Google Sign-In on a device. Config is statically correct;
+      SHA-1 registration and the OAuth consent screen are unverified. Also a hard prerequisite for
+      F0.3, since the suite needs a logged-in session.
+- [x] **Analytics instrumented** — **[CLOSED — PR #71]**. Key-flow events exist and are unit-tested.
+- [ ] **Analytics verified in DebugView** — **[BLOCKED — bruno]**. Zero events confirmed in DebugView
+      so far (`ANALYTICS-PLAN.md` says so explicitly). Fold this into the F0.3 device pass: walk each
+      funnel once with DebugView open. Shipping unverified analytics means a beta that cannot be
+      measured — which is the reason to run a beta instead of just releasing.
+- [x] **Coverage baseline + critical-path coverage** — **[CLOSED — PR #72]**. Kover, not Jacoco, and it
+      was already configured with an 80% CI gate; the deliverable was the first real measurement:
+      **82.00% → 84.47%** line (branch 46.9% → 48.9%). Zero-coverage gaps closed in `CloudNetwork`,
+      four `feature/products` use cases, and `core/auth`'s `authState`. Known remaining hole:
+      `ProductRepositoryImpl`/`RecipeRepositoryImpl` Gemini paths (~55%/34%), untestable until the
+      `GenerativeModel` is injected — a natural follow-up now that G15 has touched that construction.
+- [ ] **Play Console beta track + release notes** — **[IN PROGRESS / BLOCKED — bruno]**. `marketing`
+      delivered the checklist, invite copy and pt-BR release notes (`BETA-STORE-READINESS.md`). Every
+      remaining step is inside the Console: create the app, Internal testing track, upload a signed
+      build, tester list, Data Safety form, content rating.
+- [ ] **Beta success thresholds** — **[IN PROGRESS]**. `.specs/BETA-KPI.md` exists with concrete floors
+      (activation ≥60%, purchase completion ≥50%, join success ≥70%) but is still marked
+      "Draft — para revisão do `pm`". Needs `pm` sign-off, not new work.
 
 ### Scheduled inside the beta window — does **not** gate go/no-go
 
-- [ ] **G16** closed (T4)
-- [ ] **G14** closed (T5)
-- [ ] **G12** closed (T6)
+- [x] **G16** — **[CLOSED — PR #77]** · unit tests only, no device verification
+- [x] **G14** — **[CLOSED — PR #79]** · unit tests only, no device verification
+- [x] **G12** — **[CLOSED — PR #78]** · unit tests only, no device verification
 
-Non-blocking is not a synonym for unscheduled: if T4–T6 have not landed by the end of the beta
-window, that is a planning failure to raise with `pm`, not an implicit deferral to post-beta.
+All three landed inside the same round as the blockers rather than during the beta window — better
+than planned. Recorded honestly: their evidence is JVM unit tests plus review (see revision 3 §3).
+Accepted for their risk class; do not restate them elsewhere as "verified".
+
+### Residual risks — known, deliberately not promoted to gates
+
+Listed so they are decided rather than forgotten. None of these is a new checklist item; each needs a
+call from `pm`/bruno before it becomes one.
+
+1. **Hardcoded `Text("Checkout")`** in `feature/cart/.../components/CartBottomBar.kt:64` — the primary
+   finish-purchase button, on the flow BETA-KPI §2 measures, showing English to a pt-BR cohort.
+   Cheapest real-persona-visible fix on this page. Same class: `SettingsHeader.kt:51` and
+   `LinkWearDeviceScreen.kt:44` have literal `"Voltar"` content descriptions.
+2. **`MobileRoutes.Notifications` has no reachable entry point** — a destination nothing navigates to.
+   Dead route, not a user-facing break; relevant because G5's notifications land nowhere visible.
+3. **G15 rotation is restart-scoped** for `ProductRepositoryImpl`/`RecipeRepositoryImpl` (`@Singleton`
+   + `by lazy`); `AiAgentFactoryImpl` rotates per call. Acceptable, but an incident response must know
+   it means "testers pick up the new key on next app start", not immediately.
+4. **`AnalyticsTracker.setUserId` is unplugged** — cohort behaviour is countable in aggregate but no
+   individual tester journey can be reconstructed. This shapes what BETA-KPI can honestly claim.
+5. **No device verification exists for anything merged this round except G11.** CI has no emulator
+   step for these paths; the first hardware exercise of G12/G13/G14/G16 will be the beta itself.
 
 ### Post-beta
 
 - **G10** and F3.1/F3.2/F3.3/F3.5 — architecture debt and polish. No persona impact. Not in scope.
+  G10 now has an owner: the `android-engineer-architecture` subagent, added this round.
 
-None of the device-dependent items above can be checked off from this environment — they need bruno
-with a physical device or emulator.
+### Bottom line
+
+Engineering is done for the gate: **7 code items merged (#69, #71, #72, #73, #77, #78, #79)** and one
+5-minute unblock left (**T7**, PR #67). Every other open gate needs bruno with a device, a Firebase or
+Play console, or a hosting decision. **The beta is not ready to invite real customers** — not because
+code is missing, but because the core loop has never been executed on hardware (F0.3/F2.2), the
+compromised Gemini key has not been revoked, and there is no legal-page URL to publish a listing with.
