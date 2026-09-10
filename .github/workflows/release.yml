@@ -50,7 +50,7 @@ jobs:
       # Bootstrap exception (see step_names comment in pipeline-config.yaml):
       # this step downloads the very file its own name would come from.
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Bootstrap exception too: runs before the config-loading step below,
       # so no step_names.* output exists yet at this point.
@@ -104,7 +104,7 @@ jobs:
     name: ${{ matrix.check.display_name }}
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
@@ -136,7 +136,7 @@ jobs:
     name: ${{ matrix.check.display_name }}
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
@@ -165,7 +165,7 @@ jobs:
     name: 📦 Build Bundle (AAB)
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
@@ -199,7 +199,7 @@ jobs:
     needs: [prepare, build]
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # versionName/versionCode and CHANGELOG.md were already bumped and
       # reviewed pre-merge, by whichever workflow opened the PR this push
@@ -237,7 +237,7 @@ jobs:
     if: always() && needs.release.result == 'success'
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.TOKEN }}
@@ -294,7 +294,7 @@ jobs:
     environment: ${{ needs.prepare.outputs.play_environment_name }}
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: ${{ needs.prepare.outputs.step_deploy_download_aab }}
         uses: actions/download-artifact@v8

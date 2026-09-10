@@ -48,7 +48,7 @@ jobs:
       # Bootstrap exception (see step_names comment in pipeline-config.yaml):
       # this step downloads the very file its own name would come from.
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Bootstrap exception too: runs before the config-loading step below,
       # so no step_names.* output exists yet at this point.
@@ -103,7 +103,7 @@ jobs:
     name: ${{ matrix.check.display_name }}
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
@@ -135,7 +135,7 @@ jobs:
     name: ${{ matrix.check.display_name }}
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
@@ -174,7 +174,7 @@ jobs:
     name: 📦 Build ${{ matrix.target_name }} (all variants)
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
@@ -227,7 +227,7 @@ jobs:
     name: 🚀 Update ${{ matrix.target_name }} (all variants)
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: ${{ needs.prepare.outputs.step_deploy_download_apks }}
         uses: actions/download-artifact@v8
@@ -296,7 +296,7 @@ jobs:
       # false, unlike secrets.TOKEN (a real admin PAT, same as
       # sync-develop's checkout in release.yml).
       - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           token: ${{ secrets.TOKEN }}
 
