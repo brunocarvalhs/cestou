@@ -273,7 +273,7 @@ jobs:
 
       - name: ${{ needs.prepare.outputs.step_coverage_upload }}
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: kover-html-report
           path: build/reports/kover/html/
