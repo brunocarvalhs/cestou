@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
+import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.LinkWearDevice
@@ -45,12 +47,29 @@ internal class ProfileViewModel @Inject constructor(
     )
 
     private fun observeProfile() {
-        val currentId = authService.currentUser?.id ?: return
+        val localUser = authService.currentUser ?: return
+        _uiState.update { it.copy(user = localUser) }
         viewModelScope.launch {
-            userRepository.getUserProfile(currentId).collect {
-                _uiState.update { it.copy(user = authService.currentUser) }
+            userRepository.getUserProfile(localUser.id).collect { profile ->
+                _uiState.update { state -> state.copy(user = state.user.mergeWith(profile)) }
             }
         }
+    }
+
+    /**
+     * Reconciles the locally cached [AuthenticatedUser] (Firebase Auth) with the Firestore
+     * [UserProfile] emission. The Firestore document is the editable, multi-device source of
+     * truth for name/email/photo (it's what settings screens write to), so its non-null fields
+     * win; `phoneNumber`/`id` only exist on the auth user and are always preserved from it.
+     */
+    private fun AuthenticatedUser?.mergeWith(profile: UserProfile?): AuthenticatedUser? {
+        val base = this ?: authService.currentUser ?: return null
+        if (profile == null) return base
+        return base.copy(
+            displayName = profile.name ?: base.displayName,
+            email = profile.email ?: base.email,
+            photoUrl = profile.photoUrl ?: base.photoUrl
+        )
     }
 
     private fun signOut() {
