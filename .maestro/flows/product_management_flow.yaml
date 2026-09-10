@@ -70,6 +70,8 @@ name: Product Management Flow
     id: "edit_item_name_field"
 - assertVisible:
     id: "edit_item_category_field"
+- assertVisible:
+    id: "edit_item_quantity_field"
 - tapOn:
     id: "edit_item_price_field"
 - inputText: "10000"
