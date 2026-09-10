@@ -619,7 +619,7 @@ jobs:
 
       - name: ${{ needs.prepare.outputs.step_gate_post_report }}
         if: always()
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           header: pipeline-report
           path: report.md
