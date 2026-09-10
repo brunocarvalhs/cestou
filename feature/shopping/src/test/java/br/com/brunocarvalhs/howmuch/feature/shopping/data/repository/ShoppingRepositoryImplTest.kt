@@ -217,7 +217,9 @@ class ShoppingRepositoryImplTest {
 
     @Test
     fun `updatePositions fails when network throws`() = runTest {
-        coEvery { networkService.make<Boolean>(any(), any(), any()) } throws NetworkService.NetworkException(message = "offline")
+        coEvery {
+            networkService.make<Boolean>(any(), any(), any())
+        } throws NetworkService.NetworkException(message = "offline")
 
         val result = repository.updatePositions(listOf(model.toDomainForTest()))
 
