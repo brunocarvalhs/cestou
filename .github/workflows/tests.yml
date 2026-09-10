@@ -462,7 +462,12 @@ jobs:
           module.exports = {
             extends: ['@commitlint/config-conventional'],
             rules: {
-              'type-enum': [2, 'always', $TYPES]
+              'type-enum': [2, 'always', $TYPES],
+              // Dependabot's auto-generated commit body includes release-notes
+              // links that routinely exceed the default 100-char wrap limit -
+              // disabled so dependency-bump PRs aren't blocked by their own
+              // changelog links.
+              'body-max-line-length': [0, 'always']
             }
           };
           CONFIG_EOF
