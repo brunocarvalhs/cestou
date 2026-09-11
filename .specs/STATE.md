@@ -180,6 +180,98 @@
 - **Date**: 2026-09-10
 - **Status**: proposed — awaiting bruno's review and manual deploy
 
+### AD-010
+- **Decision**: For the AI chat, **delete the cross-feature coupling instead of formalizing it**.
+  `feature/chat` becomes a leaf module that no other feature module imports. Concretely: (a) the
+  conversation moves out of `AiChatViewModel` into an `internal @Singleton AiConversationStore`
+  owned by `feature/chat`; (b) `core/navigation`'s `AiChat` route gains an optional `shoppingId`;
+  (c) `Options.AI` inside `feature/products` stops rendering `AiChatScreen` inline and navigates to
+  that route; (d) `AiChatScreen`/`AiChatViewModel` become `internal`. **No `core/chat` module and no
+  new contract in `core/ai` is created.**
+- **Reason**: G17/CHAT-01. The brief asked whether unifying the AI surface should extract a shared
+  contract into `core/ai` or a new `core/chat`. Once each feature reaches the chat through the
+  `core/navigation` route — which AD-005 already defines as a feature's public surface — there is no
+  cross-feature *type* left to share, so a contract module would name a dependency that no longer
+  exists and widen the `core/*` graph for zero call sites. The `@Singleton` store (not shared
+  back-stack entries) is what makes CHAT-01 AC1/AC5 hold, because a route carrying a `shoppingId`
+  argument is by definition a distinct `NavBackStackEntry` with its own `ViewModelStore` — entry
+  identity can never be the mechanism.
+- **Trade-off**: The conversation is process-scoped, not persisted — the spec's Edge Case claiming
+  history survives a force-close describes behaviour the code has never had (see OQ-1, bruno's
+  call). A single shared conversation also means switching between shopping lists carries the
+  previous list's messages forward; mitigated by appending a visible context-switch divider rather
+  than silently re-pointing the context.
+- **Forward-compatibility (CHAT-02 is blocked, not cancelled)**: `ChatMessage.Sender.PARTICIPANT` is
+  retained and explicitly protected against "unused symbol" cleanup by a unit test;
+  `ChatMessage` gains `senderId: String? = null` now, while the model is cheap and unpersisted;
+  the store is conversation-shaped, so a participant thread is an added key, not a rewrite. **If**
+  CHAT-02 later needs another module to observe participant messages, *that* is when the store's
+  interface gets promoted to `core/chat` — a file move plus a Gradle line, deliberately deferred.
+- **Side effect on G10**: closes two edges — `feature/cart → feature/chat` and
+  `feature/products → feature/chat`, both including the Gradle dependency. Does not attempt the rest
+  of G10.
+- **Amendment 2026-09-11 (bruno, OQ-2)**: the **bottom-nav "AI Assistant" tab is removed**. The AI
+  is reachable only from inside a shopping list, where it has context — the same call IAA-03 made
+  for the add-item flow, one level up. Touches `CestouBottomNavigation.kt` (delete
+  `BottomNavItem.AiChatItem`), `MainActivity.kt:118` (`rootRoutes` loses `AiChat`) and the now-unused
+  `nav_ai_chat` string in three locales. A breakage check found nothing depending on the tab: the
+  `NavHost` start destination is `ShoppingList`/`Welcome`, no onboarding path routes through the
+  chat, `AiSettings` is reached from the chat's own top bar, and Wear has no AI destination. One
+  intended visual consequence: the bottom bar now *hides* while the chat is open
+  (`showBottomBar = currentRoute != null`), matching every other detail destination. The nav bar
+  drops to two items, below Material's 3–5 guidance — accepted; replacing the bar is a visual
+  follow-up, not a reason to reopen the decision. **The conversation store is still required** —
+  re-entering the chat pops and re-pushes the destination, producing a new ViewModel, so one entry
+  point does not make shared state unnecessary.
+- **Scope**: `feature/chat`, `feature/cart`, `feature/products`, `core/navigation`, `core/ui`, `:app`.
+- **Date**: 2026-09-11
+- **Status**: active — design approved (`.specs/features/chat/design.md`), amended after bruno
+  resolved OQ-1/OQ-2, **not yet implemented**. No open questions remain for CHAT-01.
+
+### AD-011
+- **Decision**: The add-item redesign (PROD-04/PROD-05) stays **entirely inside `feature/products`**.
+  No `core/*` growth, no new module. The add-item sheet drops its nested `NavHost` in favour of a
+  `rememberSaveable` mode, and the camera becomes a bounded viewport inside the same sheet rather
+  than a nested destination. The new recipes entry point is a public route in
+  `feature/products/navigation/`, consumed by `feature/shopping`, which already depends on that
+  module.
+- **Reason**: G18/G19. Verified while designing: `ProductScreen` is **already** hosted in a
+  `ModalBottomSheet` (`ProductsGraph`'s `dialog<ProductPickerRoute>`), so PROD-04 is a content
+  refactor inside an existing container, not a new presentation mode — and the camera already runs
+  inside that sheet's dialog window today. The nested `NavHost` is also the direct cause of the
+  `LocalViewModelStoreOwner.current!!` at `ProductScreen.kt:46`: the sub-destinations' back-stack
+  entries are not the entry carrying `ProductPickerRoute`, which every one of those ViewModels reads
+  via `savedStateHandle.toRoute()`. Removing the nested graph removes the `!!`.
+- **Trade-off**: Promoting the camera components (`CameraPreview`/`CameraCaptureView`/
+  `BarcodeAnalyzer`) to a `core/*` module would close a real G10 edge — `feature/shopping` imports
+  `CameraPreview` from `feature/products` — but doing a CameraX plumbing move inside an add-item UX
+  rewrite makes one PR unreviewable. **Explicitly deferred to G10's own design pass (F3.5)** and
+  recorded there so it isn't rediscovered.
+- **Known unverifiable risk**: hosting a CameraX preview in a dialog window carries nine enumerated
+  hazards (`.specs/features/products/design.md` § "Camera-in-sheet risk register"), led by
+  `PreviewView`'s default SurfaceView implementation mode rendering black inside a dialog on some
+  OEM/API combinations. **None is closable by a unit test and none can be exercised in this
+  environment** (no adb/emulator). They belong on the F0.3 device checklist as named line items.
+- **Amendment 2026-09-11 (bruno, OQ-3 + OQ-4)**:
+  - **OQ-3 — `SEARCH` and `SUGGESTIONS` stay in the unified sheet** with Quick Add and the camera.
+    This adds no feature work (all five `Options` are already sheet-hosted modes today), but it
+    raises the risk surface from 9 items to 12: the one-scrollable rule becomes a per-mode invariant
+    (R7), and IME carry-over between modes (R10), transient per-mode state (R11) and sheet-height
+    stability (R12) become real. It also makes one regression unavoidable: `ProductHeader.kt:80`
+    excludes Quick Add from the chip row because today the way back is the nested `NavHost` back
+    stack — once that graph is deleted, **a user who taps "Search" has no way back to Quick Add**.
+    Quick Add must become a visible peer chip. Effort revised **M → M–L**, driven entirely by
+    hardening, not by new features.
+  - **OQ-4 — recipes are a secondary menu action.** The entry goes into `CartScreen`'s **existing**
+    `MoreVert` overflow menu (`RecipesRoute(shoppingId = shopping.id)`) — no new permanent
+    affordance. This **supersedes** the earlier draft placement on `ShoppingScreen`, which has no
+    overflow menu today; the `shoppingId = null` "start a list from a recipe" entry ships with
+    `recipe-list-origin`, when a destination that can actually create a list exists.
+- **Scope**: `feature/products`, `feature/cart` (overflow-menu entry only).
+- **Date**: 2026-09-11
+- **Status**: active — design approved (`.specs/features/products/design.md`), amended after bruno
+  resolved OQ-3/OQ-4, **not yet implemented**. No open questions remain.
+
 ## Handoff
 
 - **Feature**: beta-launch (see `.specs/BETA-LAUNCH-PLAN.md` — the ordered task queue T1–T6 — and
@@ -239,8 +331,53 @@
     found via PR #75), literal `"Voltar"` content descriptions in `SettingsHeader.kt:51` /
     `LinkWearDeviceScreen.kt:44`, unreachable `MobileRoutes.Notifications`, restart-scoped key
     rotation for the two `@Singleton` repositories, and `AnalyticsTracker.setUserId` never plugged in.
-- **Next step**: **T7** (`android-engineer-features`) — the only open engineering item on the beta
-  gate. Everything else on the gate needs bruno.
+- **Completed (session of 2026-09-11, `tech-lead` — Design phase for the two new `pm` specs)**:
+  Designed and broke down CHAT-01, PROD-04 and PROD-05. Four new documents:
+  `.specs/features/chat/{design,tasks}.md` and `.specs/features/products/{design,tasks}.md`.
+  Two new decisions recorded above: **AD-010** (chat) and **AD-011** (add-item/recipes). Four new
+  gaps in `MVP-ROADMAP.md`: **G17** (CHAT-01), **G18** (PROD-04), **G19** (PROD-05),
+  **G20** (a bug found while designing G17), with Phase 3 entries **F3.6–F3.9**. Ten tasks
+  (T8–T17) across six PRs, plus three PRs for CHAT-01 — hard-sequenced
+  `CHAT-01 → PROD-04 → PROD-05 → recipe-list-origin`, because CHAT-01 and PROD-04 rewrite the same
+  file and PROD-04 rehosts the file PROD-05 edits.
+  - **Three spec premises were corrected against the code before designing** — do not re-derive them
+    from the spec text: (1) **`CartAssistantDock` is dead code** — the whole
+    `feature/cart/.../components/ai/` package (5 files) has no call site; `AiDockState` survives
+    only as a permanently-`COLLAPSED` `CartUiState` field read by one always-true condition at
+    `CartScreen.kt:125`, so CHAT-01 AC2 is a pure deletion and nothing is lost. (2) **`ProductScreen`
+    is already inside a `ModalBottomSheet`** (`ProductsGraph`'s `dialog<ProductPickerRoute>`), so
+    PROD-04 AC1 is already satisfied by the container and the camera already runs in a sheet today —
+    PROD-04 is a content refactor, materially cheaper than the spec implies. (3) **The AI
+    conversation has never been persisted**; the spec's Edge Case about surviving a force-close
+    describes behaviour that does not exist.
+  - **`recipe-list-origin` decision** (the `pm` asked whether to merge or sequence with PROD-05):
+    **Design merged, delivery sequenced.** One entry point, built once, hinged on a nullable
+    `shoppingId` route argument (`null` → start a list *from* a recipe, Yasmin's flow); the
+    `Shopping` ↔ recipe field lands in its own spec and PR on top, because a nullable-field +
+    mapper + AD-009 rules change is a different risk class from a navigation change.
+    `.specs/PERSONA-ACTION-PLAN.md` item #3 should be updated by the `pm` to reflect this —
+    not edited here, it is the `pm`'s document.
+  - ~~Four questions are open for bruno before implementation starts~~ — **all four resolved by
+    bruno the same day; the five affected documents were amended and nothing is open.** Net effect:
+    - **OQ-1 → process-scoped conversation.** Confirms the recommendation; no implementation change.
+      `chat/spec.md`'s Edge Case, which assumed persistence the code never had, is corrected in place
+      with the original struck through so the change is auditable.
+    - **OQ-2 → the bottom-nav AI tab is removed.** This *changed* the design, which had kept the tab
+      as the no-surprises default. New `chat/spec.md` AC6, new task **T5b**, `chat/tasks.md` T7
+      rewritten (the existing `chat_flow.yaml` reaches the chat through the tab, so this PR breaks
+      it — not optional cleanup). **T5b and T6 must ship in the same PR** or the AI is unreachable
+      between commits.
+    - **OQ-3 → search/suggestions stay in the sheet.** Worth recording plainly, because the question
+      was framed as a scope expansion: it is the *cheaper* branch — those modes are already hosted
+      in the sheet today, so no new feature work exists. What grew is hardening (new task **T11b**,
+      risks R10–R12) plus the Quick Add chip regression described in AD-011.
+    - **OQ-4 → recipes in `CartScreen`'s existing overflow menu**, superseding the earlier
+      `ShoppingScreen` placement. T15/T17 updated.
+  - **Both features are now unblocked and ready to implement in order:**
+    `CHAT-01 (PR1→PR3) → PROD-04 (PR4→PR5) → PROD-05 (PR6) → recipe-list-origin`.
+- **Next step**: **T7** (`android-engineer-features`) — still the only open engineering item on the
+  beta gate; G17–G20 are Phase 3 and must not pull ahead of it. Everything else on the gate needs
+  bruno.
 - **Blockers (all bruno, none resolvable by any agent here)**: rotate/revoke the Gemini key in the
   Firebase + Google AI Studio consoles (the code change alone mitigates nothing until the old key is
   revoked); merge PR #67 once T7 turns it green; decide G3 hosting, then wire the URL into
@@ -248,6 +385,20 @@
   graphic; confirm G5 Firestore rules in the console; run F0.3 (Maestro, authenticated session) and
   F2.2 (Google Sign-In) on a device; complete the Play Console Internal-testing track; and the
   `develop` → `master` decision, which stays exclusively his.
-- **Uncommitted files**: none — the three-owner working-tree tangle described in the previous handoff
-  was resolved; every piece landed on its own branch and PR.
-- **Branch**: `docs/firestore-security-rules` (G5 rules proposal, this PR) → PR into `develop`.
+- **Uncommitted files (2026-09-11)**: the design work sits, uncommitted, on the dedicated branch
+  `docs/chat-products-design` (branched from `develop` by bruno) — seven files:
+  `.specs/features/chat/{spec,design,tasks}.md`,
+  `.specs/features/products/{spec,design,tasks}.md`, plus `.specs/STATE.md` and
+  `.specs/MVP-ROADMAP.md`. Note both `spec.md` files are included: the `pm`'s originals were
+  untracked/modified in the same tree, and the tech-lead amended them (CHAT-01's ACs and Edge Cases,
+  PROD-05's placement) to record bruno's OQ-1..OQ-4 decisions at the source rather than only in the
+  design docs. Committing is bruno's; no agent committed anything.
+- **The earlier working-tree tangle is resolved.** The in-flight AI-error-handling fix (all
+  providers failing left the user with a silently vanishing spinner) was extracted to its own branch,
+  `fix/ai-fallback-error-handling`, so it no longer overlaps CHAT-01's T4. **That branch should land
+  before CHAT-01 starts** — T4 rewrites `AiChatViewModel` and its design explicitly requires
+  preserving that error path verbatim, so merging it first avoids re-deriving it from a diff.
+  `.specs/PERSONA-ACTION-PLAN.md` remains the `pm`'s to update (item #3 `recipe-list-origin`, now
+  merged with PROD-05's design); the tech-lead did not edit it.
+- **Branch**: `docs/firestore-security-rules` (G5 rules proposal) → PR into `develop`. The
+  CHAT-01/PROD-04/PROD-05 design work is on `docs/chat-products-design` (off `develop`), uncommitted.

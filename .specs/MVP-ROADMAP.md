@@ -2,7 +2,11 @@
 
 Status: Phases 0–2 mostly done — see gap list for what's still open
 Owner: bruno
-Last updated: 2026-09-09
+Last updated: 2026-09-11 — added G17–G20 (CHAT-01, PROD-04, PROD-05, and a bug found while
+designing them) plus F3.6–F3.9; Design/Tasks for all three specs are written and approved by the
+tech-lead (AD-010, AD-011). bruno then resolved all four open questions (OQ-1..OQ-4) the same day and
+the docs were amended: the AI loses its bottom-nav tab, search/suggestions stay in the unified
+add-item sheet, and recipes live in an existing overflow menu. None of them is a beta blocker.
 
 Note: the project runs on Firebase's free Spark plan (no billing account) — Cloud Functions
 require the Blaze plan even for free-tier usage, so nothing in this plan should depend on them.
@@ -44,7 +48,11 @@ shipped independently.
 | ~~G7~~ | ~~Dead `signInWithGoogle`/`signInWithApple`~~ | Done — PR #19 | S |
 | ~~G8~~ | ~~Apple Sign-In never offered~~ | Removed the unreachable UI branch rather than implementing it — PR #19 | S |
 | G9 | `ShoppingRepositoryImpl.updatePositions` is a no-op (`ShoppingRepositoryImpl.kt:133-139`) — reordering lists by drag updates local state optimistically (`ShoppingListViewModel.kt:269`) but never writes to Firestore, so the order silently reverts on next sync | Feature is already exposed in the UI and looks like it works; found during a 2026-09-04 Tech Lead audit | **Fix pushed, PR #67 open — but not mergeable as of 2026-09-10: Detekt fails on one >120-char line in `ShoppingRepositoryImplTest.kt:220` (so `PR Gate` is red) and the branch is 18 commits behind `develop`. Tracked as T7 in `BETA-LAUNCH-PLAN.md`.** |
-| G10 | Cross-feature module coupling: `cart`/`shopping`/`chat`/`ai-agent`/`profile` import `feature.settings` directly, `cart` imports `feature.chat`/`feature.products`, `products` imports `feature.chat`, `shopping` imports `feature.products` | Violates AD-005 (feature modules should only expose a `navigation` entry point); makes each feature module's real dependency graph wider than documented, raising the risk of accidental coupling as the app grows | M — needs a design pass (extract shared contracts to `core/*`), not a quick fix |
+| G10 | Cross-feature module coupling: `cart`/`shopping`/`chat`/`ai-agent`/`profile` import `feature.settings` directly, `cart` imports `feature.chat`/`feature.products`, `products` imports `feature.chat`, `shopping` imports `feature.products` | Violates AD-005 (feature modules should only expose a `navigation` entry point); makes each feature module's real dependency graph wider than documented, raising the risk of accidental coupling as the app grows | M — needs a design pass (extract shared contracts to `core/*`), not a quick fix. **G17 closes two of its edges** (`cart → chat`, `products → chat`) as a side effect; the rest is untouched |
+| G17 | **CHAT-01 — two AI chat surfaces, one of them dead; plus the AI tab leaves the bottom nav.** The bottom-nav "AI Assistant" tab and `Options.AI` inside the add-item sheet build **separate** `AiChatViewModel` instances (different `ViewModelStore`s), so the same conversation is two independent threads. Separately, `CartAssistantDock` + the whole `feature/cart/.../components/ai/` package (5 files) is **unreachable dead code** — no call site anywhere; `AiDockState` survives only as a permanently-`COLLAPSED` `CartUiState` field read by one always-true condition at `CartScreen.kt:125` | Spec `.specs/features/chat/spec.md` CHAT-01. Not a beta blocker. Fixing it also deletes two of G10's cross-feature edges and unblocks any future CHAT-02 work (no point building participant messaging onto a surface about to be consolidated) | S–M — 3 PRs, design + tasks written (`.specs/features/chat/{design,tasks}.md`), AD-010. **bruno decided (OQ-2) to remove the bottom-nav AI tab**, so the AI is reachable only from inside a list — same direction IAA-03 took; conversation continuity is process-scoped (OQ-1), not persisted |
+| G18 | **PROD-04 — add-item content is window chrome inside a sheet.** `ProductScreen` is *already* hosted in a `ModalBottomSheet` (`ProductsGraph`'s `dialog<ProductPickerRoute>`), but its content is a `Scaffold` + nested `NavHost` + a `statusBarsPadding()` `TopAppBar`, so it reads as a full screen; the camera is one of five nested destinations instead of an option beside the text field, and the IAA-03 running-total header is invisible while capturing | Spec `.specs/features/products/spec.md` PROD-04. Most-used flow in the app. Reopens the exact four files IAA-03 just landed (`ProductScreen`, `QuickAddForm`, `ProductPhotoForm`, `Options.kt`) — sequence it now rather than reopening them twice | **M–L** (was M) — 2 PRs, design + tasks written (`.specs/features/products/{design,tasks}.md`), AD-011. bruno decided (OQ-3) that `SEARCH`/`SUGGESTIONS` stay in the same sheet; that adds no feature work (they are already sheet-hosted modes) but grows the risk surface to a **12-item** camera/gesture/IME register, **none of it verifiable without a device**, plus one unavoidable regression: Quick Add must become a visible chip or deleting the nested `NavHost` strands users in Search |
+| G19 | **PROD-05 — recipes are a hidden toggle inside product search.** `ProductSearchUiState.SearchMode.RECIPE` is the only way to reach `RecipeSearchUseCase`; a user must already be adding a product to discover recipes at all. `ProductSearchViewModel.onAddRecipeIngredients` is also a verbatim duplicate of `RecipeAddToListUseCase` | Spec `.specs/features/products/spec.md` PROD-05. Design **merged** with `.specs/PERSONA-ACTION-PLAN.md` "Agora" #3 `recipe-list-origin` (one entry point built once, hinged on a nullable `shoppingId` route arg), delivery sequenced as separate PRs | S–M — 1 PR (+1 later for `recipe-list-origin`), tasks written. bruno decided (OQ-4) the entry is a **secondary menu action**: it goes into `CartScreen`'s existing `MoreVert` overflow, so no new permanent affordance ships |
+| G20 | `CartAssistantUseCase` calls `agentFactory.create(settings)` on **every** message, so a new agent — and a new `AiSession.history` — is built per turn. Its own KDoc claims the opposite ("mantém a instância do serviço de IA para preservar o histórico da conversa durante a sessão") | Found while designing G17. The AI has no real conversational memory across turns, which is invisible until a user asks a follow-up question. **Deliberately not bundled into G17** — a behavior fix inside a consolidation PR is exactly what the G12–G16 split exists to prevent | S — needs its own branch/PR; `android-engineer-features` |
 
 Every item marked done above shipped as its own branch + PR (none merged without review): shared
 `StorageService` for `core/auth` (#14), shopping-reminder push notifications (#15), Maestro
@@ -114,6 +122,10 @@ just "not yet perfect."
 |---|---|---|---|
 | **G10** — cross-feature module coupling | Nenhuma — checado contra as 12 personas do skill, nenhum "o que valoriza"/"o que rejeita" toca fronteira de módulo. Débito puramente interno. | Zero diferença observável para qualquer persona. | `tech-lead` design pass, no rush |
 | **F3.1** biometric app-lock, **F3.2** `StorageService` adoption in settings, **F3.3** branded notification icon, **F3.5** G10 implementation | Nenhuma persona lista "trava por biometria" ou "ícone com marca" como algo que valoriza; as personas mais próximas de segurança/confiança (Dona Marlene, Rafael) pedem precisão de orçamento e histórico confiável, não trava de dispositivo. | Polish genuíno; retomar depois que feedback real do beta pedir, em vez de supor agora. | Post-beta backlog |
+| **G17 / F3.6** — unificar as superfícies de IA (CHAT-01) | Nenhuma persona pede; nenhuma rejeita. Reduz confusão para Dona Célia e Camila-e-Pedro (uma "IA" em vez de duas). Avaliação do `pm` em `.specs/features/chat/spec.md`. | O núcleo do app funciona sem isso; a duplicata mais grave já é código morto, não uma tela que o tester encontra. | `android-engineer-features`, design pronto |
+| **G18 / F3.7** — bottom sheet único de adicionar item (PROD-04) | Dona Célia e Camila-e-Pedro (menos navegação); Marina e Dona Marlene (total visível também durante a foto). | Fluxo já funciona hoje; é melhoria de forma, não correção. Mas é o fluxo mais usado do app — priorizar cedo no pós-beta. | `android-engineer-features`, design pronto |
+| **G19 / F3.8** — receitas como entrada própria (PROD-05) | Yasmin (direto — hoje a única cobertura dela no backlog), Camila-e-Pedro (indireto). | Capacidade já existe, só está escondida atrás de um toggle. | `android-engineer-features`, design pronto |
+| **G20 / F3.9** — agente de IA recriado a cada mensagem | Indireta a quem usa a IA (Marina, Dona Marlene, Juliana\*, Camila-e-Pedro): a IA não lembra do turno anterior, então pergunta de acompanhamento ("e o mais barato?") sai sem contexto. | Falha silenciosa e não destrutiva; nenhum dado é corrompido. Vale medir com o beta antes de decidir a prioridade real. | `android-engineer-features` |
 
 ### Explicitly out of scope for this beta priority pass
 
@@ -189,7 +201,32 @@ already tracked as G3, G13, and G15 respectively.
   accessibility/testability.~~ Done this session — icon now uses
   `ai_chat_settings_content_description` (en/es/pt-BR), and `chat_flow.yaml` asserts it's reachable.
 - F3.5 — Address G10 (cross-feature module coupling) once a design pass decides which shared
-  contracts move to `core/*`.
+  contracts move to `core/*`. Two candidate moves are already identified and deliberately deferred
+  to this pass rather than smuggled into feature work: promoting the camera components
+  (`CameraPreview`/`CameraCaptureView`/`BarcodeAnalyzer`, imported by `feature/shopping` from
+  `feature/products`) out of `feature/products`, and `feature/settings`' `GetSettingsUseCase`, which
+  five feature modules import directly.
+- **F3.6 — Unify the AI chat surfaces (G17 / CHAT-01).** Design + tasks approved:
+  `.specs/features/chat/{design,tasks}.md`, AD-010. **All open questions resolved by bruno
+  2026-09-11; ready to start.** Three PRs: delete the dead `feature/cart/.../components/ai/`
+  package → move the conversation into a `@Singleton` `AiConversationStore` inside `feature/chat` →
+  `AiChat` route takes a `shoppingId`, the **bottom-nav AI tab is removed** (OQ-2), and `Options.AI`
+  navigates to the single chat destination instead of rendering it inline. **Module-boundary
+  decision: no new `core/*` contract — `feature/chat` becomes a leaf and the coupling is deleted
+  rather than formalized.** Conversation continuity is process-scoped (OQ-1), not persisted.
+  T5b and T6 must land in the same PR, or the AI is unreachable between commits.
+- **F3.7 — Unified add-item bottom sheet (G18 / PROD-04).** Design + tasks approved:
+  `.specs/features/products/{design,tasks}.md`, AD-011. **All open questions resolved; ready to
+  start after F3.6.** Two PRs: sheet-native content (nested `NavHost` → `rememberSaveable` mode,
+  compact header with Quick Add as a peer chip, always-visible total, per-mode scroll/IME
+  invariants across all four modes per OQ-3) → camera as a bounded viewport plus CameraX/permission
+  hardening. **Runs after F3.6** (CHAT-01 removes the `Options.AI` branch from the same file).
+- **F3.8 — Recipes as their own entry point (G19 / PROD-05).** One PR after F3.7. Entry is a menu
+  item in `CartScreen`'s existing overflow (OQ-4), not a new button. Design merged with
+  `recipe-list-origin`, which ships as its own follow-up PR and owns the second entry point
+  (`shoppingId = null`, on the shopping-list screen).
+- **F3.9 — Fix `CartAssistantUseCase`'s per-message agent rebuild (G20).** Own branch, own PR, not
+  bundled with F3.6.
 
 ## Suggested order
 
@@ -213,6 +250,20 @@ specifically:
    items~~ — done, PR #69, along with the rest of G12–G16. What's left of G15 is yours: publish
    `gemini_api_key` in Remote Config and **revoke the old key at the provider** — until then nothing
    is actually mitigated.
+8. ~~Answer four product/privacy questions so **G17–G19** can start~~ — **all four answered by bruno
+   on 2026-09-11**; the design and task docs have been amended and no question remains open:
+   - **OQ-1** → the AI conversation is **process-scoped**, not persisted. `chat/spec.md`'s Edge Case
+     (which assumed persistence that never existed) has been corrected. No implementation change.
+   - **OQ-2** → the **bottom-nav "AI Assistant" tab is removed**; the AI is reachable only from
+     inside a list. New task T5b; `chat/spec.md` gained AC6. Breakage check found nothing depending
+     on the tab (start destination, onboarding, `AiSettings` and Wear are all unaffected); the
+     bottom bar now hides while the chat is open, which is intended.
+   - **OQ-3** → `SEARCH` and `SUGGESTIONS` **stay in the unified sheet**. No new feature work (they
+     were already sheet-hosted modes), but the risk surface grows: new task T11b, three new risks
+     (R10–R12), and one unavoidable regression to fix — Quick Add must become a visible chip or the
+     mode refactor strands users in Search.
+   - **OQ-4** → recipes live in **`CartScreen`'s existing overflow menu**, not a dedicated button.
+     The "start a list from a recipe" entry waits for `recipe-list-origin`.
 
 ## Bug audit — 2026-09-09
 
