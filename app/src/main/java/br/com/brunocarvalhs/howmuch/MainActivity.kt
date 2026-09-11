@@ -34,6 +34,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureInitializer
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
+import br.com.brunocarvalhs.howmuch.core.navigation.isProtectedRoute
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
@@ -176,18 +177,23 @@ class MainActivity : ComponentActivity() {
                 currentDestination?.hierarchy?.any { it.hasRoute(route::class) } == true
             }
 
+            // Whether the current destination requires auth is a property of the route itself
+            // (RouteProtocol.routeType), declared where each route is defined — not a hardcoded
+            // list here that has to be kept in sync by hand as routes are added elsewhere.
+            val isOnProtectedRoute = currentDestination?.isProtectedRoute(rootRoutes) == true
+
             // Continuous guard, separate from the isAuthenticated transition effect above: that
             // effect only fires on the true->false EDGE, so if the user ever lands back on a
-            // protected (bottom-nav) destination while already signed out — e.g. a still-tappable
-            // bottom bar surviving one extra frame after sign-out — isAuthenticated never changes
-            // again and nothing redirects them. Logcat confirmed this exact case: isAuthenticated
-            // stayed false for 10+ real seconds while ShoppingList/Profile were fully navigable.
-            // This re-checks on every destination change, independent of *how* the user got there.
-            LaunchedEffect(currentRoute, isAuthenticated) {
-                if (!isAuthenticated && currentRoute != null) {
+            // protected destination while already signed out — e.g. a still-tappable bottom bar
+            // surviving one extra frame after sign-out — isAuthenticated never changes again and
+            // nothing redirects them. Logcat confirmed this exact case: isAuthenticated stayed
+            // false for 10+ real seconds while ShoppingList/Profile were fully navigable. This
+            // re-checks on every destination change, independent of *how* the user got there.
+            LaunchedEffect(isOnProtectedRoute, isAuthenticated) {
+                if (!isAuthenticated && isOnProtectedRoute) {
                     Timber.tag(NAV_DEBUG_TAG).d(
                         "guard: unauthenticated on protected route %s, redirecting to Welcome",
-                        currentRoute
+                        currentDestination?.route
                     )
                     navigator.navigate(Welcome) {
                         popUpTo(navController.graph.id) { inclusive = true }

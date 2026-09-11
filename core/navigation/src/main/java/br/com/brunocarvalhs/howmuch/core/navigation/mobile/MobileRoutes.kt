@@ -2,15 +2,21 @@ package br.com.brunocarvalhs.howmuch.core.navigation.mobile
 
 import androidx.navigation3.runtime.NavKey
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.navigation.RouteProtocol
+import br.com.brunocarvalhs.howmuch.core.navigation.RouteType
 import br.com.brunocarvalhs.howmuch.core.navigation.navTypeSerializer
 import kotlinx.serialization.Serializable
 import kotlin.reflect.typeOf
 
 @Serializable
-data object AiChat : NavKey
+data object AiChat : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}
 
 @Serializable
-data object Profile : NavKey
+data object Profile : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}
 
 @Serializable
 data class JoinList(val token: String? = null) : NavKey
