@@ -5,4 +5,13 @@
     <string name="welcome_footer">Version %1$s • Made with ❤️ in Brazil</string>
     <string name="welcome_select_language">Select Language</string>
     <string name="welcome_agree_and_continue">Agree and continue</string>
+    <string name="auth_continue_with_google">Continue with Google</string>
+    <string name="auth_continue_with_email">Sign in with Email</string>
+    <string name="auth_continue_with_phone">Sign in with Phone</string>
+    <string name="auth_continue_with_provider">Sign in with %1$s</string>
+    <string name="auth_terms_prefix">By continuing, you agree to our </string>
+    <string name="auth_terms_of_use">Terms of Use</string>
+    <string name="auth_terms_and"> and </string>
+    <string name="auth_privacy_policy">Privacy Policy</string>
+    <string name="auth_terms_suffix">.</string>
 </resources>

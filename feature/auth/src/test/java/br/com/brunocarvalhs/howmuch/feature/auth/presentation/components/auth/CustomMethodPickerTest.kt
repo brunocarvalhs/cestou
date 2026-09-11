@@ -25,8 +25,8 @@ class CustomMethodPickerTest {
             }
         }
 
-        composeTestRule.onNodeWithText("Termos de Uso", substring = true).assertExists()
-        composeTestRule.onNodeWithText("Política de Privacidade", substring = true).assertExists()
+        composeTestRule.onNodeWithText("Terms of Use", substring = true).assertExists()
+        composeTestRule.onNodeWithText("Privacy Policy", substring = true).assertExists()
     }
 
     @Test
@@ -43,7 +43,7 @@ class CustomMethodPickerTest {
             }
         }
 
-        composeTestRule.onNodeWithText("Termos de Uso").performClick()
+        composeTestRule.onNodeWithText("Terms of Use").performClick()
 
         assert(termsClicked)
         assert(!privacyClicked)
@@ -63,7 +63,7 @@ class CustomMethodPickerTest {
             }
         }
 
-        composeTestRule.onNodeWithText("Política de Privacidade").performClick()
+        composeTestRule.onNodeWithText("Privacy Policy").performClick()
 
         assert(privacyClicked)
         assert(!termsClicked)
