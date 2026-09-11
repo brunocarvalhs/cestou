@@ -41,6 +41,7 @@ import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouBottomNavigation
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.Welcome
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -96,6 +97,11 @@ class MainActivity : ComponentActivity() {
             var screenBackStackEntry by remember { mutableStateOf(navBackStackEntry) }
             LaunchedEffect(navBackStackEntry) {
                 val destination = navBackStackEntry?.destination
+                Timber.tag(NAV_DEBUG_TAG).d(
+                    "backStackEntry changed -> %s | full stack: %s",
+                    destination?.route,
+                    navController.currentBackStack.value.joinToString { it.destination.route.toString() }
+                )
                 if (destination != null && destination !is DialogNavigator.Destination) {
                     screenBackStackEntry = navBackStackEntry
                 }
@@ -114,10 +120,17 @@ class MainActivity : ComponentActivity() {
             val initialAuthenticated = remember { isAuthenticated }
             var wasAuthenticated by remember { mutableStateOf(isAuthenticated) }
             LaunchedEffect(isAuthenticated) {
+                Timber.tag(NAV_DEBUG_TAG).d(
+                    "isAuthenticated effect fired: isAuthenticated=%s wasAuthenticated=%s stack=%s",
+                    isAuthenticated,
+                    wasAuthenticated,
+                    navController.currentBackStack.value.joinToString { it.destination.route.toString() }
+                )
                 if (isAuthenticated) {
                     wasAuthenticated = true
                 } else if (wasAuthenticated) {
                     wasAuthenticated = false
+                    Timber.tag(NAV_DEBUG_TAG).d("navigating to Welcome and clearing back stack")
                     navigator.navigate(Welcome) {
                         // popUpTo(0) is the legacy int-route overload and never matches anything
                         // in this type-safe graph, so it silently popped nothing: every sign-out
@@ -127,6 +140,10 @@ class MainActivity : ComponentActivity() {
                         // the graph's own root id clears the entire stack regardless of route type.
                         popUpTo(navController.graph.id) { inclusive = true }
                     }
+                    Timber.tag(NAV_DEBUG_TAG).d(
+                        "post-navigate stack=%s",
+                        navController.currentBackStack.value.joinToString { it.destination.route.toString() }
+                    )
                 }
             }
 
@@ -178,5 +195,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private companion object {
+        const val NAV_DEBUG_TAG = "AuthNavDebug"
     }
 }
