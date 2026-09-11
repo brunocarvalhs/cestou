@@ -5,9 +5,12 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -52,6 +55,22 @@ class ShoppingCreateUseCaseTest {
         val result = useCase(title = "Weekly Groceries", emoji = "🍕")
 
         assertEquals("🍕", result.getOrNull()?.emoji)
+    }
+
+    @Test
+    fun `invoke falls back to the default title and description strings when the AI agent omits them`() = runTest {
+        val userId = "user-123"
+        coEvery { authService.getOrCreateUserId() } returns AuthenticatedUser(id = userId, email = "test@test.com")
+        every { context.getString(R.string.shopping_list_new_title) } returns "Nova lista"
+        every { context.getString(R.string.shopping_list_new_description) } returns "Lista criada pelo assistente"
+
+        val result = useCase(title = null, description = null)
+
+        assertTrue(result.isSuccess)
+        assertEquals("Nova lista", result.getOrNull()?.title)
+        assertEquals("Lista criada pelo assistente", result.getOrNull()?.description)
+        verify { context.getString(R.string.shopping_list_new_title) }
+        verify { context.getString(R.string.shopping_list_new_description) }
     }
 
     @Test

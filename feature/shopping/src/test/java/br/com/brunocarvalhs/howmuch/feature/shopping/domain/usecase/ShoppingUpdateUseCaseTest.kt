@@ -70,4 +70,55 @@ class ShoppingUpdateUseCaseTest {
             }
         }
     }
+
+    @Test
+    fun `execute throws when description is missing`() {
+        assertThrows(Exception::class.java) {
+            runTest {
+                useCase.execute(
+                    arguments = mapOf(
+                        "shopping_id" to "list1",
+                        "title" to "Weekly Groceries"
+                    ),
+                    session = mockk(relaxed = true),
+                    metadata = emptyMap()
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `execute throws when price is missing`() {
+        assertThrows(Exception::class.java) {
+            runTest {
+                useCase.execute(
+                    arguments = mapOf(
+                        "shopping_id" to "list1",
+                        "title" to "Weekly Groceries",
+                        "description" to "desc"
+                    ),
+                    session = mockk(relaxed = true),
+                    metadata = emptyMap()
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `execute throws when status is missing`() {
+        assertThrows(Exception::class.java) {
+            runTest {
+                useCase.execute(
+                    arguments = mapOf(
+                        "shopping_id" to "list1",
+                        "title" to "Weekly Groceries",
+                        "description" to "desc",
+                        "price" to 10.5
+                    ),
+                    session = mockk(relaxed = true),
+                    metadata = emptyMap()
+                )
+            }
+        }
+    }
 }

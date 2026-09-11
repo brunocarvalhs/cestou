@@ -41,4 +41,20 @@ class ShoppingClearPurchasedUseCaseTest {
             }
         }
     }
+
+    @Test
+    fun `execute reads shopping_id from AI agent arguments and clears purchased products`() = runTest {
+        coEvery { repository.getAllProducts("list1") } returns flowOf(
+            listOf(Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0, isPurchased = true))
+        )
+
+        val result = useCase.execute(
+            arguments = mapOf("shopping_id" to "list1"),
+            session = mockk(relaxed = true),
+            metadata = emptyMap()
+        )
+
+        assertTrue(result.isSuccess)
+        coVerify(exactly = 1) { repository.deleteProduct("p1", "list1") }
+    }
 }

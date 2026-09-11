@@ -33,4 +33,31 @@ class RecipeSearchUseCaseTest {
         assertEquals(emptyList<Recipe>(), result.getOrNull())
         io.mockk.coVerify(exactly = 0) { repository.searchRecipes(any()) }
     }
+
+    @Test
+    fun `execute reads the query from the AI agent arguments and delegates to invoke`() = runTest {
+        val recipe = Recipe(id = "r1", name = "Bolo", description = "desc", ingredients = emptyList())
+        coEvery { repository.searchRecipes("bolo") } returns Result.success(listOf(recipe))
+
+        val result = useCase.execute(
+            arguments = mapOf("query" to "bolo"),
+            session = mockk(relaxed = true),
+            metadata = emptyMap()
+        )
+
+        assertEquals(listOf(recipe), result.getOrNull())
+    }
+
+    @Test
+    fun `execute defaults to a blank query when the argument is missing`() = runTest {
+        val result = useCase.execute(
+            arguments = emptyMap(),
+            session = mockk(relaxed = true),
+            metadata = emptyMap()
+        )
+
+        assertTrue(result.isSuccess)
+        assertEquals(emptyList<Recipe>(), result.getOrNull())
+        io.mockk.coVerify(exactly = 0) { repository.searchRecipes(any()) }
+    }
 }

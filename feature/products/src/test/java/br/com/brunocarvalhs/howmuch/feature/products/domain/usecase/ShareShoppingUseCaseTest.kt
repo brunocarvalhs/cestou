@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 
 import android.app.Application
+import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
@@ -11,6 +12,8 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Shadows
@@ -44,5 +47,28 @@ class ShareShoppingUseCaseTest {
 
         val started = Shadows.shadowOf(context).nextStartedActivity
         assert(started != null) { "Expected a share chooser Intent to be started" }
+    }
+
+    @Test
+    fun `invoke includes a non-blank description in the shared text`() = runTest {
+        val shoppingWithDescription = shopping.copy(description = "Compras da semana")
+        coEvery { productsUseCase(shoppingWithDescription.id) } returns flowOf(
+            listOf(Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0, isPurchased = true))
+        )
+
+        useCase(shoppingWithDescription)
+
+        val chooser = Shadows.shadowOf(context).nextStartedActivity
+        val shareIntent = chooser?.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
+        assertNotNull("Expected the chooser to wrap the share Intent", shareIntent)
+        val sharedText = shareIntent?.getStringExtra(Intent.EXTRA_TEXT).orEmpty()
+        assertTrue(
+            "Shared text should include the shopping description",
+            sharedText.contains("Compras da semana")
+        )
+        assertTrue(
+            "Shared text should include each product",
+            sharedText.contains("Milk")
+        )
     }
 }
