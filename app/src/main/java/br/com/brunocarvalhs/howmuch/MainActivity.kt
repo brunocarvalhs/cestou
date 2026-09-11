@@ -110,7 +110,13 @@ class MainActivity : ComponentActivity() {
                 } else if (wasAuthenticated) {
                     wasAuthenticated = false
                     navigator.navigate(Welcome) {
-                        popUpTo(0) { inclusive = true }
+                        // popUpTo(0) is the legacy int-route overload and never matches anything
+                        // in this type-safe graph, so it silently popped nothing: every sign-out
+                        // just pushed a new Welcome on top of the still-live ShoppingList/etc.
+                        // back stack instead of clearing it (compare the correct
+                        // popUpTo(Welcome) used on sign-in in AuthInitializerImpl). Popping up to
+                        // the graph's own root id clears the entire stack regardless of route type.
+                        popUpTo(navController.graph.id) { inclusive = true }
                     }
                 }
             }
