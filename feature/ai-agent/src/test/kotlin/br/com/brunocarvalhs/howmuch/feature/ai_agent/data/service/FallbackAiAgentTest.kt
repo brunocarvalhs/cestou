@@ -35,4 +35,17 @@ class FallbackAiAgentTest {
 
         assertEquals(listOf("from secondary"), result)
     }
+
+    @Test
+    fun `sendMessage emits a friendly message when both primary and secondary throw`() = runTest {
+        coEvery { primary.sendMessage("hi", context) } returns flow { throw RuntimeException("primary boom") }
+        coEvery { secondary.sendMessage("hi", context) } returns flow { throw RuntimeException("secondary boom") }
+
+        val result = agent.sendMessage("hi", context).toList()
+
+        assertEquals(
+            listOf("Desculpe, tive um problema ao processar sua solicitação. Tente novamente em instantes."),
+            result
+        )
+    }
 }

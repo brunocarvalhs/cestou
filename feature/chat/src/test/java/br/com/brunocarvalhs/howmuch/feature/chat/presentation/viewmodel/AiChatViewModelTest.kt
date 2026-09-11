@@ -1,13 +1,17 @@
 package br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel
 
+import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -24,7 +28,8 @@ class AiChatViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private val assistantUseCase = mockk<CartAssistantUseCase>()
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
-    private val viewModel = AiChatViewModel(assistantUseCase, analyticsTracker)
+    private val context = mockk<Context>(relaxed = true)
+    private val viewModel = AiChatViewModel(assistantUseCase, analyticsTracker, context)
 
     @Before
     fun setup() {
@@ -75,5 +80,18 @@ class AiChatViewModelTest {
         viewModel.setShoppingContext("list1")
 
         assertEquals("list1", viewModel.uiState.value.shoppingId)
+    }
+
+    @Test
+    fun `onSendMessage shows a localized error message when the assistant flow throws`() = runTest {
+        every { context.getString(R.string.ai_chat_error_message) } returns "Sorry, something went wrong."
+        viewModel.intent.onInputChange("hello")
+        coEvery { assistantUseCase("hello", any()) } returns flow { throw RuntimeException("all providers down") }
+
+        viewModel.intent.onSendMessage()
+
+        assertEquals(2, viewModel.uiState.value.messages.size)
+        assertEquals("Sorry, something went wrong.", viewModel.uiState.value.messages.last().text)
+        assertEquals(false, viewModel.uiState.value.isLoading)
     }
 }
