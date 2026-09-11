@@ -129,7 +129,9 @@ internal class GeminiAiAgent(
         } catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException) throw e
             Timber.e(e, "Erro na comunicação com Gemini")
-            emit("Desculpe, tive um problema ao processar sua solicitação no Gemini.")
+            // Propaga para que FallbackAiAgent possa tentar o provider secundário;
+            // engolir o erro aqui (emitindo um texto de desculpas) o impede de ver a falha.
+            throw e
         }
     }
 }

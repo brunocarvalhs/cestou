@@ -2,4 +2,5 @@
     <string name="ai_chat_title">Asistente de IA</string>
     <string name="ai_chat_input_label">Mensaje</string>
     <string name="ai_chat_settings_content_description">Configuración</string>
+    <string name="ai_chat_error_message">Lo sentimos, no pudimos procesar tu solicitud. Inténtalo de nuevo en unos instantes.</string>
 </resources>
