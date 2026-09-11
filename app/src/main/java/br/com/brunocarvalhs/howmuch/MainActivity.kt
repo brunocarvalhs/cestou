@@ -103,6 +103,15 @@ class MainActivity : ComponentActivity() {
             val currentDestination = screenBackStackEntry?.destination
             val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
 
+            // Captured once: NavHost's startDestination below must never react to later
+            // isAuthenticated changes. Navigation-Compose rebuilds the whole graph and resets
+            // the back stack whenever startDestination changes on an already-created
+            // NavController, which fights with the explicit navigate()+popUpTo() below (and with
+            // sign-in's own navigate() in AuthInitializerImpl) over who controls the stack — the
+            // exact kind of conflict that can leave a stale, already-authenticated destination on
+            // top after sign-out. All auth-driven navigation after the first frame must go
+            // through the imperative navigate() calls only.
+            val initialAuthenticated = remember { isAuthenticated }
             var wasAuthenticated by remember { mutableStateOf(isAuthenticated) }
             LaunchedEffect(isAuthenticated) {
                 if (isAuthenticated) {
@@ -160,7 +169,7 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = if (isAuthenticated) ShoppingList else Welcome
+                        startDestination = if (initialAuthenticated) ShoppingList else Welcome
                     ) {
                         featureInitializers.forEach {
                             it.registerGraph(this, navigator, windowSizeClass)
