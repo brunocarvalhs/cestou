@@ -176,6 +176,25 @@ class MainActivity : ComponentActivity() {
                 currentDestination?.hierarchy?.any { it.hasRoute(route::class) } == true
             }
 
+            // Continuous guard, separate from the isAuthenticated transition effect above: that
+            // effect only fires on the true->false EDGE, so if the user ever lands back on a
+            // protected (bottom-nav) destination while already signed out — e.g. a still-tappable
+            // bottom bar surviving one extra frame after sign-out — isAuthenticated never changes
+            // again and nothing redirects them. Logcat confirmed this exact case: isAuthenticated
+            // stayed false for 10+ real seconds while ShoppingList/Profile were fully navigable.
+            // This re-checks on every destination change, independent of *how* the user got there.
+            LaunchedEffect(currentRoute, isAuthenticated) {
+                if (!isAuthenticated && currentRoute != null) {
+                    Timber.tag(NAV_DEBUG_TAG).d(
+                        "guard: unauthenticated on protected route %s, redirecting to Welcome",
+                        currentRoute
+                    )
+                    navigator.navigate(Welcome) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                }
+            }
+
             val showBottomBar = currentRoute != null
 
             Scaffold(
@@ -185,6 +204,7 @@ class MainActivity : ComponentActivity() {
                         photoUrl = photoUrl,
                         visible = showBottomBar,
                         onNavigate = { route ->
+                            Timber.tag(NAV_DEBUG_TAG).d("bottom nav tapped: route=%s", route)
                             navigator.navigate(route) {
                                 popUpTo(navController.graph.startDestinationId) {
                                     saveState = true
