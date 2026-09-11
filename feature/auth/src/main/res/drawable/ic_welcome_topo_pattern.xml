@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  PLACEHOLDER decorative texture for the welcome/login screen's colored hero area.
+
+  There is no final commissioned pattern/illustration for this screen yet, so this is a
+  hand-built vector approximating a topographic/contour-map texture: a handful of nested,
+  slightly-rotated concentric ellipse clusters, loosely mimicking the layered contour lines used
+  as a background motif in the reference design. It is meant to be drawn at low contrast on top
+  of a solid brand-colored background (see WelcomeScreen.kt), not as a standalone image.
+
+  Stroke color is a fixed translucent white rather than a MaterialTheme token: static vector
+  drawables cannot bind to MaterialTheme.colorScheme at render time the way a Composable can, and
+  the hero background itself is drawn with a fixed brand color (MaterialTheme.colorScheme.primary,
+  which is CestouBrightGreen in both the light and dark schemes) rather than switching per theme,
+  so a fixed light stroke stays legible either way.
+
+  TODO(design/product): replace with a final commissioned pattern once one is approved.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="400dp"
+    android:height="460dp"
+    android:viewportWidth="400"
+    android:viewportHeight="460">
+
+    <group
+        android:name="cluster_top_left"
+        android:pivotX="90"
+        android:pivotY="120"
+        android:rotation="15">
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#33FFFFFF"
+            android:strokeWidth="2.2"
+            android:pathData="M160,120 A70,55 0 1,0 20,120 A70,55 0 1,0 160,120" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#33FFFFFF"
+            android:strokeWidth="2.2"
+            android:pathData="M140,120 A50,40 0 1,0 40,120 A50,40 0 1,0 140,120" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#33FFFFFF"
+            android:strokeWidth="2.2"
+            android:pathData="M120,120 A30,25 0 1,0 60,120 A30,25 0 1,0 120,120" />
+    </group>
+
+    <group
+        android:name="cluster_top_right"
+        android:pivotX="300"
+        android:pivotY="90"
+        android:rotation="-20">
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#33FFFFFF"
+            android:strokeWidth="2.2"
+            android:pathData="M360,90 A60,75 0 1,0 240,90 A60,75 0 1,0 360,90" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#33FFFFFF"
+            android:strokeWidth="2.2"
+            android:pathData="M342,90 A42,54 0 1,0 258,90 A42,54 0 1,0 342,90" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#33FFFFFF"
+            android:strokeWidth="2.2"
+            android:pathData="M324,90 A24,32 0 1,0 276,90 A24,32 0 1,0 324,90" />
+    </group>
+
+    <group
+        android:name="cluster_center_bottom"
+        android:pivotX="250"
+        android:pivotY="320"
+        android:rotation="8">
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#33FFFFFF"
+            android:strokeWidth="2.2"
+            android:pathData="M335,320 A85,65 0 1,0 165,320 A85,65 0 1,0 335,320" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#33FFFFFF"
+            android:strokeWidth="2.2"
+            android:pathData="M310,320 A60,46 0 1,0 190,320 A60,46 0 1,0 310,320" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#33FFFFFF"
+            android:strokeWidth="2.2"
+            android:pathData="M285,320 A35,27 0 1,0 215,320 A35,27 0 1,0 285,320" />
+    </group>
+
+    <group
+        android:name="cluster_bottom_left"
+        android:pivotX="60"
+        android:pivotY="380"
+        android:rotation="-10">
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#33FFFFFF"
+            android:strokeWidth="2.2"
+            android:pathData="M105,380 A45,55 0 1,0 15,380 A45,55 0 1,0 105,380" />
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#33FFFFFF"
+            android:strokeWidth="2.2"
+            android:pathData="M90,380 A30,37 0 1,0 30,380 A30,37 0 1,0 90,380" />
+    </group>
+</vector>

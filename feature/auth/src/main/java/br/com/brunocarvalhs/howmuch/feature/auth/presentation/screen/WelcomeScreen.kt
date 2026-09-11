@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -35,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
 import br.com.brunocarvalhs.howmuch.feature.auth.R
+import br.com.brunocarvalhs.howmuch.feature.auth.presentation.components.WaveTopShape
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.intent.WelcomeIntent
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.state.WelcomeUiState
 
@@ -45,24 +48,45 @@ internal fun WelcomeScreen(
     actions: @Composable ColumnScope.() -> Unit
 ) {
     Scaffold { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Compact brand lockup: small logomark badge + wordmark, side by side so the
-            // hero illustration below can take the visual lead instead of a large centered logo.
+            // Hero: solid brand-colored background covering the whole screen, with a
+            // decorative topographic pattern texture on top. Only the portion not covered by
+            // the wave-clipped content sheet below actually stays visible, reading as a colored
+            // band occupying roughly the top half of the screen. The testTag lives on this Box
+            // (the hero area's container) rather than on the decorative image itself, so it
+            // stays stable if the pattern asset changes. This is a hand-built vector PLACEHOLDER
+            // (see ic_welcome_topo_pattern.xml) — swap for a final commissioned pattern once
+            // product/design provides one.
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.primary)
+                    .testTag("welcome_hero_image")
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_welcome_topo_pattern),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            // Compact brand lockup, overlaid on top of the hero pattern.
             Row(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer)
+                        .background(MaterialTheme.colorScheme.surface)
                         .testTag("welcome_logo"),
                     contentAlignment = Alignment.Center
                 ) {
@@ -81,63 +105,58 @@ internal fun WelcomeScreen(
                     modifier = Modifier.testTag("welcome_brand_name"),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Hero illustration: the main visual anchor of the screen, depicting the app's
-            // "shared shopping list" concept. This is a hand-built vector PLACEHOLDER (see
-            // ic_welcome_hero_illustration.xml) — swap for a final commissioned illustration
-            // once product/design provides one.
-            Image(
-                painter = painterResource(id = R.drawable.ic_welcome_hero_illustration),
-                contentDescription = stringResource(R.string.welcome_hero_image_content_description),
+            // Content sheet: a wave-clipped surface block resting on top of the hero area,
+            // holding the title, description, sign-in actions and footer. Left-aligned text,
+            // per the approved reference layout.
+            Column(
                 modifier = Modifier
-                    .size(200.dp)
-                    .testTag("welcome_hero_image")
-            )
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // Text Content
-            Text(
-                text = stringResource(R.string.welcome_title),
-                modifier = Modifier
-                    .testTag("welcome_title")
-                    .padding(horizontal = 8.dp),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = stringResource(R.string.welcome_description),
-                modifier = Modifier
-                    .testTag("welcome_description")
-                    .padding(horizontal = 8.dp),
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            actions()
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = stringResource(R.string.welcome_footer, state.version),
-                modifier = Modifier
+                    .align(Alignment.BottomStart)
                     .fillMaxWidth()
-                    .testTag("welcome_footer"),
-                style = MaterialTheme.typography.bodySmall,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+                    .fillMaxHeight(0.62f)
+                    .clip(WaveTopShape(waveHeight = 28.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 72.dp, bottom = 24.dp),
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(
+                    text = stringResource(R.string.welcome_title),
+                    modifier = Modifier.testTag("welcome_title"),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Start,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = stringResource(R.string.welcome_description),
+                    modifier = Modifier.testTag("welcome_description"),
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Start,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                actions()
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = stringResource(R.string.welcome_footer, state.version),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("welcome_footer"),
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
