@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  PLACEHOLDER hero illustration for the welcome/login screen.
+
+  There is no final illustration/art asset for this screen in the project yet, so this is a
+  simple hand-built vector depicting a shopping list card (a couple of checked items, a couple
+  of pending ones) with a shopping-bag accent — meant to visually anchor the "shared shopping
+  list" concept described in welcome_title/welcome_description.
+
+  Colors below are inlined copies of existing core/theme tokens (CestouSoftGreen, CestouBrightGreen,
+  CestouTextSecondary, CestouTextTertiary, CestouOrange, CestouDeepGreen — see
+  core/theme/src/main/java/.../core/theme/Color.kt) rather than new hardcoded colors: static
+  vector drawables cannot bind to MaterialTheme.colorScheme at render time the way a Composable
+  can, so exact hex values are duplicated here intentionally to stay on-brand.
+
+  TODO(design/product): replace with a final illustration once one is commissioned/approved.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- List card background (CestouSoftGreen) -->
+    <path
+        android:fillColor="#FFF0FDF4"
+        android:pathData="M40,30 H150 A20,20 0 0 1 170,50 V170 A20,20 0 0 1 150,190 H40 A20,20 0 0 1 20,170 V50 A20,20 0 0 1 40,30 Z" />
+
+    <!-- Shopping bag accent (CestouOrange) overlapping the card's top-right corner -->
+    <path
+        android:fillColor="#FFF97316"
+        android:pathData="M130,10 L178,10 L172,58 L136,58 Z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF064E3B"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M145,10 A9,12 0 0 1 163,10" />
+
+    <!-- List row 1: checked item (CestouBrightGreen bullet + CestouTextSecondary line) -->
+    <path android:fillColor="#FF16A34A" android:pathData="M42,70 m-8,0 a8,8 0 1,0 16,0 a8,8 0 1,0 -16,0" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF4B5563"
+        android:strokeWidth="10"
+        android:strokeLineCap="round"
+        android:pathData="M64,70 L150,70" />
+
+    <!-- List row 2: checked item -->
+    <path android:fillColor="#FF16A34A" android:pathData="M42,102 m-8,0 a8,8 0 1,0 16,0 a8,8 0 1,0 -16,0" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF4B5563"
+        android:strokeWidth="10"
+        android:strokeLineCap="round"
+        android:pathData="M64,102 L130,102" />
+
+    <!-- List row 3: pending item (CestouTextTertiary outline bullet) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF9CA3AF"
+        android:strokeWidth="3"
+        android:pathData="M42,134 m-8,0 a8,8 0 1,0 16,0 a8,8 0 1,0 -16,0" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF9CA3AF"
+        android:strokeWidth="10"
+        android:strokeLineCap="round"
+        android:pathData="M64,134 L140,134" />
+
+    <!-- List row 4: pending item -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF9CA3AF"
+        android:strokeWidth="3"
+        android:pathData="M42,166 m-8,0 a8,8 0 1,0 16,0 a8,8 0 1,0 -16,0" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF9CA3AF"
+        android:strokeWidth="10"
+        android:strokeLineCap="round"
+        android:pathData="M64,166 L110,166" />
+
+    <!-- Sparkle accent (CestouOrange) hinting at the AI-powered savings feature -->
+    <path
+        android:fillColor="#FFF97316"
+        android:pathData="M15,165 L18,174 L27,177 L18,180 L15,189 L12,180 L3,177 L12,174 Z" />
+</vector>

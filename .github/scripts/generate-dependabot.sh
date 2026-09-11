@@ -46,6 +46,21 @@ render() {
     yq -o=json ".security.dependabot.ecosystems[$i].labels" "$CONFIG_FILE" | jq -r '.[]' | while read -r label; do
       echo "      - \"$label\""
     done
+
+    local ignore_count
+    ignore_count=$(yq ".security.dependabot.ecosystems[$i].ignore // [] | length" "$CONFIG_FILE")
+    if [ "$ignore_count" -gt 0 ]; then
+      echo "    ignore:"
+      for j in $(seq 0 $((ignore_count - 1))); do
+        local dep_name
+        dep_name=$(yq ".security.dependabot.ecosystems[$i].ignore[$j].dependency_name" "$CONFIG_FILE")
+        echo "      - dependency-name: \"$dep_name\""
+        echo "        update-types:"
+        yq -o=json ".security.dependabot.ecosystems[$i].ignore[$j].update_types" "$CONFIG_FILE" | jq -r '.[]' | while read -r update_type; do
+          echo "          - \"$update_type\""
+        done
+      done
+    fi
   done
 }
 

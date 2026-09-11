@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Brand name is not translated on purpose. -->
+    <string name="welcome_brand_name" translatable="false">Cestou</string>
+    <string name="welcome_logo_content_description">Logotipo do Cestou</string>
+    <string name="welcome_hero_image_content_description">Ilustração de uma lista de compras com itens marcados e uma sacola de compras</string>
     <string name="welcome_title">Suas compras, mais inteligentes</string>
     <string name="welcome_description">Crie listas dinâmicas, compartilhe em tempo real com quem quiser e use nossa inteligência artificial para economizar.</string>
     <string name="welcome_footer">Versão %1$s • Feito com ❤️ no Brasil</string>
+
+    <!-- Sign-in provider buttons -->
+    <string name="welcome_provider_google">Continuar com Google</string>
+    <string name="welcome_provider_email">Entrar com e-mail</string>
+    <string name="welcome_provider_phone">Entrar com telefone</string>
+    <string name="welcome_provider_generic">Entrar com %1$s</string>
+
+    <!-- Terms and privacy policy disclaimer -->
+    <string name="welcome_terms_prefix">Ao continuar, você concorda com nossos </string>
+    <string name="welcome_terms_terms_of_use">Termos de Uso</string>
+    <string name="welcome_terms_and"> e </string>
+    <string name="welcome_terms_privacy_policy">Política de Privacidade</string>
+    <string name="welcome_terms_suffix">.</string>
 </resources>

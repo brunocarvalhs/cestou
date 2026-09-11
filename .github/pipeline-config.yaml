@@ -352,6 +352,17 @@ security:
       - id: "gradle"
         directory: "/"
         labels: ["dependencies"]
+        # Ktor's client plugin API broke binary compatibility between 2.x and
+        # 3.x (HttpTimeout went from a class to a top-level property), and
+        # com.google.ai.client.generativeai:0.9.0 (our Gemini SDK) is compiled
+        # against 2.x and crashes at runtime - NoClassDefFoundError - if Ktor
+        # is bumped to 3.x while that SDK stays put. Ignore major bumps here
+        # until we migrate off generativeai (Firebase AI Logic is the planned
+        # replacement) or it ships a Ktor-3-compatible release; minor/patch
+        # bumps stay unaffected.
+        ignore:
+          - dependency_name: "io.ktor:*"
+            update_types: ["version-update:semver-major"]
       - id: "github-actions"
         directory: "/"
         labels: ["ci"]
