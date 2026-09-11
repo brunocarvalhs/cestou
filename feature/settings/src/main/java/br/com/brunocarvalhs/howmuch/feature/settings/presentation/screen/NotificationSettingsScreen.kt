@@ -27,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,16 +49,19 @@ internal fun NotificationSettingsScreen(
         topBar = {
             SettingsHeader(
                 title = stringResource(R.string.settings_section_notifications),
+                titleTestTag = "notification_settings_screen_title",
                 onBack = { intent.onBack() }
             )
         }
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             ListItem(
+                modifier = Modifier.testTag("notification_settings_enable_row"),
                 headlineContent = { Text(stringResource(R.string.settings_notifications_enable)) },
                 supportingContent = { Text(stringResource(R.string.settings_notifications_desc)) },
                 trailingContent = {
                     Switch(
+                        modifier = Modifier.testTag("notification_settings_enable_switch"),
                         checked = state.notificationsEnabled,
                         onCheckedChange = { intent.onUpdateNotificationSettings(it, state.reminderTime) }
                     )
@@ -65,7 +69,9 @@ internal fun NotificationSettingsScreen(
             )
 
             ListItem(
-                modifier = Modifier.clickable(enabled = state.notificationsEnabled) { showTimePicker = true },
+                modifier = Modifier
+                    .testTag("notification_settings_reminder_time_row")
+                    .clickable(enabled = state.notificationsEnabled) { showTimePicker = true },
                 headlineContent = { 
                     Text(
                         text = stringResource(R.string.settings_notifications_reminder_time),

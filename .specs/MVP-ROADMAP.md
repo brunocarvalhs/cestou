@@ -67,6 +67,48 @@ regression suite (#16), this doc (#17), account & data deletion (#18), dead soci
   testTag rework. The rest of the suite is blocked on a human logging back into the device (this
   session's own test run cleared the session) — see `.specs/STATE.md` handoff for the exact ask.
   F2.2 (Google Sign-In QA) still needs a manual pass; Maestro can't drive the Google account picker.
+  **Session of 2026-09-10 (same branch, second real device — Samsung SM-A146M `RQCWB07B4WT` over
+  USB this time)**: grew the suite to 13 flows (added `list_management_flow.yaml`; deepened
+  `settings_flow.yaml` and `cart_interactions_flow.yaml` to actually enter AI/Shopping/
+  Notifications settings and the QR-invite screen instead of only asserting entry points exist),
+  rebuilt and installed a fresh debug APK with the new `testTag`s, and re-ran `onboarding_flow.yaml`
+  against it — which caught a **second, independent regression**: `fix/wire-legal-urls` (PR #83,
+  merged into `develop` in between) restructured the terms text into multiple `Text` nodes,
+  breaking the flow's old single-sentence assert. Fixed. `onboarding_flow.yaml` passes end-to-end
+  on the current build. **Still blocked exactly the same way as before**: that same run logged the
+  device back out, and the other 12 flows need a human to log back in via "Continuar com Google" —
+  nobody here should or will automate that picker. See `.specs/STATE.md` handoff for the full
+  session detail, including one real (cosmetic) app bug found and flagged, not fixed:
+  `EditShoppingViewModel.shareToken()` never sets `EditShoppingUiState.sharingToken`.
+  **Correction, later the same day — the "just needs a human to log back in" diagnosis above is
+  now known to be wrong.** bruno did log back in manually; the suite was started anyway and
+  `home_flow.yaml` (flow 1 of 11) still failed on the login screen. Logcat traced it to a **real app
+  bug**: a 403 `App attestation failed` from Firebase App Check makes `FirebaseAuth` fire a forced
+  sign-out ~14s after every cold launch on debug builds. Since every flow cold-launches and every
+  flow runs longer than 14s, the remaining **10 flows were deliberately not attempted** — they would
+  all fail identically and meaninglessly. **Current, honest F0.3 tally: 1 flow passing
+  (`onboarding_flow.yaml`), 1 failing for an app-side reason (`home_flow.yaml`), 10 never
+  exercised.** Connectivity has been ruled out. Now blocked on bruno (console access) and tracked as
+  **AD-010** in `.specs/STATE.md`, which also flags that release builds install no App Check
+  provider at all.
+  **Session of 2026-09-11 (same branch, same physical device, now over wireless adb)**: re-verified
+  every `id:` selector across all 13 flows against real `testTag(...)` sites in the current
+  codebase before touching anything (none stale). Rebuilt and installed a fresh debug APK (fresh
+  install, no prior session — nothing was logged out to get here) and found, by actually running
+  flows rather than by inspection, **two more real suite bugs**: `login_flow.yaml` had drifted to
+  tap the Google OAuth consent screen's own "Sign in" button, contradicting its documented scope of
+  stopping right after the in-app Google button tap — removed. `onboarding_flow.yaml`'s
+  2026-09-10 terms-sentence fix was itself subtly wrong (asserted a trailing space the compiled
+  string resource doesn't actually have — Android strips it from the unquoted XML source) — fixed,
+  and its two link assertions switched to existing, previously-unused `testTag`s instead of plain
+  text. **Both flows now run and pass end-to-end on device** (`onboarding_flow.yaml`,
+  `login_flow.yaml`) — this is also the first on-device confirmation that the 2026-09-10
+  `testTagsAsResourceId` fix actually works. `login_flow.yaml` reaching its final step left the real
+  Google account picker on screen; per policy no agent tapped it further. **Honest F0.3 tally as of
+  this session: 2 of 13 flows verified passing (both pre-login), 11 unexercised, blocked on bruno
+  tapping "Sign in" on `RQCWB07B4WT`** — see `.specs/STATE.md` handoff for the exact ask. Whether
+  the App Check forced-sign-out above still reproduces on this fresh install is unverified and
+  should be watched for as soon as the remaining flows run.
 - Screenshots/feature graphic (part of G4) need a device to capture.
 - The privacy/terms pages (G3) need a hosting decision before the in-app links can point anywhere.
 - **G5 Firestore rules** are no longer unwritten *or* outside the repo: a full rule set covering

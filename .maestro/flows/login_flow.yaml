@@ -1,0 +1,42 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Login Flow
+---
+# Verifies the pre-login Welcome screen and taps "Continuar com Google", then STOPS
+# immediately after the tap — it does not proceed into, dismiss, or otherwise interact with
+# the Google account picker/OAuth consent UI that appears next. That UI is outside the app's
+# control and specific to whichever Google account is on the physical device; automating it
+# is explicitly out of scope for this suite (see README "Authentication" / "Notes / known
+# gaps"). The tap itself is fair game — it's an in-app button like any other — only what
+# happens after the tap is excluded. A screenshot showing the system account-picker/consent
+# dialog having appeared is sufficient evidence this flow reached and exercised the button.
+#
+# Selectors are all testTag-based (id:), not plain text, per README "Language / locale":
+# `feature/auth`'s Welcome-screen strings currently have no `values-*/strings.xml` override
+# (only one default resource, already Portuguese), which is why onboarding_flow.yaml could
+# justify plain-text assertions as locale-safe — but that's an incidental fact about today's
+# resources, not a guarantee. A future translation could add a `values-en` override at any
+# time without this flow's author knowing, silently breaking a plain-text assertion the same
+# way the CustomMethodPickerTerms split did to onboarding_flow.yaml. testTag doesn't care
+# either way, so it's used throughout here on principle, not just where locale is a live risk.
+#
+# Does NOT use clearState: this flow assumes the device is already on the logged-out Welcome
+# screen (e.g. after onboarding_flow.yaml, or any session that has ended in a sign-out — see
+# the App Check forced-sign-out issue tracked in .specs/STATE.md). It will simply fail on an
+# authenticated device rather than force a sign-out to get there; pairs with
+# onboarding_flow.yaml (which does use clearState) instead of replacing it.
+#
+# Excluded from test_suite.yaml for the same reason onboarding_flow.yaml is: tapping
+# "Continuar com Google" surfaces the system account-picker mid-suite, which every other flow
+# assumes is authenticated already and is not prepared to handle. Run this flow on its own.
+- launchApp
+
+- assertVisible:
+    id: "welcome_title"
+- assertVisible:
+    id: "welcome_description"
+- assertVisible:
+    id: "welcome_google_button"
+- tapOn:
+    id: "welcome_google_button"
+- waitForAnimationToEnd:
+    timeout: 2000

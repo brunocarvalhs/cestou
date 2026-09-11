@@ -46,6 +46,28 @@ name: Settings Flow
 - assertVisible:
     id: "settings_item_CurrencySettings"
 
+# AI section — model picker, custom prompt, creativity slider. Backing out re-saves whatever was
+# already loaded (AiSettingsScreen.kt calls onUpdateAiSettings with the current in-memory values
+# on both Save and back-navigation), so visiting this screen without changing anything is a no-op
+# on the persisted settings, safe to run repeatedly.
+- assertVisible:
+    id: "settings_item_AiSettings"
+- tapOn:
+    id: "settings_item_AiSettings"
+- assertVisible:
+    id: "ai_settings_screen_title"
+- assertVisible:
+    id: "ai_settings_model_field"
+- assertVisible:
+    id: "ai_settings_prompt_field"
+- assertVisible:
+    id: "ai_settings_creativity_slider"
+- assertVisible:
+    id: "ai_settings_save_button"
+- back
+- assertVisible:
+    id: "settings_screen_title"
+
 - tapOn:
     id: "settings_item_ThemeSettings"
 - assertVisible:
@@ -63,6 +85,44 @@ name: Settings Flow
 - back
 - assertVisible:
     id: "theme_settings_screen_title"
+- back
+- assertVisible:
+    id: "settings_screen_title"
+
+# Shopping section — sorting preference + reminders toggle. Same no-op-on-back guarantee as the
+# AI section above (ShoppingSettingsScreen.kt's onBack re-saves the unchanged in-memory state).
+# Not toggling the switch/radios here, same convention as the Theme picker above: assert
+# structure, don't mutate a real preference.
+- tapOn:
+    id: "settings_item_ShoppingSettings"
+- assertVisible:
+    id: "shopping_settings_screen_title"
+- assertVisible:
+    id: "shopping_settings_sorting_row"
+- assertVisible:
+    id: "shopping_settings_reminders_row"
+- assertVisible:
+    id: "shopping_settings_save_button"
+- back
+- assertVisible:
+    id: "settings_screen_title"
+
+# Notifications section. Unlike AI/Shopping, the enable switch here persists immediately on
+# toggle (onCheckedChange calls onUpdateNotificationSettings directly, not just on back/save) —
+# so this flow only asserts structure and never taps the switch, to avoid flipping a real
+# preference. The reminder-time row's tap target is state-dependent (only clickable when
+# notifications are enabled, which can't be assumed for a real account), so it's asserted visible
+# but not tapped either.
+- tapOn:
+    id: "settings_item_NotificationSettings"
+- assertVisible:
+    id: "notification_settings_screen_title"
+- assertVisible:
+    id: "notification_settings_enable_row"
+- assertVisible:
+    id: "notification_settings_enable_switch"
+- assertVisible:
+    id: "notification_settings_reminder_time_row"
 - back
 - assertVisible:
     id: "settings_screen_title"

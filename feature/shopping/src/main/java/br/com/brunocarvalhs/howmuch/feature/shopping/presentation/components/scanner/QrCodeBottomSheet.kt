@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -79,9 +80,13 @@ fun QrCodeBottomSheet(
                 Text(
                     text = stringResource(R.string.shopping_management_invite_members_title),
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.testTag("qr_code_title")
                 )
-                IconButton(onClick = onDismissRequest) {
+                IconButton(
+                    onClick = onDismissRequest,
+                    modifier = Modifier.testTag("qr_code_close_button")
+                ) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = stringResource(br.com.brunocarvalhs.howmuch.core.ui.R.string.action_close)
@@ -96,7 +101,8 @@ fun QrCodeBottomSheet(
                     .size(200.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color.White)
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .testTag("qr_code_image"),
                 contentAlignment = Alignment.Center
             ) {
                 if (qrCodeBitmap != null) {
@@ -124,7 +130,8 @@ fun QrCodeBottomSheet(
             Surface(
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(12.dp),
-                onClick = { 
+                modifier = Modifier.testTag("qr_code_token_row"),
+                onClick = {
                     scope.launch {
                         clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("token", token)))
                     }
@@ -139,7 +146,7 @@ fun QrCodeBottomSheet(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).testTag("qr_code_token_text"),
                         textAlign = TextAlign.Center
                     )
                     Icon(
@@ -155,7 +162,7 @@ fun QrCodeBottomSheet(
 
             Button(
                 onClick = onShare,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp).testTag("qr_code_share_button"),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(Icons.Default.Share, contentDescription = null)

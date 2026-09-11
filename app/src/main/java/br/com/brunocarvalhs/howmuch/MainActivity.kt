@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -21,6 +22,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.os.LocaleListCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,7 +63,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            CestouApp(windowSizeClass = calculateWindowSizeClass(this))
+            // Compose's Modifier.testTag(...) only lives in Compose's own semantics tree; it is
+            // not exposed as `resource-id` on the platform accessibility tree that Maestro/
+            // UiAutomator read unless testTagsAsResourceId is set on a root composable (see
+            // .maestro/README.md "CRITICAL: testTag is currently invisible to Maestro"). Gated to
+            // debug builds so release builds never expose internal test tags as resource-ids.
+            val rootModifier = if (BuildConfig.DEBUG) {
+                Modifier.semantics { testTagsAsResourceId = true }
+            } else {
+                Modifier
+            }
+            Box(modifier = rootModifier) {
+                CestouApp(windowSizeClass = calculateWindowSizeClass(this@MainActivity))
+            }
         }
     }
 

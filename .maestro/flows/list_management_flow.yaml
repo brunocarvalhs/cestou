@@ -1,0 +1,85 @@
+appId: br.com.brunocarvalhs.howmuch
+name: List Management Flow
+---
+# Depends on: create_list_flow.yaml (the "value" list fixture). Must run before
+# finish_purchase_flow.yaml — once that flow locks "value", EditShoppingContent still opens (edit
+# stays available on a finished list to record the total paid), but this flow's assumption that
+# the list is still Shopping.Status.NEW does not hold. Does NOT use clearState (see
+# home_flow.yaml for why).
+#
+# Covers ShoppingItem.kt's long-press dropdown menu (Editar/Duplicar/Compartilhar/Finalizar/
+# Deletar) and, one level deeper, the Edit-list screen (EditShoppingContent) plus the QR
+# invite screen it can open (QrCodeBottomSheet) — none of this is touched by any other flow.
+# cart_interactions_flow.yaml covers the *other* share entry point (CartScreen's share icon ->
+# feature/products' ShareOptionsBottomSheet -> "Invite to Collaborate"), which also lands on
+# QrCodeBottomSheet; this flow reaches the same screen from the list card's own menu instead.
+#
+# Only Editar is actually entered. Duplicar/Finalizar/Deletar are real, destructive actions
+# (a second list, an early-locked "value", or losing the fixture outright) that other flows in
+# the suite depend on "value" surviving unchanged — asserting their presence in the menu is
+# enough without invoking them. EditShoppingContent's "Compartilhar"/generate-token button is
+# safe to tap for real: EditShoppingViewModel.shareToken() and ShareOptionsViewModel.onInviteMember()
+# both reuse the list's existing shortCode (or its id as a fallback) instead of minting a new
+# Firestore token, so opening this screen has no side effect and is safe to repeat.
+#
+# Selectors are testTag-based (id:) — see .maestro/README.md "Language / locale". "value" is
+# user-entered content (this fixture's list name), safe as plain text; longPressOn a plain-text
+# target follows the same convention as product_management_flow.yaml's "Arroz".
+- launchApp
+
+- longPressOn: "value"
+- assertVisible:
+    id: "shopping_item_menu_edit"
+- assertVisible:
+    id: "shopping_item_menu_duplicate"
+- assertVisible:
+    id: "shopping_item_menu_share"
+- assertVisible:
+    id: "shopping_item_menu_finish"
+- assertVisible:
+    id: "shopping_item_menu_delete"
+
+- tapOn:
+    id: "shopping_item_menu_edit"
+- assertVisible:
+    id: "edit_shopping_title"
+- assertVisible:
+    id: "edit_shopping_title_field"
+- assertVisible:
+    id: "edit_shopping_description_field"
+- assertVisible:
+    id: "edit_shopping_share_button"
+- assertVisible:
+    id: "edit_shopping_cancel_button"
+- assertVisible:
+    id: "edit_shopping_save_button"
+
+# Generate/open the invite QR — see header note on why this is safe to tap for real.
+- tapOn:
+    id: "edit_shopping_share_button"
+- assertVisible:
+    id: "qr_code_title"
+- assertVisible:
+    id: "qr_code_image"
+- assertVisible:
+    id: "qr_code_token_text"
+- assertVisible:
+    id: "qr_code_share_button"
+- tapOn:
+    id: "qr_code_close_button"
+
+# Back in the Edit sheet. NOTE (found 2026-09-10 while adding this flow): EditShoppingUiState's
+# `sharingToken` is never actually set by EditShoppingViewModel.shareToken() — it navigates to
+# QrCode(token) but never does `_uiState.update { it.copy(sharingToken = token) }`, so
+# EditShoppingContent's `sharingToken == null` branch always wins and the "Generate token" button
+# never flips to the token-display Card, even right after generating one. Real app bug (dead
+# state field), not a suite bug — flagged for tech-lead triage, not fixed here. Asserting the
+# button in its actual (always-shown) state instead of the Card it should arguably show.
+- assertVisible:
+    id: "edit_shopping_share_button"
+
+# Cancel instead of saving, so this flow never actually mutates the "value" fixture the rest of
+# the suite depends on.
+- tapOn:
+    id: "edit_shopping_cancel_button"
+- assertVisible: "Cestou"

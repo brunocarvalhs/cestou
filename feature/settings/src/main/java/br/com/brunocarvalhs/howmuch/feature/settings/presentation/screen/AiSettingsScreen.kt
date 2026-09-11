@@ -23,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -55,7 +56,8 @@ internal fun AiSettingsScreen(
         topBar = {
             SettingsHeader(
                 title = stringResource(R.string.settings_section_ai),
-                onBack = { 
+                titleTestTag = "ai_settings_screen_title",
+                onBack = {
                     intent.onUpdateAiSettings(model, if (prompt.isEmpty()) null else prompt, creativity)
                     intent.onBack() 
                 }
@@ -92,7 +94,8 @@ internal fun AiSettingsScreen(
                                 type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
                                 enabled = true
                             )
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .testTag("ai_settings_model_field"),
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                     )
 
@@ -123,7 +126,7 @@ internal fun AiSettingsScreen(
                 onValueChange = { prompt = it },
                 label = { Text(stringResource(R.string.settings_ai_label_custom_prompt)) },
                 placeholder = { Text(stringResource(R.string.settings_ai_placeholder_custom_prompt)) },
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).testTag("ai_settings_prompt_field"),
                 minLines = 3
             )
 
@@ -137,14 +140,14 @@ internal fun AiSettingsScreen(
                 onValueChange = { creativity = it },
                 valueRange = 0f..1f,
                 steps = 10,
-                modifier = Modifier.padding(bottom = 32.dp)
+                modifier = Modifier.padding(bottom = 32.dp).testTag("ai_settings_creativity_slider")
             )
 
             Button(
                 onClick = {
                     intent.onUpdateAiSettings(model, if (prompt.isEmpty()) null else prompt, creativity)
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().testTag("ai_settings_save_button")
             ) {
                 Text(text = stringResource(R.string.settings_ai_button_save))
             }

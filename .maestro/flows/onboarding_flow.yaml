@@ -23,4 +23,30 @@ name: Onboarding Flow
 - assertVisible: "Suas compras, mais inteligentes"
 - assertVisible: "Crie listas dinâmicas, compartilhe em tempo real com quem quiser e use nossa inteligência artificial para economizar."
 - assertVisible: "Continuar com Google"
-- assertVisible: "Ao continuar, você concorda com nossos Termos de Uso e Política de Privacidade."
+# REGRESSION found 2026-09-10 re-running this flow after rebuilding for the testTag work above:
+# the single-sentence assert that used to pass here failed against a fresh build. `fix/wire-legal-urls`
+# (PR #83, already merged into develop before this branch pulled it in) split
+# CustomMethodPickerTerms's one Text into six separate Text nodes so "Termos de Uso" / "Política
+# de Privacidade" can be individually clickable links (CustomMethodPicker.kt) — there is no
+# longer a single node containing the full sentence for Maestro to match. Not an app bug (the
+# link-per-term UI is intentional), just this flow drifting behind it; asserting the actual
+# fragments instead.
+#
+# SECOND REGRESSION found 2026-09-11 actually running this flow on device (not assumed from the
+# previous session's notes): the previous fix above still failed —
+# `assertVisible: "Ao continuar, você concorda com nossos "` (with a trailing space) never
+# matched. Confirmed from this run's screen-hierarchy JSON dump: the rendered node's text is
+# `"Ao continuar, você concorda com nossos"`, no trailing space. `welcome_terms_prefix`
+# (feature/auth strings.xml) is declared with an unquoted trailing space
+# (`"...nossos "`), but Android's resource compiler collapses/trims leading and trailing
+# whitespace on unquoted string resources — the space in the XML source never survives into the
+# compiled string. Also switched the two link assertions to their `testTag`s
+# (`welcome_terms_of_use_link` / `welcome_privacy_policy_link`, already present in
+# CustomMethodPicker.kt) instead of plain text, per the standing testTag-over-text convention —
+# the prefix fragment has no testTag, so it stays plain text (locale-safe: no values-*/strings.xml
+# override exists for it, see header above).
+- assertVisible: "Ao continuar, você concorda com nossos"
+- assertVisible:
+    id: "welcome_terms_of_use_link"
+- assertVisible:
+    id: "welcome_privacy_policy_link"

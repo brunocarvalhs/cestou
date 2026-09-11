@@ -19,9 +19,12 @@ name: Cart Interactions Flow
 - waitForAnimationToEnd:
     timeout: 2000
 
-# Share options sheet (Invite to Collaborate / Share as Text) — assert it opens with both
-# options, then back out without tapping either: Invite generates a real Firestore token, and
-# Share as Text hands off to the OS share sheet, neither of which this flow should act on.
+# Share options sheet (Invite to Collaborate / Share as Text). Share as Text hands off to the
+# OS share sheet and isn't tapped — but Invite to Collaborate is safe to follow end-to-end:
+# ShareOptionsViewModel.onInviteMember() reuses the list's existing shortCode (falling back to
+# its id) instead of minting a new Firestore token (confirmed 2026-09-10 reading the source, not
+# assumed — see list_management_flow.yaml's header for the other entry point to this same
+# QrCodeBottomSheet destination), so opening it here has no side effect and is safe to repeat.
 - tapOn:
     id: "cart_share_button"
 - assertVisible:
@@ -30,7 +33,18 @@ name: Cart Interactions Flow
     id: "share_options_invite_button"
 - assertVisible:
     id: "share_options_text_button"
-- back
+- tapOn:
+    id: "share_options_invite_button"
+- assertVisible:
+    id: "qr_code_title"
+- assertVisible:
+    id: "qr_code_image"
+- assertVisible:
+    id: "qr_code_token_text"
+- assertVisible:
+    id: "qr_code_share_button"
+- tapOn:
+    id: "qr_code_close_button"
 
 # Add a second product via Quick Add with no price set — QuickAddViewModel.submit() saves it
 # directly with no price prompt, so marking it purchased below triggers ConfirmItemRoute

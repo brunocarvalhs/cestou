@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -85,7 +86,8 @@ internal fun EditShoppingContent(
         Text(
             text = stringResource(R.string.shopping_management_edit_list_title),
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.testTag("edit_shopping_title")
         )
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -93,7 +95,7 @@ internal fun EditShoppingContent(
             value = title,
             onValueChange = { title = it },
             label = { Text(stringResource(R.string.shopping_management_label_list_title)) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("edit_shopping_title_field"),
             shape = RoundedCornerShape(12.dp)
         )
 
@@ -104,7 +106,7 @@ internal fun EditShoppingContent(
             onValueChange = { description = it },
             label = { Text(stringResource(R.string.shopping_management_label_description)) },
             placeholder = { Text(stringResource(R.string.shopping_management_placeholder_description)) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("edit_shopping_description_field"),
             shape = RoundedCornerShape(12.dp)
         )
 
@@ -185,7 +187,7 @@ internal fun EditShoppingContent(
         if (sharingToken == null) {
             Button(
                 onClick = onShareToken,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("edit_shopping_share_button"),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -198,7 +200,7 @@ internal fun EditShoppingContent(
             }
         } else {
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("edit_shopping_token_card"),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = CARD_ALPHA)
                 ),
@@ -238,7 +240,8 @@ internal fun EditShoppingContent(
                 onClick = onCancel,
                 modifier = Modifier
                     .weight(1f)
-                    .height(56.dp),
+                    .height(56.dp)
+                    .testTag("edit_shopping_cancel_button"),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Text(stringResource(CoreR.string.action_cancel))
@@ -257,7 +260,8 @@ internal fun EditShoppingContent(
                 },
                 modifier = Modifier
                     .weight(1f)
-                    .height(56.dp),
+                    .height(56.dp)
+                    .testTag("edit_shopping_save_button"),
                 shape = RoundedCornerShape(16.dp),
                 enabled = title.isNotBlank()
             ) {

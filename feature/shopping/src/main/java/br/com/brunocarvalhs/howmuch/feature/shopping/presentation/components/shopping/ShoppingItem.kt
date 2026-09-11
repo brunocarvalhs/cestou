@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -171,33 +172,39 @@ internal fun ShoppingItem(
         // Dropdown Menu ativado pelo Long Press
         DropdownMenu(
             expanded = showMenu,
-            onDismissRequest = { showMenu = false }
+            onDismissRequest = { showMenu = false },
+            modifier = Modifier.testTag("shopping_item_menu")
         ) {
             DropdownMenuItem(
                 text = { Text("Editar") },
                 leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                onClick = { showMenu = false; onEditClick() }
+                onClick = { showMenu = false; onEditClick() },
+                modifier = Modifier.testTag("shopping_item_menu_edit")
             )
             DropdownMenuItem(
                 text = { Text("Duplicar") },
                 leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null) },
-                onClick = { showMenu = false; onDuplicateClick() }
+                onClick = { showMenu = false; onDuplicateClick() },
+                modifier = Modifier.testTag("shopping_item_menu_duplicate")
             )
             DropdownMenuItem(
                 text = { Text("Compartilhar") },
                 leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) },
-                onClick = { showMenu = false; onShareClick() }
+                onClick = { showMenu = false; onShareClick() },
+                modifier = Modifier.testTag("shopping_item_menu_share")
             )
             DropdownMenuItem(
                 text = { Text("Finalizar") },
                 leadingIcon = { Icon(Icons.Default.CheckCircle, contentDescription = null) },
-                onClick = { showMenu = false; onFinishClick() }
+                onClick = { showMenu = false; onFinishClick() },
+                modifier = Modifier.testTag("shopping_item_menu_finish")
             )
             HorizontalDivider()
             DropdownMenuItem(
                 text = { Text("Deletar", color = MaterialTheme.colorScheme.error) },
                 leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-                onClick = { showMenu = false; onDeleteClick() }
+                onClick = { showMenu = false; onDeleteClick() },
+                modifier = Modifier.testTag("shopping_item_menu_delete")
             )
         }
     }

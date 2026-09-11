@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,7 +46,8 @@ internal fun ShoppingSettingsScreen(
         topBar = {
             SettingsHeader(
                 title = stringResource(R.string.settings_section_shopping),
-                onBack = { 
+                titleTestTag = "shopping_settings_screen_title",
+                onBack = {
                     intent.onUpdateShoppingPreferences(
                         state.defaultListId,
                         sortingMode,
@@ -72,7 +74,10 @@ internal fun ShoppingSettingsScreen(
                 text = stringResource(R.string.settings_shopping_default_sorting),
                 style = MaterialTheme.typography.bodyMedium
             )
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.testTag("shopping_settings_sorting_row")
+            ) {
                 RadioButton(
                     selected = sortingMode == "CATEGORY",
                     onClick = { sortingMode = "CATEGORY" }
@@ -98,7 +103,7 @@ internal fun ShoppingSettingsScreen(
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().testTag("shopping_settings_reminders_row")
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -119,14 +124,14 @@ internal fun ShoppingSettingsScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
-                onClick = { 
+                onClick = {
                     intent.onUpdateShoppingPreferences(
                         state.defaultListId,
                         sortingMode,
                         remindersEnabled
                     )
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().testTag("shopping_settings_save_button")
             ) {
                 Text(text = stringResource(R.string.settings_ai_button_save))
             }
