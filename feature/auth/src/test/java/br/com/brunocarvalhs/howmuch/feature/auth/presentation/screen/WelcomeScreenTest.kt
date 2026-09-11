@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.auth.presentation.screen
 
 import androidx.compose.material3.Text
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
@@ -28,7 +29,9 @@ class WelcomeScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithText("Cestou").assertExists()
+        composeTestRule.onNodeWithTag("welcome_brand_name").assertExists()
+        composeTestRule.onNodeWithTag("welcome_logo").assertExists()
+        composeTestRule.onNodeWithTag("welcome_hero_image").assertExists()
         composeTestRule.onNodeWithText("Entrar").assertExists()
     }
 }
