@@ -57,12 +57,30 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Confirming/ruling out whether the Activity itself is being recreated (e.g. by a
+        // locale/config change) mid session, which would explain @remember-scoped state
+        // (wasAuthenticated, initialAuthenticated) silently resetting to its cold-start default.
+        Timber.tag(NAV_DEBUG_TAG).d(
+            "onCreate: savedInstanceState=%s taskId=%s",
+            savedInstanceState != null,
+            taskId
+        )
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             CestouApp(windowSizeClass = calculateWindowSizeClass(this))
         }
+    }
+
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        Timber.tag(NAV_DEBUG_TAG).d("onConfigurationChanged: locales=%s", newConfig.locales)
+        super.onConfigurationChanged(newConfig)
+    }
+
+    override fun onDestroy() {
+        Timber.tag(NAV_DEBUG_TAG).d("onDestroy: isFinishing=%s isChangingConfigurations=%s", isFinishing, isChangingConfigurations)
+        super.onDestroy()
     }
 
     @Composable
@@ -72,6 +90,11 @@ class MainActivity : ComponentActivity() {
         val photoUrl by viewModel.photoUrl.collectAsStateWithLifecycle()
 
         LaunchedEffect(language) {
+            Timber.tag(NAV_DEBUG_TAG).d(
+                "language effect fired: language=%s currentAppLocales=%s",
+                language,
+                AppCompatDelegate.getApplicationLocales()
+            )
             val appLocales = LocaleListCompat.forLanguageTags(language)
             AppCompatDelegate.setApplicationLocales(appLocales)
         }
