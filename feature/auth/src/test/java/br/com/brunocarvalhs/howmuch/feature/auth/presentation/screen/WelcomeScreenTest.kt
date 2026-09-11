@@ -28,7 +28,7 @@ class WelcomeScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithText("Cestou").assertExists()
+        composeTestRule.onNodeWithText("Cestou", substring = true).assertExists()
         composeTestRule.onNodeWithText("Entrar").assertExists()
     }
 }

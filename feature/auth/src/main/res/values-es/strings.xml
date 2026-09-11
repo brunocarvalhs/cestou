@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="welcome_title">Cestou!</string>
+    <string name="welcome_description">La forma más inteligente de organizar tus compras y ahorrar de verdad.</string>
+    <string name="welcome_footer">Versión %1$s • Hecho con ❤️ en Brasil</string>
+    <string name="welcome_select_language">Seleccionar idioma</string>
+    <string name="welcome_agree_and_continue">Aceptar y continuar</string>
+</resources>

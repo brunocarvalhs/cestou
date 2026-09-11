@@ -53,7 +53,7 @@ internal class MainViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = "pt"
+            initialValue = "pt-BR"
         )
 
     val photoUrl: StateFlow<String?> = authService.authState

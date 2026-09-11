@@ -40,7 +40,7 @@ class SettingsRepositoryImplTest {
             assertEquals("gemini", settings.aiProvider)
             assertEquals("CATEGORY", settings.sortingMode)
             assertFalse(settings.remindersEnabled)
-            assertEquals("pt", settings.language)
+            assertEquals("pt-BR", settings.language)
             assertEquals("BRL", settings.currency)
             awaitComplete()
         }

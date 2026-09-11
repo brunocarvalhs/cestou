@@ -140,7 +140,7 @@ internal class SettingsViewModel @Inject constructor(
             ), SettingItem(
                 title = UiText.StringResource(R.string.settings_item_language),
                 subtitle = when (settings.language) {
-                    "pt" -> UiText.StringResource(R.string.settings_language_pt)
+                    "pt-BR" -> UiText.StringResource(R.string.settings_language_pt)
                     "en" -> UiText.StringResource(R.string.settings_language_en)
                     "es" -> UiText.StringResource(R.string.settings_language_es)
                     else -> UiText.DynamicString(settings.language)

@@ -67,4 +67,17 @@
     <string name="category_congelados">Congelados</string>
     <string name="category_padaria">Padaria</string>
     <string name="category_outros">Outros</string>
+
+    <!-- Language Selector -->
+    <string-array name="supported_languages">
+        <item>Inglês</item>
+        <item>Português (Brasil)</item>
+        <item>Espanhol</item>
+    </string-array>
+
+    <string-array name="supported_languages_codes">
+        <item>en</item>
+        <item>pt-BR</item>
+        <item>es</item>
+    </string-array>
 </resources>

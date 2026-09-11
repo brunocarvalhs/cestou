@@ -1,7 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.repository.SettingsRepository
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateCurrencyUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
