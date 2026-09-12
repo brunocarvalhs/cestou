@@ -42,13 +42,6 @@ sealed class BottomNavItem(
         unselectedIcon = Icons.Outlined.ShoppingCart
     )
 
-    object AiChatItem : BottomNavItem(
-        AiChat,
-        R.string.nav_ai_chat,
-        Icons.Default.AutoAwesome,
-        Icons.Outlined.AutoAwesome
-    )
-
     object ProfileItem : BottomNavItem(
         Profile,
         R.string.nav_profile,
@@ -67,7 +60,6 @@ fun CestouBottomNavigation(
 ) {
     val items = listOf(
         BottomNavItem.Lists,
-        BottomNavItem.AiChatItem,
         BottomNavItem.ProfileItem
     )
 
