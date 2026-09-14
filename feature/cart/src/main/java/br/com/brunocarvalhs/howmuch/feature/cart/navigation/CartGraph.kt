@@ -27,6 +27,7 @@ import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.EditItem
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.FinishPurchaseViewModel
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.ShareOptionsViewModel
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.ShareOptionsBottomSheet
+import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.EditShopping
 
 @OptIn(ExperimentalMaterial3Api::class)
 internal fun NavGraphBuilder.cartGraph(
@@ -66,6 +67,11 @@ private fun NavGraphBuilder.cartDestination(
             onOpenAiChat = {
                 uiState.shopping?.id?.let { shoppingId ->
                     navigator.navigate(AiChat(shoppingId = shoppingId))
+                }
+            },
+            onEditShopping = {
+                uiState.shopping?.let { shopping ->
+                    navigator.navigate(EditShopping(shopping))
                 }
             }
         )

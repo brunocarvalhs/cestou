@@ -105,6 +105,7 @@
     <string name="shopping_list_label_unit_price">Unit Price</string>
     <string name="shopping_list_label_quantity">Quantity</string>
     <string name="shopping_list_edit_title">Edit Product</string>
+    <string name="shopping_list_edit_list_title">Edit list</string>
     <string name="shopping_list_label_product_name">Product Name</string>
     <string name="shopping_list_label_category">Category</string>
     <string name="shopping_list_label_unit">Unit</string>

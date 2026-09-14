@@ -11,6 +11,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.withActivity
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.ui.entity.ProductCategory
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.intent.CartIntent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.CartUiState
@@ -18,6 +19,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import java.util.Locale
 import br.com.brunocarvalhs.howmuch.core.ui.R as CoreUiR
 
 // Teste de layout via Robolectric (JVM), não androidTest: valida a composição real da tela
@@ -98,5 +100,70 @@ class CartScreenTest {
         val historyDescription = ApplicationProvider.getApplicationContext<android.content.Context>()
             .getString(CoreUiR.string.content_description_product_history)
         composeTestRule.onNodeWithContentDescription(historyDescription).assertExists()
+    }
+
+    private fun categoryHeaderText(category: String): String {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        return context.getString(ProductCategory.fromString(category).displayNameRes)
+            .uppercase(Locale.getDefault())
+    }
+
+    @Test
+    fun `groups products under category headers when the list is categorized`() {
+        val product = Product(id = "p1", name = "Arroz", quantity = 1.0, category = "Mercearia")
+
+        composeTestRule.setContent {
+            CestouTheme {
+                CartScreen(
+                    uiState = CartUiState(
+                        shopping = shopping.copy(isCategorized = true),
+                        products = StableList(listOf(product))
+                    ),
+                    intent = CartIntent()
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(categoryHeaderText("Mercearia")).assertExists()
+    }
+
+    @Test
+    fun `hides category headers when the user disabled categorization for this list`() {
+        // Regression: CartScreen used to group by category unconditionally, ignoring
+        // Shopping.isCategorized entirely, so turning the "Categorizar" switch off in the
+        // edit dialog had no visible effect on this screen.
+        val product = Product(id = "p1", name = "Arroz", quantity = 1.0, category = "Mercearia")
+
+        composeTestRule.setContent {
+            CestouTheme {
+                CartScreen(
+                    uiState = CartUiState(
+                        shopping = shopping.copy(isCategorized = false),
+                        products = StableList(listOf(product))
+                    ),
+                    intent = CartIntent()
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(categoryHeaderText("Mercearia")).assertDoesNotExist()
+        // The product itself must still render — disabling categorization must not drop items.
+        composeTestRule.onNodeWithText("Arroz").assertExists()
+    }
+
+    @Test
+    fun `defaults to categorized when no shopping is loaded yet`() {
+        val product = Product(id = "p1", name = "Arroz", quantity = 1.0, category = "Mercearia")
+
+        composeTestRule.setContent {
+            CestouTheme {
+                CartScreen(
+                    uiState = CartUiState(shopping = null, products = StableList(listOf(product))),
+                    intent = CartIntent()
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(categoryHeaderText("Mercearia")).assertExists()
     }
 }
