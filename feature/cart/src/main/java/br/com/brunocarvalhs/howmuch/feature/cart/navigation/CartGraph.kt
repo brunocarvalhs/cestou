@@ -14,6 +14,7 @@ import androidx.navigation.compose.dialog
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.ConfirmItemContent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.EditItemContent
@@ -61,7 +62,12 @@ private fun NavGraphBuilder.cartDestination(
             uiState = uiState,
             windowSizeClass = windowSizeClass,
             intent = viewModel.intent,
-            onBack = { navigator.goBack() }
+            onBack = { navigator.goBack() },
+            onOpenAiChat = {
+                uiState.shopping?.id?.let { shoppingId ->
+                    navigator.navigate(AiChat(shoppingId = shoppingId))
+                }
+            }
         )
     }
 }

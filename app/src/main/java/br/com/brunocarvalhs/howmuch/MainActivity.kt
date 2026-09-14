@@ -115,7 +115,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            val rootRoutes = remember { listOf(ShoppingList, AiChat, Profile) }
+            // AiChat's shoppingId here is a throwaway placeholder: rootRoutes only matches by
+            // route::class (see hasRoute/isProtectedRoute below), never by field value.
+            val rootRoutes = remember { listOf(ShoppingList, AiChat(shoppingId = ""), Profile) }
 
             val currentRoute = rootRoutes.find { route ->
                 currentDestination?.hierarchy?.any { it.hasRoute(route::class) } == true
@@ -136,7 +138,7 @@ class MainActivity : ComponentActivity() {
                     CestouBottomNavigation(
                         currentRoute = currentRoute,
                         photoUrl = photoUrl,
-                        visible = currentRoute != null,
+                        visible = currentRoute != null && currentRoute !is AiChat,
                         onNavigate = { route ->
                             navigator.navigate(route) {
                                 popUpTo(navController.graph.startDestinationId) {

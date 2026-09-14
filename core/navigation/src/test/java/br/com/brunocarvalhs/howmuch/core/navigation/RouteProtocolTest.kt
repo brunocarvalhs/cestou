@@ -18,7 +18,7 @@ class RouteProtocolTest {
 
     @Test
     fun `AiChat is protected`() {
-        assertEquals(RouteType.PROTECTED, AiChat.routeType)
+        assertEquals(RouteType.PROTECTED, AiChat(shoppingId = "list1").routeType)
     }
 
     @Test

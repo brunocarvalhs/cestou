@@ -2,19 +2,24 @@ package br.com.brunocarvalhs.howmuch.feature.cart.presentation.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -32,10 +37,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -77,7 +84,8 @@ internal fun CartScreen(
     uiState: CartUiState,
     windowSizeClass: WindowSizeClass? = null,
     intent: CartIntent = CartIntent(),
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    onOpenAiChat: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -198,53 +206,82 @@ internal fun CartScreen(
                     }
                 }
             },
-            snackbarHost = { SnackbarHost(snackbarHostState) },
+            snackbarHost = {
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier.padding(end = 88.dp)
+                )
+            },
             contentWindowInsets = WindowInsets(0, 0, 0, 0)
         ) { paddingValues ->
-            LazyColumn(
-                modifier = Modifier.padding(paddingValues)
-            ) {
-                if (isLocked) {
-                    item {
-                        CestouLockedBanner()
+            // CartBottomBar (when visible) already applies its own navigationBarsPadding; only
+            // add it here when that bar is absent (locked/expanded layout), otherwise the list
+            // and FAB would get double bottom clearance.
+            val contentModifier = if (isLocked || isExpanded) {
+                Modifier
+                    .padding(paddingValues)
+                    .navigationBarsPadding()
+            } else {
+                Modifier.padding(paddingValues)
+            }
+            Box(modifier = contentModifier) {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    if (isLocked) {
+                        item {
+                            CestouLockedBanner()
+                        }
+                    }
+
+                    if (uiState.products.isEmpty()) {
+                        item {
+                            CestouEmptyState()
+                        }
+                    }
+
+                    cartSummary.groupedProducts.forEach { (category, products) ->
+                        item {
+                            CestouCategoryHeader(category = category)
+                        }
+
+                        itemsIndexed(products, key = { _, product -> product.id }) { index, product ->
+                            // Attribution avatar only makes sense once there's more than one member
+                            // to attribute to (spec IAA-01 AC6), and only once the product actually
+                            // has history to show — a legacy product with none renders like a
+                            // single-member list instead of a clickable "no history yet" avatar
+                            // (design.md Error Handling Strategy).
+                            val showAttribution = (uiState.shopping?.users?.size ?: 0) > 1 &&
+                                    product.lastActivity != null
+                            ProductListItem(
+                                product = product,
+                                enabled = !isLocked,
+                                onDelete = { intent.onDeleteProduct(product) },
+                                onEdit = { intent.onEditProduct(product) },
+                                onTogglePurchased = { intent.onTogglePurchased(product, it) },
+                                showDivider = index < uiState.products.size - 1,
+                                showAttribution = showAttribution,
+                                attributionProfile = if (showAttribution) {
+                                    uiState.memberProfiles[product.lastActivity?.userId]
+                                } else {
+                                    null
+                                },
+                                onShowHistory = { intent.onShowProductHistory(product) }
+                            )
+                        }
                     }
                 }
 
-                if (uiState.products.isEmpty()) {
-                    item {
-                        CestouEmptyState()
-                    }
-                }
-
-                cartSummary.groupedProducts.forEach { (category, products) ->
-                    item {
-                        CestouCategoryHeader(category = category)
-                    }
-
-                    itemsIndexed(products, key = { _, product -> product.id }) { index, product ->
-                        // Attribution avatar only makes sense once there's more than one member
-                        // to attribute to (spec IAA-01 AC6), and only once the product actually
-                        // has history to show — a legacy product with none renders like a
-                        // single-member list instead of a clickable "no history yet" avatar
-                        // (design.md Error Handling Strategy).
-                        val showAttribution = (uiState.shopping?.users?.size ?: 0) > 1 &&
-                            product.lastActivity != null
-                        ProductListItem(
-                            product = product,
-                            enabled = !isLocked,
-                            onDelete = { intent.onDeleteProduct(product) },
-                            onEdit = { intent.onEditProduct(product) },
-                            onTogglePurchased = { intent.onTogglePurchased(product, it) },
-                            showDivider = index < uiState.products.size - 1,
-                            showAttribution = showAttribution,
-                            attributionProfile = if (showAttribution) {
-                                uiState.memberProfiles[product.lastActivity?.userId]
-                            } else {
-                                null
-                            },
-                            onShowHistory = { intent.onShowProductHistory(product) }
+                FloatingActionButton(
+                    onClick = onOpenAiChat,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = stringResource(
+                            br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_ai_icon
                         )
-                    }
+                    )
                 }
             }
         }
