@@ -67,4 +67,5 @@
     <string name="category_congelados">Congelados</string>
     <string name="category_padaria">Padaria</string>
     <string name="category_outros">Outros</string>
+    <string name="category_picker_title">Selecionar categoria</string>
 </resources>

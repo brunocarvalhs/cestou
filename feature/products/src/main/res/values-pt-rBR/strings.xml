@@ -18,6 +18,7 @@
     <string name="product_option_suggestions">Sugestões</string>
     <string name="product_option_ai">Chat com IA</string>
     <string name="product_option_quick_add">Adição Rápida</string>
+    <string name="product_option_form">Formulário</string>
     <string name="product_option_common">Comuns</string>
     <string name="product_header_add_to">Adicionar a %s</string>
     <string name="product_empty_title">Nenhum produto encontrado</string>
@@ -70,6 +71,12 @@
     <string name="common_products_all_added">Itens adicionados à lista</string>
     <string name="common_products_empty_title">Sua cesta básica está vazia</string>
     <string name="common_products_empty_description">Adicione os itens que você sempre compra para reutilizá-los rapidamente.</string>
+
+    <!-- Feature: Product Form (rota principal) -->
+    <string name="product_form_title">Novo produto</string>
+    <string name="product_form_save">Adicionar item</string>
+    <string name="product_form_divider_or">ou</string>
+    <string name="product_form_camera_button">Adicionar com câmera</string>
 
     <!-- Feature: Quick Add -->
     <string name="quick_add_placeholder">Nome do item</string>
