@@ -71,6 +71,7 @@ private data class CartSummary(
     val cartAmount: Double,
     val purchasedCount: Int,
     val currencyFormatter: CurrencyFormatter,
+    val isCategorized: Boolean,
     val groupedProducts: Map<String, List<Product>>
 )
 
@@ -85,7 +86,8 @@ internal fun CartScreen(
     windowSizeClass: WindowSizeClass? = null,
     intent: CartIntent = CartIntent(),
     onBack: () -> Unit = {},
-    onOpenAiChat: () -> Unit = {}
+    onOpenAiChat: () -> Unit = {},
+    onEditShopping: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -98,13 +100,19 @@ internal fun CartScreen(
 
     val currencyFormatter: CurrencyFormatter = rememberCurrencyFormatter()
 
-    val cartSummary = remember(uiState.products, currencyFormatter) {
+    val isCategorized = uiState.shopping?.isCategorized ?: true
+    val cartSummary = remember(uiState.products, currencyFormatter, isCategorized) {
         CartSummary(
             totalAmount = uiState.products.sumOf { it.total },
             cartAmount = uiState.products.sumOf { if (it.isPurchased) it.total else 0.0 },
             purchasedCount = uiState.products.count { it.isPurchased },
             currencyFormatter = currencyFormatter,
-            groupedProducts = uiState.products.asReversed().groupBy { it.category }
+            isCategorized = isCategorized,
+            groupedProducts = if (isCategorized) {
+                uiState.products.asReversed().groupBy { it.category }
+            } else {
+                mapOf("" to uiState.products.asReversed())
+            }
         )
     }
 
@@ -175,9 +183,12 @@ internal fun CartScreen(
                         ) {
                             DropdownMenuItem(
                                 text = {
-                                    Text(text = stringResource(R.string.shopping_list_edit_title))
+                                    Text(text = stringResource(R.string.shopping_list_edit_list_title))
                                 },
-                                onClick = { }
+                                onClick = {
+                                    isUiVisible = false
+                                    onEditShopping()
+                                }
                             )
                             if (!isLocked) {
                                 DropdownMenuItem(
@@ -239,8 +250,10 @@ internal fun CartScreen(
                     }
 
                     cartSummary.groupedProducts.forEach { (category, products) ->
-                        item {
-                            CestouCategoryHeader(category = category)
+                        if (cartSummary.isCategorized) {
+                            item {
+                                CestouCategoryHeader(category = category)
+                            }
                         }
 
                         itemsIndexed(products, key = { _, product -> product.id }) { index, product ->

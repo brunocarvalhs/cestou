@@ -105,6 +105,7 @@
     <string name="shopping_list_label_unit_price">Preço Unitário</string>
     <string name="shopping_list_label_quantity">Quantidade</string>
     <string name="shopping_list_edit_title">Editar Produto</string>
+    <string name="shopping_list_edit_list_title">Editar lista</string>
     <string name="shopping_list_label_product_name">Nome do Produto</string>
     <string name="shopping_list_label_category">Categoria</string>
     <string name="shopping_list_label_unit">Un.</string>
