@@ -63,12 +63,6 @@ internal fun CustomMfaEnrollmentContent(state: MfaEnrollmentContentState) {
                 Spacer(modifier = Modifier.height(24.dp))
                 CestouButton(text = "Confirmar", onClick = state.onVerifyClick)
             }
-            MfaEnrollmentStep.ShowRecoveryCodes -> {
-                Text(text = "Guarde estes códigos em um lugar seguro!")
-                state.recoveryCodes?.forEach { Text(text = it) }
-                Spacer(modifier = Modifier.height(24.dp))
-                CestouButton(text = "Concluído", onClick = state.onCodesSavedClick)
-            }
         }
 
         if (state.isLoading) {

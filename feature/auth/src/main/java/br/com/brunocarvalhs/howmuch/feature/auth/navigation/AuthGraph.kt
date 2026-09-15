@@ -53,8 +53,8 @@ internal fun NavGraphBuilder.authGraph(
             phoneContent = { CustomPhoneContent(it) },
             mfaEnrollmentContent = { CustomMfaEnrollmentContent(it) },
             mfaChallengeContent = { CustomMfaChallengeContent(it) },
-            reauthContent = { rauthRequired, onCancel ->
-                CustomReauthContent(rauthRequired, onCancel)
+            reauthContent = { state ->
+                CustomReauthContent(state)
             },
             authenticatedContent = { authState, uiContext ->
                 CustomAuthenticatedContent(authState, uiContext)

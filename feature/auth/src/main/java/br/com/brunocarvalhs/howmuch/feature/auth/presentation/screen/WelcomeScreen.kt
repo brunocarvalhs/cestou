@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.auth.presentation.screen
 
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -38,15 +40,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.os.LocaleListCompat
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.systemLanguageTag
 import br.com.brunocarvalhs.howmuch.feature.auth.R
@@ -68,36 +72,63 @@ internal fun WelcomeScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-
         Column(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Compact brand lockup: small logomark badge + wordmark, side by side so the
+            // hero illustration below can take the visual lead instead of a large centered logo.
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                        .testTag("welcome_logo"),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_cestou_logomark),
+                        contentDescription = stringResource(R.string.welcome_logo_content_description),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+                Text(
+                    text = stringResource(R.string.welcome_brand_name),
+                    modifier = Modifier.testTag("welcome_brand_name"),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
 
             WelcomeIllustration(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(260.dp)
+                    .height(240.dp)
             )
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        horizontal = 24.dp,
-                        vertical = 24.dp
-                    ).padding(paddingValues),
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(28.dp))
-
                 Text(
                     text = stringResource(R.string.welcome_title),
                     modifier = Modifier.fillMaxWidth(),
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -111,12 +142,12 @@ internal fun WelcomeScreen(
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 var showLanguageSheet by remember { mutableStateOf(false) }
                 LanguageSelector(onClick = { showLanguageSheet = true })
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 var showSheet by remember { mutableStateOf(false) }
                 val sheetState = rememberModalBottomSheetState()
@@ -145,14 +176,14 @@ internal fun WelcomeScreen(
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(24.dp)
                             )
-                            
+
                             HorizontalDivider()
 
                             languages.forEachIndexed { index, language ->
                                 val isSelected = languageCodes[index] == currentLocale
-                                
+
                                 ListItem(
-                                    headlineContent = { 
+                                    headlineContent = {
                                         Text(
                                             text = language,
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
@@ -189,7 +220,7 @@ internal fun WelcomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(58.dp),
-                    shape = RoundedCornerShape(32.dp),
+                    shape = RoundedCornerShape(32.dp)
                 ) {
                     Text(
                         text = stringResource(R.string.welcome_agree_and_continue),
@@ -206,7 +237,6 @@ internal fun WelcomeScreen(
                         sheetState = sheetState,
                         containerColor = MaterialTheme.colorScheme.surface
                     ) {
-                        // Sheet content
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -218,7 +248,17 @@ internal fun WelcomeScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = stringResource(R.string.welcome_footer, state.version),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("welcome_footer"),
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -233,7 +273,7 @@ private fun WelcomeIllustration(
     )
 
     Box(
-        modifier = modifier,
+        modifier = modifier.testTag("welcome_hero_image"),
         contentAlignment = Alignment.Center
     ) {
         LottieAnimation(
@@ -249,10 +289,10 @@ private fun LanguageSelector(onClick: () -> Unit) {
     val context = LocalContext.current
     val currentLocale = AppCompatDelegate.getApplicationLocales().get(0)?.toLanguageTag()
         ?: context.systemLanguageTag()
-    
+
     val languages = context.resources.getStringArray(CoreUiR.array.supported_languages)
     val languageCodes = context.resources.getStringArray(CoreUiR.array.supported_languages_codes)
-    
+
     val currentLanguageName = languageCodes.indexOf(currentLocale).let { index ->
         if (index != -1) languages[index] else "English"
     }
@@ -265,7 +305,6 @@ private fun LanguageSelector(onClick: () -> Unit) {
         shape = RoundedCornerShape(32.dp),
         color = MaterialTheme.colorScheme.surfaceVariant
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxSize()
@@ -273,7 +312,6 @@ private fun LanguageSelector(onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-
             Icon(
                 imageVector = Icons.Default.Language,
                 contentDescription = "Language",
@@ -305,10 +343,10 @@ private fun LanguageSelector(onClick: () -> Unit) {
 @Composable
 private fun WelcomeScreenPreview() {
     MaterialTheme {
-        WelcomeScreen(state = WelcomeUiState(version = "1.2.0")) {
+        WelcomeScreen(state = WelcomeUiState(version = "1.3.0")) {
             CestouButton(
-                text = "Começa",
-                onClick = {  },
+                text = "Começar",
+                onClick = { },
                 trailingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight
             )
         }
