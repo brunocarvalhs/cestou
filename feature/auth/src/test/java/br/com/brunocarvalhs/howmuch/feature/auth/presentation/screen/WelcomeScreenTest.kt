@@ -3,6 +3,7 @@ package br.com.brunocarvalhs.howmuch.feature.auth.presentation.screen
 import androidx.compose.material3.Text
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.state.WelcomeUiState
@@ -29,6 +30,7 @@ class WelcomeScreenTest {
         }
 
         composeTestRule.onNodeWithText("Cestou", substring = true).assertExists()
+        composeTestRule.onNodeWithText("Agree and continue", substring = true).performClick()
         composeTestRule.onNodeWithText("Entrar").assertExists()
     }
 }

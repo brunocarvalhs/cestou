@@ -19,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.ui.res.stringResource
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,6 +56,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
+import br.com.brunocarvalhs.howmuch.core.ui.R as CoreUiR
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -125,8 +126,8 @@ internal fun WelcomeScreen(
                     val context = LocalContext.current
                     val currentLocale = AppCompatDelegate.getApplicationLocales().get(0)?.toLanguageTag()
                         ?: context.systemLanguageTag()
-                    val languages = context.resources.getStringArray(br.com.brunocarvalhs.howmuch.core.ui.R.array.supported_languages)
-                    val languageCodes = context.resources.getStringArray(br.com.brunocarvalhs.howmuch.core.ui.R.array.supported_languages_codes)
+                    val languages = context.resources.getStringArray(CoreUiR.array.supported_languages)
+                    val languageCodes = context.resources.getStringArray(CoreUiR.array.supported_languages_codes)
 
                     ModalBottomSheet(
                         onDismissRequest = { showLanguageSheet = false },
@@ -155,8 +156,12 @@ internal fun WelcomeScreen(
                                         Text(
                                             text = language,
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Unspecified
-                                        ) 
+                                            color = if (isSelected) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                Color.Unspecified
+                                            }
+                                        )
                                     },
                                     trailingContent = {
                                         if (isSelected) {
@@ -245,8 +250,8 @@ private fun LanguageSelector(onClick: () -> Unit) {
     val currentLocale = AppCompatDelegate.getApplicationLocales().get(0)?.toLanguageTag()
         ?: context.systemLanguageTag()
     
-    val languages = context.resources.getStringArray(br.com.brunocarvalhs.howmuch.core.ui.R.array.supported_languages)
-    val languageCodes = context.resources.getStringArray(br.com.brunocarvalhs.howmuch.core.ui.R.array.supported_languages_codes)
+    val languages = context.resources.getStringArray(CoreUiR.array.supported_languages)
+    val languageCodes = context.resources.getStringArray(CoreUiR.array.supported_languages_codes)
     
     val currentLanguageName = languageCodes.indexOf(currentLocale).let { index ->
         if (index != -1) languages[index] else "English"
