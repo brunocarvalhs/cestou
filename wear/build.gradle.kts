@@ -7,10 +7,30 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+// Same keystore and credentials as :app - see the comment in app/build.gradle.kts.
+val releaseKeystore = rootProject.file(
+    System.getenv("KEYSTORE_PATH") ?: "app/release.keystore"
+)
+val canSignRelease = releaseKeystore.exists() &&
+    !System.getenv("KEYSTORE_PASSWORD").isNullOrBlank() &&
+    !System.getenv("KEYSTORE_ALIAS").isNullOrBlank() &&
+    !System.getenv("KEY_PASSWORD").isNullOrBlank()
+
 android {
     namespace = "br.com.brunocarvalhs.howmuch.wear"
     compileSdk {
         version = release(37)
+    }
+
+    signingConfigs {
+        if (canSignRelease) {
+            create("release") {
+                storeFile = releaseKeystore
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEYSTORE_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
     }
 
     defaultConfig {
@@ -23,6 +43,9 @@ android {
 
     buildTypes {
         release {
+            if (canSignRelease) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             optimization {
                 enable = false
             }

@@ -183,6 +183,7 @@ jobs:
           java-distribution: ${{ needs.prepare.outputs.java_distribution }}
           dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
           google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
+          release-keystore: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
 
       - name: ${{ needs.prepare.outputs.step_build_apks }}
         id: build
