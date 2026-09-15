@@ -23,10 +23,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="br.com.brunocarvalhs.howmuch" />
-                  <option name="mobileSdkAppId" value="1:172943209306:android:c72f185c55bb8207a1b963" />
-                  <option name="projectId" value="cestou-86785" />
-                  <option name="projectNumber" value="172943209306" />
+                  <option name="appId" value="br.com.brunocarvalhs.howmuch.wear" />
+                  <option name="mobileSdkAppId" value="1:801865394084:android:3d8cd6308873dd4789c331" />
+                  <option name="projectId" value="how-much-2a72e" />
+                  <option name="projectNumber" value="801865394084" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

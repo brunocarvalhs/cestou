@@ -467,7 +467,11 @@ jobs:
               // links that routinely exceed the default 100-char wrap limit -
               // disabled so dependency-bump PRs aren't blocked by their own
               // changelog links.
-              'body-max-line-length': [0, 'always']
+              'body-max-line-length': [0, 'always'],
+              // Default is 100; a descriptive type(scope): subject header
+              // occasionally runs a little over that without being unreasonable
+              // - 120 gives headroom without disabling the check outright.
+              'header-max-length': [2, 'always', 120]
             }
           };
           CONFIG_EOF

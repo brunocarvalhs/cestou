@@ -27,8 +27,7 @@ private fun NavGraphBuilder.productPickerDestination(navigator: Navigator) {
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {
             ProductScreen(
-                shopping = route.shopping,
-                onBack = { navigator.goBack() }
+                shopping = route.shopping
             )
         }
     }

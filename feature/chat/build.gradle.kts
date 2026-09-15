@@ -49,6 +49,9 @@ dependencies {
     implementation(project(":feature:ai-agent"))
     implementation(project(":feature:settings"))
 
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.markdown.renderer.m3)
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)
