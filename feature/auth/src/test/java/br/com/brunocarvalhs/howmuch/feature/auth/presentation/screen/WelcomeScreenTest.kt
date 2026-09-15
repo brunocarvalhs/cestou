@@ -32,6 +32,6 @@ class WelcomeScreenTest {
         composeTestRule.onNodeWithTag("welcome_brand_name").assertExists()
         composeTestRule.onNodeWithTag("welcome_logo").assertExists()
         composeTestRule.onNodeWithTag("welcome_hero_image").assertExists()
-        composeTestRule.onNodeWithText("Entrar").assertExists()
+        composeTestRule.onNodeWithText("Agree and continue", substring = true).assertExists()
     }
 }

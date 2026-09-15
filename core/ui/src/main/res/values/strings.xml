@@ -68,4 +68,17 @@
     <string name="category_padaria">Bakery</string>
     <string name="category_outros">Others</string>
     <string name="category_picker_title">Select category</string>
+
+    <!-- Language Selector -->
+    <string-array name="supported_languages">
+        <item>English</item>
+        <item>Português (Brasil)</item>
+        <item>Español</item>
+    </string-array>
+
+    <string-array name="supported_languages_codes">
+        <item>en</item>
+        <item>pt-BR</item>
+        <item>es</item>
+    </string-array>
 </resources>

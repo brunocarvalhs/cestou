@@ -68,7 +68,7 @@ internal class SettingsRepositoryImpl @Inject constructor(
                 defaultListId = preferences[PreferencesKeys.DEFAULT_LIST_ID],
                 sortingMode = preferences[PreferencesKeys.SORTING_MODE] ?: "CATEGORY",
                 remindersEnabled = preferences[PreferencesKeys.REMINDERS_ENABLED] ?: false,
-                language = preferences[PreferencesKeys.LANGUAGE] ?: "pt",
+                language = preferences[PreferencesKeys.LANGUAGE] ?: "pt-BR",
                 currency = preferences[PreferencesKeys.CURRENCY] ?: "BRL"
             )
         }

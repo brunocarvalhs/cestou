@@ -57,7 +57,7 @@ android {
 
     androidResources {
         generateLocaleConfig = true
-        localeFilters += listOf("en", "pt", "es")
+        localeFilters += listOf("en", "pt-rBR", "es")
     }
 
     lint {
