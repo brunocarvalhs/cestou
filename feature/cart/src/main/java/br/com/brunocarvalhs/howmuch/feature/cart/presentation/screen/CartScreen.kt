@@ -95,6 +95,7 @@ internal fun CartScreen(
     val isKeyboardVisible = WindowInsets.isImeVisible
 
     var isUiVisible by remember { mutableStateOf(false) }
+    var collapsedCategories by remember { mutableStateOf(emptySet<String>()) }
 
     val isExpanded = windowSizeClass?.widthSizeClass == WindowWidthSizeClass.Expanded
 
@@ -218,9 +219,12 @@ internal fun CartScreen(
                 }
             },
             snackbarHost = {
+                // The AI-chat FAB lives outside Scaffold's floatingActionButton slot (it's
+                // manually placed in the content Box below), so Scaffold can't auto-avoid it —
+                // push the snackbar up above the FAB's footprint instead of narrowing it.
                 SnackbarHost(
                     hostState = snackbarHostState,
-                    modifier = Modifier.padding(end = 88.dp)
+                    modifier = Modifier.padding(bottom = 88.dp)
                 )
             },
             contentWindowInsets = WindowInsets(0, 0, 0, 0)
@@ -250,11 +254,25 @@ internal fun CartScreen(
                     }
 
                     cartSummary.groupedProducts.forEach { (category, products) ->
+                        val isCollapsed = cartSummary.isCategorized && category in collapsedCategories
+
                         if (cartSummary.isCategorized) {
-                            item {
-                                CestouCategoryHeader(category = category)
+                            item(key = "header_$category") {
+                                CestouCategoryHeader(
+                                    category = category,
+                                    expanded = !isCollapsed,
+                                    onToggle = {
+                                        collapsedCategories = if (category in collapsedCategories) {
+                                            collapsedCategories - category
+                                        } else {
+                                            collapsedCategories + category
+                                        }
+                                    }
+                                )
                             }
                         }
+
+                        if (isCollapsed) return@forEach
 
                         itemsIndexed(products, key = { _, product -> product.id }) { index, product ->
                             // Attribution avatar only makes sense once there's more than one member
