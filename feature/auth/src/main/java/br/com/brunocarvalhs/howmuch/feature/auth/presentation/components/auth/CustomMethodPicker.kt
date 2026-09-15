@@ -50,10 +50,14 @@ internal fun CustomMethodPickerLayout(
     ) {
         providers.forEach { provider ->
             val (text, icon) = when (provider) {
-                is AuthProvider.Google -> stringResource(R.string.welcome_provider_google) to Icons.Default.AccountCircle
+                is AuthProvider.Google ->
+                    stringResource(R.string.welcome_provider_google) to Icons.Default.AccountCircle
                 is AuthProvider.Email -> stringResource(R.string.welcome_provider_email) to Icons.Default.Email
                 is AuthProvider.Phone -> stringResource(R.string.welcome_provider_phone) to Icons.Default.Phone
-                else -> stringResource(R.string.welcome_provider_generic, provider.providerId) to Icons.Default.AccountCircle
+                else -> {
+                    val label = stringResource(R.string.welcome_provider_generic, provider.providerId)
+                    label to Icons.Default.AccountCircle
+                }
             }
             val testTag = when (provider) {
                 is AuthProvider.Google -> "welcome_google_button"
