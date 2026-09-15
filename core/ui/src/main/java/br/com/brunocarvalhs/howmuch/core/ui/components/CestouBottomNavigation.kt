@@ -24,7 +24,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
-import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
 import br.com.brunocarvalhs.howmuch.core.ui.R
 import coil.compose.AsyncImage
@@ -40,13 +39,6 @@ sealed class BottomNavItem(
         titleRes = R.string.nav_lists,
         selectedIcon = Icons.Filled.ShoppingCart,
         unselectedIcon = Icons.Outlined.ShoppingCart
-    )
-
-    object AiChatItem : BottomNavItem(
-        AiChat,
-        R.string.nav_ai_chat,
-        Icons.Default.AutoAwesome,
-        Icons.Outlined.AutoAwesome
     )
 
     object ProfileItem : BottomNavItem(
@@ -67,7 +59,6 @@ fun CestouBottomNavigation(
 ) {
     val items = listOf(
         BottomNavItem.Lists,
-        BottomNavItem.AiChatItem,
         BottomNavItem.ProfileItem
     )
 

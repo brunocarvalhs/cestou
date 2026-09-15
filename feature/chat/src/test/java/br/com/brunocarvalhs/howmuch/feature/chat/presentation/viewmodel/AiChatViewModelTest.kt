@@ -2,8 +2,10 @@ package br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel
 
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
@@ -23,12 +25,14 @@ class AiChatViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val assistantUseCase = mockk<CartAssistantUseCase>()
+    private val chatHistoryRepository = mockk<ChatHistoryRepository>(relaxed = true)
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
-    private val viewModel = AiChatViewModel(assistantUseCase, analyticsTracker)
+    private val viewModel = AiChatViewModel(assistantUseCase, chatHistoryRepository, analyticsTracker)
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        coEvery { chatHistoryRepository.load(any()) } returns emptyList()
     }
 
     @After
@@ -75,5 +79,31 @@ class AiChatViewModelTest {
         viewModel.setShoppingContext("list1")
 
         assertEquals("list1", viewModel.uiState.value.shoppingId)
+    }
+
+    @Test
+    fun `setShoppingContext loads persisted history for that shopping id`() {
+        val persisted = listOf(
+            br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage(
+                text = "previous message",
+                sender = br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage.Sender.USER
+            )
+        )
+        coEvery { chatHistoryRepository.load("list1") } returns persisted
+
+        viewModel.setShoppingContext("list1")
+
+        assertEquals(persisted, viewModel.uiState.value.messages)
+    }
+
+    @Test
+    fun `onSendMessage persists the updated history for the current shopping id`() = runTest {
+        viewModel.setShoppingContext("list1")
+        viewModel.intent.onInputChange("hello")
+        coEvery { assistantUseCase("hello", any()) } returns flowOf("hi there")
+
+        viewModel.intent.onSendMessage()
+
+        coVerify { chatHistoryRepository.save("list1", viewModel.uiState.value.messages) }
     }
 }

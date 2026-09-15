@@ -34,6 +34,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureInitializer
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
+import br.com.brunocarvalhs.howmuch.core.navigation.isProtectedRoute
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
@@ -41,6 +42,7 @@ import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouBottomNavigation
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.Welcome
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -90,9 +92,6 @@ class MainActivity : AppCompatActivity() {
 
             val navBackStackEntry by navController.currentBackStackEntryAsState()
 
-            // Dialog destinations (androidx.navigation `dialog<...>`) render as an overlay on
-            // top of the current screen without replacing it, so they must not affect which
-            // screen drives the bottom bar — otherwise it collapses/reflows behind the dialog.
             var screenBackStackEntry by remember { mutableStateOf(navBackStackEntry) }
             LaunchedEffect(navBackStackEntry) {
                 val destination = navBackStackEntry?.destination
@@ -103,6 +102,7 @@ class MainActivity : AppCompatActivity() {
             val currentDestination = screenBackStackEntry?.destination
             val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
 
+            val initialAuthenticated = remember { isAuthenticated }
             var wasAuthenticated by remember { mutableStateOf(isAuthenticated) }
             LaunchedEffect(isAuthenticated) {
                 if (isAuthenticated) {
@@ -110,25 +110,35 @@ class MainActivity : AppCompatActivity() {
                 } else if (wasAuthenticated) {
                     wasAuthenticated = false
                     navigator.navigate(Welcome) {
-                        popUpTo(0) { inclusive = true }
+                        popUpTo(navController.graph.id) { inclusive = true }
                     }
                 }
             }
 
-            val rootRoutes = remember { listOf(ShoppingList, AiChat, Profile) }
+            // AiChat's shoppingId here is a throwaway placeholder: rootRoutes only matches by
+            // route::class (see hasRoute/isProtectedRoute below), never by field value.
+            val rootRoutes = remember { listOf(ShoppingList, AiChat(shoppingId = ""), Profile) }
 
             val currentRoute = rootRoutes.find { route ->
                 currentDestination?.hierarchy?.any { it.hasRoute(route::class) } == true
             }
 
-            val showBottomBar = currentRoute != null
+            val isOnProtectedRoute = currentDestination?.isProtectedRoute(rootRoutes) == true
+
+            LaunchedEffect(isOnProtectedRoute, isAuthenticated) {
+                if (!isAuthenticated && isOnProtectedRoute) {
+                    navigator.navigate(Welcome) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                }
+            }
 
             Scaffold(
                 bottomBar = {
                     CestouBottomNavigation(
                         currentRoute = currentRoute,
                         photoUrl = photoUrl,
-                        visible = showBottomBar,
+                        visible = currentRoute != null && currentRoute !is AiChat,
                         onNavigate = { route ->
                             navigator.navigate(route) {
                                 popUpTo(navController.graph.startDestinationId) {
@@ -154,7 +164,7 @@ class MainActivity : AppCompatActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = if (isAuthenticated) ShoppingList else Welcome
+                        startDestination = if (initialAuthenticated) ShoppingList else Welcome
                     ) {
                         featureInitializers.forEach {
                             it.registerGraph(this, navigator, windowSizeClass)

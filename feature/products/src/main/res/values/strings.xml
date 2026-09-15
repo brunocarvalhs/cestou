@@ -18,6 +18,7 @@
     <string name="product_option_suggestions">Suggestions</string>
     <string name="product_option_ai">AI Chat</string>
     <string name="product_option_quick_add">Quick Add</string>
+    <string name="product_option_form">Form</string>
     <string name="product_option_common">Common</string>
     <string name="product_header_add_to">Add to %s</string>
     <string name="product_empty_title">No product found</string>
@@ -71,6 +72,12 @@
     <string name="common_products_empty_title">Your basic basket is empty</string>
     <string name="common_products_empty_description">Add the items you always buy to reuse them quickly.</string>
 
+    <!-- Feature: Product Form (main entry route) -->
+    <string name="product_form_title">New product</string>
+    <string name="product_form_save">Add item</string>
+    <string name="product_form_divider_or">or</string>
+    <string name="product_form_camera_button">Add with camera</string>
+
     <!-- Feature: Quick Add -->
     <string name="quick_add_placeholder">Item name</string>
     <string name="quick_add_add_description">Add item</string>
@@ -105,6 +112,7 @@
     <string name="shopping_list_label_unit_price">Unit Price</string>
     <string name="shopping_list_label_quantity">Quantity</string>
     <string name="shopping_list_edit_title">Edit Product</string>
+    <string name="shopping_list_edit_list_title">Edit list</string>
     <string name="shopping_list_label_product_name">Product Name</string>
     <string name="shopping_list_label_category">Category</string>
     <string name="shopping_list_label_unit">Unit</string>

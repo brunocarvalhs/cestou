@@ -9,93 +9,87 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
-import br.com.brunocarvalhs.howmuch.feature.chat.presentation.screen.AiChatScreen
-import br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel.AiChatViewModel
+import br.com.brunocarvalhs.howmuch.core.ui.components.CategoryPickerDialog
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.Options
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.FormProduct
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductHeader
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductPhotoForm
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductSearchForm
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.QuickAddForm
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.SuggestionsAndCommonForm
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.CommonProductViewModel
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.ProductFormViewModel
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.ProductPhotoViewModel
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.ProductSearchViewModel
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.ProductSuggestionViewModel
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.QuickAddViewModel
 
+private const val CATEGORY_PICKER_ROUTE = "product_form/category_picker"
+
+/**
+ * One natural flow, no tab picker: [Options.FORM] (manual entry) is the only start destination,
+ * with a camera shortcut pushing [Options.PHOTO] on top. Quick Add / Search / Suggestions / AI
+ * chat still exist as composables+ViewModels elsewhere in this module — they're just not wired
+ * into this NavHost anymore (recipe/AI surfaces are moving to their own modules; the rest can be
+ * re-wired here later if this screen ever needs more than manual-or-camera).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ProductScreen(
     shopping: Shopping,
-    modifier: Modifier = Modifier,
-    onBack: () -> Unit = {}
+    modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-    val selectedOption = Options.entries.find { it.name == currentRoute } ?: Options.QUICK_ADD
+    // Checked against Photo specifically (not "route != Form") so the category picker dialog —
+    // which also pushes a back-stack entry — doesn't cause the Form step's own header to
+    // reappear behind it.
+    val canNavigateBack = navBackStackEntry?.destination?.route == Options.PHOTO.name
 
     val viewModelStoreOwner = LocalViewModelStoreOwner.current!!
     val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
         topBar = {
-            ProductHeader(
-                shoppingTitle = shopping.title,
-                selectedOption = selectedOption,
-                onOptionSelected = { option ->
-                    navController.navigate(option.name) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
-                onBack = onBack
-            )
+            // The Form step is a plain bottom-sheet form (mirrors EditItemContent: no app bar,
+            // dismiss via the sheet's own drag handle/backdrop tap). Only the camera step is a
+            // genuine full-screen surface, so it's the only one that needs a back affordance.
+            if (canNavigateBack) {
+                ProductHeader(
+                    shoppingTitle = shopping.title,
+                    canNavigateBack = true,
+                    onBack = { navController.popBackStack() }
+                )
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Options.QUICK_ADD.name,
+            startDestination = Options.FORM.name,
             modifier = modifier.padding(innerPadding)
         ) {
-            composable(Options.QUICK_ADD.name) {
-                val viewModel: QuickAddViewModel = hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
+            composable(Options.FORM.name) {
+                val viewModel: ProductFormViewModel = hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-                val commonViewModel: CommonProductViewModel =
-                    hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
-                val commonUiState by commonViewModel.uiState.collectAsStateWithLifecycle()
-                QuickAddForm(
+                FormProduct(
                     uiState = uiState,
                     intent = viewModel.intent,
-                    commonUiState = commonUiState,
-                    commonIntent = commonViewModel.intent,
                     snackbarHostState = snackbarHostState,
+                    shoppingTitle = shopping.title,
                     onNavigateToPhoto = {
                         navController.navigate(Options.PHOTO.name) {
                             launchSingleTop = true
                         }
+                    },
+                    onOpenCategoryPicker = {
+                        navController.navigate(CATEGORY_PICKER_ROUTE) {
+                            launchSingleTop = true
+                        }
                     }
-                )
-            }
-            composable(Options.SEARCH.name) {
-                val viewModel: ProductSearchViewModel = hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
-                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-                ProductSearchForm(
-                    uiState = uiState,
-                    intent = viewModel.intent,
-                    snackbarHostState = snackbarHostState
                 )
             }
             composable(Options.PHOTO.name) {
@@ -107,35 +101,36 @@ internal fun ProductScreen(
                     snackbarHostState = snackbarHostState
                 )
             }
-            composable(Options.SUGGESTIONS.name) {
-                val suggestionViewModel: ProductSuggestionViewModel =
-                    hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
-                val suggestionUiState by suggestionViewModel.uiState.collectAsStateWithLifecycle()
-                // Same CommonProductViewModel instance Quick Add uses (shared viewModelStoreOwner)
-                // — the "Common" mode here is management (add/remove/bulk-add), Quick Add's chips
-                // are the fast single-tap add; both stay in sync against the same state.
-                val commonViewModel: CommonProductViewModel =
-                    hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
-                val commonUiState by commonViewModel.uiState.collectAsStateWithLifecycle()
-                SuggestionsAndCommonForm(
-                    suggestionUiState = suggestionUiState,
-                    suggestionIntent = suggestionViewModel.intent,
-                    suggestionEvents = suggestionViewModel.events,
-                    commonUiState = commonUiState,
-                    commonIntent = commonViewModel.intent,
-                    snackbarHostState = snackbarHostState,
-                    onBack = onBack
-                )
-            }
-            composable(Options.AI.name) {
-                val viewModel: AiChatViewModel = hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
-                viewModel.setShoppingContext(shopping.id)
+            dialog(CATEGORY_PICKER_ROUTE) {
+                // Same ProductFormViewModel instance as the Form step (shared viewModelStoreOwner),
+                // so picking a category here writes straight back into the form's own state.
+                val viewModel: ProductFormViewModel = hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-                AiChatScreen(
-                    state = uiState,
-                    intent = viewModel.intent
+                CategoryPickerDialog(
+                    selected = uiState.category,
+                    onSelect = { category ->
+                        viewModel.intent.onCategorySelected(category)
+                        navController.popBackStack()
+                    },
+                    onDismiss = { navController.popBackStack() }
                 )
             }
         }
     }
+}
+
+@Preview
+@Composable
+private fun ProductScreenPreview() {
+    ProductScreen(
+        shopping = Shopping(
+            id = "1",
+            title = "Supermercado",
+            description = "Compras do mês",
+            price = 0.0,
+            status = Shopping.Status.NEW,
+            users = emptyList(),
+            roles = emptyMap()
+        )
+    )
 }

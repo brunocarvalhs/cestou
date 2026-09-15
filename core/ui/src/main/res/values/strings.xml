@@ -67,6 +67,7 @@
     <string name="category_congelados">Frozen</string>
     <string name="category_padaria">Bakery</string>
     <string name="category_outros">Others</string>
+    <string name="category_picker_title">Select category</string>
 
     <!-- Language Selector -->
     <string-array name="supported_languages">

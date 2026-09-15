@@ -2,14 +2,12 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.sh
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,14 +20,12 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.Badge
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,14 +45,12 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.components.UserAvatars
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.common.IconProduct
-import coil.compose.AsyncImage
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun ShoppingItem(
     modifier: Modifier = Modifier,
     title: String,
-    itemCount: Int = 0,
     users: List<String> = emptyList(),
     status: Shopping.Status = Shopping.Status.NEW,
     iconUrl: String? = null,
@@ -68,8 +62,6 @@ internal fun ShoppingItem(
     onFinishClick: () -> Unit = {},
     onShareClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {},
-    isFavorite: Boolean = false,
-    onFavoriteClick: () -> Unit = {},
     budget: Double? = null
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -104,48 +96,24 @@ internal fun ShoppingItem(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false)
                     )
-
-                    IconButton(
-                        onClick = onFavoriteClick,
-                        modifier = Modifier.size(24.dp).padding(start = 4.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = "Favorite",
-                            tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
                 }
 
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = "$itemCount products",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    // Badge de Budget se existir
                     budget?.let {
                         Text(
-                            text = "•  R$ %.2f".format(it),
+                            text = "R$ %.2f".format(it),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Medium
                         )
                     }
 
-                    // Status
-                    Text(
-                        text = "•  ${status.name}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
+                    ShoppingStatusBadge(status = status)
                 }
             }
 
@@ -153,9 +121,6 @@ internal fun ShoppingItem(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (users.size > 1) {
-                    // ShoppingItem only knows member ids here, not resolved profiles — pass a
-                    // list of nulls so the shared avatar shell falls back to the generic icon
-                    // per member (same look as before extraction to core/ui).
                     UserAvatars(profiles = users.map { null })
                     Spacer(modifier = Modifier.width(8.dp))
                 }
@@ -236,6 +201,47 @@ internal fun ShoppingItemLoading(modifier: Modifier = Modifier) {
     }
 }
 
+@Suppress("MagicNumber") // Color(0xFF...) literals, not numeric constants that need naming.
+@Composable
+fun ShoppingStatusBadge(
+    status: Shopping.Status
+) {
+    val (text, containerColor, contentColor) = when (status) {
+        Shopping.Status.NEW -> Triple(
+            "Novo",
+            Color(0xFFE8F5E9),
+            Color(0xFF2E7D32)
+        )
+
+        Shopping.Status.IN_PROGRESS -> Triple(
+            "Em progresso",
+            Color(0xFFFFF3E0),
+            Color(0xFFE65100)
+        )
+
+        Shopping.Status.FINISH -> Triple(
+            "Finalizado",
+            Color(0xFFE3F2FD),
+            Color(0xFF1565C0)
+        )
+    }
+
+    Badge(
+        containerColor = containerColor,
+        contentColor = contentColor
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(
+                horizontal = 6.dp,
+                vertical = 2.dp
+            )
+        )
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun ShoppingItemPreview() {
@@ -243,16 +249,21 @@ private fun ShoppingItemPreview() {
         Column {
             ShoppingItem(
                 title = "Morning breakfast",
-                itemCount = 8,
                 users = listOf("1", "2")
             )
             ShoppingItem(
-                title = "Pizza day!",
-                itemCount = 4
+                title = "Pizza day!"
             )
             ShoppingItem(
                 title = "Often purchased",
-                itemCount = 10,
+                status = Shopping.Status.IN_PROGRESS,
+                iconBackgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+            )
+            ShoppingItem(
+                title = "Morning breakfast",
+                users = listOf("1", "2", "3"),
+                status = Shopping.Status.FINISH,
+                budget = 400.0,
                 iconBackgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
             )
         }
