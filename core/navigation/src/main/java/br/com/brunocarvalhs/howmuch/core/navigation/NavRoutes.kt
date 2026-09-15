@@ -4,4 +4,6 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object ShoppingList : NavKey
+data object ShoppingList : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}

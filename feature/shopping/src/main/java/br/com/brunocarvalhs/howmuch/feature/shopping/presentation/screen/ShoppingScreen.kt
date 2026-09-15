@@ -1,6 +1,5 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen
 
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -23,7 +22,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -35,10 +33,8 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,8 +47,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
-import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragTarget
-import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DropTarget
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.common.ShoppingEmptyState
@@ -252,10 +246,8 @@ private fun ShoppingListItemWrapper(
                 title = shopping.title,
                 emoji = shopping.emoji,
                 budget = shopping.budget,
-                itemCount = 8,
                 users = shopping.users,
                 status = shopping.status,
-                onFavoriteClick = { intent.onToggleFavorite(shopping) },
                 onDeleteClick = { intent.onDelete(shopping.id) },
                 onDuplicateClick = { intent.onDuplicate(shopping) },
                 onShareClick = { intent.onShare(shopping) },

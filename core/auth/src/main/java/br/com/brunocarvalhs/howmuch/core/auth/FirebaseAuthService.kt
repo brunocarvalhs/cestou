@@ -15,6 +15,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -22,7 +23,7 @@ import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
 
-class FirebaseAnonymousAuthentication @Inject constructor(
+class FirebaseAuthService @Inject constructor(
     private val auth: FirebaseAuth,
     private val crashlytics: FirebaseCrashlytics,
     @AuthDataStore private val storage: StorageService
@@ -49,6 +50,13 @@ class FirebaseAnonymousAuthentication @Inject constructor(
         } else {
             firebaseUser
         }
+    }.onEach { result ->
+        Timber.tag(TAG).d(
+            "authState combine: firebaseUser=%s syncedId=%s -> result=%s",
+            _firebaseAuthState.value?.id,
+            _syncedUserId.value,
+            result?.id
+        )
     }
 
     init {
@@ -99,9 +107,29 @@ class FirebaseAnonymousAuthentication @Inject constructor(
     }
 
     override suspend fun signOut(): Result<Unit> = try {
+        Timber.tag(TAG).d(
+            "signOut() called: currentUser.id=%s cachedUserId=%s syncedId=%s firebaseUser=%s",
+            currentUser?.id,
+            cachedUserId,
+            _syncedUserId.value,
+            _firebaseAuthState.value?.id
+        )
         storage.remove(USER_ID_KEY)
+        // Clear the in-memory value synchronously too: storage.remove() only schedules the
+        // DataStore write, and the observe()/collect() in init() that would otherwise clear
+        // _syncedUserId picks it up on a separate coroutine. If auth.signOut()'s listener fires
+        // first, authState briefly combines a null firebaseUser with the still-stale syncedId,
+        // producing AuthenticatedUser(id = staleId) — an "authenticated" user with no profile
+        // data at all, which is exactly the logged-out-but-let-in state this must never produce.
+        _syncedUserId.value = null
         cachedUserId = null
         auth.signOut()
+        Timber.tag(TAG).d(
+            "signOut() finished: currentUser.id=%s syncedId=%s firebaseUser=%s",
+            currentUser?.id,
+            _syncedUserId.value,
+            _firebaseAuthState.value?.id
+        )
         Result.success(Unit)
     } catch (e: Exception) {
         Result.failure(e)
@@ -112,6 +140,7 @@ class FirebaseAnonymousAuthentication @Inject constructor(
             ?: return Result.failure(IllegalStateException("No authenticated user"))
         user.delete().await()
         storage.remove(USER_ID_KEY)
+        _syncedUserId.value = null
         cachedUserId = null
         Result.success(Unit)
     } catch (e: Exception) {
@@ -148,7 +177,7 @@ class FirebaseAnonymousAuthentication @Inject constructor(
     }
 
     companion object {
-        private const val TAG = "FirebaseAnonymousAuthentication"
+        private const val TAG = "FirebaseAuthService"
         private const val USER_ID_KEY = "synced_user_id"
     }
 }

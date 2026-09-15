@@ -5,9 +5,11 @@ import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
+import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.BlockThreshold
 import com.google.ai.client.generativeai.type.Content
+import com.google.ai.client.generativeai.type.FunctionCallPart
 import com.google.ai.client.generativeai.type.FunctionDeclaration
 import com.google.ai.client.generativeai.type.FunctionResponsePart
 import com.google.ai.client.generativeai.type.HarmCategory
@@ -24,11 +26,15 @@ import timber.log.Timber
  * Implementação do Agente utilizando Google Gemini AI SDK.
  */
 internal class GeminiAiAgent(
-    private val session: AiSession,
-    private val registry: AgentRegistry = AgentRegistry,
+    dependencies: AiAgentDependencies,
     private val modelName: String = BuildConfig.GEMINI_AGENT,
     private val apiKey: String = BuildConfig.GEMINI_API_KEY
 ) : AiAgent {
+
+    private val session: AiSession = dependencies.session
+    private val registry: AgentRegistry = dependencies.registry
+    private val crashReporter: CrashReporter = dependencies.crashReporter
+    private val systemPrompt: String = dependencies.systemPrompt
 
     private val generativeModel: GenerativeModel by lazy {
         GenerativeModel(
@@ -36,20 +42,7 @@ internal class GeminiAiAgent(
             apiKey = apiKey,
             systemInstruction = Content(
                 role = "system",
-                parts = listOf(
-                    TextPart(
-                        """
-                        Você é o Cestou Assistant, um assistente especializado em ajudar o usuário com listas de compras e produtos.
-                        Diretrizes de comportamento:
-                        1. Priorize a lista de compras atual fornecida no contexto (através do metadata) ao adicionar produtos, a menos que o usuário peça explicitamente para criar uma nova lista.
-                        2. Se um ID de lista de compras ('shopping') estiver presente no contexto, use-o como padrão para ações que exigem um 'shoppingId'.
-                        3. Ao adicionar produtos, use as seguintes categorias padrão: Hortifruti, Carnes, Laticínios, Bebidas, Limpeza, Higiene, Mercearia, Legumes, Perecíveis, Congelados, Padaria ou Outros.
-                        4. Suporte quantidades decimais (ex: 0.5 para meio quilo) e use unidades de medida como 'kg', 'g', 'L', 'ml', 'un', 'pct', 'cx'.
-                        5. Se a lista tiver um orçamento ('budget'), avise o usuário se os itens adicionados ultrapassarem esse valor.
-                        6. Seja conciso e útil.
-                        """.trimIndent()
-                    )
-                )
+                parts = listOf(TextPart(systemPrompt))
             ),
             tools = listOf(
                 Tool(
@@ -86,32 +79,15 @@ internal class GeminiAiAgent(
         val meta = context.toMetadata()
 
         try {
-            var response = chat.sendMessage(prompt)
+            // systemInstruction is bound once when generativeModel is built (see below), so a
+            // per-request value like the current shoppingId can't go there — it rides along on
+            // the turn's own prompt instead, which the model reads exactly the same way.
+            var response = chat.sendMessage(prompt + SystemPrompts.contextSuffix(meta))
 
             // Loop para processar Function Calling
             while (response.functionCalls.isNotEmpty()) {
                 val toolResponses = response.functionCalls.map { functionCall ->
-                    val action = registry.find(functionCall.name)
-                    val result = if (action != null) {
-                        try {
-                            action.execute(
-                                arguments = functionCall.args,
-                                session = session,
-                                metadata = meta
-                            ).getOrNull()?.toString() ?: "Sucesso"
-                        } catch (e: Exception) {
-                            if (e is kotlinx.coroutines.CancellationException) throw e
-                            "Erro na execução da ação: ${e.message}"
-                        }
-                    } else {
-                        "Erro: Ação '${functionCall.name}' não encontrada"
-                    }
-
-                    // Cria a parte de resposta para o Gemini
-                    FunctionResponsePart(
-                        name = functionCall.name,
-                        response = JSONObject().apply { put("result", result) }
-                    )
+                    executeFunctionCall(functionCall, meta)
                 }
 
                 // Cria o conteúdo da resposta das ferramentas e envia de volta
@@ -119,17 +95,71 @@ internal class GeminiAiAgent(
                 response = chat.sendMessage(toolContent)
             }
 
-            response.text?.let {
+            response.text?.trim()?.let {
                 emit(it)
                 // Atualiza o histórico da sessão com o estado atual do chat
                 session.history.clear()
                 session.history.addAll(chat.history)
+                session.history.trimToRecentHistory()
             }
 
         } catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException) throw e
-            Timber.e(e, "Erro na comunicação com Gemini")
-            emit("Desculpe, tive um problema ao processar sua solicitação no Gemini.")
+            Timber.tag(TAG).e(e, "Erro na comunicação com Gemini (model=%s)", modelName)
+            crashReporter.recordException(
+                e,
+                extras = mapOf(
+                    "provider" to "gemini",
+                    "model" to modelName
+                )
+            )
+            emit(aiErrorMessageFor(e))
         }
+    }
+
+    private suspend fun executeFunctionCall(
+        functionCall: FunctionCallPart,
+        meta: Map<String, Any?>
+    ): FunctionResponsePart {
+        val action = registry.find(functionCall.name)
+        val result = if (action != null) {
+            try {
+                action.execute(
+                    arguments = functionCall.args,
+                    session = session,
+                    metadata = meta
+                ).getOrNull()?.toString() ?: "Sucesso"
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                Timber.tag(TAG).e(
+                    e,
+                    "Erro executando a função '%s' com args=%s",
+                    functionCall.name,
+                    functionCall.args
+                )
+                crashReporter.recordException(
+                    e,
+                    extras = mapOf(
+                        "provider" to "gemini",
+                        "model" to modelName,
+                        "function" to functionCall.name
+                    )
+                )
+                "Erro na execução da ação: ${e.message}"
+            }
+        } else {
+            Timber.tag(TAG).w("Ação '%s' não encontrada no registry", functionCall.name)
+            "Erro: Ação '${functionCall.name}' não encontrada"
+        }
+
+        // Cria a parte de resposta para o Gemini
+        return FunctionResponsePart(
+            name = functionCall.name,
+            response = JSONObject().apply { put("result", result) }
+        )
+    }
+
+    companion object {
+        private const val TAG = "GeminiAiAgent"
     }
 }
