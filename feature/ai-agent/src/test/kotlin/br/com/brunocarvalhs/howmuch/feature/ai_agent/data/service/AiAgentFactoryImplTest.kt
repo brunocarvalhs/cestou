@@ -1,3 +1,7 @@
+// Lots of small, single-purpose stub/reflection helpers below plus a wide combinatorial test
+// matrix in the class itself — both trip TooManyFunctions, neither is actually a design smell.
+@file:Suppress("TooManyFunctions")
+
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 import br.com.brunocarvalhs.howmuch.core.ai.BuildConfig

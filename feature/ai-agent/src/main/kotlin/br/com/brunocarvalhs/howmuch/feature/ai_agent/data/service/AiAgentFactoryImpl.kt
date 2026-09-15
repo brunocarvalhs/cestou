@@ -40,41 +40,26 @@ internal class AiAgentFactoryImpl @Inject constructor(
         // applies to whichever provider they actually selected (settings.aiProvider) — the
         // other provider here only exists as a fallback and keeps its BuildConfig default,
         // since the picked model id isn't guaranteed to be valid for it.
-        val geminiModel = settings.aiModel
-            .takeIf { settings.aiProvider == "gemini" && it.isNotBlank() }
-            ?: BuildConfig.GEMINI_AGENT
-        val gemini = GeminiAiAgent(
-            session,
-            registry,
-            modelName = geminiModel,
-            apiKey = geminiApiKey,
+        val dependencies = AiAgentDependencies(
+            session = session,
             crashReporter = crashReporter,
+            registry = registry,
             systemPrompt = systemPrompt
+        )
+        val gemini = GeminiAiAgent(
+            dependencies = dependencies,
+            modelName = resolveModel(settings, provider = "gemini", default = BuildConfig.GEMINI_AGENT),
+            apiKey = geminiApiKey
         ).takeIf { featureFlagService.isEnabled(FeatureFlagKeys.AI_GEMINI_ENABLED, default = true) }
         val openRouterApiKey =
             resolveRemoteString(RemoteVariableKeys.OPEN_ROUTER_API_KEY, BuildConfig.OPEN_ROUTER_API_KEY)
-        val openRouterModel = settings.aiModel
-            .takeIf { settings.aiProvider == "openrouter" && it.isNotBlank() }
-            ?: BuildConfig.OPEN_ROUTER_MODEL
         val openRouter = OpenRouterAiAgent(
-            session,
-            registry,
-            model = openRouterModel,
-            apiKey = openRouterApiKey,
-            crashReporter = crashReporter,
-            systemPrompt = systemPrompt
+            dependencies = dependencies,
+            model = resolveModel(settings, provider = "openrouter", default = BuildConfig.OPEN_ROUTER_MODEL),
+            apiKey = openRouterApiKey
         ).takeIf { featureFlagService.isEnabled(FeatureFlagKeys.AI_OPENROUTER_ENABLED, default = true) }
 
-        return when (settings.aiProvider) {
-            "gemini" -> gemini ?: openRouter ?: NoAiProviderAvailableAgent
-            "openrouter" -> openRouter ?: gemini ?: NoAiProviderAvailableAgent
-            else -> when {
-                openRouter != null && gemini != null -> FallbackAiAgent(openRouter, gemini)
-                openRouter != null -> openRouter
-                gemini != null -> gemini
-                else -> NoAiProviderAvailableAgent
-            }
-        }
+        return selectAgent(settings.aiProvider, gemini, openRouter)
     }
 
     /** Reads [key] from Remote Config, guarding against a blank remote value (see AD-008)
@@ -84,4 +69,24 @@ internal class AiAgentFactoryImpl @Inject constructor(
     private fun resolveRemoteString(key: String, default: String): String =
         remoteVariableService.getString(key = key, default = default)
             .takeIf { it.isNotBlank() } ?: default
+
+    /** settings.aiModel is the single model the user picked in AiSettingsScreen; it only
+     * applies to whichever [provider] they actually selected (settings.aiProvider) — the
+     * other provider only exists as a fallback and keeps its BuildConfig [default], since the
+     * picked model id isn't guaranteed to be valid for it.
+     */
+    private fun resolveModel(settings: AppSettings, provider: String, default: String): String =
+        settings.aiModel.takeIf { settings.aiProvider == provider && it.isNotBlank() } ?: default
+
+    private fun selectAgent(provider: String, gemini: AiAgent?, openRouter: AiAgent?): AiAgent =
+        when (provider) {
+            "gemini" -> gemini ?: openRouter ?: NoAiProviderAvailableAgent
+            "openrouter" -> openRouter ?: gemini ?: NoAiProviderAvailableAgent
+            else -> when {
+                openRouter != null && gemini != null -> FallbackAiAgent(openRouter, gemini)
+                openRouter != null -> openRouter
+                gemini != null -> gemini
+                else -> NoAiProviderAvailableAgent
+            }
+        }
 }

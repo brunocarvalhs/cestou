@@ -16,6 +16,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
 
+private const val FIRST_MESSAGE_EPOCH_MILLIS = 1_000L
+private const val SECOND_MESSAGE_EPOCH_MILLIS = 2_000L
+
 // Exercises the real DataStoreStorageService (JSON-backed) instead of a hand-rolled fake:
 // a fake that stores/returns the object as-is would never catch a value::class.serializer()
 // resolution failure like the ArrayList crash this repository used to hit on every send.
@@ -57,13 +60,13 @@ class ChatHistoryRepositoryImplTest {
                 id = 1,
                 text = "quanto vou gastar?",
                 sender = ChatMessage.Sender.USER,
-                createdAt = Instant.ofEpochMilli(1_000)
+                createdAt = Instant.ofEpochMilli(FIRST_MESSAGE_EPOCH_MILLIS)
             ),
             ChatMessage(
                 id = 2,
                 text = "R$ 87,40 😊",
                 sender = ChatMessage.Sender.ASSISTANT,
-                createdAt = Instant.ofEpochMilli(2_000)
+                createdAt = Instant.ofEpochMilli(SECOND_MESSAGE_EPOCH_MILLIS)
             )
         )
 
@@ -81,7 +84,7 @@ class ChatHistoryRepositoryImplTest {
                 id = 1,
                 text = "list one",
                 sender = ChatMessage.Sender.USER,
-                createdAt = Instant.ofEpochMilli(1_000)
+                createdAt = Instant.ofEpochMilli(FIRST_MESSAGE_EPOCH_MILLIS)
             )
         )
 

@@ -7,9 +7,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiSettings
-import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.screen.AiChatScreen
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel.AiChatViewModel
 

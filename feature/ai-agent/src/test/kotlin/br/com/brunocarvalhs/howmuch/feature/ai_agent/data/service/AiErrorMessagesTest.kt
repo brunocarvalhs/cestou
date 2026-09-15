@@ -1,12 +1,12 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 import io.ktor.client.network.sockets.SocketTimeoutException
+import kotlinx.serialization.SerializationException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import java.io.IOException
 import java.net.UnknownHostException
-import kotlinx.serialization.SerializationException
 
 class AiErrorMessagesTest {
 

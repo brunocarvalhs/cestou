@@ -127,8 +127,9 @@ class OpenRouterMappingTest {
 
     private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
 
+    // Regression for the "Serializer for class 'Any' is not found" crash.
     @Test
-    fun `parseFunctionCallArguments decodes a JSON object without throwing (regression for the Any serializer crash)`() {
+    fun `parseFunctionCallArguments decodes a JSON object without throwing`() {
         val args = parseFunctionCallArguments(json, """{"title": "Feira da semana", "budget": 150.5}""")
 
         assertEquals(2, args.size)

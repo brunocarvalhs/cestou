@@ -4,6 +4,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+private const val NON_STRING_SHOPPING_ID = 123
+
 class SystemPromptsTest {
 
     @Test
@@ -25,6 +27,6 @@ class SystemPromptsTest {
 
     @Test
     fun `contextSuffix is empty when the shopping id is not a String`() {
-        assertEquals("", SystemPrompts.contextSuffix(mapOf("shopping_id" to 123)))
+        assertEquals("", SystemPrompts.contextSuffix(mapOf("shopping_id" to NON_STRING_SHOPPING_ID)))
     }
 }

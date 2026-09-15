@@ -201,6 +201,7 @@ internal fun ShoppingItemLoading(modifier: Modifier = Modifier) {
     }
 }
 
+@Suppress("MagicNumber") // Color(0xFF...) literals, not numeric constants that need naming.
 @Composable
 fun ShoppingStatusBadge(
     status: Shopping.Status

@@ -24,6 +24,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+@Suppress("TooManyFunctions")
 class FirebaseAuthServiceTest {
 
     private val auth = mockk<FirebaseAuth>(relaxed = true)

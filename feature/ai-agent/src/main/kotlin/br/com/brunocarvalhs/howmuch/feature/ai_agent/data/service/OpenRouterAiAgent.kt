@@ -3,12 +3,12 @@ package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 import br.com.brunocarvalhs.howmuch.core.ai.BuildConfig
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.ChatRequest
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.ChatResponse
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.Message
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import com.google.ai.client.generativeai.type.Content
 import com.google.ai.client.generativeai.type.TextPart
 import io.ktor.client.HttpClient
@@ -33,13 +33,15 @@ import timber.log.Timber
  * Suporta múltiplos modelos (como GPT-4, Claude, etc) e Function Calling.
  */
 internal class OpenRouterAiAgent(
-    private val session: AiSession,
-    private val registry: AgentRegistry = AgentRegistry,
+    dependencies: AiAgentDependencies,
     private val model: String = BuildConfig.OPEN_ROUTER_MODEL,
-    private val apiKey: String = BuildConfig.OPEN_ROUTER_API_KEY,
-    private val crashReporter: CrashReporter,
-    private val systemPrompt: String = SystemPrompts.CESTOU_ASSISTANT
+    private val apiKey: String = BuildConfig.OPEN_ROUTER_API_KEY
 ) : AiAgent {
+
+    private val session: AiSession = dependencies.session
+    private val registry: AgentRegistry = dependencies.registry
+    private val crashReporter: CrashReporter = dependencies.crashReporter
+    private val systemPrompt: String = dependencies.systemPrompt
 
     private val json = Json {
         ignoreUnknownKeys = true

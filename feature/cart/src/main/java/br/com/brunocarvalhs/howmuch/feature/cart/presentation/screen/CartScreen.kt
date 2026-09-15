@@ -281,7 +281,7 @@ internal fun CartScreen(
                             // single-member list instead of a clickable "no history yet" avatar
                             // (design.md Error Handling Strategy).
                             val showAttribution = (uiState.shopping?.users?.size ?: 0) > 1 &&
-                                    product.lastActivity != null
+                                product.lastActivity != null
                             ProductListItem(
                                 product = product,
                                 enabled = !isLocked,

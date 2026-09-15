@@ -9,6 +9,7 @@ import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.BlockThreshold
 import com.google.ai.client.generativeai.type.Content
+import com.google.ai.client.generativeai.type.FunctionCallPart
 import com.google.ai.client.generativeai.type.FunctionDeclaration
 import com.google.ai.client.generativeai.type.FunctionResponsePart
 import com.google.ai.client.generativeai.type.HarmCategory
@@ -25,13 +26,15 @@ import timber.log.Timber
  * Implementação do Agente utilizando Google Gemini AI SDK.
  */
 internal class GeminiAiAgent(
-    private val session: AiSession,
-    private val registry: AgentRegistry = AgentRegistry,
+    dependencies: AiAgentDependencies,
     private val modelName: String = BuildConfig.GEMINI_AGENT,
-    private val apiKey: String = BuildConfig.GEMINI_API_KEY,
-    private val crashReporter: CrashReporter,
-    private val systemPrompt: String = SystemPrompts.CESTOU_ASSISTANT
+    private val apiKey: String = BuildConfig.GEMINI_API_KEY
 ) : AiAgent {
+
+    private val session: AiSession = dependencies.session
+    private val registry: AgentRegistry = dependencies.registry
+    private val crashReporter: CrashReporter = dependencies.crashReporter
+    private val systemPrompt: String = dependencies.systemPrompt
 
     private val generativeModel: GenerativeModel by lazy {
         GenerativeModel(
@@ -84,42 +87,7 @@ internal class GeminiAiAgent(
             // Loop para processar Function Calling
             while (response.functionCalls.isNotEmpty()) {
                 val toolResponses = response.functionCalls.map { functionCall ->
-                    val action = registry.find(functionCall.name)
-                    val result = if (action != null) {
-                        try {
-                            action.execute(
-                                arguments = functionCall.args,
-                                session = session,
-                                metadata = meta
-                            ).getOrNull()?.toString() ?: "Sucesso"
-                        } catch (e: Exception) {
-                            if (e is kotlinx.coroutines.CancellationException) throw e
-                            Timber.tag(TAG).e(
-                                e,
-                                "Erro executando a função '%s' com args=%s",
-                                functionCall.name,
-                                functionCall.args
-                            )
-                            crashReporter.recordException(
-                                e,
-                                extras = mapOf(
-                                    "provider" to "gemini",
-                                    "model" to modelName,
-                                    "function" to functionCall.name
-                                )
-                            )
-                            "Erro na execução da ação: ${e.message}"
-                        }
-                    } else {
-                        Timber.tag(TAG).w("Ação '%s' não encontrada no registry", functionCall.name)
-                        "Erro: Ação '${functionCall.name}' não encontrada"
-                    }
-
-                    // Cria a parte de resposta para o Gemini
-                    FunctionResponsePart(
-                        name = functionCall.name,
-                        response = JSONObject().apply { put("result", result) }
-                    )
+                    executeFunctionCall(functionCall, meta)
                 }
 
                 // Cria o conteúdo da resposta das ferramentas e envia de volta
@@ -147,6 +115,48 @@ internal class GeminiAiAgent(
             )
             emit(aiErrorMessageFor(e))
         }
+    }
+
+    private suspend fun executeFunctionCall(
+        functionCall: FunctionCallPart,
+        meta: Map<String, Any?>
+    ): FunctionResponsePart {
+        val action = registry.find(functionCall.name)
+        val result = if (action != null) {
+            try {
+                action.execute(
+                    arguments = functionCall.args,
+                    session = session,
+                    metadata = meta
+                ).getOrNull()?.toString() ?: "Sucesso"
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                Timber.tag(TAG).e(
+                    e,
+                    "Erro executando a função '%s' com args=%s",
+                    functionCall.name,
+                    functionCall.args
+                )
+                crashReporter.recordException(
+                    e,
+                    extras = mapOf(
+                        "provider" to "gemini",
+                        "model" to modelName,
+                        "function" to functionCall.name
+                    )
+                )
+                "Erro na execução da ação: ${e.message}"
+            }
+        } else {
+            Timber.tag(TAG).w("Ação '%s' não encontrada no registry", functionCall.name)
+            "Erro: Ação '${functionCall.name}' não encontrada"
+        }
+
+        // Cria a parte de resposta para o Gemini
+        return FunctionResponsePart(
+            name = functionCall.name,
+            response = JSONObject().apply { put("result", result) }
+        )
     }
 
     companion object {
