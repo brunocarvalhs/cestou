@@ -1,6 +1,9 @@
 package br.com.brunocarvalhs.howmuch.feature.cart.presentation.components
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,7 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,6 +37,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.extensions.orEmpty
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.core.ui.components.CategoryPickerDialog
+import br.com.brunocarvalhs.howmuch.core.ui.entity.ProductCategory
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatQuantity
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyVisualTransformation
@@ -58,6 +63,7 @@ internal fun EditItemContent(
         )
     }
     var quantity by remember { mutableStateOf(product.quantity.formatQuantity()) }
+    var showCategoryPicker by remember { mutableStateOf(false) }
     val visualTransformation = rememberCurrencyVisualTransformation()
 
     Column(
@@ -85,14 +91,36 @@ internal fun EditItemContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = category,
-            onValueChange = { category = it },
-            label = { Text(stringResource(R.string.shopping_list_label_category)) },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            trailingIcon = { Icon(Icons.Default.Category, null) }
-        )
+        val selectedCategory = remember(category) { ProductCategory.fromString(category) }
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = category,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(stringResource(R.string.shopping_list_label_category)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = selectedCategory.icon,
+                        contentDescription = null,
+                        tint = selectedCategory.color
+                    )
+                },
+                trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            )
+            // OutlinedTextField has no onClick of its own; a transparent overlay is the
+            // standard way to make a read-only field open a picker instead of the keyboard.
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { showCategoryPicker = true }
+                    )
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -141,6 +169,17 @@ internal fun EditItemContent(
             Text(stringResource(R.string.shopping_list_save_changes))
         }
         Spacer(modifier = Modifier.height(16.dp))
+    }
+
+    if (showCategoryPicker) {
+        CategoryPickerDialog(
+            selected = category,
+            onSelect = {
+                category = it
+                showCategoryPicker = false
+            },
+            onDismiss = { showCategoryPicker = false }
+        )
     }
 }
 

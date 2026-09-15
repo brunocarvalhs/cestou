@@ -5,7 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
-import br.com.brunocarvalhs.howmuch.core.auth.FirebaseAnonymousAuthentication
+import br.com.brunocarvalhs.howmuch.core.auth.FirebaseAuthService
 import br.com.brunocarvalhs.howmuch.core.data.service.DataStoreStorageService
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
@@ -30,7 +30,7 @@ object AuthModule {
 
     @Provides
     @Singleton
-    fun provideAuthService(impl: FirebaseAnonymousAuthentication): AuthService = impl
+    fun provideAuthService(impl: FirebaseAuthService): AuthService = impl
 
     @Provides
     @Singleton

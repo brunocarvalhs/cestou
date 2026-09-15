@@ -336,7 +336,7 @@ security:
     # grepping commit subjects for these prefixes, so an unenforced typo here
     # silently produces the wrong version - this is what actually keeps that
     # contract honest.
-    allowed_types: ["feat", "fix", "perf", "refactor", "revert", "chore", "docs", "style", "test", "build", "ci"]
+    allowed_types: ["feat", "fix", "perf", "refactor", "revert", "chore", "docs", "style", "test", "build", "ci", "debug"]
     step_names:
       generate_config: "\U0001F4DD Generate commitlint config"
       install: "\U0001F4E6 Install commitlint"

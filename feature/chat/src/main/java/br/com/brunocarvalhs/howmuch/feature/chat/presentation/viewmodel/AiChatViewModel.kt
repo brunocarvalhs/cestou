@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatIntent
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiChatUiState
@@ -18,6 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AiChatViewModel @Inject constructor(
     private val assistantUseCase: CartAssistantUseCase,
+    private val chatHistoryRepository: ChatHistoryRepository,
     private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
@@ -34,7 +36,13 @@ class AiChatViewModel @Inject constructor(
     )
 
     fun setShoppingContext(shoppingId: String) {
+        if (_uiState.value.shoppingId == shoppingId) return
         _uiState.update { it.copy(shoppingId = shoppingId) }
+
+        viewModelScope.launch {
+            val history = chatHistoryRepository.load(shoppingId)
+            _uiState.update { it.copy(messages = history) }
+        }
     }
 
     private fun sendMessage() {
@@ -51,22 +59,32 @@ class AiChatViewModel @Inject constructor(
                 isLoading = true
             )
         }
+        persistHistory()
 
         viewModelScope.launch {
             try {
                 assistantUseCase(text, _uiState.value).collect { response ->
                     val assistantMessage = ChatMessage(text = response, sender = ChatMessage.Sender.ASSISTANT)
-                    _uiState.update { 
+                    _uiState.update {
                         it.copy(
                             messages = it.messages + assistantMessage,
                             isLoading = false
                         )
                     }
+                    persistHistory()
                 }
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
                 _uiState.update { it.copy(isLoading = false) }
             }
+        }
+    }
+
+    private fun persistHistory() {
+        val state = _uiState.value
+        val shoppingId = state.shoppingId ?: return
+        viewModelScope.launch {
+            chatHistoryRepository.save(shoppingId, state.messages)
         }
     }
 }
