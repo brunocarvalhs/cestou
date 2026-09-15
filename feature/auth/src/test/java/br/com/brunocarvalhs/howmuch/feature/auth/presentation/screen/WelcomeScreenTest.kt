@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.auth.presentation.screen
 
 import androidx.compose.material3.Text
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -31,6 +32,9 @@ class WelcomeScreenTest {
 
         composeTestRule.onNodeWithText("Cestou", substring = true).assertExists()
         composeTestRule.onNodeWithText("Agree and continue", substring = true).performClick()
+        composeTestRule.waitUntil(timeoutMillis = 5_000) {
+            composeTestRule.onAllNodesWithText("Entrar").fetchSemanticsNodes().isNotEmpty()
+        }
         composeTestRule.onNodeWithText("Entrar").assertExists()
     }
 }
