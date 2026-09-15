@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 import br.com.brunocarvalhs.howmuch.core.ai.BuildConfig
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
+import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.RemoteVariableService
@@ -38,12 +39,22 @@ private fun RemoteVariableService.stubRemoteOpenRouterKey(value: String) {
     } returns value
 }
 
+/** `create()` also reads the remote system prompt on every call; stub it with the compiled-in
+ * default unless a test is specifically exercising prompt rotation.
+ */
+private fun RemoteVariableService.stubRemoteSystemPrompt(value: String = SystemPrompts.CESTOU_ASSISTANT) {
+    every {
+        getString(key = RemoteVariableKeys.AI_SYSTEM_PROMPT, default = SystemPrompts.CESTOU_ASSISTANT)
+    } returns value
+}
+
 /** Stubs both remote keys with their respective `BuildConfig` fallback, mirroring an
  * unfetched/unactivated Remote Config console. Used by tests that don't exercise rotation.
  */
 private fun RemoteVariableService.stubDefaultRemoteKeys() {
     stubRemoteKey(BuildConfig.GEMINI_API_KEY)
     stubRemoteOpenRouterKey(BuildConfig.OPEN_ROUTER_API_KEY)
+    stubRemoteSystemPrompt()
 }
 
 /** Reads the private `apiKey` field the GeminiAiAgent was actually constructed with. */
@@ -60,13 +71,54 @@ private fun OpenRouterAiAgent.actualApiKey(): String {
     return field.get(this) as String
 }
 
+/** Reads the private `systemPrompt` field the OpenRouterAiAgent was actually constructed with. */
+private fun OpenRouterAiAgent.actualSystemPrompt(): String {
+    val field: Field = OpenRouterAiAgent::class.java.getDeclaredField("systemPrompt")
+    field.isAccessible = true
+    return field.get(this) as String
+}
+
+/** Reads the private `modelName` field the GeminiAiAgent was actually constructed with. */
+private fun GeminiAiAgent.actualModel(): String {
+    val field: Field = GeminiAiAgent::class.java.getDeclaredField("modelName")
+    field.isAccessible = true
+    return field.get(this) as String
+}
+
+/** Reads the private `model` field the OpenRouterAiAgent was actually constructed with. */
+private fun OpenRouterAiAgent.actualModel(): String {
+    val field: Field = OpenRouterAiAgent::class.java.getDeclaredField("model")
+    field.isAccessible = true
+    return field.get(this) as String
+}
+
+/** Reads the private `primary`/`secondary` agents out of a FallbackAiAgent. */
+private fun FallbackAiAgent.primaryAgent(): Any {
+    val field: Field = FallbackAiAgent::class.java.getDeclaredField("primary")
+    field.isAccessible = true
+    return field.get(this)!!
+}
+
+private fun FallbackAiAgent.secondaryAgent(): Any {
+    val field: Field = FallbackAiAgent::class.java.getDeclaredField("secondary")
+    field.isAccessible = true
+    return field.get(this)!!
+}
+
 class AiAgentFactoryImplTest {
 
     private val session = mockk<AiAgentSession>(relaxed = true)
     private val registry = mockk<AgentRegistry>(relaxed = true)
     private val featureFlagService = mockk<FeatureFlagService>()
     private val remoteVariableService = mockk<RemoteVariableService>()
-    private val factory = AiAgentFactoryImpl(session, registry, featureFlagService, remoteVariableService)
+    private val crashReporter = mockk<CrashReporter>(relaxed = true)
+    private val factory = AiAgentFactoryImpl(
+        session,
+        registry,
+        featureFlagService,
+        remoteVariableService,
+        crashReporter
+    )
 
     @Test
     fun `create returns a FallbackAiAgent when no explicit provider is chosen and both are enabled`() {
@@ -133,6 +185,7 @@ class AiAgentFactoryImplTest {
         featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
         remoteVariableService.stubRemoteKey("remote-rotated-key")
         remoteVariableService.stubRemoteOpenRouterKey(BuildConfig.OPEN_ROUTER_API_KEY)
+        remoteVariableService.stubRemoteSystemPrompt()
 
         val agent = factory.create(AppSettings(aiProvider = "gemini")) as GeminiAiAgent
 
@@ -156,6 +209,7 @@ class AiAgentFactoryImplTest {
         featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
         remoteVariableService.stubRemoteKey("   ")
         remoteVariableService.stubRemoteOpenRouterKey(BuildConfig.OPEN_ROUTER_API_KEY)
+        remoteVariableService.stubRemoteSystemPrompt()
 
         val agent = factory.create(AppSettings(aiProvider = "gemini")) as GeminiAiAgent
 
@@ -167,6 +221,7 @@ class AiAgentFactoryImplTest {
         featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
         remoteVariableService.stubRemoteKey(BuildConfig.GEMINI_API_KEY)
         remoteVariableService.stubRemoteOpenRouterKey("remote-rotated-openrouter-key")
+        remoteVariableService.stubRemoteSystemPrompt()
 
         val agent = factory.create(AppSettings(aiProvider = "openrouter")) as OpenRouterAiAgent
 
@@ -178,9 +233,69 @@ class AiAgentFactoryImplTest {
         featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
         remoteVariableService.stubRemoteKey(BuildConfig.GEMINI_API_KEY)
         remoteVariableService.stubRemoteOpenRouterKey("   ")
+        remoteVariableService.stubRemoteSystemPrompt()
 
         val agent = factory.create(AppSettings(aiProvider = "openrouter")) as OpenRouterAiAgent
 
         assertEquals(BuildConfig.OPEN_ROUTER_API_KEY, agent.actualApiKey())
+    }
+
+    @Test
+    fun `create passes the user-picked model to GeminiAiAgent when gemini is selected`() {
+        featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
+        remoteVariableService.stubDefaultRemoteKeys()
+
+        val agent = factory.create(
+            AppSettings(aiProvider = "gemini", aiModel = "gemini-1.5-pro")
+        ) as GeminiAiAgent
+
+        assertEquals("gemini-1.5-pro", agent.actualModel())
+    }
+
+    @Test
+    fun `create passes the user-picked model to OpenRouterAiAgent when openrouter is selected`() {
+        featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
+        remoteVariableService.stubDefaultRemoteKeys()
+
+        val agent = factory.create(
+            AppSettings(aiProvider = "openrouter", aiModel = "anthropic/claude-3-haiku")
+        ) as OpenRouterAiAgent
+
+        assertEquals("anthropic/claude-3-haiku", agent.actualModel())
+    }
+
+    @Test
+    fun `create keeps BuildConfig models in auto mode, since no single provider owns the picked model`() {
+        featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
+        remoteVariableService.stubDefaultRemoteKeys()
+
+        val agent = factory.create(
+            AppSettings(aiProvider = "auto", aiModel = "anthropic/claude-3-haiku")
+        ) as FallbackAiAgent
+
+        assertEquals(BuildConfig.OPEN_ROUTER_MODEL, (agent.primaryAgent() as OpenRouterAiAgent).actualModel())
+        assertEquals(BuildConfig.GEMINI_AGENT, (agent.secondaryAgent() as GeminiAiAgent).actualModel())
+    }
+
+    @Test
+    fun `create uses the compiled-in prompt when Remote Config has no override`() {
+        featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
+        remoteVariableService.stubDefaultRemoteKeys()
+
+        val agent = factory.create(AppSettings(aiProvider = "openrouter")) as OpenRouterAiAgent
+
+        assertEquals(SystemPrompts.CESTOU_ASSISTANT, agent.actualSystemPrompt())
+    }
+
+    @Test
+    fun `create uses the Remote Config prompt override when one is set`() {
+        featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
+        remoteVariableService.stubRemoteKey(BuildConfig.GEMINI_API_KEY)
+        remoteVariableService.stubRemoteOpenRouterKey(BuildConfig.OPEN_ROUTER_API_KEY)
+        remoteVariableService.stubRemoteSystemPrompt("prompt atualizado remotamente")
+
+        val agent = factory.create(AppSettings(aiProvider = "openrouter")) as OpenRouterAiAgent
+
+        assertEquals("prompt atualizado remotamente", agent.actualSystemPrompt())
     }
 }

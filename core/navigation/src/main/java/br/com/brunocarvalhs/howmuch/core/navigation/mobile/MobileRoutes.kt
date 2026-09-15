@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 import kotlin.reflect.typeOf
 
 @Serializable
-data object AiChat : NavKey, RouteProtocol {
+data class AiChat(val shoppingId: String) : NavKey, RouteProtocol {
     override val routeType: RouteType = RouteType.PROTECTED
 }
 

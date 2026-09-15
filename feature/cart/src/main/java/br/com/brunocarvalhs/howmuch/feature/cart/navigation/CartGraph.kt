@@ -14,6 +14,7 @@ import androidx.navigation.compose.dialog
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.ConfirmItemContent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.EditItemContent
@@ -26,6 +27,7 @@ import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.EditItem
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.FinishPurchaseViewModel
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.ShareOptionsViewModel
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.ShareOptionsBottomSheet
+import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.EditShopping
 
 @OptIn(ExperimentalMaterial3Api::class)
 internal fun NavGraphBuilder.cartGraph(
@@ -61,7 +63,17 @@ private fun NavGraphBuilder.cartDestination(
             uiState = uiState,
             windowSizeClass = windowSizeClass,
             intent = viewModel.intent,
-            onBack = { navigator.goBack() }
+            onBack = { navigator.goBack() },
+            onOpenAiChat = {
+                uiState.shopping?.id?.let { shoppingId ->
+                    navigator.navigate(AiChat(shoppingId = shoppingId))
+                }
+            },
+            onEditShopping = {
+                uiState.shopping?.let { shopping ->
+                    navigator.navigate(EditShopping(shopping))
+                }
+            }
         )
     }
 }
