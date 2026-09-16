@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
+import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingJoinUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.ScannerIntent
@@ -42,8 +43,12 @@ internal class ScannerViewModel @Inject constructor(
         _navigator = navigator
     }
 
-    private fun onTokenScanned(token: String) {
+    private fun onTokenScanned(rawValue: String) {
         if (isJoining) return
+        // The camera reads either a bare token (legacy QR codes, or a raw string typed in a test)
+        // or a full invite link (current QR codes) - accept both, ignore anything else so an
+        // unrelated QR code doesn't get sent to ShoppingJoinUseCase or block further scans.
+        val token = InviteLink.extractToken(rawValue) ?: return
         isJoining = true
         viewModelScope.launch {
             shoppingJoinUseCase(token)

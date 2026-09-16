@@ -25,14 +25,17 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.toRoute
+import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
-import br.com.brunocarvalhs.howmuch.feature.shopping.R
-import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
-import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.feature.settings.navigation.Settings
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
+import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.EditShopping
+import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.Scanner
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.EditShoppingContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.JoinListContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.scanner.QrCodeBottomSheet
@@ -44,8 +47,6 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.Join
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.NotificationsViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ScannerViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingListViewModel
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.EditShopping
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.Scanner
 
 private const val SCANNER_MAX_HEIGHT_FRACTION = 0.8f
 
@@ -123,7 +124,10 @@ private fun NavGraphBuilder.shoppingOtherDialogs(navigator: Navigator) {
     dialog<QrCode> { backStackEntry ->
         val route: QrCode = backStackEntry.toRoute()
         val context = LocalContext.current
-        val shareText = stringResource(R.string.shopping_management_invite_share_text, route.token)
+        val shareText = stringResource(
+            R.string.shopping_management_invite_share_text,
+            InviteLink.build(route.token)
+        )
 
         QrCodeBottomSheet(
             token = route.token,

@@ -10,9 +10,32 @@ plugins {
     alias(libs.plugins.secrets)
 }
 
+// Release signing is driven entirely by the environment: CI decodes the keystore
+// from the RELEASE_KEYSTORE_BASE64 secret into this path and exports the credentials.
+// A local build without those env vars still works - it just produces an
+// unsigned release APK instead of failing the whole configuration phase.
+val releaseKeystore = rootProject.file(
+    System.getenv("KEYSTORE_PATH") ?: "app/release.keystore"
+)
+val canSignRelease = releaseKeystore.exists() &&
+    !System.getenv("KEYSTORE_PASSWORD").isNullOrBlank() &&
+    !System.getenv("KEYSTORE_ALIAS").isNullOrBlank() &&
+    !System.getenv("KEY_PASSWORD").isNullOrBlank()
+
 android {
     namespace = "br.com.brunocarvalhs.howmuch"
     compileSdk = libs.versions.compileSdk.get().toInt()
+
+    signingConfigs {
+        if (canSignRelease) {
+            create("release") {
+                storeFile = releaseKeystore
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEYSTORE_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
 
     defaultConfig {
         applicationId = "br.com.brunocarvalhs.howmuch"
@@ -30,6 +53,9 @@ android {
             versionNameSuffix = "-debug"
         }
         release {
+            if (canSignRelease) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

@@ -30,6 +30,7 @@ import androidx.navigation.compose.DialogNavigator
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureInitializer
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
@@ -155,9 +156,8 @@ class MainActivity : AppCompatActivity() {
                     LaunchedEffect(intent) {
                         if (intent?.action == Intent.ACTION_VIEW) {
                             val data = intent.data
-                            if (data?.host == "cestou.app" && data.path?.startsWith("/join") == true) {
-                                val token = data.lastPathSegment?.takeIf { it != "join" }
-                                navigator.navigate(JoinList(token = token))
+                            if (data != null && InviteLink.matches(data)) {
+                                navigator.navigate(JoinList(token = InviteLink.tokenFrom(data)))
                             }
                         }
                     }

@@ -23,7 +23,8 @@ The following secrets must be configured in your GitHub repository (`Settings > 
 | Secret | Description |
 | :--- | :--- |
 | `TOKEN` | GitHub Personal Access Token with `repo` and `workflow` scopes. |
-| `GOOGLE_SERVICE_JSON` | `google-services.json` file content encoded in Base64. |
+| `GOOGLE_SERVICE_JSON` | `google-services.json` file content encoded in Base64. Must contain a `client` entry for **both** `br.com.brunocarvalhs.howmuch` and `br.com.brunocarvalhs.howmuch.wear`, and the release keystore's SHA-1 registered in Firebase — otherwise Google Sign-In fails on release builds. |
+| `RELEASE_KEYSTORE_BASE64` | Android release keystore encoded in Base64 (`base64 -w0 release.keystore`). Decoded by `setup-env` into `paths.keystore`. Without it, release builds come out **unsigned and cannot be installed**. |
 | `KEYSTORE_PASSWORD` | Password for the Android release keystore. |
 | `KEYSTORE_ALIAS` | Alias for the signing key in the keystore. |
 | `KEY_PASSWORD` | Password for the specific signing key. |
