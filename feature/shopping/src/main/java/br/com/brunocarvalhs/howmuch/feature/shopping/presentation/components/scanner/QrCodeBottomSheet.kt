@@ -42,6 +42,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.ui.utils.QrCodeGenerator
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import kotlinx.coroutines.launch
@@ -57,7 +58,10 @@ fun QrCodeBottomSheet(
 ) {
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
-    val qrCodeBitmap = remember(token) { QrCodeGenerator.generate(token, QR_CODE_SIZE_PX) }
+    // The QR encodes the full invite link, not the bare token: a phone's default camera app
+    // reads a bare token as plain text with no way to route it to this app. The short code
+    // shown/copied below stays the raw token for manual entry (JoinListContent).
+    val qrCodeBitmap = remember(token) { QrCodeGenerator.generate(InviteLink.build(token), QR_CODE_SIZE_PX) }
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,

@@ -25,6 +25,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.toRoute
+import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
@@ -123,7 +124,10 @@ private fun NavGraphBuilder.shoppingOtherDialogs(navigator: Navigator) {
     dialog<QrCode> { backStackEntry ->
         val route: QrCode = backStackEntry.toRoute()
         val context = LocalContext.current
-        val shareText = stringResource(R.string.shopping_management_invite_share_text, route.token)
+        val shareText = stringResource(
+            R.string.shopping_management_invite_share_text,
+            InviteLink.build(route.token)
+        )
 
         QrCodeBottomSheet(
             token = route.token,

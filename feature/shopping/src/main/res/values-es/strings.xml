@@ -44,7 +44,7 @@
     <string name="shopping_management_invite_members_title">Invitar Miembros</string>
     <string name="shopping_management_qr_code_hint">Escanea el código de arriba o usa el token de abajo para unirte a la lista.</string>
     <string name="shopping_management_button_share_invite">Compartir Enlace de Invitación</string>
-    <string name="shopping_management_invite_share_text">¡Únete a mi lista de compras en Cestou! Usa el código %s en la app para participar.</string>
+    <string name="shopping_management_invite_share_text">¡Únete a mi lista de compras en Cestou! Toca el enlace para participar: %s</string>
     <string name="shopping_management_error_only_owner_delete">Solo el propietario puede eliminar esta lista</string>
     <string name="shopping_management_error_only_owner_edit">Solo el propietario puede editar esta lista</string>
     <string name="shopping_management_error_create">No se pudo crear la lista. Inténtalo de nuevo.</string>

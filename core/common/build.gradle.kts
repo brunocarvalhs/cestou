@@ -33,6 +33,11 @@ android {
         compose = true
         buildConfig = true
     }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 secrets {
@@ -60,4 +65,6 @@ dependencies {
     testImplementation(libs.konsist)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.androidx.junit)
+    testImplementation(libs.robolectric)
 }
