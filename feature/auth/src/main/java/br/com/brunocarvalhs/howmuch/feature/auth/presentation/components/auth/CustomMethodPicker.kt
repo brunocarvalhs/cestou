@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,10 +24,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.common.extensions.openBrowser
 import br.com.brunocarvalhs.howmuch.core.common.util.LegalUrls
+import br.com.brunocarvalhs.howmuch.feature.auth.R
 import com.firebase.ui.auth.configuration.auth_provider.AuthProvider
 
 @Composable
@@ -41,10 +45,15 @@ internal fun CustomMethodPickerLayout(
     ) {
         providers.forEach { provider ->
             val (text, icon) = when (provider) {
-                is AuthProvider.Google -> "Continuar com Google" to Icons.Default.Email // Replace with real icons later
-                is AuthProvider.Email -> "Entrar com E-mail" to Icons.Default.Email
-                is AuthProvider.Phone -> "Entrar com Telefone" to Icons.Default.Phone
-                else -> "Entrar com ${provider.providerId}" to Icons.Default.Email
+                // TODO(product-owner): trocar por ícone oficial da marca Google ("G" colorido)
+                // assim que houver asset de marca — usar Icons genérico aqui é interino e não
+                // deve ser confundido com o branding oficial exigido pelas guidelines do Google.
+                is AuthProvider.Google ->
+                    stringResource(R.string.auth_method_google) to Icons.AutoMirrored.Filled.Login
+                is AuthProvider.Email -> stringResource(R.string.auth_method_email) to Icons.Default.Email
+                is AuthProvider.Phone -> stringResource(R.string.auth_method_phone) to Icons.Default.Phone
+                else -> stringResource(R.string.auth_method_generic, provider.providerId) to
+                    Icons.Default.HelpOutline
             }
 
             SocialButton(
@@ -97,22 +106,22 @@ internal fun CustomMethodPickerTerms(
             .padding(16.dp),
         horizontalArrangement = Arrangement.Center
     ) {
-        Text(text = "Ao continuar, você concorda com nossos ", style = bodyStyle, color = bodyColor)
+        Text(text = stringResource(R.string.auth_terms_prefix), style = bodyStyle, color = bodyColor)
         Text(
-            text = "Termos de Uso",
+            text = stringResource(R.string.auth_terms_of_use),
             style = bodyStyle,
             color = linkColor,
             textDecoration = TextDecoration.Underline,
             modifier = Modifier.clickable(onClick = openTermsOfUse)
         )
-        Text(text = " e ", style = bodyStyle, color = bodyColor)
+        Text(text = stringResource(R.string.auth_terms_conjunction), style = bodyStyle, color = bodyColor)
         Text(
-            text = "Política de Privacidade",
+            text = stringResource(R.string.auth_privacy_policy),
             style = bodyStyle,
             color = linkColor,
             textDecoration = TextDecoration.Underline,
             modifier = Modifier.clickable(onClick = openPrivacyPolicy)
         )
-        Text(text = ".", style = bodyStyle, color = bodyColor)
+        Text(text = stringResource(R.string.auth_terms_suffix), style = bodyStyle, color = bodyColor)
     }
 }

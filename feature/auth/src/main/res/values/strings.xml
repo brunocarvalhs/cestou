@@ -3,4 +3,73 @@
     <string name="welcome_title">Suas compras, mais inteligentes</string>
     <string name="welcome_description">Crie listas dinâmicas, compartilhe em tempo real com quem quiser e use nossa inteligência artificial para economizar.</string>
     <string name="welcome_footer">Versão %1$s • Feito com ❤️ no Brasil</string>
+
+    <!-- Accessibility -->
+    <string name="auth_loading_content_description">Carregando</string>
+
+    <!-- Seleção de método de login -->
+    <string name="auth_method_google">Continuar com Google</string>
+    <string name="auth_method_email">Entrar com E-mail</string>
+    <string name="auth_method_phone">Entrar com Telefone</string>
+    <string name="auth_method_generic">Entrar com %1$s</string>
+    <string name="auth_terms_prefix">Ao continuar, você concorda com nossos </string>
+    <string name="auth_terms_of_use">Termos de Uso</string>
+    <string name="auth_terms_conjunction"> e </string>
+    <string name="auth_privacy_policy">Política de Privacidade</string>
+    <string name="auth_terms_suffix">.</string>
+
+    <!-- Login por e-mail -->
+    <string name="auth_email_title_sign_in">Acessar Conta</string>
+    <string name="auth_email_title_sign_up">Criar Conta</string>
+    <string name="auth_email_title_reset_password">Recuperar Senha</string>
+    <string name="auth_email_title_link_sign_in">Entrar com Link</string>
+    <string name="auth_label_email">E-mail</string>
+    <string name="auth_label_password">Senha</string>
+    <string name="auth_label_confirm_password">Confirmar Senha</string>
+    <string name="auth_label_display_name">Nome de Exibição</string>
+    <string name="auth_action_sign_in">Entrar</string>
+    <string name="auth_action_sign_up">Cadastrar</string>
+    <string name="auth_action_send_reset_link">Enviar Link</string>
+    <string name="auth_action_verify_email">Verificar E-mail</string>
+
+    <!-- Login por telefone -->
+    <string name="auth_phone_title">Autenticação por Telefone</string>
+    <string name="auth_label_phone">Telefone</string>
+    <string name="auth_phone_placeholder">(00) 00000-0000</string>
+    <string name="auth_action_send_code">Enviar Código</string>
+    <string name="auth_phone_code_sent_to">Enviamos um código para %1$s</string>
+    <string name="auth_label_verification_code">Código de Verificação</string>
+    <string name="auth_action_verify_code">Verificar Código</string>
+    <string name="auth_phone_resend_timer">Reenviar código em %1$ds</string>
+
+    <!-- MFA -->
+    <string name="auth_mfa_enrollment_title">Configurar Segundo Fator (MFA)</string>
+    <string name="auth_mfa_select_factor">Escolha como deseja receber seus códigos de segurança.</string>
+    <string name="auth_label_phone_mfa">Telefone para MFA</string>
+    <string name="auth_action_send_sms">Enviar SMS</string>
+    <string name="auth_mfa_totp_instructions">Escaneie o QR Code ou insira o código manual no seu app de autenticação.</string>
+    <string name="auth_mfa_totp_secret">Segredo: %1$s</string>
+    <string name="auth_action_already_scanned">Já escaneei</string>
+    <string name="auth_mfa_recovery_codes_warning">Guarde estes códigos em um lugar seguro!</string>
+    <string name="auth_action_done">Concluído</string>
+    <string name="auth_mfa_challenge_title">Verificação em Duas Etapas</string>
+    <string name="auth_mfa_challenge_description">Insira o código enviado para seu %1$s</string>
+    <string name="auth_label_mfa_code">Código MFA</string>
+    <string name="auth_action_verify">Verificar</string>
+
+    <!-- Pós-login / verificação / perfil -->
+    <string name="auth_success_welcome">Bem-vindo!</string>
+    <string name="auth_success_signed_in_as">Você acessou como %1$s</string>
+    <string name="auth_action_manage_mfa">Gerenciar MFA</string>
+    <string name="auth_action_sign_out">Sair</string>
+    <string name="auth_verify_email_title">Verifique seu E-mail</string>
+    <string name="auth_verify_email_description">Enviamos um link de confirmação para %1$s. Por favor, verifique sua caixa de entrada.</string>
+    <string name="auth_action_already_verified">Já verifiquei</string>
+    <string name="auth_action_resend_email">Reenviar e-mail</string>
+    <string name="auth_complete_profile_title">Complete seu Perfil</string>
+    <string name="auth_complete_profile_missing_fields">Faltam os campos: %1$s</string>
+
+    <!-- Reautenticação -->
+    <string name="auth_reauth_title">Confirme sua Identidade</string>
+    <string name="auth_reauth_default_reason">Para sua segurança, confirme sua identidade para realizar esta ação.</string>
 </resources>
