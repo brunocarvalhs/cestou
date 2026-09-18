@@ -4,5 +4,6 @@ import androidx.compose.runtime.Stable
 
 @Stable
 internal data class WelcomeUiState(
-    val version: String = "1.2.0"
+    val version: String = "1.2.0",
+    val error: AuthErrorType? = null
 )

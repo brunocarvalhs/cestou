@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
 import br.com.brunocarvalhs.howmuch.feature.auth.R
+import br.com.brunocarvalhs.howmuch.feature.auth.presentation.components.auth.AuthErrorBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.intent.WelcomeIntent
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.state.WelcomeUiState
 
@@ -87,6 +88,14 @@ internal fun WelcomeScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+
+    val error = state.error
+    if (error != null) {
+        AuthErrorBottomSheet(
+            errorType = error,
+            onDismissRequest = intent.onDismissError
+        )
     }
 }
 

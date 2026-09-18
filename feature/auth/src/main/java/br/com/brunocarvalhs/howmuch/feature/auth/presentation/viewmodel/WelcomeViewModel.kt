@@ -6,10 +6,12 @@ import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.feature.auth.domain.usecase.AuthConfigUseCase
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.intent.WelcomeIntent
+import br.com.brunocarvalhs.howmuch.feature.auth.presentation.state.AuthErrorType
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.state.WelcomeUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,6 +25,9 @@ internal class WelcomeViewModel @Inject constructor(
     val intent = WelcomeIntent(
         onSignInFailure = { exception ->
             onSignInFailure(exception)
+        },
+        onDismissError = {
+            dismissError()
         }
     )
 
@@ -35,5 +40,10 @@ internal class WelcomeViewModel @Inject constructor(
             AnalyticsEvents.AUTH_SIGN_IN_FAILED,
             mapOf(AnalyticsParams.REASON to (exception.message ?: exception::class.simpleName.orEmpty()))
         )
+        _uiState.update { it.copy(error = AuthErrorType.from(exception)) }
+    }
+
+    private fun dismissError() {
+        _uiState.update { it.copy(error = null) }
     }
 }

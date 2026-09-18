@@ -2,10 +2,15 @@ package br.com.brunocarvalhs.howmuch.feature.auth.presentation.screen
 
 import androidx.compose.material3.Text
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.feature.auth.presentation.intent.WelcomeIntent
+import br.com.brunocarvalhs.howmuch.feature.auth.presentation.state.AuthErrorType
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.state.WelcomeUiState
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,5 +35,51 @@ class WelcomeScreenTest {
 
         composeTestRule.onNodeWithText("Cestou").assertExists()
         composeTestRule.onNodeWithText("Entrar").assertExists()
+    }
+
+    @Test
+    fun `does not show the error sheet when there is no error`() {
+        composeTestRule.setContent {
+            CestouTheme {
+                WelcomeScreen(state = WelcomeUiState()) {
+                    Text("Entrar")
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag("auth_error_sheet").assertDoesNotExist()
+    }
+
+    @Test
+    fun `shows the error sheet with the classified error copy`() {
+        composeTestRule.setContent {
+            CestouTheme {
+                WelcomeScreen(state = WelcomeUiState(error = AuthErrorType.NO_CONNECTIVITY)) {
+                    Text("Entrar")
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag("auth_error_sheet_title").assertExists()
+        composeTestRule.onNodeWithTag("auth_error_sheet_message").assertExists()
+    }
+
+    @Test
+    fun `dismissing the error sheet invokes onDismissError`() {
+        var dismissed = false
+        composeTestRule.setContent {
+            CestouTheme {
+                WelcomeScreen(
+                    state = WelcomeUiState(error = AuthErrorType.STRUCTURAL),
+                    intent = WelcomeIntent(onDismissError = { dismissed = true })
+                ) {
+                    Text("Entrar")
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag("auth_error_sheet_action_button").performClick()
+
+        assertTrue(dismissed)
     }
 }

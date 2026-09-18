@@ -3,4 +3,12 @@
     <string name="welcome_title">Suas compras, mais inteligentes</string>
     <string name="welcome_description">Crie listas dinâmicas, compartilhe em tempo real com quem quiser e use nossa inteligência artificial para economizar.</string>
     <string name="welcome_footer">Versão %1$s • Feito com ❤️ no Brasil</string>
+
+    <string name="auth_error_no_connectivity_title">Sem conexão com a internet</string>
+    <string name="auth_error_no_connectivity_message">Verifique sua conexão Wi-Fi ou dados móveis e tente novamente.</string>
+    <string name="auth_error_connection_failure_title">Não foi possível conectar</string>
+    <string name="auth_error_connection_failure_message">O servidor não respondeu. Tente novamente em instantes.</string>
+    <string name="auth_error_structural_title">Algo deu errado</string>
+    <string name="auth_error_structural_message">Ocorreu um erro inesperado. Tente novamente.</string>
+    <string name="auth_error_action_try_again">Tentar novamente</string>
 </resources>
