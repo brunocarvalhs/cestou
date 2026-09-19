@@ -48,9 +48,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.systemLanguageTag
 import br.com.brunocarvalhs.howmuch.feature.auth.R
@@ -339,10 +340,10 @@ private fun LanguageSelector(onClick: () -> Unit) {
     }
 }
 
-@Preview(showBackground = true)
+@PreviewCestouScreens
 @Composable
 private fun WelcomeScreenPreview() {
-    MaterialTheme {
+    CestouTheme {
         WelcomeScreen(state = WelcomeUiState(version = "1.3.0")) {
             CestouButton(
                 text = "Começar",

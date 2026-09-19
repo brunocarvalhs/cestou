@@ -60,9 +60,10 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.theme.CestouBrightGreen
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatIntent
@@ -372,20 +373,20 @@ private val previewMessages = listOf(
     )
 )
 
-@Preview(showBackground = true, name = "Vazio")
+@PreviewCestouScreens
 @Composable
 private fun AiChatScreenEmptyPreview() {
-    MaterialTheme {
+    CestouTheme {
         AiChatScreen(
             state = AiChatUiState(), intent = AiChatIntent()
         )
     }
 }
 
-@Preview(showBackground = true, name = "Conversa")
+@PreviewCestouScreens
 @Composable
 private fun AiChatScreenConversationPreview() {
-    MaterialTheme {
+    CestouTheme {
         AiChatScreen(
             state = AiChatUiState(
                 messages = previewMessages, input = "Consegue sugerir algo mais barato?"
@@ -394,10 +395,10 @@ private fun AiChatScreenConversationPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "Carregando resposta")
+@PreviewCestouScreens
 @Composable
 private fun AiChatScreenLoadingPreview() {
-    MaterialTheme {
+    CestouTheme {
         AiChatScreen(
             state = AiChatUiState(
                 messages = previewMessages, isLoading = true

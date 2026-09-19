@@ -42,9 +42,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
 import br.com.brunocarvalhs.howmuch.feature.profile.R
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.intent.ProfileIntent
@@ -258,10 +259,10 @@ private val previewUser = AuthenticatedUser(
     displayName = "Isabella Carvalho"
 )
 
-@Preview(showBackground = true, name = "Padrão")
+@PreviewCestouScreens
 @Composable
 private fun ProfileScreenPreview() {
-    MaterialTheme {
+    CestouTheme {
         ProfileScreen(
             state = ProfileUiState(user = previewUser),
             intent = ProfileIntent()
@@ -269,10 +270,10 @@ private fun ProfileScreenPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "Sem usuário logado")
+@PreviewCestouScreens
 @Composable
 private fun ProfileScreenNoUserPreview() {
-    MaterialTheme {
+    CestouTheme {
         ProfileScreen(
             state = ProfileUiState(),
             intent = ProfileIntent()

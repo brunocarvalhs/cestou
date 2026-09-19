@@ -25,7 +25,10 @@ import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.TitleCard
 import androidx.wear.compose.material3.lazy.rememberTransformationSpec
 import androidx.wear.compose.material3.lazy.transformedHeight
+import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
+import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatPrice
+import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.state.ShoppingDetailUiState
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.ShoppingDetailViewModel
 
@@ -146,5 +149,61 @@ private fun ShoppingDetailContent(
                 }
             }
         }
+    }
+}
+
+private val previewProducts = listOf(
+    Product(id = "1", name = "Arroz", quantity = 2.0, price = 25.0),
+    Product(id = "2", name = "Feijão", quantity = 1.0, price = 8.5),
+    Product(id = "3", name = "Café", quantity = 1.0, price = 15.0)
+)
+
+@WearPreviewDevices
+@Composable
+private fun ShoppingDetailContentPreview() {
+    MaterialTheme {
+        ShoppingDetailContent(
+            state = ShoppingDetailUiState(
+                title = "Café da manhã",
+                budget = 500.0,
+                totalSpent = 48.5,
+                balance = 451.5,
+                items = StableList(previewProducts)
+            ),
+            onBack = {}
+        )
+    }
+}
+
+@WearPreviewDevices
+@Composable
+private fun ShoppingDetailContentNegativeBalancePreview() {
+    MaterialTheme {
+        ShoppingDetailContent(
+            state = ShoppingDetailUiState(
+                title = "Jantar de domingo",
+                budget = 100.0,
+                totalSpent = 130.0,
+                balance = -30.0,
+                items = StableList(previewProducts)
+            ),
+            onBack = {}
+        )
+    }
+}
+
+@WearPreviewDevices
+@Composable
+private fun ShoppingDetailContentEmptyPreview() {
+    MaterialTheme {
+        ShoppingDetailContent(
+            state = ShoppingDetailUiState(
+                title = "Pizza day!",
+                budget = 0.0,
+                totalSpent = 0.0,
+                balance = 0.0
+            ),
+            onBack = {}
+        )
     }
 }

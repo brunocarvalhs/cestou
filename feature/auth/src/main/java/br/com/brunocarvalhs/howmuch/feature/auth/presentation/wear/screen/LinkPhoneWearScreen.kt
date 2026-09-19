@@ -7,7 +7,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
+import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingCode
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
@@ -18,6 +20,17 @@ internal fun LinkPhoneWearScreen(
     viewModel: PairingViewModel,
     navigator: Navigator
 ) {
+    LinkPhoneWearContent(
+        onLinkClick = {
+            navigator.navigate(PairingCode::class.java.name)
+        }
+    )
+}
+
+@Composable
+private fun LinkPhoneWearContent(
+    onLinkClick: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -26,9 +39,15 @@ internal fun LinkPhoneWearScreen(
     ) {
         CestouButton(
             text = "Vincular Celular",
-            onClick = {
-                navigator.navigate(PairingCode::class.java.name)
-            }
+            onClick = onLinkClick
         )
+    }
+}
+
+@WearPreviewDevices
+@Composable
+private fun LinkPhoneWearScreenPreview() {
+    MaterialTheme {
+        LinkPhoneWearContent(onLinkClick = {})
     }
 }

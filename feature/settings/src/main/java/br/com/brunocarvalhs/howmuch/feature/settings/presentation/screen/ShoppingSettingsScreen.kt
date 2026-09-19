@@ -22,8 +22,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.components.SettingsHeader
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.ShoppingSettingsIntent
@@ -134,10 +135,10 @@ internal fun ShoppingSettingsScreen(
     }
 }
 
-@Preview(showBackground = true, name = "Ordenar por categoria")
+@PreviewCestouScreens
 @Composable
 private fun ShoppingSettingsScreenCategoryPreview() {
-    MaterialTheme {
+    CestouTheme {
         ShoppingSettingsScreen(
             state = ShoppingSettingsUiState(sortingMode = "CATEGORY", remindersEnabled = false),
             intent = ShoppingSettingsIntent()
@@ -145,10 +146,10 @@ private fun ShoppingSettingsScreenCategoryPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "Ordenar por nome, lembretes ativos")
+@PreviewCestouScreens
 @Composable
 private fun ShoppingSettingsScreenNamePreview() {
-    MaterialTheme {
+    CestouTheme {
         ShoppingSettingsScreen(
             state = ShoppingSettingsUiState(sortingMode = "NAME", remindersEnabled = true),
             intent = ShoppingSettingsIntent()

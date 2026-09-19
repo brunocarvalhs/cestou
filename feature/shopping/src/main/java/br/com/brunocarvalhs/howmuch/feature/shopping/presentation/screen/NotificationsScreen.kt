@@ -34,8 +34,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.NotificationsIntent
@@ -165,47 +166,51 @@ private fun NotificationCard(
     }
 }
 
-@Preview(showBackground = true, name = "Com notificações")
+@PreviewCestouScreens
 @Composable
 private fun NotificationsPreview() {
-    NotificationsScreen(
-        state = NotificationsUiState(
-            notifications = listOf(
-                NotificationItem(
-                    id = "1",
-                    title = "João completou 3 itens",
-                    description = "Leite Integral, Queijo Minas Frescal e Banana Prata foram riscados da lista Compras da Semana.",
-                    time = "Há 5 min",
-                    type = NotificationType.ACTION,
-                    isRead = false
-                ),
-                NotificationItem(
-                    id = "2",
-                    title = "Lembrete de compras",
-                    description = "Você tem uma lista pendente para hoje à noite.",
-                    time = "Há 2 h",
-                    type = NotificationType.REMINDER,
-                    isRead = true
-                ),
-                NotificationItem(
-                    id = "3",
-                    title = "Nova funcionalidade disponível",
-                    description = "Agora você pode escanear notas fiscais para adicionar produtos automaticamente.",
-                    time = "Ontem",
-                    type = NotificationType.FEATURE,
-                    isRead = true
+    CestouTheme {
+        NotificationsScreen(
+            state = NotificationsUiState(
+                notifications = listOf(
+                    NotificationItem(
+                        id = "1",
+                        title = "João completou 3 itens",
+                        description = "Leite Integral, Queijo Minas Frescal e Banana Prata foram riscados da lista Compras da Semana.",
+                        time = "Há 5 min",
+                        type = NotificationType.ACTION,
+                        isRead = false
+                    ),
+                    NotificationItem(
+                        id = "2",
+                        title = "Lembrete de compras",
+                        description = "Você tem uma lista pendente para hoje à noite.",
+                        time = "Há 2 h",
+                        type = NotificationType.REMINDER,
+                        isRead = true
+                    ),
+                    NotificationItem(
+                        id = "3",
+                        title = "Nova funcionalidade disponível",
+                        description = "Agora você pode escanear notas fiscais para adicionar produtos automaticamente.",
+                        time = "Ontem",
+                        type = NotificationType.FEATURE,
+                        isRead = true
+                    )
                 )
-            )
-        ),
-        intent = NotificationsIntent()
-    )
+            ),
+            intent = NotificationsIntent()
+        )
+    }
 }
 
-@Preview(showBackground = true, name = "Vazio")
+@PreviewCestouScreens
 @Composable
 private fun NotificationsEmptyPreview() {
-    NotificationsScreen(
-        state = NotificationsUiState(),
-        intent = NotificationsIntent()
-    )
+    CestouTheme {
+        NotificationsScreen(
+            state = NotificationsUiState(),
+            intent = NotificationsIntent()
+        )
+    }
 }

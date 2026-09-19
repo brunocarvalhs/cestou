@@ -9,11 +9,14 @@ import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ListHeader
+import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.lazy.rememberTransformationSpec
 import androidx.wear.compose.material3.lazy.transformedHeight
+import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
+import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.state.ProfileUiState
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.viewmodel.ProfileViewModel
 
@@ -85,5 +88,35 @@ private fun ProfileWearContent(
                 }
             }
         }
+    }
+}
+
+@WearPreviewDevices
+@Composable
+private fun ProfileWearContentPreview() {
+    MaterialTheme {
+        ProfileWearContent(
+            state = ProfileUiState(
+                user = AuthenticatedUser(
+                    id = "1",
+                    email = "bruno@example.com",
+                    displayName = "Bruno Carvalho"
+                )
+            ),
+            onLogout = {},
+            onLinkAccount = {}
+        )
+    }
+}
+
+@WearPreviewDevices
+@Composable
+private fun ProfileWearContentNoUserPreview() {
+    MaterialTheme {
+        ProfileWearContent(
+            state = ProfileUiState(),
+            onLogout = {},
+            onLinkAccount = {}
+        )
     }
 }
