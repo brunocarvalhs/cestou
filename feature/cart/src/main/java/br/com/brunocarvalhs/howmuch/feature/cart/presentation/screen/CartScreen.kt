@@ -349,7 +349,7 @@ private val previewProducts = listOf(
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @PreviewCestouScreens
 @Composable
-private fun CartPreviewEmpty() {
+private fun CartEmptyPreview() {
     CestouTheme {
         CartScreen(
             uiState = CartUiState(shopping = previewShopping),
@@ -361,7 +361,7 @@ private fun CartPreviewEmpty() {
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @PreviewCestouScreens
 @Composable
-private fun CartPreviewWithProducts() {
+private fun CartWithProductsPreview() {
     CestouTheme {
         CartScreen(
             uiState = CartUiState(
@@ -376,7 +376,7 @@ private fun CartPreviewWithProducts() {
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @PreviewCestouScreens
 @Composable
-private fun CartPreviewLocked() {
+private fun CartLockedPreview() {
     CestouTheme {
         CartScreen(
             uiState = CartUiState(
