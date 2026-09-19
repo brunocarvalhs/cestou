@@ -3,7 +3,7 @@
     <!-- Brand name is not translated on purpose. -->
     <string name="welcome_brand_name" translatable="false">Cestou</string>
     <string name="welcome_logo_content_description">Cestou logo</string>
-    <string name="welcome_title">Cestou!</string>
+    <string name="welcome_title">Welcome to Cestou</string>
     <string name="welcome_description">The smartest way to organize your shopping and truly save money.</string>
     <string name="welcome_footer">Version %1$s • Made with ❤️ in Brazil</string>
     <string name="welcome_select_language">Select Language</string>
@@ -17,4 +17,7 @@
     <string name="auth_terms_and"> and </string>
     <string name="auth_privacy_policy">Privacy Policy</string>
     <string name="auth_terms_suffix">.</string>
+    <string name="welcome_legal_notice_before_privacy">Read our </string>
+    <string name="welcome_legal_notice_middle">. Tap %1$s to accept the </string>
+    <string name="welcome_legal_notice_terms_of_service">Terms of Service</string>
 </resources>
