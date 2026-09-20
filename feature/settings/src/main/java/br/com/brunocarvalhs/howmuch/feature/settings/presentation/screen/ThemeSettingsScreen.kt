@@ -19,9 +19,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.components.SettingsHeader
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.ThemeSettingsIntent
@@ -117,10 +118,10 @@ private fun ThemeOption(
     }
 }
 
-@Preview(showBackground = true, name = "Sistema")
+@PreviewCestouScreens
 @Composable
 private fun ThemeSettingsScreenSystemPreview() {
-    MaterialTheme {
+    CestouTheme {
         ThemeSettingsScreen(
             state = ThemeSettingsUiState(themeMode = ThemeMode.SYSTEM),
             intent = ThemeSettingsIntent()
@@ -128,10 +129,10 @@ private fun ThemeSettingsScreenSystemPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "Claro")
+@PreviewCestouScreens
 @Composable
 private fun ThemeSettingsScreenLightPreview() {
-    MaterialTheme {
+    CestouTheme {
         ThemeSettingsScreen(
             state = ThemeSettingsUiState(themeMode = ThemeMode.LIGHT),
             intent = ThemeSettingsIntent()
@@ -139,10 +140,10 @@ private fun ThemeSettingsScreenLightPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "Escuro")
+@PreviewCestouScreens
 @Composable
 private fun ThemeSettingsScreenDarkPreview() {
-    MaterialTheme {
+    CestouTheme {
         ThemeSettingsScreen(
             state = ThemeSettingsUiState(themeMode = ThemeMode.DARK),
             intent = ThemeSettingsIntent()

@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.Text
+import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.state.PairingUiState
@@ -36,6 +37,13 @@ internal fun PairingCodeWearScreen(
         }
     }
 
+    PairingCodeWearContent(state = uiState)
+}
+
+@Composable
+private fun PairingCodeWearContent(
+    state: PairingUiState
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -50,7 +58,7 @@ internal fun PairingCodeWearScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = uiState.code,
+            text = state.code,
             style = MaterialTheme.typography.displayMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
@@ -61,5 +69,21 @@ internal fun PairingCodeWearScreen(
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+@WearPreviewDevices
+@Composable
+private fun PairingCodeWearScreenPreview() {
+    MaterialTheme {
+        PairingCodeWearContent(state = PairingUiState(code = "123456"))
+    }
+}
+
+@WearPreviewDevices
+@Composable
+private fun PairingCodeWearScreenLoadingPreview() {
+    MaterialTheme {
+        PairingCodeWearContent(state = PairingUiState())
     }
 }

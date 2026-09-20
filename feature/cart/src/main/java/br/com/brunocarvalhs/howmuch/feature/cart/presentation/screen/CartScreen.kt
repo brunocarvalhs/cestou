@@ -39,9 +39,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -49,6 +50,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCategoryHeader
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouEmptyState
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouLockedBanner
@@ -345,40 +347,52 @@ private val previewProducts = listOf(
 )
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Preview(showBackground = true, name = "Vazio")
+@PreviewCestouScreens
 @Composable
-private fun CartPreviewEmpty() {
+private fun CartEmptyPreview() {
     CestouTheme {
         CartScreen(
             uiState = CartUiState(shopping = previewShopping),
+            windowSizeClass = rememberPreviewWindowSizeClass()
         )
     }
 }
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Preview(showBackground = true, name = "Com produtos")
+@PreviewCestouScreens
 @Composable
-private fun CartPreviewWithProducts() {
+private fun CartWithProductsPreview() {
     CestouTheme {
         CartScreen(
             uiState = CartUiState(
                 shopping = previewShopping,
                 products = StableList(previewProducts)
             ),
+            windowSizeClass = rememberPreviewWindowSizeClass()
         )
     }
 }
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Preview(showBackground = true, name = "Lista finalizada (bloqueada)")
+@PreviewCestouScreens
 @Composable
-private fun CartPreviewLocked() {
+private fun CartLockedPreview() {
     CestouTheme {
         CartScreen(
             uiState = CartUiState(
                 shopping = previewShopping.copy(status = Shopping.Status.FINISH),
                 products = StableList(previewProducts)
             ),
+            windowSizeClass = rememberPreviewWindowSizeClass()
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Composable
+private fun rememberPreviewWindowSizeClass(): WindowSizeClass {
+    val configuration = LocalConfiguration.current
+    return WindowSizeClass.calculateFromSize(
+        DpSize(configuration.screenWidthDp.dp, configuration.screenHeightDp.dp)
+    )
 }

@@ -29,8 +29,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.components.SettingsHeader
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.NotificationSettingsIntent
@@ -147,10 +148,10 @@ internal fun NotificationSettingsScreen(
     }
 }
 
-@Preview(showBackground = true, name = "Ativado")
+@PreviewCestouScreens
 @Composable
 private fun NotificationSettingsScreenEnabledPreview() {
-    MaterialTheme {
+    CestouTheme {
         NotificationSettingsScreen(
             state = NotificationSettingsUiState(notificationsEnabled = true, reminderTime = "18:00"),
             intent = NotificationSettingsIntent()
@@ -158,10 +159,10 @@ private fun NotificationSettingsScreenEnabledPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "Desativado")
+@PreviewCestouScreens
 @Composable
 private fun NotificationSettingsScreenDisabledPreview() {
-    MaterialTheme {
+    CestouTheme {
         NotificationSettingsScreen(
             state = NotificationSettingsUiState(notificationsEnabled = false, reminderTime = "18:00"),
             intent = NotificationSettingsIntent()

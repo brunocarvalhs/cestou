@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -19,6 +18,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.core.ui.components.CategoryPickerDialog
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.Options
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.FormProduct
@@ -119,18 +120,20 @@ internal fun ProductScreen(
     }
 }
 
-@Preview
+@PreviewCestouScreens
 @Composable
 private fun ProductScreenPreview() {
-    ProductScreen(
-        shopping = Shopping(
-            id = "1",
-            title = "Supermercado",
-            description = "Compras do mês",
-            price = 0.0,
-            status = Shopping.Status.NEW,
-            users = emptyList(),
-            roles = emptyMap()
+    CestouTheme {
+        ProductScreen(
+            shopping = Shopping(
+                id = "1",
+                title = "Supermercado",
+                description = "Compras do mês",
+                price = 0.0,
+                status = Shopping.Status.NEW,
+                users = emptyList(),
+                roles = emptyMap()
+            )
         )
-    )
+    }
 }

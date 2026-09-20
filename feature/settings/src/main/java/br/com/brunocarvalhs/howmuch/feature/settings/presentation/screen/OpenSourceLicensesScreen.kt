@@ -11,8 +11,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.components.SettingsHeader
 
 @Composable
@@ -56,10 +57,10 @@ internal fun OpenSourceLicensesScreen(
 
 data class LicenseInfo(val library: String, val license: String)
 
-@Preview(showBackground = true)
+@PreviewCestouScreens
 @Composable
 private fun OpenSourceLicensesScreenPreview() {
-    MaterialTheme {
+    CestouTheme {
         OpenSourceLicensesScreen(onBack = {})
     }
 }

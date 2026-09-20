@@ -35,10 +35,10 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -46,6 +46,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
@@ -299,7 +300,7 @@ private val previewShoppingLists = listOf(
 )
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Preview(showBackground = true, name = "Com listas")
+@PreviewCestouScreens
 @Composable
 private fun ShoppingPreview() {
     CestouTheme {
@@ -308,34 +309,43 @@ private fun ShoppingPreview() {
                 list = StableList(previewShoppingLists),
                 filteredList = StableList(previewShoppingLists)
             ),
-            windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(400.dp, 800.dp)),
+            windowSizeClass = rememberPreviewWindowSizeClass(),
             intent = ShoppingListIntent()
         )
     }
 }
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Preview(showBackground = true, name = "Carregando")
+@PreviewCestouScreens
 @Composable
 private fun ShoppingLoadingPreview() {
     CestouTheme {
         ShoppingScreen(
             uiState = ShoppingListUiState(isLoading = true),
-            windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(400.dp, 800.dp)),
+            windowSizeClass = rememberPreviewWindowSizeClass(),
             intent = ShoppingListIntent()
         )
     }
 }
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Preview(showBackground = true, name = "Vazio")
+@PreviewCestouScreens
 @Composable
 private fun ShoppingEmptyPreview() {
     CestouTheme {
         ShoppingScreen(
             uiState = ShoppingListUiState(),
-            windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(400.dp, 800.dp)),
+            windowSizeClass = rememberPreviewWindowSizeClass(),
             intent = ShoppingListIntent()
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Composable
+private fun rememberPreviewWindowSizeClass(): WindowSizeClass {
+    val configuration = LocalConfiguration.current
+    return WindowSizeClass.calculateFromSize(
+        DpSize(configuration.screenWidthDp.dp, configuration.screenHeightDp.dp)
+    )
 }

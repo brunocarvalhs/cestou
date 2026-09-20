@@ -24,6 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.intent.LinkWearIntent
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.state.LinkWearUiState
@@ -95,5 +97,41 @@ internal fun LinkWearDeviceScreen(
                 )
             }
         }
+    }
+}
+
+@PreviewCestouScreens
+@Composable
+private fun LinkWearDeviceScreenPreview() {
+    CestouTheme {
+        LinkWearDeviceScreen(
+            state = LinkWearUiState(code = "123456"),
+            intent = LinkWearIntent(),
+            onBack = {}
+        )
+    }
+}
+
+@PreviewCestouScreens
+@Composable
+private fun LinkWearDeviceScreenLoadingPreview() {
+    CestouTheme {
+        LinkWearDeviceScreen(
+            state = LinkWearUiState(code = "123456", isLoading = true),
+            intent = LinkWearIntent(),
+            onBack = {}
+        )
+    }
+}
+
+@PreviewCestouScreens
+@Composable
+private fun LinkWearDeviceScreenErrorPreview() {
+    CestouTheme {
+        LinkWearDeviceScreen(
+            state = LinkWearUiState(code = "000000", error = "Código inválido"),
+            intent = LinkWearIntent(),
+            onBack = {}
+        )
     }
 }

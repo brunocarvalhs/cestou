@@ -19,8 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.components.SettingsHeader
@@ -117,51 +118,55 @@ fun SettingsItem(
     )
 }
 
-@Preview(showBackground = true, name = "Vazio")
+@PreviewCestouScreens
 @Composable
 private fun SettingsEmptyPreview() {
-    SettingsScreen(
-        state = SettingsUiState(),
-        intent = SettingsIntent()
-    )
+    CestouTheme {
+        SettingsScreen(
+            state = SettingsUiState(),
+            intent = SettingsIntent()
+        )
+    }
 }
 
-@Preview(showBackground = true, name = "Com seções")
+@PreviewCestouScreens
 @Composable
 private fun SettingsPreview() {
-    SettingsScreen(
-        state = SettingsUiState(
-            sections = listOf(
-                SettingSection(
-                    title = UiText.DynamicString("Preferências"),
-                    items = listOf(
-                        SettingItem(
-                            title = UiText.DynamicString("Compras"),
-                            subtitle = UiText.DynamicString("Ordenação e lembretes"),
-                            icon = Icons.Default.ShoppingCart
-                        ),
-                        SettingItem(
-                            title = UiText.DynamicString("Notificações"),
-                            icon = Icons.Default.Notifications
-                        ),
-                        SettingItem(
-                            title = UiText.DynamicString("Assistente de IA"),
-                            subtitle = UiText.DynamicString("Modelo e criatividade"),
-                            icon = Icons.Default.SmartToy
+    CestouTheme {
+        SettingsScreen(
+            state = SettingsUiState(
+                sections = listOf(
+                    SettingSection(
+                        title = UiText.DynamicString("Preferências"),
+                        items = listOf(
+                            SettingItem(
+                                title = UiText.DynamicString("Compras"),
+                                subtitle = UiText.DynamicString("Ordenação e lembretes"),
+                                icon = Icons.Default.ShoppingCart
+                            ),
+                            SettingItem(
+                                title = UiText.DynamicString("Notificações"),
+                                icon = Icons.Default.Notifications
+                            ),
+                            SettingItem(
+                                title = UiText.DynamicString("Assistente de IA"),
+                                subtitle = UiText.DynamicString("Modelo e criatividade"),
+                                icon = Icons.Default.SmartToy
+                            )
                         )
-                    )
-                ),
-                SettingSection(
-                    title = UiText.DynamicString("Sobre"),
-                    items = listOf(
-                        SettingItem(
-                            title = UiText.DynamicString("Novidades"),
-                            icon = Icons.Default.Info
+                    ),
+                    SettingSection(
+                        title = UiText.DynamicString("Sobre"),
+                        items = listOf(
+                            SettingItem(
+                                title = UiText.DynamicString("Novidades"),
+                                icon = Icons.Default.Info
+                            )
                         )
                     )
                 )
-            )
-        ),
-        intent = SettingsIntent()
-    )
+            ),
+            intent = SettingsIntent()
+        )
+    }
 }

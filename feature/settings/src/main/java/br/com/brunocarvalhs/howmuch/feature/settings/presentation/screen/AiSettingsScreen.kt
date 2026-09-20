@@ -24,9 +24,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiModel
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.components.SettingsHeader
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.AiSettingsIntent
@@ -152,10 +153,10 @@ internal fun AiSettingsScreen(
     }
 }
 
-@Preview(showBackground = true, name = "Padrão")
+@PreviewCestouScreens
 @Composable
 private fun AiSettingsScreenDefaultPreview() {
-    MaterialTheme {
+    CestouTheme {
         AiSettingsScreen(
             state = AiSettingsUiState(),
             intent = AiSettingsIntent()
@@ -163,10 +164,10 @@ private fun AiSettingsScreenDefaultPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "Personalizado")
+@PreviewCestouScreens
 @Composable
 private fun AiSettingsScreenCustomizedPreview() {
-    MaterialTheme {
+    CestouTheme {
         AiSettingsScreen(
             state = AiSettingsUiState(
                 aiModel = AiModel.freeModels.first().id,
