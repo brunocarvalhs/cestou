@@ -216,7 +216,8 @@ internal fun WelcomeScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(58.dp),
+                        .height(58.dp)
+                        .testTag("welcome_agree_and_continue_button"),
                     shape = RoundedCornerShape(32.dp)
                 ) {
                     Text(
