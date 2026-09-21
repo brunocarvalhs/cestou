@@ -78,7 +78,7 @@ jobs:
           echo "github_prerelease=$(yq '.release.github_release.prerelease' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "play_track=$(yq '.release.google_play.track' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "play_status=$(yq '.release.google_play.status' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "play_user_fraction=$(yq '.release.google_play.user_fraction // \"\"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "play_user_fraction=$(yq '.release.google_play.user_fraction // ""' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "play_environment_name=$(yq '.release.google_play.environment_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_checkout=$(yq '.build.step_names.checkout' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_setup_env=$(yq '.build.step_names.setup_environment' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
