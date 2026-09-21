@@ -70,3 +70,15 @@ reordenar lista por arrastar não persiste no Firestore (no-op silencioso) — f
 **G9/F2.4 em `.specs/MVP-ROADMAP.md`**. Nenhum dos dois entra nas fases acima: não são decisões de
 priorização por persona, são correções técnicas que seguem o processo já estabelecido no roadmap de
 lançamento.
+
+## Nota sobre feedback real de beta testers
+
+Desde que o beta foi ao ar (950 usuários em Open testing, ver `.specs/BETA-LAUNCH-PLAN.md`), o
+primeiro sinal negativo real chegou pelo canal "Feedback de teste" do Play Console: um comentário de
+1★ dizendo apenas "difícil" (Felipe Morais, 07/09/2026), sem detalhe suficiente pra mapear contra uma
+persona específica deste documento ainda. Registrado como **G17 em `.specs/MVP-ROADMAP.md`**, seção
+"Beta feedback triage", com plano de follow-up (aguardar resposta dele; se não vier, sessão de
+usabilidade ou revisão heurística do onboarding). Esse mesmo documento também define o processo daqui
+pra frente: todo feedback de beta respondido que aponte um problema real de UX/funcionalidade vira um
+gap ali, não só uma resposta no console. Um comentário positivo (5★, Mayra Santos) foi registrado como
+sinal de validação, sem ação de produto necessária.

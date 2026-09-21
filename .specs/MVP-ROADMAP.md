@@ -47,6 +47,7 @@ shipped independently.
 | ~~G8~~ | ~~Apple Sign-In never offered~~ | Removed the unreachable UI branch rather than implementing it — PR #19 | S |
 | G9 | `ShoppingRepositoryImpl.updatePositions` is a no-op (`ShoppingRepositoryImpl.kt:133-139`) — reordering lists by drag updates local state optimistically (`ShoppingListViewModel.kt:269`) but never writes to Firestore, so the order silently reverts on next sync | Feature is already exposed in the UI and looks like it works; found during a 2026-09-04 Tech Lead audit | **Fix pushed, PR #67 open — but not mergeable as of 2026-09-10: Detekt fails on one >120-char line in `ShoppingRepositoryImplTest.kt:220` (so `PR Gate` is red) and the branch is 18 commits behind `develop`. Tracked as T7 in `BETA-LAUNCH-PLAN.md`.** |
 | G10 | Cross-feature module coupling: `cart`/`shopping`/`chat`/`ai-agent`/`profile` import `feature.settings` directly, `cart` imports `feature.chat`/`feature.products`, `products` imports `feature.chat`, `shopping` imports `feature.products` | Violates AD-005 (feature modules should only expose a `navigation` entry point); makes each feature module's real dependency graph wider than documented, raising the risk of accidental coupling as the app grows | M — needs a design pass (extract shared contracts to `core/*`), not a quick fix |
+| G17 | Beta tester feedback (Felipe Morais, 1★, 07/09/2026, Play Console beta feedback channel): comment is just "difícil", no further detail — possible onboarding/first-use UX friction, root cause unconfirmed | Real signal from an external beta tester rather than an internal audit, but not actionable yet: no repro steps, no flow identified, no persona confidently mapped. See "Beta feedback triage" below for the follow-up plan and process | S (diagnostic) — escalates to a usability session or heuristic review only if he doesn't reply |
 
 Every item marked done above shipped as its own branch + PR (none merged without review): shared
 `StorageService` for `core/auth` (#14), shopping-reminder push notifications (#15), Maestro
@@ -141,6 +142,37 @@ beta — not deciding it here, since `BETA-LAUNCH-PLAN.md` is the tech-lead's do
 None found in this pass. The dead-end legal links, the QR-join notification spam, and the compiled-in
 API key — the three items with the clearest persona-facing "this feels broken/unsafe" angle — are
 already tracked as G3, G13, and G15 respectively.
+
+## Beta feedback triage (owned by `pm`)
+
+Processo, daqui pra frente: sempre que um comentário novo aparecer no canal "Feedback de teste" do
+Google Play Console e for respondido, se ele apontar um problema real de UX/funcionalidade (não só
+elogio), um gap correspondente entra na tabela do "Gap list" acima (próximo `Gxx` disponível),
+cross-checado contra as 12 personas em `.specs/PERSONA-ACTION-PLAN.md` /
+`.claude/skills/customer-personas/SKILL.md`, seguindo a mesma disciplina do resto deste documento.
+Feedback só-elogio não precisa de gap — vira sinal de validação, registrado aqui por referência.
+
+### 2026-09-21 — primeiros dois comentários de beta revisados
+
+| Tester | Nota | Comentário | Dispositivo | Status |
+|---|---|---|---|---|
+| Felipe Morais | 1★ (07/09/2026) | "difícil" — sem mais detalhe | Galaxy A54 5G, Android 16, app 1.1.1 (build 3) | Rastreado como **G17** acima — respondemos pedindo detalhe, aguardando retorno |
+| Mayra Santos | 5★ (02/10/2025) | "ótimo aplicativo, irei usar bastante 👏👏" | Galaxy M62, Android 13 | Sem ação necessária — sinal positivo de validação; respondemos agradecendo e convidando para sugestões |
+
+**Detalhe do G17:** "difícil", sozinho, é um sinal real de fricção mas está subespecificado — pode
+ser onboarding, criação de lista, scanner, compartilhamento, ou outra coisa. O skill
+`customer-personas` não consegue mapear isso a uma dor de persona específica sem saber qual fluxo.
+Não inventar causa raiz. Próximos passos, em ordem:
+
+1. Aguardar a resposta dele ao nosso follow-up (já enviado) — janela de ~1-2 semanas (até
+   ~2026-10-05).
+2. Se não responder até lá, tratar como não resolvido e agendar ou (a) uma sessão de teste de
+   usabilidade pequena (3-5 pessoas, priorizando personas com baixa tolerância a fricção — Dona
+   Célia e Marina são as mais próximas do perfil "nota 1, sem paciência para explicar") ou (b) uma
+   revisão heurística do fluxo de onboarding/primeiro uso (login → primeira lista → primeiro item),
+   o que `pm`/`tech-lead` julgarem mais barato para o sinal disponível.
+3. O que for encontrado vira um gap `Gxx` próprio, com "why it matters" concreto assim que houver um
+   fluxo + reprodução real, substituindo este placeholder diagnóstico (G17).
 
 ## Plan — features broken by user value
 
