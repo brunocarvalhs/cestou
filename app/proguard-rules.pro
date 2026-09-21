@@ -34,6 +34,13 @@
 # Ensure routes used in navigation are not stripped or renamed improperly
 -keep @kotlinx.serialization.Serializable class *
 
+# RouteType (core:navigation) is a plain enum referenced as a property on every route that
+# implements RouteProtocol. Navigation resolves it by fully-qualified name at runtime, so
+# R8 renaming it - even though the route classes above keep the field - throws:
+# "Cannot find class with name ...RouteType" on minified builds. Any future enum used the
+# same way (as a property type on a route, not the route itself) needs the same rule.
+-keep class br.com.brunocarvalhs.howmuch.core.navigation.RouteType { *; }
+
 # --- Hilt / Dagger ---
 # Hilt usually bundles its own rules, but common overrides include:
 -keep class dagger.hilt.android.internal.managers.** { *; }
