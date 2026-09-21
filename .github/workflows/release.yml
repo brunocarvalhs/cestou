@@ -1,230 +1,313 @@
-name: Build and Release Application
+name: Continuous Integration - Store Release
 
 on:
   push:
     branches: [ master ]
 
-env:
-  # Configurações Gerais
-  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-  JDK_VERSION: 17
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3072m"
-
-  # Android
-  BUILD_TOOLS_VERSION: "34.0.0"
-  ANDROID_LOCAL_PROPERTIES: local.properties
-
-  # Projeto (cada repo sobrescreve aqui)
-  APP_NAME: "HowMuch"
-  PACKAGE_NAME: "br.com.brunocarvalhs.howmuch"
-
-  # Caminhos
-  APK_DEBUG_PATH: app/build/outputs/apk/debug/*.apk
-  APK_RELEASE_PATH: app/build/outputs/apk/release/*.apk
-  AAB_RELEASE_PATH: app/build/outputs/bundle/release/*.aab
-
-  # 🔑 Secrets (todos centralizados)
-  GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
-  KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-  KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
-  KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-  GITHUB_TOKEN: ${{ secrets.TOKEN }}
-  DEPLOY_SERVICE_ACCOUNT_JSON: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
+# No cancel-in-progress (same reasoning as build.yml): this ends in a real
+# Play Store submission, so a run in flight should finish or fail on its own
+# rather than being killed mid-deploy.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  checkout-and-setup:
+  prepare:
     runs-on: ubuntu-24.04
-    name: Checkout and Setup Environment
+    timeout-minutes: 5
+    outputs:
+      jdk_version: ${{ steps.config.outputs.jdk_version }}
+      java_distribution: ${{ steps.config.outputs.java_distribution }}
+      gradle_opts: ${{ steps.config.outputs.gradle_opts }}
+      default_timeout: ${{ steps.config.outputs.default_timeout }}
+      app_name: ${{ steps.config.outputs.app_name }}
+      package_name: ${{ steps.config.outputs.package_name }}
+      aab_pattern: ${{ steps.config.outputs.aab_pattern }}
+      keystore_path: ${{ steps.config.outputs.keystore_path }}
+      checks_stage_1: ${{ steps.config.outputs.checks_stage_1 }}
+      checks_stage_2: ${{ steps.config.outputs.checks_stage_2 }}
+      release_enabled: ${{ steps.config.outputs.release_enabled }}
+      github_draft: ${{ steps.config.outputs.github_draft }}
+      github_prerelease: ${{ steps.config.outputs.github_prerelease }}
+      play_track: ${{ steps.config.outputs.play_track }}
+      play_status: ${{ steps.config.outputs.play_status }}
+      play_environment_name: ${{ steps.config.outputs.play_environment_name }}
+      versioning_enabled: ${{ steps.config.outputs.versioning_enabled }}
+      step_checkout: ${{ steps.config.outputs.step_checkout }}
+      step_setup_env: ${{ steps.config.outputs.step_setup_env }}
+      step_run_check: ${{ steps.config.outputs.step_run_check }}
+      step_load_config: ${{ steps.config.outputs.step_load_config }}
+      step_configure_git: ${{ steps.config.outputs.step_configure_git }}
+      step_build_aab: ${{ steps.config.outputs.step_build_aab }}
+      step_build_upload_aab: ${{ steps.config.outputs.step_build_upload_aab }}
+      step_release_read_version: ${{ steps.config.outputs.step_release_read_version }}
+      step_release_create: ${{ steps.config.outputs.step_release_create }}
+      step_sync_merge: ${{ steps.config.outputs.step_sync_merge }}
+      step_sync_open_pr_conflict: ${{ steps.config.outputs.step_sync_open_pr_conflict }}
+      step_deploy_download_aab: ${{ steps.config.outputs.step_deploy_download_aab }}
+      step_deploy_upload_play: ${{ steps.config.outputs.step_deploy_upload_play }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      # Bootstrap exception (see step_names comment in pipeline-config.yaml):
+      # this step downloads the very file its own name would come from.
+      - name: 📥 Checkout code
+        uses: actions/checkout@v7
 
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: ${{ env.JDK_VERSION }}
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
-
-      - name: Create local.properties
+      # Bootstrap exception too: runs before the config-loading step below,
+      # so no step_names.* output exists yet at this point.
+      - name: 🧪 Validate pipeline-config.yaml
         run: |
-          echo "sdk.dir=${{ env.ANDROID_HOME }}" > ${{ env.ANDROID_LOCAL_PROPERTIES }}
+          chmod +x .github/scripts/validate-pipeline-config.sh
+          .github/scripts/validate-pipeline-config.sh
 
-      - name: Create google-services.json
+      - id: config
         run: |
-          echo ${{ env.GOOGLE_SERVICE_JSON }} | base64 --decode > app/google-services.json
+          echo "jdk_version=$(yq '.build."java-version"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "java_distribution=$(yq '.build."java-distribution" // "temurin"' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "gradle_opts=$(yq '.build.gradle_opts' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "default_timeout=$(yq '.build.default_timeout_minutes' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "app_name=$(yq '.project.name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "package_name=$(yq '.project.package_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "aab_pattern=$(yq '.paths.aab_release' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "keystore_path=$(yq '.paths.keystore' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "checks_stage_1=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 1)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
+          echo "checks_stage_2=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 2)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
+          echo "release_enabled=$(yq '.release.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "versioning_enabled=$(yq '.release.versioning.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "github_draft=$(yq '.release.github_release.draft' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "github_prerelease=$(yq '.release.github_release.prerelease' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "play_track=$(yq '.release.google_play.track' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "play_status=$(yq '.release.google_play.status' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "play_environment_name=$(yq '.release.google_play.environment_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_checkout=$(yq '.build.step_names.checkout' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_setup_env=$(yq '.build.step_names.setup_environment' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_run_check=$(yq '.build.step_names.run_check' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_load_config=$(yq '.git.step_names.load_config' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_configure_git=$(yq '.git.step_names.configure_git' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_build_aab=$(yq '.release.step_names.build_aab' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_build_upload_aab=$(yq '.release.step_names.upload_aab' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_release_read_version=$(yq '.release.step_names.read_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_release_create=$(yq '.release.step_names.create_release' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_sync_merge=$(yq '.release.step_names.sync_merge' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_sync_open_pr_conflict=$(yq '.release.step_names.sync_open_pr_conflict' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_deploy_download_aab=$(yq '.release.google_play.step_names.download_aab' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_deploy_upload_play=$(yq '.release.google_play.step_names.upload' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
-      - name: Cache Gradle
-        uses: actions/cache@v3
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Upload Workspace
-        uses: actions/upload-artifact@v4
-        with:
-          name: workspace
-          path: ./
-
-  unit-tests:
+  checks_stage_1:
+    needs: [prepare]
+    if: needs.prepare.outputs.checks_stage_1 != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        check: ${{ fromJson(needs.prepare.outputs.checks_stage_1) }}
     runs-on: ubuntu-24.04
-    name: Unit Tests
-    needs: checkout-and-setup
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
+    name: ${{ matrix.check.display_name }}
     steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
+      - name: ${{ needs.prepare.outputs.step_checkout }}
+        uses: actions/checkout@v7
+
+      - name: ${{ needs.prepare.outputs.step_setup_env }}
+        uses: ./.github/actions/setup-env
         with:
-          name: workspace
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
 
-      - name: Give execution permissions to gradlew
-        run: chmod +x gradlew
-
-      - name: Run Unit Tests
-        run: ./gradlew testDebug
-
-  lint-check:
-    runs-on: ubuntu-24.04
-    name: Lint Check
-    needs: checkout-and-setup
-    steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
-        with:
-          name: workspace
-
-      - name: Give execution permissions to gradlew
-        run: chmod +x gradlew
-
-      - name: Run Lint
-        run: ./gradlew lintDebug
-
-  detekt-check:
-    runs-on: ubuntu-24.04
-    name: Run Detekt Check
-    needs: checkout-and-setup
-    steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
-        with:
-          name: workspace
-
-      - name: Give execution permissions to gradlew
-        run: chmod +x gradlew
-
-      - name: Run Detekt
-        run: ./gradlew detekt
+      - name: ${{ needs.prepare.outputs.step_run_check }}
+        run: |
+          chmod +x gradlew
+          ${{ matrix.check.command }}
         env:
-          GRADLE_OPTS: ${{ env.GRADLE_OPTS }}
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
+
+  checks_stage_2:
+    needs: [prepare, checks_stage_1]
+    if: |
+      always() &&
+      needs.prepare.outputs.checks_stage_2 != '[]' &&
+      (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped')
+    strategy:
+      fail-fast: false
+      matrix:
+        check: ${{ fromJson(needs.prepare.outputs.checks_stage_2) }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
+    name: ${{ matrix.check.display_name }}
+    steps:
+      - name: ${{ needs.prepare.outputs.step_checkout }}
+        uses: actions/checkout@v7
+
+      - name: ${{ needs.prepare.outputs.step_setup_env }}
+        uses: ./.github/actions/setup-env
+        with:
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
+
+      - name: ${{ needs.prepare.outputs.step_run_check }}
+        run: |
+          chmod +x gradlew
+          ${{ matrix.check.command }}
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
   build:
+    needs: [prepare, checks_stage_1, checks_stage_2]
+    if: |
+      always() &&
+      needs.prepare.outputs.release_enabled == 'true' &&
+      (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped') &&
+      (needs.checks_stage_2.result == 'success' || needs.checks_stage_2.result == 'skipped')
     runs-on: ubuntu-24.04
-    name: Build
-    needs: [unit-tests, lint-check, detekt-check]
-    env:
-      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-      KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
-      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
+    name: 📦 Build Bundle (AAB)
     steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
+      - name: ${{ needs.prepare.outputs.step_checkout }}
+        uses: actions/checkout@v7
+
+      - name: ${{ needs.prepare.outputs.step_setup_env }}
+        uses: ./.github/actions/setup-env
         with:
-          name: workspace
+          jdk-version: ${{ needs.prepare.outputs.jdk_version }}
+          java-distribution: ${{ needs.prepare.outputs.java_distribution }}
+          dotenv: ${{ secrets.DOTENV || vars.DOTENV }}
+          google-services-json: ${{ secrets.GOOGLE_SERVICE_JSON }}
+          release-keystore: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
 
-      - name: Give execution permissions to gradlew
-        run: chmod +x gradlew
-
-      - name: Check if keystore exists
+      - name: ${{ needs.prepare.outputs.step_build_aab }}
         run: |
-          if [ -f "app/release.keystore" ]; then
-            echo "Keystore exists"
-          else
-            echo "::error::Keystore file 'app/release.keystore' does not exist. Please ensure it is in the correct location."
-            exit 1
-          fi
+          COMMAND=$(yq '.release.command_aab' .github/pipeline-config.yaml)
+          chmod +x gradlew
+          $COMMAND
+        env:
+          GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: Build AAB
-        run: ./gradlew bundleRelease
-
-      - name: Upload AAB Artifact
-        uses: actions/upload-artifact@v4
+      - name: ${{ needs.prepare.outputs.step_build_upload_aab }}
+        uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.APP_NAME }}-aab
-          path: app/build/outputs/bundle/release/*.aab
+          name: ${{ needs.prepare.outputs.app_name }}-aab
+          path: ${{ needs.prepare.outputs.aab_pattern }}
 
   release:
     runs-on: ubuntu-24.04
-    name: Create and Upload Release
-    needs: [build]
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
+    name: 🏷️ GitHub Release
+    needs: [prepare, build]
     steps:
-      - name: Download Workspace
-        uses: actions/download-artifact@v4
-        with:
-          name: workspace
-        continue-on-error: true
+      - name: ${{ needs.prepare.outputs.step_checkout }}
+        uses: actions/checkout@v7
 
-      - name: Get App Version from build.gradle.kts
+      # versionName/versionCode and CHANGELOG.md were already bumped and
+      # reviewed pre-merge, by whichever workflow opened the PR this push
+      # came from (release-pr.yml bumps develop directly before promoting it
+      # to master; rollback.yml bumps its rollback branch the same way).
+      # This job only reads that back to tag a GitHub Release - it never
+      # pushes to master itself, keeping master a protected, PR-only branch.
+      - name: ${{ needs.prepare.outputs.step_release_read_version }}
+        id: version
+        if: needs.prepare.outputs.versioning_enabled == 'true'
         run: |
-          VERSION=$(grep versionName app/build.gradle.kts | sed 's/.*versionName = "\(.*\)"/\1/')
-          echo "version=$VERSION" >> $GITHUB_ENV
-        continue-on-error: true
+          GRADLE_FILE=$(yq '.paths.gradle_file' .github/pipeline-config.yaml)
+          VERSION_NAME=$(grep "versionName = " "$GRADLE_FILE" | sed 's/.*versionName = "\(.*\)"/\1/')
+          echo "version=$VERSION_NAME" >> $GITHUB_OUTPUT
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@latest
-        env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+      - name: ${{ needs.prepare.outputs.step_release_create }}
+        uses: softprops/action-gh-release@v3
+        if: steps.version.outputs.version != ''
         with:
-          tag_name: ${{ env.version }}
-          release_name: v${{ env.version }}
-          draft: false
-          prerelease: false
-        continue-on-error: true
+          tag_name: ${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          draft: ${{ needs.prepare.outputs.github_draft }}
+          prerelease: ${{ needs.prepare.outputs.github_prerelease }}
+          token: ${{ secrets.TOKEN }}
+
+  sync-develop:
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
+    name: 🔄 Sync master → develop
+    needs: [prepare, release]
+    # Runs in parallel with the manual-approval-gated `deploy` job, not
+    # blocked by it - getting the version bump/changelog (and, for a hotfix,
+    # the fix itself) back into develop shouldn't wait on a human approving
+    # the Play Store rollout.
+    if: always() && needs.release.result == 'success'
+    steps:
+      - name: ${{ needs.prepare.outputs.step_checkout }}
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.TOKEN }}
+
+      - name: ${{ needs.prepare.outputs.step_load_config }}
+        id: config
+        run: |
+          echo "main_branch=$(yq '.git.branches.main' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "dev_branch=$(yq '.git.branches.develop' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "bot_name=$(yq '.git.bot_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "bot_email=$(yq '.git.bot_email' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+
+      - name: ${{ needs.prepare.outputs.step_configure_git }}
+        run: |
+          git config user.name "${{ steps.config.outputs.bot_name }}"
+          git config user.email "${{ steps.config.outputs.bot_email }}"
+
+      - name: ${{ needs.prepare.outputs.step_sync_merge }}
+        id: merge
+        run: |
+          MAIN="${{ steps.config.outputs.main_branch }}"
+          DEV="${{ steps.config.outputs.dev_branch }}"
+          git checkout "$DEV"
+          if git merge --no-edit "origin/$MAIN"; then
+            git push origin "$DEV"
+            echo "conflict=false" >> $GITHUB_OUTPUT
+          else
+            git merge --abort
+            echo "conflict=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: ${{ needs.prepare.outputs.step_sync_open_pr_conflict }}
+        if: steps.merge.outputs.conflict == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        run: |
+          MAIN="${{ steps.config.outputs.main_branch }}"
+          DEV="${{ steps.config.outputs.dev_branch }}"
+          BRANCH="sync/$MAIN-to-$DEV-${{ github.sha }}"
+          git checkout -b "$BRANCH" "origin/$MAIN"
+          git push origin "$BRANCH"
+          gh pr create \
+            --title "Sync $MAIN → $DEV (conflict - needs manual resolution)" \
+            --body "Automated sync from \`$MAIN\` to \`$DEV\` hit a merge conflict after this release/hotfix and needs a human to resolve it." \
+            --base "$DEV" \
+            --head "$BRANCH" \
+            --label "sync"
 
   deploy:
     runs-on: ubuntu-24.04
-    name: Deploy to Google Play
-    needs: release
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
+    name: 🏁 Google Play Deployment
+    needs: [prepare, release]
+    environment: ${{ needs.prepare.outputs.play_environment_name }}
     steps:
-      - name: Download AAB Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ env.APP_NAME }}-aab
-          path: app/build/outputs/bundle/release/
+      - name: ${{ needs.prepare.outputs.step_checkout }}
+        uses: actions/checkout@v7
 
-      - name: Upload to Google Play (Production)
-        id: deploy_prod
-        continue-on-error: true
+      - name: ${{ needs.prepare.outputs.step_deploy_download_aab }}
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.prepare.outputs.app_name }}-aab
+          path: output/
+
+      - name: ${{ needs.prepare.outputs.step_deploy_upload_play }}
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
-          packageName: ${{ env.PACKAGE_NAME }}
-          releaseFiles: ${{ env.AAB_RELEASE_PATH }}
-          track: production
-          status: inProgress
-          userFraction: 0.5
-
-      - name: Upload to Google Play (Beta)
-        if: steps.deploy_prod.outcome == 'failure'
-        id: deploy_beta
-        continue-on-error: true
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
-          packageName: ${{ env.PACKAGE_NAME }}
-          releaseFiles: ${{ env.AAB_RELEASE_PATH }}
-          track: beta
-          status: completed
-
-      - name: Upload to Google Play (Internal)
-        if: steps.deploy_beta.outcome == 'failure'
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
-          packageName: ${{ env.PACKAGE_NAME }}
-          releaseFiles: ${{ env.AAB_RELEASE_PATH }}
-          track: internal
-          status: completed
+          packageName: ${{ needs.prepare.outputs.package_name }}
+          releaseFiles: output/**/*.aab
+          track: ${{ needs.prepare.outputs.play_track }}
+          status: ${{ needs.prepare.outputs.play_status }}

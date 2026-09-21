@@ -1,0 +1,34 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Settings Flow
+---
+- launchApp:
+    clearState: true
+
+- tapOn: "Profile"
+- assertVisible: "Notification Preferences"
+- assertVisible: "Theme, Currency and Language"
+- assertVisible: "About the App"
+- tapOn: "Theme, Currency and Language"
+
+- assertVisible: "Settings"
+- assertVisible: "General"
+- assertVisible: "AI"
+- assertVisible: "Shopping"
+- assertVisible: "Data"
+- assertVisible: "Notifications"
+- assertVisible: "Support"
+- assertVisible: "About"
+- assertVisible: "Theme"
+- assertVisible: "Language"
+- assertVisible: "Currency"
+
+- tapOn: "Theme"
+- assertVisible: "Select Theme"
+- assertVisible: "System"
+- assertVisible: "Light"
+- assertVisible: "Dark"
+- back
+- back
+
+- assertVisible: "Notification Preferences"
+- assertVisible: "Sign Out"

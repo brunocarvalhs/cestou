@@ -1,0 +1,158 @@
+package br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel
+
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
+import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.feature.products.domain.model.Recipe
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSearchUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.RecipeSearchUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.intent.ProductSearchIntent
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.state.ProductSearchUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import java.util.UUID
+import javax.inject.Inject
+
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+@HiltViewModel
+internal class ProductSearchViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val searchUseCase: ProductSearchUseCase,
+    private val recipeSearchUseCase: RecipeSearchUseCase,
+    private val saveUseCase: ProductSaveUseCase,
+    private val analyticsTracker: AnalyticsTracker
+) : ViewModel() {
+    private val shopping = savedStateHandle.toRoute<ProductPickerRoute>(ProductPickerRoute.typeMap).shopping
+
+    private val _uiState = MutableStateFlow(ProductSearchUiState())
+    val uiState = _uiState.asStateFlow()
+
+    private val searchTrigger = MutableSharedFlow<String>(extraBufferCapacity = 1)
+
+    init {
+        analyticsTracker.trackScreenView(screenName = "product_search", screenClass = "ProductSearchViewModel")
+        observeSearchTrigger()
+    }
+
+    val intent = ProductSearchIntent(
+        onQueryChange = { onQueryChange(it) },
+        onProductSelected = { onProductSelected(it) },
+        onSearchModeChange = { mode -> 
+            _uiState.update { it.copy(searchMode = mode, query = "", results = emptyList(), recipes = emptyList()) }
+        },
+        onRecipeSelected = { recipe -> _uiState.update { it.copy(selectedRecipe = recipe) } },
+        onClearRecipeSelection = { _uiState.update { it.copy(selectedRecipe = null) } },
+        onAddRecipeIngredients = { recipe -> onAddRecipeIngredients(recipe) },
+        onErrorShown = { _uiState.update { it.copy(errorMessage = null) } }
+    )
+
+    private fun onQueryChange(newQuery: String) {
+        _uiState.update { it.copy(query = newQuery) }
+        if (newQuery.length >= MIN_QUERY_LENGTH) {
+            searchTrigger.tryEmit(newQuery)
+        }
+    }
+
+    private companion object {
+        const val MIN_QUERY_LENGTH = 3
+        const val SEARCH_DEBOUNCE_MILLIS = 300L
+    }
+
+    /**
+     * Debounces rapid keystrokes and, once the user pauses, runs a single search. `flatMapLatest`
+     * cancels any still-running search as soon as a newer query is debounced through, so a slow
+     * response for a stale query can never arrive late and overwrite a faster, more recent result
+     * (see G16 in .specs/MVP-ROADMAP.md).
+     */
+    private fun observeSearchTrigger() {
+        viewModelScope.launch {
+            searchTrigger
+                .debounce(SEARCH_DEBOUNCE_MILLIS)
+                .flatMapLatest { query -> performSearch(query) }
+                .collect { reducer -> _uiState.update(reducer) }
+        }
+    }
+
+    private fun performSearch(
+        query: String
+    ): Flow<(ProductSearchUiState) -> ProductSearchUiState> = flow {
+        emit { state: ProductSearchUiState -> state.copy(isSearching = true) }
+        when (_uiState.value.searchMode) {
+            ProductSearchUiState.SearchMode.PRODUCT -> emit(searchProducts(query))
+            ProductSearchUiState.SearchMode.RECIPE -> emit(searchRecipes(query))
+        }
+    }
+
+    private suspend fun searchProducts(query: String): (ProductSearchUiState) -> ProductSearchUiState =
+        searchUseCase(query)
+            .onSuccess { results -> trackSearchPerformed(query = query, mode = "product", resultCount = results.size) }
+            .fold(
+                onSuccess = { results -> { state -> state.copy(results = results, isSearching = false) } },
+                onFailure = { e -> { state -> state.copy(isSearching = false, errorMessage = e.message) } }
+            )
+
+    private suspend fun searchRecipes(query: String): (ProductSearchUiState) -> ProductSearchUiState =
+        recipeSearchUseCase(query)
+            .onSuccess { results -> trackSearchPerformed(query = query, mode = "recipe", resultCount = results.size) }
+            .fold(
+                onSuccess = { results -> { state -> state.copy(recipes = results, isSearching = false) } },
+                onFailure = { e -> { state -> state.copy(isSearching = false, errorMessage = e.message) } }
+            )
+
+    private fun trackSearchPerformed(query: String, mode: String, resultCount: Int) {
+        analyticsTracker.trackEvent(
+            AnalyticsEvents.PRODUCT_SEARCH_PERFORMED,
+            mapOf(
+                AnalyticsParams.SEARCH_MODE to mode,
+                AnalyticsParams.QUERY_LENGTH to query.length,
+                AnalyticsParams.RESULT_COUNT to resultCount
+            )
+        )
+    }
+
+    private fun onProductSelected(product: Product) {
+        viewModelScope.launch {
+            saveUseCase(product = product, shoppingId = shopping.id)
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.PRODUCT_SELECTED,
+                mapOf(AnalyticsParams.SHOPPING_ID to shopping.id, AnalyticsParams.PRODUCT_ID to product.id)
+            )
+        }
+    }
+
+    private fun onAddRecipeIngredients(recipe: Recipe) {
+        viewModelScope.launch {
+            recipe.ingredients.forEach { product ->
+                saveUseCase(product = product.copy(id = UUID.randomUUID().toString()), shoppingId = shopping.id)
+            }
+            if (recipe.ingredients.isNotEmpty()) {
+                analyticsTracker.trackEvent(
+                    AnalyticsEvents.PRODUCT_ADDED,
+                    mapOf(
+                        AnalyticsParams.SHOPPING_ID to shopping.id,
+                        AnalyticsParams.SOURCE to "recipe",
+                        AnalyticsParams.ITEMS_COUNT to recipe.ingredients.size
+                    )
+                )
+            }
+            _uiState.update { it.copy(selectedRecipe = null, query = "", recipes = emptyList()) }
+        }
+    }
+}

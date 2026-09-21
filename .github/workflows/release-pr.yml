@@ -1,190 +1,92 @@
-name: Release to Master
+name: Release - Prepare Release PR
+
+# Git Flow "promote to master" step: bumps the version on develop itself
+# (reviewable in the PR diff once opened) and opens a PR straight from
+# develop into master - no intermediate release branch. release.yml (push to
+# master) never bumps version itself, it only reads what already landed via
+# this PR's merge, so master stays direct-push-free and every version change
+# is a reviewable diff like any other change.
 
 on:
   workflow_dispatch:
 
-env:
-  # Branches
-  DEVELOP_BRANCH: develop
-  MASTER_BRANCH: master
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
-  # Arquivos de versão
-  FILE_KTS: app/build.gradle.kts
-  FILE_GRADLE: app/build.gradle
-
-  # GitHub Bot
-  GIT_USER: github-actions[bot]
-  GIT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
-
-  # 🔑 Secrets
-  GITHUB_TOKEN: ${{ secrets.TOKEN }}
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
-  version_manager:
-    name: Version Manager
-    runs-on: ubuntu-latest
-    outputs:
-      new_name: ${{ steps.bump.outputs.new_name }}
-      new_code: ${{ steps.bump.outputs.new_code }}
-      updated: ${{ steps.bump.outputs.updated }}
-      feat: ${{ steps.count_feat.outputs.feat }}
-      fix: ${{ steps.count_fix.outputs.fix }}
-      breaking: ${{ steps.count_breaking.outputs.breaking }}
+  prepare:
+    name: Bump & Open Release PR
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
-      - name: Checkout develop
-        uses: actions/checkout@v3
+      # develop is branch-protected (require PR) - the default GITHUB_TOKEN
+      # this step would get without an explicit `token:` isn't an admin
+      # identity and can't push directly even with enforce_admins: false,
+      # unlike secrets.TOKEN (a real admin PAT). This job's whole mechanism
+      # is a direct push to develop below, so this isn't optional.
+      - name: 📥 Checkout develop
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          ref: ${{ env.DEVELOP_BRANCH }}
+          token: ${{ secrets.TOKEN }}
 
-      - name: Count feat commits
-        id: count_feat
+      - name: Load Config
+        id: config
         run: |
-          FEAT=$(git log origin/${{ env.MASTER_BRANCH }}..${{ env.DEVELOP_BRANCH }} --pretty=%s | grep -E '^feat' | wc -l || echo 0)
-          FEAT=${FEAT// /}
-          echo "feat=${FEAT:-0}" >> $GITHUB_OUTPUT
+          echo "main_branch=$(yq '.git.branches.main' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "dev_branch=$(yq '.git.branches.develop' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "bot_name=$(yq '.git.bot_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "bot_email=$(yq '.git.bot_email' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_bump_version=$(yq '.release.step_names.bump_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_commit_push_develop=$(yq '.release.step_names.commit_push_develop' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_open_pr=$(yq '.release.step_names.open_pr' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_noop=$(yq '.release.step_names.noop' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
-      - name: Count fix/revert/perf/refactor commits
-        id: count_fix
-        run: |
-          FIX=$(git log origin/${{ env.MASTER_BRANCH }}..${{ env.DEVELOP_BRANCH }} --pretty=%s | grep -E '^(fix|revert|perf|refactor)' | wc -l || echo 0)
-          FIX=${FIX// /}
-          echo "fix=${FIX:-0}" >> $GITHUB_OUTPUT
-
-      - name: Count BREAKING CHANGE commits
-        id: count_breaking
-        run: |
-          BREAKING=$(git log origin/${{ env.MASTER_BRANCH }}..${{ env.DEVELOP_BRANCH }} --pretty=%b | grep -c 'BREAKING CHANGE' || true)
-          BREAKING=${BREAKING// /}
-          echo "breaking=${BREAKING:-0}" >> $GITHUB_OUTPUT
-
-      - name: Get current version
-        id: version
-        run: |
-          if [ -f "${{ env.FILE_KTS }}" ]; then
-            FILE=${{ env.FILE_KTS }}
-            VERSION_NAME=$(grep "versionName" "$FILE" | sed 's/.*"\(.*\)"/\1/')
-            VERSION_CODE=$(grep "versionCode" "$FILE" | awk '{print $2}' | tr -d '()')
-          elif [ -f "${{ env.FILE_GRADLE }}" ]; then
-            FILE=${{ env.FILE_GRADLE }}
-            VERSION_NAME=$(grep "versionName" "$FILE" | sed 's/versionName "\(.*\)"/\1/')
-            VERSION_CODE=$(grep "versionCode" "$FILE" | awk '{print $2}')
-          else
-            echo "⚠️ Nenhum build.gradle(.kts) encontrado!"
-            VERSION_NAME="0.0.0"
-            VERSION_CODE="0"
-          fi
-          echo "name=$VERSION_NAME" >> $GITHUB_OUTPUT
-          echo "code=$VERSION_CODE" >> $GITHUB_OUTPUT
-
-      - name: Bump version
+      - name: ${{ steps.config.outputs.step_bump_version }}
         id: bump
         run: |
-          FEAT=${{ steps.count_feat.outputs.feat }}
-          FIX=${{ steps.count_fix.outputs.fix }}
-          BREAKING=${{ steps.count_breaking.outputs.breaking }}
-          VERSION=${{ steps.version.outputs.name }}
-          CODE=${{ steps.version.outputs.code }}
-          
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-          MAJOR=${MAJOR:-0}
-          MINOR=${MINOR:-0}
-          PATCH=${PATCH:-0}
+          git config user.name "${{ steps.config.outputs.bot_name }}"
+          git config user.email "${{ steps.config.outputs.bot_email }}"
+          chmod +x .github/scripts/version.sh
+          new_version=$(.github/scripts/version.sh)
+          echo "new_version=$new_version" >> $GITHUB_OUTPUT
 
-          if [ $((FEAT + FIX + BREAKING)) -eq 0 ]; then
-            NEW_VERSION="$VERSION"
-            NEW_CODE="$CODE"
-            echo "updated=false" >> $GITHUB_OUTPUT
-          else
-            if [ $BREAKING -gt 0 ]; then
-              MAJOR=$((MAJOR + 1))
-              MINOR=0
-              PATCH=0
-            else
-              MINOR=$((MINOR + FEAT))
-              PATCH=$((PATCH + FIX))
-            fi
-            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-            NEW_CODE=$((CODE + 1))
-            echo "updated=true" >> $GITHUB_OUTPUT
-          fi
-
-          echo "new_name=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "new_code=$NEW_CODE" >> $GITHUB_OUTPUT
-
-  update_version:
-    name: Update Version
-    needs: version_manager
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout develop
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: ${{ env.DEVELOP_BRANCH }}
-
-      - name: Update build.gradle(.kts) if version updated
-        if: ${{ needs.version_manager.outputs.updated == 'true' }}
+      - name: ${{ steps.config.outputs.step_commit_push_develop }}
+        if: steps.bump.outputs.new_version != ''
         run: |
-          FILE=""
-          if [ -f "${{ env.FILE_KTS }}" ]; then
-            FILE=${{ env.FILE_KTS }}
-          elif [ -f "${{ env.FILE_GRADLE }}" ]; then
-            FILE=${{ env.FILE_GRADLE }}
-          else
-            echo "⚠️ Nenhum build.gradle(.kts) encontrado!"
+          GRADLE_FILE=$(yq '.paths.gradle_file' .github/pipeline-config.yaml)
+          CHANGELOG_FILE=$(yq '.paths.changelog' .github/pipeline-config.yaml)
+          git add "$GRADLE_FILE" "$CHANGELOG_FILE"
+          git commit -m "chore(release): prepare ${{ steps.bump.outputs.new_version }}"
+          git push origin "HEAD:${{ steps.config.outputs.dev_branch }}"
+
+      - name: ${{ steps.config.outputs.step_open_pr }}
+        if: steps.bump.outputs.new_version != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        run: |
+          MAIN_BRANCH="${{ steps.config.outputs.main_branch }}"
+          DEV_BRANCH="${{ steps.config.outputs.dev_branch }}"
+          NEW_VERSION="${{ steps.bump.outputs.new_version }}"
+
+          EXISTING=$(gh pr list --head "$DEV_BRANCH" --base "$MAIN_BRANCH" --json number --jq 'length')
+          if [ "$EXISTING" -gt 0 ]; then
+            echo "::notice::Já existe um PR aberto de $DEV_BRANCH → $MAIN_BRANCH, reaproveitando."
             exit 0
           fi
 
-          echo "Atualizando $FILE..."
-          if [[ "$FILE" == *.kts ]]; then
-            sed -i "s/versionCode .*/versionCode(${{ needs.version_manager.outputs.new_code }})/" "$FILE"
-            sed -i "s/versionName \".*\"/versionName(\"${{ needs.version_manager.outputs.new_name }}\")/" "$FILE"
-          else
-            sed -i "s/versionCode .*/versionCode ${{ needs.version_manager.outputs.new_code }}/" "$FILE"
-            sed -i "s/versionName \".*\"/versionName \"${{ needs.version_manager.outputs.new_name }}\"/" "$FILE"
-          fi
-
-          git config user.name "${{ env.GIT_USER }}"
-          git config user.email "${{ env.GIT_EMAIL }}"
-          git remote set-url origin https://x-access-token:${{ env.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git add "$FILE"
-          git commit -m "chore: bump version to ${{ needs.version_manager.outputs.new_name }} (${{ needs.version_manager.outputs.new_code }})" || echo "Nenhuma alteração"
-          git push origin ${{ env.DEVELOP_BRANCH }}
-
-  pr_release_create:
-    name: PR Release Create
-    needs: update_version
-    if: ${{ needs.version_manager.outputs.updated == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout develop
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: ${{ env.DEVELOP_BRANCH }}
-
-      - name: Set release branch name
-        run: echo "RELEASE_BRANCH=release-$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-
-      - name: Create release branch and push
-        run: |
-          git config user.name "${{ env.GIT_USER }}"
-          git config user.email "${{ env.GIT_EMAIL }}"
-          git remote set-url origin https://x-access-token:${{ env.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git checkout -b $RELEASE_BRANCH
-          git push origin $RELEASE_BRANCH
-
-      - name: Create Pull Request via GH CLI
-        env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-        run: |
-          gh auth login --with-token <<< "$GITHUB_TOKEN"
           gh pr create \
-            --title "Release ${{ needs.version_manager.outputs.new_name }}" \
-            --body "Release ${{ needs.version_manager.outputs.new_name }}:
-              - Feats: ${{ needs.version_manager.outputs.feat }}
-              - Fix/Refactor/Perf/Revert: ${{ needs.version_manager.outputs.fix }}
-              - Breaking Changes: ${{ needs.version_manager.outputs.breaking }}" \
-            --base ${{ env.MASTER_BRANCH }} \
-            --head $RELEASE_BRANCH
+            --title "Release $NEW_VERSION" \
+            --body "Promove \`$DEV_BRANCH\` para \`$MAIN_BRANCH\`. Bump de versão para **$NEW_VERSION** já incluso e revisável neste diff. Merge dispara \`release.yml\`: build, GitHub Release, gate manual, Google Play (rollout 10%) - \`sync-develop\` então mergeia \`$MAIN_BRANCH\` de volta em \`$DEV_BRANCH\`." \
+            --base "$MAIN_BRANCH" \
+            --head "$DEV_BRANCH" \
+            --label "release"
+
+      - name: ${{ steps.config.outputs.step_noop }}
+        if: steps.bump.outputs.new_version == ''
+        run: echo "::notice::Nenhum commit feat/fix/breaking desde a última release - nada para preparar."

@@ -1,0 +1,26 @@
+Cestou — Versión Beta 1.3.0
+
+¡Bienvenido/a a la primera versión beta de Cestou! Esta es una versión real y funcional, todavía
+en fase de pruebas — tu ayuda encontrando problemas es lo que hace mejor el lanzamiento público.
+
+Lo que ya puedes hacer:
+• Crear y organizar tantas listas de compras como quieras, cada una con su propio presupuesto
+• Añadir productos buscando por nombre, escribiendo rápido, eligiendo entre los artículos más
+  comunes, o tomando una foto y dejando que la IA identifique los productos por ti
+• Conversar con el asistente de IA para armar o revisar tu lista
+• Compartir una lista con otras personas usando un código o código QR
+• Definir un límite de gastos por lista y seguir el total en tiempo real
+• Revisar el historial de compras después de finalizar una lista
+• Elegir tema (claro/oscuro/automático), idioma (pt/en/es) y moneda
+• Gestionar tus datos: borrar caché, eliminar datos locales o eliminar tu cuenta, directamente en
+  Configuración
+
+Por ser una versión beta:
+• Puede haber errores o comportamientos inesperados — es esperado, y es justo lo que queremos que
+  reportes
+• Algunas pantallas y flujos todavía se están ajustando según tu feedback
+
+¿Encontraste algo raro? Cuéntanos — el enlace para reportar está en la invitación del beta y
+también en la Configuración de la app.
+
+¡Gracias por ser parte de esto!

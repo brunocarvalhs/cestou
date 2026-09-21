@@ -1,0 +1,145 @@
+<resources>
+    <string name="ai_assistant_title">Virtual Assistant</string>
+    <string name="ai_sender_assistant">Assistant</string>
+    <string name="ai_input_placeholder">Ask Cestou&#8230;</string>
+    <string name="ai_thinking">AI is thinking&#8230;</string>
+    <string name="ai_suggestions_title">Assistant Tips</string>
+
+    <!-- Permissions -->
+    <string name="permission_camera_required">Camera permission required</string>
+    <string name="grant_permission">Grant Permission</string>
+
+    <!-- Feature: Product -->
+    <string name="product_ai_identifying">AI is identifying items&#8230;</string>
+    <string name="product_barcode_instruction">Position the barcode within the area</string>
+    <string name="product_photo_instruction">Frame the product\'s price tag inside the box</string>
+    <string name="product_option_search">Search</string>
+    <string name="product_option_photo">Photo</string>
+    <string name="product_option_suggestions">Suggestions</string>
+    <string name="product_option_ai">AI Chat</string>
+    <string name="product_option_quick_add">Quick Add</string>
+    <string name="product_option_form">Form</string>
+    <string name="product_option_common">Common</string>
+    <string name="product_header_add_to">Add to %s</string>
+    <string name="product_empty_title">No product found</string>
+    <string name="product_empty_description">Find your products using search\nor create a new product.</string>
+    <string name="product_error_loading_image">Error loading image</string>
+
+    <string name="product_error_load_image">Error loading image</string>
+
+    <!-- Feature: Product Search & Recipes -->
+
+    <string name="product_search_products_label">Products</string>
+    <string name="product_search_recipes_label">Recipes</string>
+    <string name="product_search_placeholder">Search product</string>
+    <string name="recipe_search_placeholder">Search recipe</string>
+    <string name="product_search_empty_text">Search for a product or take a photo.</string>
+    <string name="recipe_search_empty_text">Find recipes and add the ingredients.</string>
+    <string name="product_search_ai_hint">You can also use AI to automatically recognize the content.</string>
+    <string name="recipe_details_ingredients">Ingredients</string>
+    <string name="recipe_details_instructions">Instructions</string>
+    <string name="recipe_details_add_to_list">Add to List</string>
+    <string name="product_action_retake">Retake</string>
+    <string name="product_action_analyze">Analyze</string>
+
+    <!-- Feature: Product Photo Confirmation -->
+    <string name="product_photo_confirm_title">Confirm the products found</string>
+    <plurals name="product_photo_confirm_subtitle">
+        <item quantity="one">1 item found. Review before adding.</item>
+        <item quantity="other">%d items found. Review before adding.</item>
+    </plurals>
+    <string name="product_photo_confirm_add_all">Add %d items</string>
+    <string name="product_photo_item_remove">Remove item</string>
+    <string name="product_photo_item_added">%s added to the list</string>
+    <plurals name="product_photo_items_added">
+        <item quantity="one">1 item added to the list</item>
+        <item quantity="other">%d items added to the list</item>
+    </plurals>
+    <string name="product_photo_quantity_label">Quantity</string>
+    <string name="product_photo_error_no_products_found">No products identified. Try a clearer, well-lit photo.</string>
+    <string name="product_photo_error_analysis_failed">Couldn\'t analyze the photo. Please try again.</string>
+
+    <!-- Feature: Common Products (Basic Basket) -->
+    <string name="common_products_title">Basic Basket</string>
+    <string name="common_products_subtitle">Your everyday items, ready to add</string>
+    <string name="common_products_add_all">Add all to list</string>
+    <string name="common_products_add_placeholder">Add item to basket</string>
+    <string name="common_products_add_item_description">Add item</string>
+    <string name="common_products_item_add_description">Add to list</string>
+    <string name="common_products_item_remove_description">Remove from basket</string>
+    <string name="common_products_item_added">%s added to the list</string>
+    <string name="common_products_all_added">Items added to the list</string>
+    <string name="common_products_empty_title">Your basic basket is empty</string>
+    <string name="common_products_empty_description">Add the items you always buy to reuse them quickly.</string>
+
+    <!-- Feature: Product Form (main entry route) -->
+    <string name="product_form_title">New product</string>
+    <string name="product_form_save">Add item</string>
+    <string name="product_form_divider_or">or</string>
+    <string name="product_form_camera_button">Add with camera</string>
+
+    <!-- Feature: Quick Add -->
+    <string name="quick_add_placeholder">Item name</string>
+    <string name="quick_add_add_description">Add item</string>
+    <string name="quick_add_scan_description">Scan a barcode or take a photo</string>
+    <string name="quick_add_common_products_title">Common items</string>
+    <string name="quick_add_duplicate_warning">%s is already on the list</string>
+    <string name="quick_add_duplicate_warning_by">%1$s is already on the list (added by %2$s)</string>
+    <string name="quick_add_save_error">Couldn\'t add \"%s\". Try again.</string>
+
+    <!-- Common Actions -->
+    <string name="action_edit">Edit</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- Feature: Product Item -->
+    <string name="product_item_mark_purchased">Mark as purchased</string>
+    <string name="product_item_more_options">More options</string>
+
+    <string name="shopping_list_updated">List updated!</string>
+    <string name="shopping_list_default_title">Product List</string>
+    <string name="shopping_list_members_collaborating">%d members collaborating</string>
+    <string name="shopping_list_menu_clear_purchased">Clear purchased</string>
+    <string name="shopping_list_move_to">Move to...</string>
+    <string name="shopping_list_finish_title">Finish Purchase</string>
+    <string name="shopping_list_finish_description">Enter the total amount paid and the purchase location.</string>
+    <string name="shopping_list_label_total_value">Total Amount</string>
+    <string name="shopping_list_label_establishment">Establishment (Optional)</string>
+    <string name="shopping_list_placeholder_establishment">Ex: Supermarket X</string>
+    <string name="shopping_list_confirm_save">Confirm and Save</string>
+    <string name="shopping_list_confirm_item_title">Confirm Item</string>
+    <string name="shopping_list_label_unit_price">Unit Price</string>
+    <string name="shopping_list_label_quantity">Quantity</string>
+    <string name="shopping_list_edit_title">Edit Product</string>
+    <string name="shopping_list_edit_list_title">Edit list</string>
+    <string name="shopping_list_label_product_name">Product Name</string>
+    <string name="shopping_list_label_category">Category</string>
+    <string name="shopping_list_label_unit">Unit</string>
+    <string name="shopping_list_save_changes">Save Changes</string>
+    <string name="shopping_list_summary_over_budget">Limit Exceeded!</string>
+    <string name="shopping_list_summary_in_cart">In Cart</string>
+    <string name="shopping_list_summary_total">Total: %s</string>
+    <string name="shopping_list_summary_items_count">%1$d of %2$d</string>
+    <string name="shopping_list_summary_items_in_cart">items in cart</string>
+    <string name="shopping_list_share_options_title">How do you want to share?</string>
+    <string name="shopping_list_share_invite_member">Invite to Collaborate</string>
+    <string name="shopping_list_share_invite_member_desc">Another user can edit the list in real time</string>
+    <string name="shopping_list_share_text">Send as Text</string>
+    <string name="shopping_list_share_text_desc">Send the item list via WhatsApp, email, etc.</string>
+    <string name="shopping_list_history_title">Item History</string>
+    <string name="shopping_list_history_empty">No history yet for this item.</string>
+    <string name="shopping_list_history_action_added">Added</string>
+    <string name="shopping_list_history_action_edited">Edited</string>
+    <string name="shopping_list_history_action_purchased">Purchased</string>
+    <string name="shopping_list_history_entry">%1$s by %2$s</string>
+    <string name="shopping_list_history_unknown_user">Someone</string>
+
+    <string name="state_description_in_cart">In cart</string>
+    <string name="state_description_not_in_cart">Not in cart</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_description_remove_unit">Remove quantity</string>
+    <string name="content_description_add_unit">Add quantity</string>
+    <string name="cart_item_delete_description">Delete item</string>
+</resources>

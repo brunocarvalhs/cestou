@@ -1,0 +1,20 @@
+# Generated from security.dependabot in pipeline-config.yaml by
+# .github/scripts/generate-dependabot.sh - do not hand-edit, re-run that
+# script (or open a PR that changes pipeline-config.yaml, tests.yml
+# regenerates and fails the drift check for you) instead.
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "ci"

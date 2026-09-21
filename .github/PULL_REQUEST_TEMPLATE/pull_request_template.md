@@ -1,33 +1,26 @@
----
-name: PR
-about: Novas funcionalidades ou recursos que podemos incluir
-title: 'feat: '
----
+## 📝 Description
+<!-- Describe your changes in detail. If it's a complex change, explain the "why" and "how". -->
 
-## Descrição das Alterações
-<!-- Descreva claramente as alterações feitas neste PR. -->
+## 🛠️ Type of Change
+- [ ] 🚀 `feat`: New feature
+- [ ] 🐞 `fix`: Bug fix
+- [ ] 🧹 `chore`: Maintenance / Dependencies
+- [ ] 🔍 `refactor`: Code improvement
+- [ ] 🧪 `test`: Adding/Updating tests
+- [ ] 📖 `docs`: Documentation only
 
-## Tipo de Alteração
-Selecione uma das opções abaixo (marque com 'x'):
+## 📸 Visual Changes (Optional)
+<!-- Mandatory for UI changes. Use a table for before/after if possible. -->
 
-- [ ] feat: Uma nova funcionalidade (**MINOR**)
-- [ ] fix: Correção de um bug (**PATCH**)
-- [ ] refactor: Refatoração de código sem mudança de comportamento (**PATCH**)
-- [ ] perf: Melhorias de desempenho (**PATCH**)
-- [ ] revert: Reversão de uma mudança anterior (**PATCH**)
-- [ ] BREAKING CHANGE: Alteração incompatível (**MAJOR**)
-- [ ] docs: Alterações apenas na documentação
-- [ ] style: Ajustes de formatação/estilo, sem lógica de código
-- [ ] test: Adição ou alteração de testes
-- [ ] chore: Mudanças de manutenção (dependências, configs, etc.)
-- [ ] build: Mudanças no processo de build ou dependências
-- [ ] ci: Alterações em pipelines de integração contínua
+| Before | After |
+| :--- | :--- |
+| ![Before](URL_HERE) | ![After](URL_HERE) |
 
-## Checklist de Boas Práticas
-- [ ] Executei os testes unitários
-- [ ] Executei o Lint e corrigi os problemas encontrados
-- [ ] Validei a jornada do usuário (quando aplicável)
-- [ ] Adicionei tagueamento com Analytics (quando aplicável)
+## ✅ Checklist
+- [ ] 🧪 **Unit Tests**: Passed successfully
+- [ ] 🧹 **Lint & Detekt**: No issues found
+- [ ] 📱 **Manual Test**: Verified on a physical device/emulator
+- [ ] 🔗 **Link to Task**: [PROJ-XXX](LINK_HERE)
 
-## Comentários Adicionais
-<!-- Adicione qualquer comentário extra sobre o PR aqui. -->
+## 💡 Additional Notes
+<!-- Any other context or screenshots you want to share. -->

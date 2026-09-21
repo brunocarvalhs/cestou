@@ -1,0 +1,263 @@
+package br.com.brunocarvalhs.howmuch.core.auth
+
+import app.cash.turbine.test
+import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+
+@Suppress("TooManyFunctions")
+class FirebaseAuthServiceTest {
+
+    private val auth = mockk<FirebaseAuth>(relaxed = true)
+    private val crashlytics = mockk<FirebaseCrashlytics>(relaxed = true)
+    private val storage = mockk<StorageService>(relaxed = true) {
+        every { observe<Any>(any(), any(), any()) } returns flowOf(null)
+        coEvery { get<Any>(any(), any(), any()) } returns null
+    }
+
+    private fun fakeUser(uid: String = "user-1", isAnonymous: Boolean = false) = mockk<FirebaseUser> {
+        every { this@mockk.uid } returns uid
+        every { email } returns "user@test.com"
+        every { displayName } returns "User"
+        every { phoneNumber } returns null
+        every { photoUrl } returns null
+        every { this@mockk.isAnonymous } returns isAnonymous
+    }
+
+    @Before
+    fun setup() {
+        Dispatchers.setMain(UnconfinedTestDispatcher())
+        every { auth.currentUser } returns null
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `currentUser maps the FirebaseUser to an AuthenticatedUser`() {
+        every { auth.currentUser } returns fakeUser("user-1")
+
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        assertEquals("user-1", service.currentUser?.id)
+        assertEquals("user@test.com", service.currentUser?.email)
+    }
+
+    @Test
+    fun `currentUser is null when there is no FirebaseUser`() {
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        assertNull(service.currentUser)
+    }
+
+    @Test
+    fun `getOrCreateUserId returns the existing user without signing in again`() = runTest {
+        every { auth.currentUser } returns fakeUser("user-1")
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        val result = service.getOrCreateUserId()
+
+        assertEquals("user-1", result.id)
+        verify(exactly = 0) { auth.signInAnonymously() }
+    }
+
+    @Test
+    fun `getOrCreateUserId throws when there is no current user`() = runTest {
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        var failed = false
+        try {
+            service.getOrCreateUserId()
+        } catch (e: IllegalStateException) {
+            failed = true
+        }
+
+        assertTrue(failed)
+        verify(exactly = 0) { auth.signInAnonymously() }
+    }
+
+    @Test
+    fun `getOrCreateUserId throws when the only session is anonymous`() = runTest {
+        every { auth.currentUser } returns fakeUser("user-2", isAnonymous = true)
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        var failed = false
+        try {
+            service.getOrCreateUserId()
+        } catch (e: IllegalStateException) {
+            failed = true
+        }
+
+        assertTrue(failed)
+    }
+
+    @Test
+    fun `currentUser is null when the only session is anonymous`() {
+        every { auth.currentUser } returns fakeUser("user-2", isAnonymous = true)
+
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        assertNull(service.currentUser)
+    }
+
+    @Test
+    fun `signOut succeeds and delegates to FirebaseAuth`() = runTest {
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        val result = service.signOut()
+
+        assertTrue(result.isSuccess)
+        verify { auth.signOut() }
+    }
+
+    @Test
+    fun `signOut clears an already-synced id even if storage's observe never re-emits`() = runTest {
+        // Simulates the real race: storage.remove()'s effect on _syncedUserId normally arrives
+        // through this same observe() flow, on a separate coroutine dispatch. A completed
+        // flowOf(...) can never emit that follow-up null, so this only passes if signOut() also
+        // clears the in-memory value directly instead of relying solely on that round-trip.
+        every { storage.observe<String>("synced_user_id", String::class, any()) } returns flowOf("stale-id")
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+        assertEquals("stale-id", service.currentUser?.id)
+
+        service.signOut()
+
+        assertNull(
+            "signed-out user must not be a data-less AuthenticatedUser built from a stale synced id",
+            service.currentUser
+        )
+    }
+
+    @Test
+    fun `signOut fails when FirebaseAuth throws`() = runTest {
+        every { auth.signOut() } throws IllegalStateException("boom")
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        val result = service.signOut()
+
+        assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `deleteAccount succeeds and clears the synced user id`() = runTest {
+        val user = fakeUser("user-1")
+        every { auth.currentUser } returns user
+        every { user.delete() } returns Tasks.forResult(null)
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        val result = service.deleteAccount()
+
+        assertTrue(result.isSuccess)
+        verify { user.delete() }
+    }
+
+    @Test
+    fun `deleteAccount clears an already-synced id even if storage's observe never re-emits`() = runTest {
+        val listenerSlot = slot<FirebaseAuth.AuthStateListener>()
+        every { auth.addAuthStateListener(capture(listenerSlot)) } returns Unit
+        val user = fakeUser("user-1")
+        every { auth.currentUser } returns user
+        every { user.delete() } returns Tasks.forResult(null)
+        every { storage.observe<String>("synced_user_id", String::class, any()) } returns flowOf("stale-id")
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+        assertEquals("stale-id", service.currentUser?.id)
+
+        service.deleteAccount()
+        // Simulate FirebaseAuth's own listener firing once the account is actually gone.
+        every { auth.currentUser } returns null
+        listenerSlot.captured.onAuthStateChanged(auth)
+
+        assertNull(
+            "deleted-account user must not be a data-less AuthenticatedUser built from a stale synced id",
+            service.currentUser
+        )
+    }
+
+    @Test
+    fun `deleteAccount fails when there is no current user`() = runTest {
+        every { auth.currentUser } returns null
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        val result = service.deleteAccount()
+
+        assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `deleteAccount fails when Firebase throws`() = runTest {
+        val user = fakeUser("user-1")
+        every { auth.currentUser } returns user
+        every { user.delete() } returns Tasks.forException(RuntimeException("recent login required"))
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        val result = service.deleteAccount()
+
+        assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `authState reflects the listener registered on FirebaseAuth`() {
+        val listenerSlot = slot<FirebaseAuth.AuthStateListener>()
+        every { auth.addAuthStateListener(capture(listenerSlot)) } returns Unit
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        every { auth.currentUser } returns fakeUser("user-3")
+        listenerSlot.captured.onAuthStateChanged(auth)
+
+        assertEquals("user-3", service.currentUser?.id)
+    }
+
+    @Test
+    fun `authState emits the FirebaseUser unchanged when there is no synced id`() = runTest {
+        every { auth.currentUser } returns fakeUser("user-1")
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        service.authState.test {
+            assertEquals("user-1", awaitItem()?.id)
+        }
+    }
+
+    @Test
+    fun `authState emits an AuthenticatedUser built from the synced id when there is no FirebaseUser`() = runTest {
+        every { storage.observe<String>("synced_user_id", String::class, any()) } returns flowOf("synced-only")
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        service.authState.test {
+            assertEquals("synced-only", awaitItem()?.id)
+        }
+    }
+
+    @Test
+    fun `authState overrides the FirebaseUser id with the synced id when both are present`() = runTest {
+        every { auth.currentUser } returns fakeUser("firebase-id")
+        every { storage.observe<String>("synced_user_id", String::class, any()) } returns flowOf("linked-id")
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        service.authState.test {
+            val emitted = awaitItem()
+            assertEquals("linked-id", emitted?.id)
+            assertEquals("user@test.com", emitted?.email)
+        }
+    }
+}

@@ -1,0 +1,24 @@
+Cestou — Beta Version 1.3.0
+
+Welcome to Cestou's first beta! This is a real, working build — still in testing, and your help
+finding issues is what makes the public launch better.
+
+What you can already do:
+• Create and organize as many shopping lists as you want, each with its own budget
+• Add products by searching, quick typing, picking from common items, or taking a photo and
+  letting AI identify the products for you
+• Chat with the AI assistant to build or review your list
+• Share a list with other people using a code or QR code
+• Set a spending limit per list and track the total in real time
+• Review your purchase history after a list is finished
+• Choose theme (light/dark/auto), language (pt/en/es), and currency
+• Manage your data: clear cache, delete local data, or delete your account, right from Settings
+
+Because this is a beta:
+• Expect occasional bugs or unexpected behavior — that's exactly what we want you to report
+• Some screens and flows are still being adjusted based on your feedback
+
+Found something odd? Let us know — the link to report is in your beta invite and also in the app's
+Settings.
+
+Thanks for being part of this!

@@ -1,0 +1,145 @@
+<resources>
+    <string name="ai_assistant_title">Asistente Virtual</string>
+    <string name="ai_sender_assistant">Asistente</string>
+    <string name="ai_input_placeholder">Pregunte a Cestou&#8230;</string>
+    <string name="ai_thinking">IA pensando&#8230;</string>
+    <string name="ai_suggestions_title">Consejos del Asistente</string>
+
+    <!-- Permissions -->
+    <string name="permission_camera_required">Permiso de cámara necesario</string>
+    <string name="grant_permission">Conceder Permiso</string>
+
+    <!-- Feature: Product -->
+    <string name="product_ai_identifying">La IA está identificando los artículos&#8230;</string>
+    <string name="product_barcode_instruction">Posicione el código de barras dentro del área</string>
+    <string name="product_photo_instruction">Encuadra la etiqueta de precio del producto dentro del recuadro</string>
+    <string name="product_option_search">Buscar</string>
+    <string name="product_option_photo">Foto</string>
+    <string name="product_option_suggestions">Sugerencias</string>
+    <string name="product_option_ai">Chat con IA</string>
+    <string name="product_option_quick_add">Añadir Rápido</string>
+    <string name="product_option_form">Formulario</string>
+    <string name="product_option_common">Comunes</string>
+    <string name="product_header_add_to">Añadir a %s</string>
+    <string name="product_empty_title">No se encontró ningún producto</string>
+    <string name="product_empty_description">Encuentra tus productos usando la búsqueda\no crea un nuevo producto.</string>
+    <string name="product_error_loading_image">Error al cargar la imagen</string>
+
+    <string name="product_error_load_image">Error al cargar la imagen</string>
+
+    <!-- Feature: Product Search & Recipes -->
+
+    <string name="product_search_products_label">Productos</string>
+    <string name="product_search_recipes_label">Recetas</string>
+    <string name="product_search_placeholder">Buscar producto</string>
+    <string name="recipe_search_placeholder">Buscar receta</string>
+    <string name="product_search_empty_text">Busca un producto o toma una foto.</string>
+    <string name="recipe_search_empty_text">Encuentra recetas y añade los ingredientes.</string>
+    <string name="product_search_ai_hint">También puedes usar IA para reconocer automáticamente el contenido.</string>
+    <string name="recipe_details_ingredients">Ingredientes</string>
+    <string name="recipe_details_instructions">Instrucciones</string>
+    <string name="recipe_details_add_to_list">Añadir a la Lista</string>
+    <string name="product_action_retake">Repetir</string>
+    <string name="product_action_analyze">Analizar</string>
+
+    <!-- Feature: Product Photo Confirmation -->
+    <string name="product_photo_confirm_title">Confirma los productos encontrados</string>
+    <plurals name="product_photo_confirm_subtitle">
+        <item quantity="one">1 artículo encontrado. Revisa antes de añadir.</item>
+        <item quantity="other">%d artículos encontrados. Revisa antes de añadir.</item>
+    </plurals>
+    <string name="product_photo_confirm_add_all">Añadir %d artículos</string>
+    <string name="product_photo_item_remove">Eliminar artículo</string>
+    <string name="product_photo_item_added">%s añadido a la lista</string>
+    <plurals name="product_photo_items_added">
+        <item quantity="one">1 artículo añadido a la lista</item>
+        <item quantity="other">%d artículos añadidos a la lista</item>
+    </plurals>
+    <string name="product_photo_quantity_label">Cantidad</string>
+    <string name="product_photo_error_no_products_found">No se identificó ningún producto. Intenta con una foto más nítida y bien iluminada.</string>
+    <string name="product_photo_error_analysis_failed">No se pudo analizar la foto. Inténtalo de nuevo.</string>
+
+    <!-- Feature: Common Products (Canasta Básica) -->
+    <string name="common_products_title">Canasta Básica</string>
+    <string name="common_products_subtitle">Tus artículos de siempre, listos para añadir</string>
+    <string name="common_products_add_all">Añadir todo a la lista</string>
+    <string name="common_products_add_placeholder">Añadir artículo a la canasta</string>
+    <string name="common_products_add_item_description">Añadir artículo</string>
+    <string name="common_products_item_add_description">Añadir a la lista</string>
+    <string name="common_products_item_remove_description">Eliminar de la canasta</string>
+    <string name="common_products_item_added">%s añadido a la lista</string>
+    <string name="common_products_all_added">Artículos añadidos a la lista</string>
+    <string name="common_products_empty_title">Tu canasta básica está vacía</string>
+    <string name="common_products_empty_description">Añade los artículos que siempre compras para reutilizarlos rápidamente.</string>
+
+    <!-- Feature: Product Form (ruta principal) -->
+    <string name="product_form_title">Nuevo producto</string>
+    <string name="product_form_save">Añadir artículo</string>
+    <string name="product_form_divider_or">o</string>
+    <string name="product_form_camera_button">Añadir con cámara</string>
+
+    <!-- Feature: Quick Add -->
+    <string name="quick_add_placeholder">Nombre del artículo</string>
+    <string name="quick_add_add_description">Añadir artículo</string>
+    <string name="quick_add_scan_description">Escanear código de barras o tomar foto</string>
+    <string name="quick_add_common_products_title">Artículos comunes</string>
+    <string name="quick_add_duplicate_warning">%s ya está en la lista</string>
+    <string name="quick_add_duplicate_warning_by">%1$s ya está en la lista (añadido por %2$s)</string>
+    <string name="quick_add_save_error">No se pudo añadir \"%s\". Inténtalo de nuevo.</string>
+
+    <!-- Common Actions -->
+    <string name="action_edit">Editar</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="action_confirm">Confirmar</string>
+    <string name="action_cancel">Cancelar</string>
+
+    <!-- Feature: Shopping List (Products) -->
+    <string name="product_item_mark_purchased">Marcar como comprado</string>
+    <string name="product_item_more_options">Más opciones</string>
+
+    <string name="shopping_list_updated">¡Lista actualizada!</string>
+    <string name="shopping_list_default_title">Lista de productos</string>
+    <string name="shopping_list_members_collaborating">%d miembros colaborando</string>
+    <string name="shopping_list_menu_clear_purchased">Limpar comprados</string>
+    <string name="shopping_list_move_to">Mover a&#8230;</string>
+    <string name="shopping_list_finish_title">Finalizar Compra</string>
+    <string name="shopping_list_finish_description">Ingrese el monto total pagado y el lugar de compra.</string>
+    <string name="shopping_list_label_total_value">Monto Total</string>
+    <string name="shopping_list_label_establishment">Establecimiento (Opcional)</string>
+    <string name="shopping_list_placeholder_establishment">Ej: Supermercado X</string>
+    <string name="shopping_list_confirm_save">Confirmar y Guardar</string>
+    <string name="shopping_list_confirm_item_title">Confirmar Artículo</string>
+    <string name="shopping_list_label_unit_price">Precio Unitario</string>
+    <string name="shopping_list_label_quantity">Cantidad</string>
+    <string name="shopping_list_edit_title">Editar Producto</string>
+    <string name="shopping_list_edit_list_title">Editar lista</string>
+    <string name="shopping_list_label_product_name">Nombre del Producto</string>
+    <string name="shopping_list_label_category">Categoría</string>
+    <string name="shopping_list_label_unit">Un.</string>
+    <string name="shopping_list_save_changes">Guardar Cambios</string>
+    <string name="shopping_list_summary_over_budget">¡Límite Excedido!</string>
+    <string name="shopping_list_summary_in_cart">En el Carrito</string>
+    <string name="shopping_list_summary_total">Total: %s</string>
+    <string name="shopping_list_summary_items_count">%1$d de %2$d</string>
+    <string name="shopping_list_summary_items_in_cart">artículos en el carrito</string>
+    <string name="shopping_list_share_options_title">¿Cómo desea compartir?</string>
+    <string name="shopping_list_share_invite_member">Invitar a Colaborar</string>
+    <string name="shopping_list_share_invite_member_desc">Otro usuario podrá editar la lista en tiempo real</string>
+    <string name="shopping_list_share_text">Enviar como Texto</string>
+    <string name="shopping_list_share_text_desc">Envíe la lista de artículos por WhatsApp, correo electrónico, etc.</string>
+    <string name="shopping_list_history_title">Historial del Artículo</string>
+    <string name="shopping_list_history_empty">Aún no hay historial para este artículo.</string>
+    <string name="shopping_list_history_action_added">Agregado</string>
+    <string name="shopping_list_history_action_edited">Editado</string>
+    <string name="shopping_list_history_action_purchased">Comprado</string>
+    <string name="shopping_list_history_entry">%1$s por %2$s</string>
+    <string name="shopping_list_history_unknown_user">Alguien</string>
+
+    <string name="state_description_in_cart">En el carrito</string>
+    <string name="state_description_not_in_cart">Fuera del carrito</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_description_remove_unit">Eliminar cantidad</string>
+    <string name="content_description_add_unit">Añadir cantidad</string>
+    <string name="cart_item_delete_description">Eliminar artículo</string>
+</resources>

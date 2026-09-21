@@ -1,0 +1,97 @@
+name: 'Setup Android Environment'
+description: 'Standard setup for Android CI'
+
+inputs:
+  jdk-version:
+    description: 'JDK Version'
+    required: true
+    default: '17'
+  java-distribution:
+    description: 'Java Distribution (e.g., temurin, zulu, corretto)'
+    required: true
+    default: 'temurin'
+  dotenv:
+    description: 'Content for .env file'
+    required: false
+  google-services-json:
+    description: 'Base64 encoded google-services.json'
+    required: false
+  release-keystore:
+    description: 'Base64 encoded release keystore (signs release builds)'
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create .env
+      shell: bash
+      run: |
+        if [ "${{ inputs.dotenv }}" != "" ]; then
+          echo "${{ inputs.dotenv }}" > .env
+          cp .env .env.example
+        else
+          echo "DOTENV is missing! Creating dummy files to avoid build failure."
+          touch .env
+          touch .env.example
+        fi
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: ${{ inputs.java-distribution }}
+        java-version: ${{ inputs.jdk-version }}
+
+    - name: Setup Android SDK
+      shell: bash
+      run: |
+        # ubuntu-24.04 runners ship with the Android SDK preinstalled, so this only needs to
+        # normalize the env vars and accept licenses — no need for a third-party action.
+        # android-actions/setup-android@v2 was dropped here: its baked-in license acceptance
+        # doesn't recognize newer license text (e.g. the SDK Preview license required by
+        # compileSdk 37), so it exits 1 before the job ever reaches a build step. Piping `yes`
+        # answers every prompt sdkmanager shows, known or not.
+        SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+        echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+        echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+        SDKMANAGER="$(find "$SDK_ROOT/cmdline-tools" -maxdepth 2 -type f -name sdkmanager | sort -r | head -n1)"
+        yes | "$SDKMANAGER" --licenses --sdk_root="$SDK_ROOT" > /dev/null 2>&1 || true
+
+    - name: Create local.properties
+      shell: bash
+      run: |
+        echo "sdk.dir=${{ env.ANDROID_HOME }}" > local.properties
+
+    - name: Create google-services.json
+      shell: bash
+      run: |
+        if [ "${{ inputs.google-services-json }}" != "" ]; then
+          # Drop the decoded file into every target module that declares
+          # google_services_required: true in pipeline-config.yaml, so adding a
+          # new device target there is enough - no edit needed here.
+          for MODULE_PATH in $(yq '.build.targets[] | select(.google_services_required == true) | .module' .github/pipeline-config.yaml | tr -d '"' | sed 's|^:||'); do
+            echo "${{ inputs.google-services-json }}" | base64 --decode > "$MODULE_PATH/google-services.json"
+          done
+        fi
+
+    - name: Create release keystore
+      shell: bash
+      run: |
+        # The keystore is deliberately NOT in the repo (it is a private signing
+        # key). Without this secret the release build still succeeds, but comes
+        # out unsigned and therefore cannot be installed - see the signingConfigs
+        # block in app/build.gradle.kts.
+        if [ "${{ inputs.release-keystore }}" != "" ]; then
+          KEYSTORE_PATH=$(yq '.paths.keystore' .github/pipeline-config.yaml)
+          mkdir -p "$(dirname "$KEYSTORE_PATH")"
+          echo "${{ inputs.release-keystore }}" | base64 --decode > "$KEYSTORE_PATH"
+        else
+          echo "::warning::RELEASE_KEYSTORE_BASE64 is not set - release builds will be unsigned and will not install."
+        fi
+
+    - name: Cache Gradle
+      uses: actions/cache@v4
+      with:
+        path: ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-

@@ -1,11 +1,10 @@
 appId: br.com.brunocarvalhs.howmuch
 ---
-- runFlow: flows/launch_test.yaml
-- runFlow: flows/navigation_test.yaml
-- runFlow: flows/add_product_test.yaml
-- runFlow: flows/cart_list_test.yaml
-- runFlow: flows/shared_test.yaml
-- runFlow: flows/enter_cart_test.yaml
-- runFlow: flows/checkout_test.yaml
-- runFlow: flows/filter_history_test.yaml
-- runFlow: flows/delete_history_test.yaml
+- runFlow: flows/home_flow.yaml
+- runFlow: flows/create_list_flow.yaml
+- runFlow: flows/product_management_flow.yaml
+- runFlow: flows/finish_purchase_flow.yaml
+- runFlow: flows/join_list_flow.yaml
+- runFlow: flows/settings_flow.yaml
+- runFlow: flows/account_data_flow.yaml
+- runFlow: flows/chat_flow.yaml

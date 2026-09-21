@@ -1,117 +1,177 @@
-//noinspection UsingMaterialAndMaterial3Libraries
 package br.com.brunocarvalhs.howmuch
 
+import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.material.navigation.rememberBottomSheetNavigator
-import androidx.compose.material3.MaterialTheme
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.core.os.LocaleListCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.compose.DialogNavigator
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import br.com.brunocarvalhs.domain.services.SubscriptionService
-import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvent
-import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsEvents
-import br.com.brunocarvalhs.howmuch.app.foundation.analytics.AnalyticsParam
-import br.com.brunocarvalhs.howmuch.app.foundation.analytics.firstOpen
-import br.com.brunocarvalhs.howmuch.app.foundation.analytics.trackNavigation
-import br.com.brunocarvalhs.howmuch.app.foundation.extensions.isFirstAppOpen
-import br.com.brunocarvalhs.howmuch.app.foundation.extensions.setStatusBarIconColor
-import br.com.brunocarvalhs.howmuch.app.foundation.theme.HowMuchTheme
+import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
+import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
+import br.com.brunocarvalhs.howmuch.core.navigation.FeatureInitializer
+import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
+import br.com.brunocarvalhs.howmuch.core.navigation.isProtectedRoute
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouBottomNavigation
+import br.com.brunocarvalhs.howmuch.feature.auth.navigation.Welcome
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     @Inject
-    lateinit var subscriptionService: SubscriptionService
+    lateinit var featureInitializers: Set<@JvmSuppressWildcards FeatureInitializer>
 
+    @Inject
+    lateinit var navigator: Navigator
+
+    private val viewModel: MainViewModel by viewModels()
+
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        statusBarColor()
-        trackLifecycleEvent("onCreate")
+        enableEdgeToEdge()
         setContent {
-            val isPremium by produceState(initialValue = false, producer = {
-                value = if (BuildConfig.DEBUG) {
-                    true
-                } else {
-                    subscriptionService.isUserPremium()
+            CestouApp(windowSizeClass = calculateWindowSizeClass(this))
+        }
+    }
+
+    @Composable
+    private fun CestouApp(windowSizeClass: WindowSizeClass) {
+        val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+        val language by viewModel.language.collectAsStateWithLifecycle()
+        val photoUrl by viewModel.photoUrl.collectAsStateWithLifecycle()
+
+        LaunchedEffect(language) {
+            val appLocales = LocaleListCompat.forLanguageTags(language)
+            AppCompatDelegate.setApplicationLocales(appLocales)
+        }
+
+        val darkTheme = when (themeMode) {
+            ThemeMode.SYSTEM -> isSystemInDarkTheme()
+            ThemeMode.LIGHT -> false
+            ThemeMode.DARK -> true
+        }
+
+        CestouTheme(darkTheme = darkTheme) {
+            val navController = rememberNavController()
+
+            LaunchedEffect(navController) {
+                navigator.bind(navController)
+            }
+
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+            var screenBackStackEntry by remember { mutableStateOf(navBackStackEntry) }
+            LaunchedEffect(navBackStackEntry) {
+                val destination = navBackStackEntry?.destination
+                if (destination != null && destination !is DialogNavigator.Destination) {
+                    screenBackStackEntry = navBackStackEntry
                 }
-            })
-            val bottomSheetNavigator = rememberBottomSheetNavigator()
-            val navController = rememberNavController(bottomSheetNavigator)
-            navController.trackNavigation()
-            HowMuchTheme {
-                Surface(
-                    modifier = Modifier
-                        .imePadding()
-                        .fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
-                ) {
-                    MainApp(
-                        navController = navController,
-                        bottomSheetNavigator = bottomSheetNavigator,
-                        isPremium = isPremium,
+            }
+            val currentDestination = screenBackStackEntry?.destination
+            val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
+
+            val initialAuthenticated = remember { isAuthenticated }
+            var wasAuthenticated by remember { mutableStateOf(isAuthenticated) }
+            LaunchedEffect(isAuthenticated) {
+                if (isAuthenticated) {
+                    wasAuthenticated = true
+                } else if (wasAuthenticated) {
+                    wasAuthenticated = false
+                    navigator.navigate(Welcome) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                }
+            }
+
+            // AiChat's shoppingId here is a throwaway placeholder: rootRoutes only matches by
+            // route::class (see hasRoute/isProtectedRoute below), never by field value.
+            val rootRoutes = remember { listOf(ShoppingList, AiChat(shoppingId = ""), Profile) }
+
+            val currentRoute = rootRoutes.find { route ->
+                currentDestination?.hierarchy?.any { it.hasRoute(route::class) } == true
+            }
+
+            val isOnProtectedRoute = currentDestination?.isProtectedRoute(rootRoutes) == true
+
+            LaunchedEffect(isOnProtectedRoute, isAuthenticated) {
+                if (!isAuthenticated && isOnProtectedRoute) {
+                    navigator.navigate(Welcome) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                }
+            }
+
+            Scaffold(
+                bottomBar = {
+                    CestouBottomNavigation(
+                        currentRoute = currentRoute,
+                        photoUrl = photoUrl,
+                        visible = currentRoute != null && currentRoute !is AiChat,
+                        onNavigate = { route ->
+                            navigator.navigate(route) {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
                     )
+                },
+            ) { padding ->
+                Surface(modifier = Modifier.padding(padding)) {
+                    LaunchedEffect(intent) {
+                        if (intent?.action == Intent.ACTION_VIEW) {
+                            val data = intent.data
+                            if (data != null && InviteLink.matches(data)) {
+                                navigator.navigate(JoinList(token = InviteLink.tokenFrom(data)))
+                            }
+                        }
+                    }
+
+                    NavHost(
+                        navController = navController,
+                        startDestination = if (initialAuthenticated) ShoppingList else Welcome
+                    ) {
+                        featureInitializers.forEach {
+                            it.registerGraph(this, navigator, windowSizeClass)
+                        }
+                    }
                 }
             }
         }
-
-        lifecycleScope.launch {
-            if (isFirstAppOpen()) {
-                firstOpen()
-            }
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        trackLifecycleEvent("onStart")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        trackLifecycleEvent("onResume")
-    }
-
-    override fun onPause() {
-        super.onPause()
-        trackLifecycleEvent("onPause")
-    }
-
-    override fun onStop() {
-        super.onStop()
-        trackLifecycleEvent("onStop")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        trackLifecycleEvent("onDestroy")
-    }
-
-    private fun trackLifecycleEvent(eventName: String) {
-        AnalyticsEvents.trackEvent(
-            event = AnalyticsEvent.LIFECYCLE,
-            params = mapOf(
-                AnalyticsParam.LIFECYCLE to eventName,
-                AnalyticsParam.SCREEN_NAME to "MainActivity",
-                AnalyticsParam.TIMESTAMP to System.currentTimeMillis()
-            )
-        )
-    }
-
-    private fun statusBarColor() {
-        window?.setStatusBarIconColor()
     }
 }

@@ -1,0 +1,84 @@
+<resources>
+    <string name="app_name">Cestou</string>
+
+    <!-- Common Actions -->
+    <string name="action_close">Fechar</string>
+    <string name="action_search">Buscar</string>
+    <string name="action_finish">Finalizar</string>
+    <string name="action_select_time">Selecionar Horário</string>
+    <string name="action_confirm">Confirmar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_add">Adicionar</string>
+    <string name="action_save">Salvar</string>
+    <string name="action_edit">Editar</string>
+    <string name="action_delete">Excluir</string>
+    <string name="action_share">Compartilhar</string>
+    <string name="action_gallery">Galeria</string>
+    <string name="action_take_photo">Tirar Foto</string>
+
+    <!-- Navigation -->
+    <string name="nav_lists">Listas</string>
+    <string name="nav_ai_chat">IA Chat</string>
+    <string name="nav_profile">Perfil</string>
+
+    <!-- Accessibility / Content Descriptions -->
+    <string name="content_description_back">Voltar</string>
+    <string name="content_description_settings">Configurações</string>
+    <string name="content_description_more_options">Mais opções</string>
+    <string name="content_description_flash">Flash</string>
+    <string name="content_description_preview">Preview</string>
+    <string name="content_description_ai_icon">Ícone do Assistente IA</string>
+    <string name="content_description_send_message">Enviar mensagem</string>
+    <string name="content_description_add_manually">Adicionar manualmente</string>
+    <string name="content_description_share_list">Compartilhar lista</string>
+    <string name="content_description_join_list">Entrar em uma lista</string>
+    <string name="content_description_product_history">Ver histórico do item</string>
+
+    <!-- Collaboration notifications -->
+    <string name="notification_list_joined_title">Novo membro</string>
+    <string name="notification_list_joined_message">%1$s entrou em \"%2$s\"</string>
+    <string name="notification_list_finished_title">Lista finalizada</string>
+    <string name="notification_list_finished_message">%1$s finalizou \"%2$s\"</string>
+    <string name="notification_someone">Alguém</string>
+    <string name="content_description_remove_unit">Remover quantidade</string>
+    <string name="content_description_add_unit">Adicionar quantidade</string>
+
+    <string name="action_retry">Tentar Novamente</string>
+
+    <!-- Error State -->
+    <string name="error_state_title">Oops! Algo deu errado</string>
+
+    <!-- Empty / Locked States -->
+    <string name="shopping_list_empty_title">Sua lista está vazia</string>
+    <string name="shopping_list_empty_description">Adicione produtos ou peça ajuda à IA!</string>
+    <string name="shopping_list_locked_title">Lista Finalizada</string>
+    <string name="shopping_list_locked_description">Esta lista está bloqueada para alterações.</string>
+
+    <!-- Categories -->
+    <string name="category_hortifruti">Hortifruti</string>
+    <string name="category_carnes">Carnes</string>
+    <string name="category_laticinios">Laticínios</string>
+    <string name="category_bebidas">Bebidas</string>
+    <string name="category_limpeza">Limpeza</string>
+    <string name="category_higiene">Higiene</string>
+    <string name="category_mercearia">Mercearia</string>
+    <string name="category_legumes">Legumes</string>
+    <string name="category_pereciveis">Perecíveis</string>
+    <string name="category_congelados">Congelados</string>
+    <string name="category_padaria">Padaria</string>
+    <string name="category_outros">Outros</string>
+    <string name="category_picker_title">Selecionar categoria</string>
+
+    <!-- Language Selector -->
+    <string-array name="supported_languages">
+        <item>Inglês</item>
+        <item>Português (Brasil)</item>
+        <item>Espanhol</item>
+    </string-array>
+
+    <string-array name="supported_languages_codes">
+        <item>en</item>
+        <item>pt-BR</item>
+        <item>es</item>
+    </string-array>
+</resources>

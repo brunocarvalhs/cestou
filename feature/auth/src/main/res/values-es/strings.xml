@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand name is not translated on purpose. -->
+    <string name="welcome_brand_name" translatable="false">Cestou</string>
+    <string name="welcome_logo_content_description">Logotipo de Cestou</string>
+    <string name="welcome_title">Bienvenido(a) a Cestou</string>
+    <string name="welcome_description">La forma más inteligente de organizar tus compras y ahorrar de verdad.</string>
+    <string name="welcome_footer">Versión %1$s • Hecho con ❤️ en Brasil</string>
+    <string name="welcome_select_language">Seleccionar idioma</string>
+    <string name="welcome_agree_and_continue">Aceptar y continuar</string>
+    <string name="auth_continue_with_google">Continuar con Google</string>
+    <string name="auth_continue_with_email">Iniciar sesión con correo electrónico</string>
+    <string name="auth_continue_with_phone">Iniciar sesión con teléfono</string>
+    <string name="auth_continue_with_provider">Iniciar sesión con %1$s</string>
+    <string name="auth_terms_prefix">Al continuar, aceptas nuestros </string>
+    <string name="auth_terms_of_use">Términos de Uso</string>
+    <string name="auth_terms_and"> y </string>
+    <string name="auth_privacy_policy">Política de Privacidad</string>
+    <string name="auth_terms_suffix">.</string>
+    <string name="welcome_legal_notice_before_privacy">Lee nuestra </string>
+    <string name="welcome_legal_notice_middle">. Toca %1$s para aceptar los </string>
+    <string name="welcome_legal_notice_terms_of_service">Términos de Servicio</string>
+</resources>
