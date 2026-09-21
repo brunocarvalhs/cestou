@@ -1,5 +1,55 @@
 # Changelog
 
+## [Unreleased] - 2026-09-21
+
+`master` synced with `develop` (PR #110) — see that PR for the full commit-by-commit list. Summary
+of everything since the `[1.4.0]` entry below actually landed on `develop`:
+
+### Added
+- **feat**: AI chat FAB with WhatsApp-style UI and OpenRouter tool-calling fixes.
+- **feat**: Product attribution (`Product.history`) for add/edit/purchase, with an attribution
+  avatar and history bottom sheet in the cart.
+- **feat**: Quick Add as the default product entry point; smart category picker with collapsible
+  category headers.
+- **feat**: Shopping list preview before creation, checkout with a fixed price, purchase-history
+  reuse, drag-to-reorder position persisted.
+- **feat**: Shopping invites/shares now encode as deep links (QR + code join).
+- **feat**: Responsive mobile previews and Wear OS previews added to every Compose screen.
+- **feat(wear)**: standalone Wear OS pairing protocol with its own Firebase `applicationId`.
+
+### Changed
+- **auth**: removed anonymous login and fake profile identity; redesigned welcome/login screen
+  with its own wordmark, language picker, and dark-mode fixes; closed a logout race condition.
+- **ai**: Gemini/OpenRouter API keys now read from Firebase Remote Config with a `BuildConfig`
+  fallback, so they can be rotated without shipping a release.
+- **ci**: pipeline rebuilt around Git Flow and `pipeline-config.yaml`-driven build targets, checks,
+  and step order; build + Firebase-deploy jobs merged and grouped by variant; Dependabot auto-merge
+  for patch/minor bumps.
+- **deps**: ~25 routine dependency bumps (Compose BOM, AGP, Firebase BOM, Room, Kotlin, GitHub
+  Actions, etc.).
+
+### Fixed
+- **shopping**: debounced QR-code list-join scans; product search debounced with stale-request
+  cancellation; cart no longer leaks duplicate product collectors; cart respects the categorization
+  toggle and the "Edit List" action works again.
+- **settings**: profile screen reconciles the Firestore emission correctly; hosted Privacy
+  Policy / Terms of Use URLs wired in.
+
+### Security
+- **release**: release keystore stopped being tracked in git; release builds now sign from a
+  CI-provided keystore; Play Integrity App Check provider installed in release builds; dead
+  Firebase keys dropped from `.env.example`; `google-services.json` stopped being tracked.
+- **firestore**: security rules drafted for every collection (join/escalation/notification-forgery
+  cases covered) — **proposed only, not yet deployed** to the Firebase console (see AD-009 in
+  `.specs/STATE.md`).
+
+### Quality
+- **test**: real Kover coverage baseline established; zero-coverage gaps closed in `CloudNetwork`,
+  four `products` use cases, and `core/auth.authState`; first library-module `androidTest` added.
+- **analytics**: beta funnel instrumented end-to-end.
+- **sdd**: beta launch plan, KPIs, persona-based action plan, and Maestro QA coverage notes added
+  to `.specs/`.
+
 ## [1.4.0] - 2026-08-21
 
 ### Changed

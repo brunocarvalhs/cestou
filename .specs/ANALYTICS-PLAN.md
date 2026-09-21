@@ -2,7 +2,9 @@
 
 Status: Draft — instrumentation landed, ready for `tech-lead` review.
 Owner: `data-engineer`
-Last updated: 2026-09-09
+Last updated: 2026-09-09 — not re-verified since; per `.specs/STATE.md` (2026-09-21 entry), PRs #86–#109
+landed on `develop` after this date without a corresponding analytics-plan check. Re-verify DebugView
+status before treating "instrumented" as "verified".
 
 Companion to `.specs/BETA-LAUNCH-PLAN.md` (Analytics foundation workstream). That document says
 *what order* to do the work in; this document says *which events/funnels to actually look at* once
