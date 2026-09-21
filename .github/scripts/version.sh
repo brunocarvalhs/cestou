@@ -44,11 +44,30 @@ if [ -z "$commit_subjects" ]; then
     exit 0
 fi
 
+# 2.5️⃣ Tipos que, sozinhos, não justificam uma versão nova (preset Angular /
+# semantic-release padrão): docs, ci, chore, style, test, refactor, build.
+# Um "!" logo após o tipo (ex.: "chore!: ...") sempre marca BREAKING CHANGE,
+# não importa o tipo - por isso NÃO entra nesse filtro, cai pra baixo e vira
+# major. feat/fix/perf/BREAKING CHANGE (e qualquer tipo não listado aqui, por
+# segurança) sempre justificam bump.
+only_non_bumping_types=true
+for subject in "${commit_subjects_array[@]}"; do
+    if ! echo "$subject" | grep -qiE "^(docs?|ci|chore|style|test|refactor|build)(\([^)]*\))?:"; then
+        only_non_bumping_types=false
+        break
+    fi
+done
+
+if [ "$only_non_bumping_types" = true ]; then
+    >&2 echo "Todos os commits novos são doc/ci/chore/style/test/refactor/build - nenhum bump de versão necessário. Saindo."
+    exit 0
+fi
+
 # 3️⃣ Determina o tipo de incremento da versão (mais flexível)
 version_bump="patch"  # padrão é patch se houver commits novos
 
 for subject in "${commit_subjects_array[@]}"; do
-    if echo "$subject" | grep -qi "BREAKING CHANGE"; then
+    if echo "$subject" | grep -qiE "BREAKING CHANGE|^[a-z]+(\([^)]*\))?!:"; then
         version_bump="major"
         break
     elif echo "$subject" | grep -qi "^feat"; then
