@@ -44,6 +44,22 @@ if [ -z "$commit_subjects" ]; then
     exit 0
 fi
 
+# 2.5️⃣ Se todos os commits novos forem só doc(s)/ci, não há motivo pra versão
+# nova - só feat/fix/BREAKING CHANGE (e qualquer outro tipo não listado aqui,
+# por segurança) justificam um bump.
+only_doc_or_ci=true
+for subject in "${commit_subjects_array[@]}"; do
+    if ! echo "$subject" | grep -qiE "^(docs?|ci)(\([^)]*\))?!?:"; then
+        only_doc_or_ci=false
+        break
+    fi
+done
+
+if [ "$only_doc_or_ci" = true ]; then
+    >&2 echo "Todos os commits novos são doc/ci - nenhum bump de versão necessário. Saindo."
+    exit 0
+fi
+
 # 3️⃣ Determina o tipo de incremento da versão (mais flexível)
 version_bump="patch"  # padrão é patch se houver commits novos
 
