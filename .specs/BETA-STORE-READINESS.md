@@ -2,7 +2,18 @@
 
 Status: Draft — checklist da trilha de teste, release notes e canal de feedback prontos para revisão.
 Owner: `marketing`
-Last updated: 2026-09-09
+Last updated: 2026-09-21
+
+> **Correção de 2026-09-21:** este documento inteiro foi escrito assumindo que
+> nada tinha sido feito ainda no Play Console. Isso está errado — o app já existe lá, com as
+> trilhas de Teste interno, Teste fechado e Teste aberto todas **ativas** (Teste aberto com **950
+> testadores**), última atualização da ficha em 28/jan/2026, muito antes de qualquer sessão
+> anterior deste repositório. Produção segue **inativa**. Nesta sessão: os 4 screenshots antigos
+> (tema escuro) da ficha pt-BR foram substituídos por 5 atuais; as fichas **en-US** e **es-ES**
+> foram criadas do zero (nome, descrições, 5 screenshots cada); as 3 mudanças foram **enviadas
+> para revisão do Google** (ainda não aprovadas). G3 (URL legal) também já estava resolvido — ver
+> `.specs/STATE.md` e `.specs/BETA-LAUNCH-PLAN.md` revisão 4 para o relato completo. As seções
+> abaixo não foram reescritas linha a linha; leia com essa correção em mente.
 
 Executa a parte "Beta/store readiness" atribuída ao `marketing` em `.specs/BETA-LAUNCH-PLAN.md`. Não
 edita `BETA-LAUNCH-PLAN.md`, `MVP-ROADMAP.md` nem `BETA-KPI.md` (arquivos de outros donos). Usa o que

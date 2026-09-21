@@ -2,7 +2,10 @@
 
 Status: Draft — para revisão do `pm`.
 Owner: `marketing`
-Last updated: 2026-09-09
+Last updated: 2026-09-09 — not re-verified since. Note from `.specs/STATE.md` (2026-09-21): the beta
+has been live in Open testing with 950 testers since well before this date (discovered directly in
+the Play Console, not previously reflected anywhere in `.specs/`) — the KPI floors below may already
+have real data to check against, not just projections.
 
 Companion de `.specs/BETA-LAUNCH-PLAN.md` (sequenciamento do trabalho) e `.specs/ANALYTICS-PLAN.md`
 (inventário de eventos/funis, `data-engineer`). Cruzado com a seção "Beta Launch Priority"

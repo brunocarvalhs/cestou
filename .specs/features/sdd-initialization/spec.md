@@ -1,16 +1,19 @@
 # SDD Infrastructure & Project Mapping Specification
 
+Status: Done — all goals and tasks below verified against the actual repository state and marked
+complete on 2026-09-21, in sync with `develop`/`master` (see `.specs/STATE.md`).
+
 ## Problem Statement
 
 The "How Much" project lacks a formal specification and decision tracking system. This makes it difficult to ensure architectural consistency and precise verification as the project grows. We need to initialize the Spec-Driven Development (SDD) infrastructure and document the existing core features.
 
 ## Goals
 
-- [ ] Initialize the `.specs/` directory structure.
-- [ ] Create a central `STATE.md` for project decisions and handoff.
-- [ ] Reverse-engineer and document core features (Shopping, Products, Settings, AI) into formal specs.
-- [ ] Establish a `LESSONS.md` to capture and apply project-local knowledge.
-- [ ] Update project documentation (READMEs) and `CHANGELOG.md` with recent architectural and CI changes.
+- [x] Initialize the `.specs/` directory structure.
+- [x] Create a central `STATE.md` for project decisions and handoff.
+- [x] Reverse-engineer and document core features (Shopping, Products, Settings, AI) into formal specs.
+- [x] Establish a `LESSONS.md` to capture and apply project-local knowledge.
+- [x] Update project documentation (READMEs) and `CHANGELOG.md` with recent architectural and CI changes.
 
 ## Out of Scope
 
@@ -107,6 +110,6 @@ The "How Much" project lacks a formal specification and decision tracking system
 
 ## Success Criteria
 
-- [ ] The `.specs` directory reflects the current state of the project.
-- [ ] All core features have at least one P1 story documented.
-- [ ] `STATE.md` contains the initial architectural decisions found in the README.
+- [x] The `.specs` directory reflects the current state of the project.
+- [x] All core features have at least one P1 story documented.
+- [x] `STATE.md` contains the initial architectural decisions found in the README.

@@ -5,7 +5,9 @@ been computed, not estimated from test-file counts. Update: a real device became
 (see "androidTest: G11 regression, verified on device" below) — the first `androidTest` in any
 library module in this repo now exists and passes.
 Owner: bruno
-Last updated: 2026-09-09
+Last updated: 2026-09-09 — not re-run since. PRs #86–#109 (see `CHANGELOG.md` `[Unreleased]` and
+`.specs/STATE.md`, 2026-09-21 entry) added meaningful new code (welcome redesign, AI chat FAB,
+category picker, release signing) with no Kover re-check recorded here.
 
 ## Correction to the T3 brief
 

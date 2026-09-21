@@ -2,7 +2,8 @@
 
 Status: Final — Fase "Agora" já tem 1 spec pronta (`item-add-authorship`); as demais aguardam spec própria antes de Design.
 Companion doc: complementa `.specs/MVP-ROADMAP.md` (que cobre bloqueadores de lançamento/compliance — merge de branch, contas, Play Store). Este documento cobre evolução de **produto**, orientada por persona.
-Last updated: 2026-09-04
+Last updated: 2026-09-04 — não reverificado desde então; ver `.specs/STATE.md` (entrada de 2026-09-21)
+para o estado mais recente do projeto.
 Origem: análise das 12 personas do skill `customer-personas`, spec `.specs/features/item-add-authorship/spec.md`, review de UX/acessibilidade, e uma rodada PM ↔ Tech Lead.
 
 ---
