@@ -239,15 +239,57 @@
     found via PR #75), literal `"Voltar"` content descriptions in `SettingsHeader.kt:51` /
     `LinkWearDeviceScreen.kt:44`, unreachable `MobileRoutes.Notifications`, restart-scoped key
     rotation for the two `@Singleton` repositories, and `AnalyticsTracker.setUserId` never plugged in.
-- **Next step**: **T7** (`android-engineer-features`) — the only open engineering item on the beta
-  gate. Everything else on the gate needs bruno.
+- **Completed (session of 2026-09-20/21)** — this handoff was over a week stale; several
+  items below were reported as open/blocked but had actually shipped. Corrected in place:
+  - **G3 (legal URL hosting) is done**, not a blocker — **PR #83** wired the hosted Privacy Policy /
+    Terms of Use URLs into `CustomMethodPickerTerms`, Settings, and (as of this session) the Play
+    Console store listing.
+  - **The app is already live on the Play Store**, contradicting "complete the Play Console
+    Internal-testing track" as an open blocker: Internal, Closed **and** Open testing tracks are all
+    **active**, Open testing has **950 testers**, last store-listing update was 28 Jan 2026.
+    Production track is still **inactive** — nothing has ever been promoted there. This was
+    discovered by opening the actual Play Console, not by reading `.specs/` — **treat this whole
+    Handoff section as unverified against the console until someone re-checks it there directly.**
+  - **T7 / PR #67, G9, G13/G15/G16 status**: not re-verified this session (no `gh pr view` re-run) —
+    do not assume still accurate; re-check before acting on it.
+  - Between the 09-10 session and now, PRs **#86–#109** landed on `develop` without a corresponding
+    Handoff update: welcome/login redesign with its own wordmark (#86, #87), logout race + AI chat
+    FAB + product category picker (#90–#94), release keystore stopped being tracked + CI-signed
+    release builds (#107), Play Integrity App Check provider in release builds (#108), responsive
+    mobile + Wear OS Compose previews on every screen (#109). Full list in `CHANGELOG.md`
+    `[Unreleased]` and in PR #110's description.
+  - **Store listing work (outside git, done directly in Play Console)**: replaced 4 outdated
+    (dark-theme, pre-redesign) phone screenshots with 5 current ones in the pt-BR listing; created
+    the **en-US** and **es-ES** store listings from scratch (name, short/full description, 5
+    screenshots each) using the copy already drafted in `BETA-STORE-READINESS.md` §2. All 3 changes
+    **submitted to Google for review** (up to 7 days), not yet approved. Screenshot source files and
+    fastlane changelogs live at `fastlane/metadata/android/{pt-BR,en-US,es-ES}/` — uncommitted, still
+    only in the working tree as of this session.
+  - **PR #110** (`chore/sync-master-with-develop` → `master`) opened: `master` was stale since
+    2025-10-27 (last tag `1.3.0`, 2025-09-29), 571 commits behind. Direct force-push is blocked by
+    branch protection (`allow_force_pushes: false`), so the branch was built with
+    `git merge -s ours origin/master` on top of `develop` — tree is byte-identical to `develop`,
+    `master` is recorded as a real merge parent (no history rewritten). `mergeable: MERGEABLE`,
+    `mergeStateStatus: BLOCKED` (pending required status check). **Not merged** — merging pushes to
+    `master`, which triggers `release.yml`'s automatic **production** deploy (`track: production`,
+    `user_fraction: 0.1`) per `.github/pipeline-config.yaml`. Bruno explicitly deferred this decision
+    twice this session given AD-009 (Firestore rules) is still undeployed.
+  - **Current version**: `versionName "1.3.0"` / `versionCode 7` in `app/build.gradle.kts` — unchanged
+    since the `1.3.0` git tag (2025-09-29). The `[1.4.0]` `CHANGELOG.md` entry (2026-08-21) documents
+    real work but was **never tagged or version-bumped** — `versionName` still reads `1.3.0`. Treat
+    `CHANGELOG.md`'s `[Unreleased]` section, not any specific semver number, as the source of truth
+    for "what's actually in `develop`/`master` right now" until an actual release cuts a tag.
+- **Next step**: bruno decides whether/when to merge PR #110 (production deploy trigger) and whether
+  to deploy the AD-009 Firestore rules first. T7/PR #67 and the other 09-10-session items above need
+  a fresh status check before anyone acts on them as current.
 - **Blockers (all bruno, none resolvable by any agent here)**: rotate/revoke the Gemini key in the
   Firebase + Google AI Studio consoles (the code change alone mitigates nothing until the old key is
-  revoked); merge PR #67 once T7 turns it green; decide G3 hosting, then wire the URL into
-  `CustomMethodPickerTerms`, Settings and the Play Console field; capture G4 screenshots + feature
-  graphic; confirm G5 Firestore rules in the console; run F0.3 (Maestro, authenticated session) and
-  F2.2 (Google Sign-In) on a device; complete the Play Console Internal-testing track; and the
-  `develop` → `master` decision, which stays exclusively his.
-- **Uncommitted files**: none — the three-owner working-tree tangle described in the previous handoff
-  was resolved; every piece landed on its own branch and PR.
-- **Branch**: `docs/firestore-security-rules` (G5 rules proposal, this PR) → PR into `develop`.
+  revoked); confirm G5 Firestore rules in the console (still the default open placeholder — see
+  AD-009); run F0.3 (Maestro, authenticated session) and F2.2 (Google Sign-In) on a device; merge
+  PR #110 (triggers the production deploy) when ready; commit or discard the uncommitted
+  `fastlane/metadata/android/*/images` and `*/changelogs` files from this session.
+- **Uncommitted files**: `fastlane/metadata/android/{pt-BR,en-US,es-ES}/images/phoneScreenshots/*.jpg`
+  and `.../changelogs/default.txt` (this session's store-listing screenshots/text, mirrored into the
+  Play Console but never committed here).
+- **Branch**: `develop` (current) · open PR: `chore/sync-master-with-develop` → `master` (**#110**,
+  not merged).

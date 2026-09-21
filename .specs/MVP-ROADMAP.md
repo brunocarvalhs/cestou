@@ -2,7 +2,9 @@
 
 Status: Phases 0–2 mostly done — see gap list for what's still open
 Owner: bruno
-Last updated: 2026-09-09
+Last updated: 2026-09-09 — not re-verified since. See `.specs/BETA-LAUNCH-PLAN.md` revision 4
+(2026-09-21) for a material correction: the beta is already live (950 Open-testing users), and G3/G4
+(remainder) are closed, not blocked, contradicting anything below that still lists them as open.
 
 Note: the project runs on Firebase's free Spark plan (no billing account) — Cloud Functions
 require the Blaze plan even for free-tier usage, so nothing in this plan should depend on them.

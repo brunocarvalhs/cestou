@@ -12,15 +12,17 @@ Um aplicativo de carrinho de compras simples, mas poderoso, para Android, projet
 *   **Adicionar produtos:** Adicione produtos às suas listas com detalhes como nome, preço e quantidade.
 *   **Limite de gastos:** Defina um limite de gastos para cada carrinho de compras para manter seu orçamento sob controle.
 *   **Histórico de compras:** Visualize um histórico detalhado de suas compras anteriores para rastrear seus gastos ao longo do tempo.
-*   **Compartilhamento de carrinho:** Compartilhe suas listas de compras com amigos e familiares usando um token exclusivo.
+*   **Compartilhamento de carrinho:** Compartilhe suas listas de compras com amigos e familiares usando um código ou QR Code.
+*   **Assistente de IA:** Converse com um assistente de IA (multi-provedor, via OpenRouter/Gemini) para montar ou revisar sua lista, com identificação de produtos por foto.
+*   **Wear OS:** Pareamento de conta, lista de compras e perfil direto do relógio.
 *   **Interface de usuário moderna:** Uma interface de usuário limpa e intuitiva construída com Jetpack Compose, seguindo as diretrizes do Material Design 3.
 
 ## 📸 Telas (Screenshots)
 
-(Aqui você pode adicionar screenshots do seu aplicativo)
-
-As descrições da loja (pt-BR/en-US/es-ES) já estão em `fastlane/metadata/android/`; faltam só os
-screenshots e o feature graphic, que precisam de um device/emulador para capturar.
+As descrições e os screenshots da loja (pt-BR/en-US/es-ES) já estão prontos em
+`fastlane/metadata/android/{pt-BR,en-US,es-ES}/` (descrições, screenshots e release notes) e já
+foram enviados para revisão no Play Console. Falta apenas um feature graphic (1024×500) próprio
+para en-US/es-ES — hoje as três fichas usam a mesma imagem, com texto em português.
 
 ## 🛠️ Tecnologia e Arquitetura
 
@@ -45,6 +47,8 @@ O projeto segue uma arquitetura **Domain-Centric** distribuída em múltiplos m�
     - `navigation/`: Definições de rotas (`NavKey`) e grafos da feature.
     - `di/`: Módulos Hilt para provisão de dependências.
 *   `:app`: Ponto de entrada do aplicativo que orquestra os módulos de feature via `FeatureInitializer`.
+*   `:wear`: Módulo standalone para Wear OS, com `applicationId` e protocolo de pareamento próprios,
+    cobrindo hoje pareamento de conta, lista de compras e perfil.
 
 ## 🚀 Como Compilar
 

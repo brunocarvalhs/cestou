@@ -1,10 +1,11 @@
 # Beta Launch Plan — Cestou (How-Much)
 
-Status: Active — **all code items in the T1–T6 queue are merged into `develop`.** What remains is
-device/console/owner work, not engineering work. See "Revision 3" and the annotated readiness
-checklist at the bottom.
+Status: **The beta is already live** — this document's own framing ("before inviting real
+customers") is stale as of revision 3. See "Revision 4" for the correction; the rest of the
+document (revisions 1–3, the task queue, the go/no-go checklist) was written before anyone checked
+the actual Play Console and should be read with that in mind.
 Owner: `tech-lead` (document), bruno (go/no-go)
-Last updated: 2026-09-10 (revision 3)
+Last updated: 2026-09-21 (revision 4) — revision 3 was 2026-09-10
 
 This document sits on top of `.specs/MVP-ROADMAP.md` (the gap list and its numbering are the source
 of truth for *what* is broken) and `.specs/STATE.md` (architecture decisions + handoff). It exists to
@@ -23,6 +24,36 @@ into `develop`. Never commit or merge directly. `develop` → `master` (or whate
 builds the beta release) stays a decision only bruno makes.
 
 ---
+
+## Revision 4 — the beta already launched; the whole "before go/no-go" frame was wrong (2026-09-21)
+
+Opened the actual Google Play Console this session (previous revisions reasoned from `.specs/` and
+`origin/develop` only, never the Console itself). Findings that contradict everything below:
+
+- **Internal, Closed, and Open testing tracks are all already `Ativo`.** Open testing has **950
+  testers**, and the store listing was last updated **28 de janeiro de 2026** — eight months before
+  this document's revision 3 was even written. Whatever launched the beta happened outside any
+  session `.specs/` has a record of. Production track is still inactive — nothing has ever gone
+  fully public.
+- **G3 is closed, not blocked.** PR #83 (merged well before this session) wired the hosted
+  `docs/legal/privacy.html` / `terms.html` URLs into `CustomMethodPickerTerms` and Settings.
+- **G4 (remainder) is closed, not blocked.** This session replaced the pt-BR store listing's 4
+  outdated screenshots with 5 current ones, and created the **en-US** and **es-ES** listings from
+  scratch (name, descriptions, 5 screenshots each), using the copy from `BETA-STORE-READINESS.md`
+  §2. All three submitted to Google for review, not yet approved. No feature graphic was made in
+  en-US/es-ES — the existing pt-BR one carries Portuguese text into those locales; that's a design
+  task, not done here.
+- **Everything else in the go/no-go checklist below (T7/PR #67, F0.3, F2.2, G5 Firestore rules,
+  Gemini key rotation, the Play Console track checklist) was not re-verified this session.** Do not
+  assume it is still accurate — re-check each line against its actual source (PR status, Firebase
+  console, a device) before acting on it. In particular, **AD-009's Firestore rules are still the
+  default open placeholder** — this was reconfirmed indirectly today by nobody having deployed them,
+  and it now matters more than when this doc was written, because real users (not just testers) could
+  be one `master` merge away depending on what PR #110 does next.
+- The framing question this revision leaves open, for `pm`/bruno, not answered here: given the beta
+  is already running with 950 testers, is "go/no-go" the right lens at all anymore, or should this
+  document be reframed around "when to promote to Production" instead? Not decided — flagging it
+  rather than guessing.
 
 ## Revision 3 — readiness re-check (2026-09-10)
 
@@ -409,8 +440,8 @@ Regression test: N settings emissions produce exactly one active product collect
 | Item | What's needed | Notes |
 |---|---|---|
 | **G9** | Review/merge PR #67 — **after T7 turns it green** | Superseded by revision 3: the fix is done and tested, but CI is red (one Detekt line-length violation) and the branch is 18 commits behind. Not mergeable today. |
-| **G3** | Pick a host for `docs/legal/privacy.html` / `terms.html` (`cestou.app` vs. GitHub Pages) | Blocks wiring the URL into `CustomMethodPickerTerms`, Settings, and the Play Console listing — also a Play Store submission requirement. |
-| **G4 (remainder)** | Screenshots + feature graphic | Needs a real device/emulator — none available in this environment. |
+| ~~**G3**~~ | ~~Pick a host for `docs/legal/privacy.html` / `terms.html`~~ | **Closed — PR #83.** URL wired into `CustomMethodPickerTerms`, Settings, and (2026-09-21) the Play Console listing. |
+| ~~**G4 (remainder)**~~ | ~~Screenshots + feature graphic~~ | **Screenshots closed 2026-09-21** (pt-BR/en-US/es-ES, 5 each, submitted for review). Feature graphic still pt-BR text only in all three locales — design task, not done. |
 | **G5** | Manually confirm Firestore rules allow a user to create a `notifications` doc addressed to someone else | Lives in the Firebase Console, outside this repo. |
 | **F0.3** | Run `maestro test .maestro/test_suite.yaml` on a real device | No adb/emulator here. |
 | **F2.2** | Google Sign-In QA pass on a real device | Config verified correct statically; live flow (SHA-1, OAuth consent screen) unverified. |
@@ -440,12 +471,12 @@ Legend: **[CLOSED]** verified on `develop` · **[IN PROGRESS]** engineering work
 - [ ] **G9 (PR #67)** — **[IN PROGRESS → then BLOCKED — bruno]**. Not merge-ready: Detekt fails on one
       >120-char line in `ShoppingRepositoryImplTest.kt:220`, and the branch is 18 commits behind
       `develop`. **T7** fixes both; the merge itself stays bruno's.
-- [ ] **G3** — **[BLOCKED — bruno]**. Decide `cestou.app` vs. GitHub Pages. Then the URL must be wired
-      in **three** places, not one: `CustomMethodPickerTerms`, Settings, and the Play Console
-      "Privacy Policy URL" field. The wiring is a small engineering task that cannot start before the
-      decision.
-- [ ] **G4 (remainder)** — **[BLOCKED — bruno]**. Screenshots (min. 2) + 1024×500 feature graphic.
-      Needs a device; Play Console refuses to publish even a test track without them.
+- [x] **G3** — **[CLOSED — PR #83, + 2026-09-21 Play Console update]**. URL wired into
+      `CustomMethodPickerTerms`, Settings, and the Play Console "Privacy Policy URL" field.
+- [x] **G4 (remainder)** — **[CLOSED — 2026-09-21, screenshots only]**. 5 current screenshots per
+      locale (pt-BR/en-US/es-ES) uploaded, submitted for Google review. Feature graphic still needs
+      real design work for en-US/es-ES (currently pt-BR text in all locales) — not a gate blocker by
+      itself, but flagged.
 - [ ] **G5** — **[BLOCKED — bruno]**. Confirm in the Firebase Console that the rules let a user create
       a `notifications` doc addressed to another user. Cheap to check, high downside if wrong — this
       is the first rule the app exercises against other people's real data.
@@ -468,10 +499,13 @@ Legend: **[CLOSED]** verified on `develop` · **[IN PROGRESS]** engineering work
       four `feature/products` use cases, and `core/auth`'s `authState`. Known remaining hole:
       `ProductRepositoryImpl`/`RecipeRepositoryImpl` Gemini paths (~55%/34%), untestable until the
       `GenerativeModel` is injected — a natural follow-up now that G15 has touched that construction.
-- [ ] **Play Console beta track + release notes** — **[IN PROGRESS / BLOCKED — bruno]**. `marketing`
-      delivered the checklist, invite copy and pt-BR release notes (`BETA-STORE-READINESS.md`). Every
-      remaining step is inside the Console: create the app, Internal testing track, upload a signed
-      build, tester list, Data Safety form, content rating.
+- [x] **Play Console beta track + release notes** — **[CLOSED, discovered 2026-09-21]**. The app, all
+      three test tracks (Internal/Closed/Open, 950 open testers), and the store listing already exist
+      and are active — this had apparently already happened before any `.specs/` record of it.
+      pt-BR/en-US/es-ES release notes now live in `fastlane/metadata/android/*/changelogs/default.txt`
+      (uncommitted) and were not yet pushed to the Console as changelog text for a specific release —
+      only the store-listing screenshots/description were updated this session. Data Safety form and
+      content rating status unverified this session.
 - [ ] **Beta success thresholds** — **[IN PROGRESS]**. `.specs/BETA-KPI.md` exists with concrete floors
       (activation ≥60%, purchase completion ≥50%, join success ≥70%) but is still marked
       "Draft — para revisão do `pm`". Needs `pm` sign-off, not new work.

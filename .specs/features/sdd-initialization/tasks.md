@@ -60,8 +60,8 @@ T6 → T7
 - MCP: `filesystem`
 
 **Done when**:
-- [ ] `STATE.md` contains the 4 initial decisions (AD-001 to AD-004).
-- [ ] `spec.md` for `sdd-initialization` is fully marked.
+- [x] `STATE.md` contains the 4 initial decisions (AD-001 to AD-004).
+- [x] `spec.md` for `sdd-initialization` is fully marked.
 
 **Tests**: none
 **Gate**: Build
@@ -79,7 +79,7 @@ T6 → T7
 - MCP: `filesystem`
 
 **Done when**:
-- [ ] `LESSONS.md` contains the managed header.
+- [x] `LESSONS.md` contains the managed header.
 
 **Tests**: none
 **Gate**: Build
@@ -97,8 +97,8 @@ T6 → T7
 - MCP: `filesystem`
 
 **Done when**:
-- [ ] `spec.md` documents Create, Observe, Join, Share, and Budget use cases.
-- [ ] EARS notation used for all ACs.
+- [x] `spec.md` documents Create, Observe, Join, Share, and Budget use cases.
+- [x] EARS notation used for all ACs.
 
 **Tests**: none
 **Gate**: Build
@@ -116,8 +116,8 @@ T6 → T7
 - MCP: `filesystem`
 
 **Done when**:
-- [ ] `spec.md` documents Scan, Search, Suggestions, and AI Analysis.
-- [ ] EARS notation used for all ACs.
+- [x] `spec.md` documents Scan, Search, Suggestions, and AI Analysis.
+- [x] EARS notation used for all ACs.
 
 **Tests**: none
 **Gate**: Build
@@ -135,8 +135,8 @@ T6 → T7
 - MCP: `filesystem`
 
 **Done when**:
-- [ ] `spec.md` documents AI, Theme, Data, and Notification settings.
-- [ ] EARS notation used for all ACs.
+- [x] `spec.md` documents AI, Theme, Data, and Notification settings.
+- [x] EARS notation used for all ACs.
 
 **Tests**: none
 **Gate**: Build
@@ -154,8 +154,8 @@ T6 → T7
 - MCP: `filesystem`
 
 **Done when**:
-- [ ] `spec.md` documents Assistant and Message Processing.
-- [ ] EARS notation used for all ACs.
+- [x] `spec.md` documents Assistant and Message Processing.
+- [x] EARS notation used for all ACs.
 
 **Tests**: none
 **Gate**: Build
@@ -173,8 +173,8 @@ T6 → T7
 - MCP: `filesystem`
 
 **Done when**:
-- [ ] New section for version (e.g., 1.4.0) exists.
-- [ ] Key CI/CD and refactoring changes from git log are included.
+- [x] New section for version (e.g., 1.4.0) exists.
+- [x] Key CI/CD and refactoring changes from git log are included.
 
 **Tests**: none
 **Gate**: Build
@@ -192,8 +192,8 @@ T6 → T7
 - MCP: `filesystem`
 
 **Done when**:
-- [ ] Architecture diagram/description matches current module structure.
-- [ ] Technology list is up to date.
+- [x] Architecture diagram/description matches current module structure.
+- [x] Technology list is up to date.
 
 **Tests**: none
 **Gate**: Build
