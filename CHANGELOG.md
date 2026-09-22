@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.0.1] - 2026-09-22
+
+* Merge pull request #119 from brunocarvalhs/fix/route-type-r8-keep
+* Merge branch 'develop' into fix/route-type-r8-keep
+* fix(release): keep RouteType enum from R8 to fix nav crash in 2.0.0
+* Merge pull request #112 from brunocarvalhs/docs/beta-feedback-triage-g17
+* Merge branch 'develop' into docs/beta-feedback-triage-g17
+* Merge pull request #117 from brunocarvalhs/ci/version-skip-doc-ci-only
+* Merge branch 'develop' into docs/beta-feedback-triage-g17
+* Merge branch 'develop' into ci/version-skip-doc-ci-only
+* Merge pull request #118 from brunocarvalhs/develop
+* Merge remote-tracking branch 'origin/develop' into ci/version-skip-doc-ci-only
+* ci(release): widen no-bump types to match the Angular/semantic-release preset
+* ci(release): skip version bump when only doc/ci commits landed
+* docs(pm): triage first two Play Console beta feedback comments
+
+
 ## [2.0.0] - 2026-09-21
 
 * Merge pull request #115 from brunocarvalhs/fix/release-user-fraction-escaping
