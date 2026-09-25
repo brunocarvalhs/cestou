@@ -5,29 +5,31 @@
 Google Play Console requires a reachable Privacy Policy **URL** at submission time — in-app text
 alone doesn't satisfy that.
 
-## Why these aren't wired into the app yet
+## Where these are hosted
 
-The app already has a deep link on `https://cestou.app` (see `app/src/main/AndroidManifest.xml`),
-so that's the obvious home for these pages — but whether that domain is on GitHub Pages, another
-host, or something else isn't something this session can see or decide. Wiring a URL into
-`CustomMethodPickerTerms` and the Settings screen before confirming where these pages actually get
-served would risk linking to a 404.
+Deployed via Firebase Hosting on the app's existing Firebase project (`how-much-2a72e`, the same
+project used by Auth/Analytics/Crashlytics), not GitHub Pages:
 
-## To finish this
+- https://how-much-2a72e.web.app/privacy.html
+- https://how-much-2a72e.web.app/terms.html
 
-1. Pick a host: the simplest option is enabling **GitHub Pages** for this repo (Settings → Pages →
-   deploy from a branch, `/docs` folder) — that would put these at
-   `https://<username>.github.io/How-Much/legal/privacy.html`. Alternatively, if `cestou.app` is
-   already pointed at something (Firebase Hosting, another static host), these files can be copied
-   there under `/privacy` and `/terms` instead.
-2. Once the URL is live, add it to:
-   - `feature/auth`'s `CustomMethodPickerTerms` (the "you agree to our Terms/Privacy" text on the
-     sign-in screen) — turn it into a clickable link, or add a link below it.
-   - `feature/settings`'s `settings_item_terms` / `settings_item_privacy` rows — the Legal screen
-     (`LegalContentScreen`) currently renders `settings_terms_content`/`settings_privacy_content`
-     in-app; either keep that and additionally link out, or replace it with a link to the hosted
-     page.
-   - Google Play Console's "App content" → "Privacy policy" field.
+`core/common/.../LegalUrls.kt` points to these. Redeploy after editing either file with:
+`firebase deploy --only hosting --project how-much-2a72e`.
+
+GitHub Pages was tried first (repo already has `docs/` set up as its Pages source), but this
+GitHub account's Pages sites default to the custom domain `bruno-carvalho.dev.br`, which doesn't
+currently resolve (DNS for that domain isn't pointed at GitHub Pages) — that's what caused the
+Play Store rejection on 2026-09-25 ("Privacy Policy inválida"). If that domain's DNS ever gets
+fixed (A records to GitHub Pages' IPs: 185.199.108/109/110/111.153), migrating back is an option,
+but there's no need to chase that for these pages to work.
+
+## Still to do
+
+- `feature/auth`'s `CustomMethodPickerTerms` (the "you agree to our Terms/Privacy" text on the
+  sign-in screen) doesn't link out yet — turn it into a clickable link, or add a link below it.
+- `feature/settings`'s `settings_item_terms` / `settings_item_privacy` rows — the Legal screen
+  (`LegalContentScreen`) currently renders `settings_terms_content`/`settings_privacy_content`
+  in-app; either keep that and additionally link out, or replace it with a link to the hosted page.
 
 The privacy page's copy already includes a line about the in-app account deletion feature added
 this session (Settings > Data > Delete Account) — keep both copies (in-app and hosted) in sync if
