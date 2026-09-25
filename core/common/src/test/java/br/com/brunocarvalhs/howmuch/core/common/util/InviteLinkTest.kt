@@ -16,7 +16,7 @@ class InviteLinkTest {
 
     @Test
     fun `build produces a link with the token as the last path segment`() {
-        assertEquals("https://cestou.app/join/ABC123", InviteLink.build("ABC123"))
+        assertEquals("https://${InviteLink.HOST}/join/ABC123", InviteLink.build("ABC123"))
     }
 
     @Test
@@ -31,7 +31,7 @@ class InviteLinkTest {
 
     @Test
     fun `matches is false for a link with an unrelated path`() {
-        assertFalse(InviteLink.matches(Uri.parse("https://cestou.app/other/ABC123")))
+        assertFalse(InviteLink.matches(Uri.parse("https://${InviteLink.HOST}/other/ABC123")))
     }
 
     @Test
@@ -43,7 +43,7 @@ class InviteLinkTest {
     fun `tokenFrom reads the token from a query parameter when present`() {
         assertEquals(
             "ABC123",
-            InviteLink.tokenFrom(Uri.parse("https://cestou.app/join?token=ABC123"))
+            InviteLink.tokenFrom(Uri.parse("https://${InviteLink.HOST}/join?token=ABC123"))
         )
     }
 
