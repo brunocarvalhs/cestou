@@ -7,6 +7,6 @@ package br.com.brunocarvalhs.howmuch.core.common.util
  * reused by every feature module that needs to open them (auth onboarding, settings, etc.).
  */
 object LegalUrls {
-    const val PRIVACY_POLICY_URL = "https://bruno-carvalho.dev.br/legal?doc=cestou-privacy-policy"
-    const val TERMS_OF_USE_URL = "https://bruno-carvalho.dev.br/legal?doc=cestou-terms-of-use"
+    const val PRIVACY_POLICY_URL = "https://how-much-2a72e.web.app/privacy.html"
+    const val TERMS_OF_USE_URL = "https://how-much-2a72e.web.app/terms.html"
 }

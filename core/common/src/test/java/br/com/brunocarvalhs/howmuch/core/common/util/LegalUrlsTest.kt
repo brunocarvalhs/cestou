@@ -8,7 +8,7 @@ class LegalUrlsTest {
     @Test
     fun `privacy policy points to the hosted legal page`() {
         assertEquals(
-            "https://bruno-carvalho.dev.br/legal?doc=cestou-privacy-policy",
+            "https://how-much-2a72e.web.app/privacy.html",
             LegalUrls.PRIVACY_POLICY_URL
         )
     }
@@ -16,7 +16,7 @@ class LegalUrlsTest {
     @Test
     fun `terms of use points to the hosted legal page`() {
         assertEquals(
-            "https://bruno-carvalho.dev.br/legal?doc=cestou-terms-of-use",
+            "https://how-much-2a72e.web.app/terms.html",
             LegalUrls.TERMS_OF_USE_URL
         )
     }
