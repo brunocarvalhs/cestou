@@ -79,7 +79,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="cestou.app" android:pathPrefix="/join" />
+                <data android:scheme="https" android:host="how-much-2a72e.web.app" android:pathPrefix="/join" />
             </intent-filter>
         </activity>
     </application>
