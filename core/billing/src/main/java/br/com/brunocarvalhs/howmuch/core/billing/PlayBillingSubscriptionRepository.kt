@@ -54,6 +54,18 @@ class PlayBillingSubscriptionRepository @Inject constructor(
 
     private val _status = MutableStateFlow(SubscriptionStatus.FREE)
 
+    private val purchasesUpdatedListener = PurchasesUpdatedListener { result, purchases ->
+        if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
+            scope.launch { handlePurchases(purchases) }
+        } else {
+            Timber.tag(TAG).w(
+                "onPurchasesUpdated: responseCode=%d debugMessage=%s",
+                result.responseCode,
+                result.debugMessage
+            )
+        }
+    }
+
     private val billingClient: BillingClient = BillingClient.newBuilder(context)
         .setListener(purchasesUpdatedListener)
         .enablePendingPurchases(PendingPurchasesParams.newBuilder().build())
@@ -126,19 +138,7 @@ class PlayBillingSubscriptionRepository @Inject constructor(
                     )
                 )
                 .build()
-        ).productDetailsList.firstOrNull()
-
-    private val purchasesUpdatedListener = PurchasesUpdatedListener { result, purchases ->
-        if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
-            scope.launch { handlePurchases(purchases) }
-        } else {
-            Timber.tag(TAG).w(
-                "onPurchasesUpdated: responseCode=%d debugMessage=%s",
-                result.responseCode,
-                result.debugMessage
-            )
-        }
-    }
+        ).productDetailsList?.firstOrNull()
 
     private suspend fun handlePurchases(purchases: List<Purchase>) {
         _status.value = purchases.toSubscriptionStatus()
