@@ -180,6 +180,73 @@
 - **Date**: 2026-09-10
 - **Status**: proposed — awaiting bruno's review and manual deploy
 
+### AD-010
+- **Decision**: Paid-subscription (Pro) architecture.
+  1. **Entitlement read contract lives in `core:domain`** — `SubscriptionStatus` +
+     `SubscriptionRepository.observeStatus(): Flow<SubscriptionStatus>`, alongside the existing
+     `UserRepository`/`AuthService` contracts. Read-only, no `Activity`, no Play Billing types.
+     This is the *only* thing a paid feature is allowed to depend on.
+  2. **Play Billing implementation is isolated in a new `core:billing` android library** — the
+     `BillingClient` wrapper, `SubscriptionRepositoryImpl`, the Hilt binding, and the
+     Activity-bound purchase entry point. No other module depends on it (Hilt wires it from
+     `:app`). It exists as its own module only because it carries a new third-party dependency
+     and an Activity-scoped lifecycle; the read contract deliberately stays out of it.
+  3. **`feature:subscription` owns the paywall UI** and is reachable *only* through a
+     `Paywall(source: String)` `NavKey` added to `core/navigation/mobile/MobileRoutes.kt`, plus
+     the usual `FeatureInitializer` graph registration. No `feature/*` may import it — a paid
+     feature calls `navigator.navigate(Paywall(source = "cart"))`. `source` exists for funnel
+     attribution (`data-engineer`) and is cheap now, expensive to retrofit.
+  4. **The gate is state-driven, not exception-driven.** Each paid feature's MVI `State` carries
+     `isPro` from `observeStatus()` and renders a locked/CTA affordance; users do not tap an
+     enabled control and receive an error. `SubscriptionRequiredException : BusinessRuleException`
+     exists as the domain-layer backstop only.
+  5. **AI actions are gated at the dispatch chokepoint**, not per use case: `registry.find(id)`
+     → `action.execute(...)` in `GeminiAiAgent` and `OpenRouterAiAgent` is the single place every
+     agent action passes through. One guard there (plus a `requiresPro` flag on the action
+     contract) replaces a check copy-pasted into every paid `AgentActionUseCase`.
+  6. **`IsProUserUseCase` is NOT an `AgentActionUseCase`** (see Reason). Until entitlement has
+     real logic (trials, grace periods), paid features inject `SubscriptionRepository` directly;
+     no use-case class is created for a one-line delegation.
+  7. **No Firestore mirror of the tier in v1.** `/users/{uid}` keeps its current four-field
+     allowlist; `firestore.rules` is not touched by this decision.
+- **Reason**:
+  - `AgentActionUseCase` (AD-007) is the wrong base class on three counts, not just stylistically:
+    its `init` block self-registers into the global `AgentRegistry`, so an entitlement predicate
+    would become an LLM-callable tool; it throws `IllegalStateException` on first access to
+    `id`/`description` unless annotated `@AiAgentAction`, so `IsProUserUseCase :
+    AgentActionUseCase<Boolean>()` does not work as written; and AD-007 scopes the pattern to
+    *user-executable workflows*, not permission predicates.
+  - Routing every cross-feature interaction through `core:domain` (contract) and
+    `core/navigation` (route) is what keeps this from becoming a new instance of **G10**. Both
+    mechanisms already exist and are already used exactly this way.
+  - A client-written `subscriptionTier` field proves nothing (no server tier, Spark plan — same
+    constraint as AD-009/G5), is forgeable by anyone who can edit their own user document, and
+    would be readable by every signed-in user under the current `allow get: if isSignedIn()`
+    rule. It also cannot serve Wear OS, its most plausible consumer, because the watch has no
+    Firebase credential at all (AD-009 "known breakage"). `BillingClient.queryPurchasesAsync` on
+    resume already provides the local cache the mirror was meant to be.
+- **Trade-off**:
+  - **No server-side purchase validation.** A modified APK can fake Pro. Accepted at this size
+    (see `memory`: 2 real accounts; 950 Open-testing opt-ins are not real usage) because nothing
+    of high monetary value is behind the gate — **with one exception that is not cosmetic**: AI
+    features spend Cestou's own Gemini quota on a shared key (AD-008). A forged tier there costs
+    real money, and the only lever without a backend is usage quota/rate limiting, not the tier
+    flag. Escalation path when it matters: a minimal backend validating the purchase token
+    against the Play Developer API (requires Blaze or any non-Firebase host).
+  - `core:billing` is a module with, initially, one class in it — accepted to keep the Play
+    Billing dependency and the `Activity` coupling out of `core:data`/`core:domain`.
+  - Purchases **must** be acknowledged within 3 days or Google auto-refunds them; that
+    acknowledgement is part of the repository implementation, not optional polish.
+  - `restorePurchases()` is dropped from the proposed contract: `queryPurchasesAsync` on resume
+    *is* restore on Android. Add an explicit button only if support tickets ask for one.
+- **Scope**: `core:domain`, new `core:billing`, new `feature:subscription`, `core/navigation`
+  routes, and every feature that gates behaviour on Pro.
+- **Date**: 2026-09-27
+- **Status**: proposed — architecture approved with the changes above; **blocked on bruno for the
+  commercial half**: which features are actually paid, the price/product IDs, and the Play Console
+  subscription setup. No module should be created before that list exists, or the paywall gets
+  built against a guess.
+
 ## Handoff
 
 - **Feature**: beta-launch (see `.specs/BETA-LAUNCH-PLAN.md` — the ordered task queue T1–T6 — and
@@ -279,6 +346,14 @@
     real work but was **never tagged or version-bumped** — `versionName` still reads `1.3.0`. Treat
     `CHANGELOG.md`'s `[Unreleased]` section, not any specific semver number, as the source of truth
     for "what's actually in `develop`/`master` right now" until an actual release cuts a tag.
+- **Completed (session of 2026-09-27, `tech-lead`)**: reviewed the proposed Pro/subscription
+  architecture and recorded it as **AD-010 (proposed)** — approved with changes: entitlement read
+  contract in `core:domain` (not `core:billing`), paywall reachable only via a `Paywall` route in
+  `core/navigation` (no `feature/*` → `feature:subscription` import, i.e. no new G10), the AI gate
+  at the `registry.find`/`execute` chokepoint instead of per use case, `IsProUserUseCase` **not**
+  derived from `AgentActionUseCase`, and no Firestore `subscriptionTier` mirror (so `firestore.rules`
+  / AD-009 are untouched). Still owed by bruno: the list of actually-paid features, product
+  IDs/pricing, Play Console subscription setup. No code written.
 - **Next step**: bruno decides whether/when to merge PR #110 (production deploy trigger) and whether
   to deploy the AD-009 Firestore rules first. T7/PR #67 and the other 09-10-session items above need
   a fresh status check before anyone acts on them as current.
