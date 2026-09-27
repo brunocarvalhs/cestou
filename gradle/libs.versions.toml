@@ -80,6 +80,7 @@ konsist = "0.17.3"
 workRuntimeKtx = "2.10.1"
 hiltWork = "1.4.0"
 lottie = "6.7.1"
+billing = "9.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -192,6 +193,7 @@ androidx-compose-navigation = { group = "androidx.wear.compose", name = "compose
 wear-remoteinteractions = { group = "androidx.wear", name = "wear-remote-interactions", version.ref = "wearRemoteInteractions" }
 konsist = { group = "com.lemonappdev", name = "konsist", version.ref = "konsist" }
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
+billing-ktx = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billing" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

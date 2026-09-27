@@ -47,3 +47,16 @@ data class CartFlow(val shopping: Shopping) : NavKey {
         )
     }
 }
+
+/**
+ * The single reachable entry point into `feature:subscription`'s paywall (AD-010). No
+ * `feature/*` may import that module directly - a paid feature that wants to show the paywall
+ * navigates here instead, exactly like every other cross-feature boundary in `core/navigation`.
+ *
+ * @param source Where the paywall was opened from (e.g. "cart", "ai-agent"), for funnel
+ * attribution - cheap to plumb through now, expensive to retrofit once the screen ships.
+ */
+@Serializable
+data class Paywall(val source: String) : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}
