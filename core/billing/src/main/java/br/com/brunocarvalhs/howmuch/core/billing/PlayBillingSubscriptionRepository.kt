@@ -103,6 +103,17 @@ class PlayBillingSubscriptionRepository @Inject constructor(
     }
 
     /**
+     * The price to show on the Paywall before purchase, exactly as Play will charge it —
+     * resolved via `queryProductDetails`, never hardcoded (AD-010). `null` when the product
+     * isn't configured in the Play Console yet or has no subscription offer.
+     */
+    suspend fun queryFormattedPrice(productId: String = BillingConstants.PRO_MONTHLY): String? {
+        ensureConnected()
+        val offer = queryProductDetails(productId)?.subscriptionOfferDetails?.firstOrNull()
+        return offer?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice
+    }
+
+    /**
      * The Activity-bound purchase entry point. Looks up [productId]'s current price/offer via
      * `queryProductDetails` and launches Play's purchase UI on top of [activity]. The result of
      * the purchase itself arrives asynchronously through [purchasesUpdatedListener], not through

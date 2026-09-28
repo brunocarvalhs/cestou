@@ -8,6 +8,7 @@ import br.com.brunocarvalhs.howmuch.core.ai.BuildConfig
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.RemoteVariableService
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
@@ -116,12 +117,14 @@ class AiAgentFactoryImplTest {
     private val featureFlagService = mockk<FeatureFlagService>()
     private val remoteVariableService = mockk<RemoteVariableService>()
     private val crashReporter = mockk<CrashReporter>(relaxed = true)
+    private val subscriptionRepository = mockk<SubscriptionRepository>(relaxed = true)
     private val factory = AiAgentFactoryImpl(
         session,
         registry,
         featureFlagService,
         remoteVariableService,
-        crashReporter
+        crashReporter,
+        subscriptionRepository
     )
 
     @Test

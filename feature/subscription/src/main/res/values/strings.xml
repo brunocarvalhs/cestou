@@ -1,0 +1,10 @@
+<resources>
+    <string name="paywall_title">Cestou Pro</string>
+    <string name="paywall_back_content_description">Back</string>
+    <string name="paywall_headline">Unlock Cestou Pro</string>
+    <string name="paywall_description">Get full access to the AI shopping assistant and upcoming Pro features.</string>
+    <string name="paywall_subscribe_button">Subscribe for %1$s/month</string>
+    <string name="paywall_subscribe_button_no_price">Subscribe</string>
+    <string name="paywall_already_pro">You\'re already a Pro subscriber.</string>
+    <string name="paywall_error_prefix">Purchase failed: %1$s</string>
+</resources>
