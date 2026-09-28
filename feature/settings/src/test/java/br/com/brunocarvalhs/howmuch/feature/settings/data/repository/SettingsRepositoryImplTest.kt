@@ -37,7 +37,7 @@ class SettingsRepositoryImplTest {
         repository.getSettings().test {
             val settings = awaitItem()
             assertEquals(ThemeMode.SYSTEM, settings.themeMode)
-            assertEquals("gemini", settings.aiProvider)
+            assertEquals("openrouter", settings.aiProvider)
             assertEquals("CATEGORY", settings.sortingMode)
             assertFalse(settings.remindersEnabled)
             assertEquals("pt-BR", settings.language)
