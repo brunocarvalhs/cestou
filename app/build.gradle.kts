@@ -111,6 +111,7 @@ dependencies {
     implementation(project(":core:ai"))
     implementation(project(":core:remote-config"))
     implementation(project(":core:analytics"))
+    implementation(project(":core:billing"))
     implementation(project(":feature:shopping"))
     implementation(project(":feature:products"))
     implementation(project(":feature:settings"))
