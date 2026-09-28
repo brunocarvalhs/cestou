@@ -68,7 +68,15 @@ class PlayBillingSubscriptionRepository @Inject constructor(
 
     private val billingClient: BillingClient = BillingClient.newBuilder(context)
         .setListener(purchasesUpdatedListener)
-        .enablePendingPurchases(PendingPurchasesParams.newBuilder().build())
+        .enablePendingPurchases(
+            // Billing Library 7+ requires this builder to explicitly declare which purchase
+            // types support the PENDING state, even though this app only sells subscriptions
+            // (whose pending-purchase support is implicit/always on) — build() throws
+            // IllegalArgumentException otherwise. No one-time products are actually sold.
+            PendingPurchasesParams.newBuilder()
+                .enableOneTimeProducts()
+                .build()
+        )
         .build()
 
     init {
