@@ -36,6 +36,9 @@ object AnalyticsEvents {
     const val AUTH_SIGN_IN_FAILED = "auth_sign_in_failed"
 
     const val PROFILE_SIGN_OUT = "profile_sign_out"
+
+    const val PAYWALL_SUBSCRIBE_CLICKED = "paywall_subscribe_clicked"
+    const val PAYWALL_PURCHASE_FAILED = "paywall_purchase_failed"
 }
 
 /**
