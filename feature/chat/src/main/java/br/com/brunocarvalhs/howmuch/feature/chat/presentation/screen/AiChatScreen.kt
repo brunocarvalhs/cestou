@@ -28,10 +28,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
@@ -101,7 +103,10 @@ private val QUICK_EMOJIS = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiChatScreen(
-    state: AiChatUiState, intent: AiChatIntent
+    state: AiChatUiState,
+    intent: AiChatIntent,
+    isSendEnabled: Boolean = true,
+    onUpgradeClick: () -> Unit = {}
 ) {
     var showEmojiPicker by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
@@ -157,6 +162,9 @@ fun AiChatScreen(
         },
         bottomBar = {
             Column(modifier = Modifier.navigationBarsPadding()) {
+                if (!isSendEnabled) {
+                    AiChatUpgradeBanner(onClick = onUpgradeClick)
+                }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -167,6 +175,7 @@ fun AiChatScreen(
                     OutlinedTextField(
                         value = state.input,
                         onValueChange = { intent.onInputChange(it) },
+                        enabled = isSendEnabled,
                         placeholder = { Text(text = stringResource(R.string.ai_chat_input_label)) },
                         leadingIcon = {
                             IconButton(
@@ -203,7 +212,7 @@ fun AiChatScreen(
                         )
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    FilledIconButton(onClick = { intent.onSendMessage() }) {
+                    FilledIconButton(onClick = { intent.onSendMessage() }, enabled = isSendEnabled) {
                         Icon(
                             Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(
                                 br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_send_message
@@ -361,6 +370,41 @@ private fun TypingBubble() {
     }
 }
 
+@Composable
+private fun AiChatUpgradeBanner(onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick),
+        color = MaterialTheme.colorScheme.primaryContainer
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.WorkspacePremium,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = stringResource(R.string.ai_chat_upgrade_banner),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
+    }
+}
+
 private val previewMessages = listOf(
     ChatMessage(id = 1, text = "Quanto vou gastar nessa lista?", sender = ChatMessage.Sender.USER),
     ChatMessage(
@@ -403,6 +447,18 @@ private fun AiChatScreenLoadingPreview() {
             state = AiChatUiState(
                 messages = previewMessages, isLoading = true
             ), intent = AiChatIntent()
+        )
+    }
+}
+
+@PreviewCestouScreens
+@Composable
+private fun AiChatScreenTrialUsedPreview() {
+    CestouTheme {
+        AiChatScreen(
+            state = AiChatUiState(messages = previewMessages),
+            intent = AiChatIntent(),
+            isSendEnabled = false
         )
     }
 }

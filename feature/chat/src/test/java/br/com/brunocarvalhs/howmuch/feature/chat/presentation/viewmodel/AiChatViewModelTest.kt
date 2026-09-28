@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel
 
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
 import io.mockk.coEvery
@@ -27,7 +28,9 @@ class AiChatViewModelTest {
     private val assistantUseCase = mockk<CartAssistantUseCase>()
     private val chatHistoryRepository = mockk<ChatHistoryRepository>(relaxed = true)
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
-    private val viewModel = AiChatViewModel(assistantUseCase, chatHistoryRepository, analyticsTracker)
+    private val aiTrialRepository = mockk<AiTrialRepository>(relaxed = true)
+    private val viewModel =
+        AiChatViewModel(assistantUseCase, chatHistoryRepository, analyticsTracker, aiTrialRepository)
 
     @Before
     fun setup() {
@@ -72,6 +75,16 @@ class AiChatViewModelTest {
         assertEquals("hi there", viewModel.uiState.value.messages.last().text)
         assertEquals(false, viewModel.uiState.value.isLoading)
         verify { analyticsTracker.trackEvent(AnalyticsEvents.AI_CHAT_MESSAGE_SENT) }
+    }
+
+    @Test
+    fun `onSendMessage marks the free trial as used`() = runTest {
+        viewModel.intent.onInputChange("hello")
+        coEvery { assistantUseCase("hello", any()) } returns flowOf("hi there")
+
+        viewModel.intent.onSendMessage()
+
+        coVerify { aiTrialRepository.markFreeMessageUsed() }
     }
 
     @Test
