@@ -95,7 +95,9 @@ internal class OpenRouterAiAgent(
 
             val tools = buildOpenRouterTools(registry.getAll())
 
-            var currentRequest = ChatRequest(model = model, messages = messages, tools = tools)
+            var currentRequest = ChatRequest(
+                model = model, messages = messages, tools = tools, maxTokens = MAX_RESPONSE_TOKENS
+            )
             var response: ChatResponse = executeRequest(currentRequest)
 
             // Loop para processar Function Calling
@@ -113,7 +115,9 @@ internal class OpenRouterAiAgent(
                     ))
                 }
 
-                currentRequest = ChatRequest(model = model, messages = messages, tools = tools)
+                currentRequest = ChatRequest(
+                    model = model, messages = messages, tools = tools, maxTokens = MAX_RESPONSE_TOKENS
+                )
                 response = executeRequest(currentRequest)
             }
 
@@ -206,5 +210,12 @@ internal class OpenRouterAiAgent(
         private const val TAG = "OpenRouterAiAgent"
         private const val REQUEST_TIMEOUT_MS = 45_000L
         private const val CONNECT_TIMEOUT_MS = 15_000L
+        // Omitting max_tokens lets OpenRouter default to the routed model's own max output
+        // (up to 65535 on some), which "auto"/free-tier accounts often can't afford —
+        // observed as a real 402 "requires more credits" on this exact request shape. A chat
+        // reply plus tool-call round trips never needs anywhere near that; this stays safely
+        // under the free-tier credit ceiling seen in production while leaving room for a full
+        // multi-paragraph response.
+        private const val MAX_RESPONSE_TOKENS = 2_048
     }
 }
