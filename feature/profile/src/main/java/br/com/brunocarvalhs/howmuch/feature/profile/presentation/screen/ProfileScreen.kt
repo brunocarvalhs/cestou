@@ -114,7 +114,13 @@ internal fun ProfileScreen(
                 ProfileMenuOption(
                     title = "Vincular Relógio (Wear OS)",
                     icon = Icons.Default.Watch,
-                    onClick = { intent.onLinkWearDevice() }
+                    onClick = {
+                        if (subscriptionStatus == SubscriptionStatus.PRO) {
+                            intent.onLinkWearDevice()
+                        } else {
+                            intent.onManageSubscription()
+                        }
+                    }
                 )
             }
 
