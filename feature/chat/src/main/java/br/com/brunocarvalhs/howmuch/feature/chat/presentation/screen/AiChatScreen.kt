@@ -91,6 +91,8 @@ private const val BUBBLE_TAIL_RADIUS_DP = 4
 private const val AVATAR_SIZE_DP = 40
 private const val EMOJI_PICKER_HEIGHT_DP = 260
 private const val EMOJI_PICKER_COLUMNS = 8
+// The LazyColumn always wraps state.messages with one leading and one trailing Spacer item.
+private const val LEADING_AND_TRAILING_SPACERS = 2
 
 private val QUICK_EMOJIS = listOf(
     "😀", "😁", "😂", "🤣", "😊", "😍", "😘", "😜",
@@ -233,10 +235,13 @@ fun AiChatScreen(
     ) { paddingValues ->
         val listState = rememberLazyListState()
 
+        // listState.layoutInfo.totalItemsCount lags one layout pass behind the state change
+        // that triggers this effect, so it must not be used to compute the scroll target —
+        // derive the count from the same state driving the LazyColumn content below instead.
         LaunchedEffect(state.messages.size, state.isLoading) {
-            val lastIndex = listState.layoutInfo.totalItemsCount - 1
-            if (lastIndex >= 0) {
-                listState.animateScrollToItem(lastIndex)
+            val itemCount = state.messages.size + LEADING_AND_TRAILING_SPACERS + if (state.isLoading) 1 else 0
+            if (itemCount > 0) {
+                listState.animateScrollToItem(itemCount - 1)
             }
         }
 
@@ -370,6 +375,11 @@ private fun TypingBubble() {
     }
 }
 
+// Matches CestouLockedBanner's errorContainer treatment (core:ui) — this is a hit-a-limit
+// alert, not a positive/brand-colored message, so it must not read as primaryContainer green.
+private const val UPGRADE_BANNER_BG_ALPHA = 0.7f
+private const val UPGRADE_BANNER_TEXT_ALPHA = 0.8f
+
 @Composable
 private fun AiChatUpgradeBanner(onClick: () -> Unit) {
     Surface(
@@ -378,7 +388,7 @@ private fun AiChatUpgradeBanner(onClick: () -> Unit) {
             .padding(horizontal = 12.dp, vertical = 4.dp)
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick),
-        color = MaterialTheme.colorScheme.primaryContainer
+        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = UPGRADE_BANNER_BG_ALPHA)
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -387,19 +397,19 @@ private fun AiChatUpgradeBanner(onClick: () -> Unit) {
             Icon(
                 imageVector = Icons.Default.WorkspacePremium,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                tint = MaterialTheme.colorScheme.onErrorContainer
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = stringResource(R.string.ai_chat_upgrade_banner),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = UPGRADE_BANNER_TEXT_ALPHA),
                 modifier = Modifier.weight(1f)
             )
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                tint = MaterialTheme.colorScheme.onErrorContainer
             )
         }
     }
