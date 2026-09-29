@@ -9,8 +9,6 @@
     <string name="welcome_select_language">Selecionar idioma</string>
     <string name="welcome_agree_and_continue">Concordar e continuar</string>
     <string name="auth_continue_with_google">Continuar com Google</string>
-    <string name="auth_continue_with_email">Entrar com E-mail</string>
-    <string name="auth_continue_with_phone">Entrar com Telefone</string>
     <string name="auth_continue_with_provider">Entrar com %1$s</string>
     <string name="auth_terms_prefix">Ao continuar, você concorda com nossos </string>
     <string name="auth_terms_of_use">Termos de Uso</string>

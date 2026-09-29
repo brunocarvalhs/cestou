@@ -7,7 +7,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.components.auth.CustomAuthenticatedContent
-import br.com.brunocarvalhs.howmuch.feature.auth.presentation.components.auth.CustomEmailContent
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.components.auth.CustomMethodPickerLayout
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.components.auth.CustomMethodPickerTerms
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.components.auth.CustomMfaChallengeContent
@@ -49,7 +48,9 @@ internal fun NavGraphBuilder.authGraph(
             customMethodPickerTermsConfiguration = MethodPickerTermsConfiguration(
                 content = { CustomMethodPickerTerms() }
             ),
-            emailContent = { CustomEmailContent(it) },
+            // Only Google is configured (see AuthConfigUseCase); the FirebaseUI email flow is
+            // unreachable, so no emailContent slot is wired up here — the library's default
+            // (never shown) applies.
             phoneContent = { CustomPhoneContent(it) },
             mfaEnrollmentContent = { CustomMfaEnrollmentContent(it) },
             mfaChallengeContent = { CustomMfaChallengeContent(it) },
