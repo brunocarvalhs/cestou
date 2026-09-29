@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.products.presentation.components.scanner
+package br.com.brunocarvalhs.howmuch.core.ui.components.scanner
 
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
