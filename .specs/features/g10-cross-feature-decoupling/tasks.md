@@ -218,10 +218,17 @@ change yet):
 - Skill: NONE
 
 **Done when**:
-- [ ] `ProductReader` and `ShareShoppingUseCase` interfaces exist in `core/domain`, exactly as specified in `AD-011`
-- [ ] Neither interface imports any `android.*` type
-- [ ] No behavior change yet — this task only defines the contracts, T5 wires the implementation
-- [ ] Gate check passes: `./gradlew :core:domain:test`
+- [x] `ProductReader` and `ShareShoppingUseCase` interfaces exist in `core/domain`, exactly as specified in `AD-011`
+- [x] Neither interface imports any `android.*` type — confirmed via grep, zero matches
+- [x] No behavior change yet — this task only defines the contracts, T5 wires the implementation
+- [x] Gate check passes: `./gradlew :core:domain:test`
+
+**Execution notes** (`android-engineer-architecture`, 2026-09-29): impl class for the share use case
+renamed to `ShareShoppingUseCaseImpl` (matching `ShoppingRepositoryImpl`/`SettingsRepositoryImpl`'s
+naming convention) to avoid a same-name interface/impl collision. `bindProductReader`/
+`bindShareShoppingUseCase` `@Binds` methods added to `feature/products`'s existing `ProductDataModule`
+rather than a new DI module file. `ProductRepository`'s own `getAllProducts` declaration was deleted
+(now inherited from `ProductReader`) rather than left as a redundant re-declaration.
 
 **Tests**: unit
 **Gate**: quick
