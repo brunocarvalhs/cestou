@@ -2,8 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
-import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
+import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateThemeUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.ThemeSettingsViewModel
 import io.mockk.coEvery

@@ -1,8 +1,8 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
-import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
+import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateAiSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.AiSettingsViewModel
 import io.mockk.coEvery
@@ -42,7 +42,8 @@ class AiSettingsViewModelTest {
 
     @Test
     fun `init loads ai settings from the repository`() {
-        every { settingsRepository.getSettings() } returns flowOf(AppSettings(aiModel = "gpt", customPrompt = "concise"))
+        every { settingsRepository.getSettings() } returns
+            flowOf(AppSettings(aiModel = "gpt", customPrompt = "concise"))
 
         val vm = AiSettingsViewModel(settingsRepository, updateAiSettingsUseCase)
 

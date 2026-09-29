@@ -1,9 +1,9 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.di
 
 import br.com.brunocarvalhs.howmuch.core.domain.services.ReminderScheduler
-import br.com.brunocarvalhs.howmuch.feature.settings.data.worker.ShoppingReminderScheduler
 import br.com.brunocarvalhs.howmuch.feature.settings.SettingsInitializer
 import br.com.brunocarvalhs.howmuch.feature.settings.SettingsInitializerImpl
+import br.com.brunocarvalhs.howmuch.feature.settings.data.worker.ShoppingReminderScheduler
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

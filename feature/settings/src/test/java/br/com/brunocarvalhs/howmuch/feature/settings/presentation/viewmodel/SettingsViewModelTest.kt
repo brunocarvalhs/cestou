@@ -6,12 +6,12 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
-import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
+import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateCurrencyUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateLanguageUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.SettingsViewModel
 import br.com.brunocarvalhs.howmuch.feature.settings.navigation.ThemeSettings
+import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.SettingsViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

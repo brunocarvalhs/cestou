@@ -1,9 +1,9 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase
 
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
-import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import javax.inject.Inject
 
 // Firestore cleanup must happen before deleteAccount(): security rules require an authenticated request.

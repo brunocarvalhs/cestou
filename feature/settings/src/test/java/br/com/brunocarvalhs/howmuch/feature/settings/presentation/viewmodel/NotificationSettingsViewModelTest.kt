@@ -1,8 +1,8 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
-import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
+import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateNotificationSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.NotificationSettingsViewModel
 import io.mockk.coEvery
@@ -33,7 +33,8 @@ class NotificationSettingsViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        every { settingsRepository.getSettings() } returns flowOf(AppSettings(notificationsEnabled = true, reminderTime = "09:00"))
+        every { settingsRepository.getSettings() } returns
+            flowOf(AppSettings(notificationsEnabled = true, reminderTime = "09:00"))
     }
 
     @After
