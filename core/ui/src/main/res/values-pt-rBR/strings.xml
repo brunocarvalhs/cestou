@@ -26,6 +26,7 @@
     <string name="content_description_settings">Configurações</string>
     <string name="content_description_more_options">Mais opções</string>
     <string name="content_description_flash">Flash</string>
+    <string name="product_barcode_instruction">Posicione o código de barras dentro da área</string>
     <string name="content_description_preview">Preview</string>
     <string name="content_description_ai_icon">Ícone do Assistente IA</string>
     <string name="content_description_send_message">Enviar mensagem</string>

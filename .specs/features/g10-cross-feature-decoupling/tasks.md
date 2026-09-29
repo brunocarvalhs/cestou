@@ -143,14 +143,28 @@ and in `feature/products`' own scanner screen.
 - Skill: NONE
 
 **Done when**:
-- [ ] `feature/shopping` no longer imports `feature.products.presentation.components.scanner.*`
-- [ ] `CameraPreviewExecutorLifecycleTest` passes from its new location on a device; if no device is available, note it as unverified rather than skip it
-- [ ] `feature/products/build.gradle.kts` no longer declares the CameraX dependencies now owned by `core/ui`
-- [ ] Gate check passes: `./gradlew :core:ui:build :feature:products:test :feature:shopping:test`
-- [ ] Test count: unchanged from pre-move baseline (no silent deletions)
+- [x] `feature/shopping` no longer imports `feature.products.presentation.components.scanner.*`
+- [x] `CameraPreviewExecutorLifecycleTest` passes from its new location on a device; if no device is available, note it as unverified rather than skip it — **unverified**: no `adb`/emulator available in this environment; the test (and the rest of `core/ui`'s `androidTest` source set) does compile cleanly via `:core:ui:compileDebugAndroidTestKotlin`, but `connectedAndroidTest` was not run
+- [x] `feature/products/build.gradle.kts` no longer declares the CameraX dependencies now owned by `core/ui`
+- [x] Gate check passes: `./gradlew :core:ui:build :feature:products:test :feature:shopping:test`
+- [x] Test count: unchanged from pre-move baseline (no silent deletions)
 
 **Tests**: instrumented (androidTest)
 **Gate**: device
+
+**Implementation note (discovered during execution, not scope creep — required for `CameraPreview`/
+`QRCodeOverlay` to compile standalone in `core/ui` without a backward `core → feature` import):**
+`CameraPreview` directly instantiates `BarcodeAnalyzer` (internal, same package) and `QRCodeOverlay`
+directly calls `QrCodeStaticScannerCanvas` and `FlashControl` (both internal, same package) plus a
+`feature/products` string resource. All four extra files/resource moved alongside the two named
+Composables — leaving any of them behind would either fail to compile or force `core/ui` to depend
+on `feature/products`, the exact anti-pattern this task exists to remove. Also found: `feature/products`'
+`CameraCaptureView` (a *different*, unrelated composable — product-photo capture, not QR scanning)
+also uses CameraX APIs directly, so the CameraX libraries could not simply be deleted from
+`feature/products/build.gradle.kts` as `design.md` assumed — they were changed to `api` in
+`core/ui/build.gradle.kts` instead, so `feature/products` still receives them transitively through
+its existing `implementation(project(":core:ui"))` edge. `feature/products/build.gradle.kts` itself
+no longer declares them directly, satisfying the "Done when" criterion as written.
 
 ---
 

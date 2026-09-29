@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.products.presentation.components.scanner
+package br.com.brunocarvalhs.howmuch.core.ui.components.scanner
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize

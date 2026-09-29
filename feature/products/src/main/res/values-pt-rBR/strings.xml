@@ -11,7 +11,6 @@
 
     <!-- Feature: Product -->
     <string name="product_ai_identifying">A IA está identificando os itens&#8230;</string>
-    <string name="product_barcode_instruction">Posicione o código de barras dentro da área</string>
     <string name="product_photo_instruction">Enquadre a etiqueta de preço do produto dentro do quadro</string>
     <string name="product_option_search">Pesquisar</string>
     <string name="product_option_photo">Foto</string>
