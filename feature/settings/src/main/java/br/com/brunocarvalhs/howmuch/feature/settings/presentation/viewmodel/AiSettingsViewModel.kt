@@ -2,8 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateAiSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.AiSettingsIntent
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.state.AiSettingsUiState
@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class AiSettingsViewModel @Inject constructor(
-    private val getSettingsUseCase: GetSettingsUseCase,
+    private val settingsRepository: SettingsRepository,
     private val updateAiSettingsUseCase: UpdateAiSettingsUseCase
 ) : ViewModel() {
 
@@ -38,7 +38,7 @@ internal class AiSettingsViewModel @Inject constructor(
     }
 
     private fun observeSettings() {
-        getSettingsUseCase()
+        settingsRepository.getSettings()
             .onEach { settings ->
                 _uiState.update { it.copy(
                     aiModel = settings.aiModel,

@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.settings.domain.repository
+package br.com.brunocarvalhs.howmuch.core.domain.repository
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode

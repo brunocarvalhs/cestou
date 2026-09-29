@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.settings.data.repository
+package br.com.brunocarvalhs.howmuch.core.data.repository
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -11,8 +11,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiModel
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
-import br.com.brunocarvalhs.howmuch.feature.settings.data.worker.ShoppingReminderScheduler
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.repository.SettingsRepository
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
+import br.com.brunocarvalhs.howmuch.core.domain.services.ReminderScheduler
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -24,7 +24,7 @@ import javax.inject.Inject
 internal class SettingsRepositoryImpl @Inject constructor(
     private val dataStore: DataStore<Preferences>,
     @ApplicationContext private val context: Context,
-    private val reminderScheduler: ShoppingReminderScheduler
+    private val reminderScheduler: ReminderScheduler
 ) : SettingsRepository {
 
     private object PreferencesKeys {

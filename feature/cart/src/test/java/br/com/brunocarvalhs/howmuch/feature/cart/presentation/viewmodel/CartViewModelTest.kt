@@ -9,6 +9,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.model.withActivity
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
@@ -19,7 +20,6 @@ import br.com.brunocarvalhs.howmuch.feature.cart.navigation.FinishPurchaseRoute
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShoppingClearPurchasedUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.SortProductsUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -50,7 +50,7 @@ class CartViewModelTest {
     private val repository = mockk<ShoppingRepository>()
     private val productsUseCase = mockk<ProductsUseCase>()
     private val clearPurchasedUseCase = mockk<ShoppingClearPurchasedUseCase>(relaxed = true)
-    private val getSettingsUseCase = mockk<GetSettingsUseCase>()
+    private val settingsRepository = mockk<SettingsRepository>()
     private val sortProductsUseCase = mockk<SortProductsUseCase>()
     private val userRepository = mockk<UserRepository>()
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
@@ -71,7 +71,7 @@ class CartViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { repository.observeById(shopping.id) } returns MutableStateFlow(shopping)
         every { repository.observeAll() } returns flowOf(emptyList())
-        every { getSettingsUseCase() } returns flowOf(mockk(relaxed = true))
+        every { settingsRepository.getSettings() } returns flowOf(mockk(relaxed = true))
         coEvery { productsUseCase(shopping.id) } returns flowOf(emptyList())
         every { sortProductsUseCase(any(), any()) } returns emptyList()
         every { userRepository.getUserProfile(any()) } returns flowOf(null)
@@ -89,7 +89,7 @@ class CartViewModelTest {
             repository,
             productsUseCase,
             clearPurchasedUseCase,
-            getSettingsUseCase,
+            settingsRepository,
             sortProductsUseCase,
             userRepository,
             analyticsTracker
