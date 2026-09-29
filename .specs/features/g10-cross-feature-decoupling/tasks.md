@@ -245,10 +245,10 @@ change yet):
 - Skill: NONE
 
 **Done when**:
-- [ ] `feature/shopping` and `feature/cart` no longer import `feature.products.domain.usecase.ShareShoppingUseCase` concretely — both now depend on `core/domain`'s `ShareShoppingUseCase` interface
-- [ ] `ProductRepository` extends `ProductReader`; no consumer outside `feature/products` depends on `ProductRepository` directly (only `ProductReader`)
-- [ ] `ShareShoppingUseCaseTest` passes from its final location with test count preserved (no silent deletions)
-- [ ] Gate check passes: `./gradlew :core:domain:test :feature:products:test :feature:shopping:test :feature:cart:test`
+- [x] `feature/shopping` and `feature/cart` no longer import `feature.products.domain.usecase.ShareShoppingUseCase` concretely — both now depend on `core/domain`'s `ShareShoppingUseCase` interface
+- [x] `ProductRepository` extends `ProductReader`; no consumer outside `feature/products` depends on `ProductRepository` directly (only `ProductReader`)
+- [x] `ShareShoppingUseCaseTest` passes from its final location with test count preserved (no silent deletions)
+- [x] Gate check passes: `./gradlew :core:domain:test :feature:products:test :feature:shopping:test :feature:cart:test`
 
 **Tests**: unit
 **Gate**: full

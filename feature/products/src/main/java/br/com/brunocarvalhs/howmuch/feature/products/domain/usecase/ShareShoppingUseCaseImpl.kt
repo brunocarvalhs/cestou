@@ -3,16 +3,19 @@ package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 import android.content.Context
 import android.content.Intent
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.services.ShareShoppingUseCase
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatQuantity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
-class ShareShoppingUseCase @Inject constructor(
+// AD-010: implements core/domain's framework-free ShareShoppingUseCase port; this is where the
+// Android share Intent actually gets built.
+class ShareShoppingUseCaseImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val productsUseCase: ProductsUseCase
-) {
-    suspend operator fun invoke(shopping: Shopping) {
+) : ShareShoppingUseCase {
+    override suspend operator fun invoke(shopping: Shopping) {
         val products = productsUseCase(shopping.id).first()
         
         val sb = StringBuilder()

@@ -1,12 +1,14 @@
 package br.com.brunocarvalhs.howmuch.feature.products.domain.repository
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.core.domain.repository.ProductReader
 import kotlinx.coroutines.flow.Flow
 
-interface ProductRepository {
+// AD-010: ProductReader (core/domain) covers getAllProducts, the one capability external
+// consumers need; ProductRepository is the feature-owned superset that adds writes.
+interface ProductRepository : ProductReader {
     fun getSuggestions(shoppingId: String): Flow<List<Product>>
     suspend fun saveProduct(product: Product, shoppingId: String): Result<Unit>
-    suspend fun getAllProducts(shoppingId: String): Flow<List<Product>>
     suspend fun deleteProduct(productId: String, shoppingId: String): Result<Unit>
     suspend fun updateProduct(product: Product, shoppingId: String): Result<Unit>
     suspend fun searchProducts(query: String): Result<List<Product>>
