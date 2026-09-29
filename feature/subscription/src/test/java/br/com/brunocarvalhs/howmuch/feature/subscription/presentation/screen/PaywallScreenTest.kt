@@ -55,4 +55,37 @@ class PaywallScreenTest {
 
         composeTestRule.onNodeWithText(string(R.string.paywall_already_pro)).assertExists()
     }
+
+    @Test
+    fun `renders the Pro benefits list for a Free user`() {
+        composeTestRule.setContent {
+            CestouTheme {
+                PaywallScreen(
+                    state = PaywallUiState(formattedPrice = "R$ 9,90", isLoadingPrice = false),
+                    intent = PaywallIntent(),
+                    activity = null
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(string(R.string.paywall_benefit_chat)).assertExists()
+        composeTestRule.onNodeWithText(string(R.string.paywall_benefit_share)).assertExists()
+        composeTestRule.onNodeWithText(string(R.string.paywall_benefit_qr_code)).assertExists()
+        composeTestRule.onNodeWithText(string(R.string.paywall_benefit_wear)).assertExists()
+    }
+
+    @Test
+    fun `hides the Pro benefits list for a Pro user`() {
+        composeTestRule.setContent {
+            CestouTheme {
+                PaywallScreen(
+                    state = PaywallUiState(status = SubscriptionStatus.PRO),
+                    intent = PaywallIntent(),
+                    activity = null
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(string(R.string.paywall_benefit_chat)).assertDoesNotExist()
+    }
 }

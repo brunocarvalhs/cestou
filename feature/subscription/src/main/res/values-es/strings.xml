@@ -2,7 +2,11 @@
     <string name="paywall_title">Cestou Pro</string>
     <string name="paywall_back_content_description">Atrás</string>
     <string name="paywall_headline">Desbloquea Cestou Pro</string>
-    <string name="paywall_description">Obtén acceso completo al asistente de compras con IA y a las próximas funciones Pro.</string>
+    <string name="paywall_description">Todo lo que obtienes con la suscripción Pro:</string>
+    <string name="paywall_benefit_chat">Chat con el asistente de IA sin límites</string>
+    <string name="paywall_benefit_share">Comparte listas con quien quieras</string>
+    <string name="paywall_benefit_qr_code">Invita por código QR</string>
+    <string name="paywall_benefit_wear">Usa Cestou en tu reloj Wear OS</string>
     <string name="paywall_subscribe_button">Suscribirse por %1$s/mes</string>
     <string name="paywall_subscribe_button_no_price">Suscribirse</string>
     <string name="paywall_already_pro">Ya eres suscriptor Pro.</string>
