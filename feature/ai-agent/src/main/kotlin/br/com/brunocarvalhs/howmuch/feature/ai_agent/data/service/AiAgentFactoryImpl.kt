@@ -6,6 +6,7 @@ import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.RemoteVariableService
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
@@ -25,7 +26,8 @@ internal class AiAgentFactoryImpl @Inject constructor(
     private val registry: AgentRegistry,
     private val featureFlagService: FeatureFlagService,
     private val remoteVariableService: RemoteVariableService,
-    private val crashReporter: CrashReporter
+    private val crashReporter: CrashReporter,
+    private val subscriptionRepository: SubscriptionRepository
 ) : AiAgentFactory {
 
     override fun create(settings: AppSettings): AiAgent {
@@ -43,6 +45,7 @@ internal class AiAgentFactoryImpl @Inject constructor(
         val dependencies = AiAgentDependencies(
             session = session,
             crashReporter = crashReporter,
+            subscriptionRepository = subscriptionRepository,
             registry = registry,
             systemPrompt = systemPrompt
         )

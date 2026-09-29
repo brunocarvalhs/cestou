@@ -34,6 +34,7 @@ internal fun openRouterRoleFor(historyRole: String?): String =
  */
 internal fun buildOpenRouterTools(actions: List<AgentAction<*>>): List<Tool> = actions.map { action ->
     Tool(
+        type = "function",
         function = FunctionDeclaration(
             name = action.id,
             description = action.description,

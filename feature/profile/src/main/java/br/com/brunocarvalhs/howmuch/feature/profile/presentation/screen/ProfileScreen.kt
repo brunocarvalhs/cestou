@@ -19,15 +19,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Watch
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -44,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
+import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
@@ -56,7 +56,8 @@ import coil.compose.AsyncImage
 @Composable
 internal fun ProfileScreen(
     state: ProfileUiState,
-    intent: ProfileIntent
+    intent: ProfileIntent,
+    subscriptionStatus: SubscriptionStatus = SubscriptionStatus.FREE
 ) {
     Scaffold(
         topBar = {
@@ -67,6 +68,14 @@ internal fun ProfileScreen(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold
                     )
+                },
+                actions = {
+                    IconButton(onClick = { intent.onNavigate(Unit) }) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.profile_settings_content_description)
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
@@ -94,25 +103,10 @@ internal fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            ProfileMenuGroup {
-                ProfileMenuOption(
-                    title = stringResource(R.string.profile_menu_notification_preferences),
-                    icon = Icons.Default.Notifications,
-                    onClick = { intent.onNavigate(Unit) }
-                )
-                ProfileMenuDivider()
-                ProfileMenuOption(
-                    title = stringResource(R.string.profile_menu_theme_currency_language),
-                    icon = Icons.Default.Language,
-                    onClick = { intent.onNavigate(Unit) }
-                )
-                ProfileMenuDivider()
-                ProfileMenuOption(
-                    title = stringResource(R.string.profile_menu_about),
-                    icon = Icons.Default.Info,
-                    onClick = { intent.onNavigate(Unit) }
-                )
-            }
+            SubscriptionStatusCard(
+                status = subscriptionStatus,
+                onManageSubscription = intent.onManageSubscription
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -120,7 +114,13 @@ internal fun ProfileScreen(
                 ProfileMenuOption(
                     title = "Vincular Relógio (Wear OS)",
                     icon = Icons.Default.Watch,
-                    onClick = { intent.onLinkWearDevice() }
+                    onClick = {
+                        if (subscriptionStatus == SubscriptionStatus.PRO) {
+                            intent.onLinkWearDevice()
+                        } else {
+                            intent.onManageSubscription()
+                        }
+                    }
                 )
             }
 
@@ -211,14 +211,6 @@ private fun ProfileMenuGroup(content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun ProfileMenuDivider() {
-    HorizontalDivider(
-        modifier = Modifier.padding(vertical = 4.dp),
-        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-    )
-}
-
-@Composable
 private fun ProfileMenuOption(
     title: String,
     icon: ImageVector,
@@ -253,6 +245,55 @@ private fun ProfileMenuOption(
     }
 }
 
+@Composable
+private fun SubscriptionStatusCard(
+    status: SubscriptionStatus,
+    onManageSubscription: () -> Unit
+) {
+    val isPro = status == SubscriptionStatus.PRO
+    CestouCard(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = if (isPro) null else onManageSubscription
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Default.WorkspacePremium,
+                contentDescription = null,
+                tint = if (isPro) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(22.dp)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(
+                        if (isPro) R.string.profile_subscription_pro_title else R.string.profile_subscription_free_title
+                    ),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = stringResource(
+                        if (isPro) {
+                            R.string.profile_subscription_pro_subtitle
+                        } else {
+                            R.string.profile_subscription_free_subtitle
+                        }
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            if (!isPro) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
 private val previewUser = AuthenticatedUser(
     id = "1",
     email = "isabella@example.com",
@@ -266,6 +307,18 @@ private fun ProfileScreenPreview() {
         ProfileScreen(
             state = ProfileUiState(user = previewUser),
             intent = ProfileIntent()
+        )
+    }
+}
+
+@PreviewCestouScreens
+@Composable
+private fun ProfileScreenProPreview() {
+    CestouTheme {
+        ProfileScreen(
+            state = ProfileUiState(user = previewUser),
+            intent = ProfileIntent(),
+            subscriptionStatus = SubscriptionStatus.PRO
         )
     }
 }
