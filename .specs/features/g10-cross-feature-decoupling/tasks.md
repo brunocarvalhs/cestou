@@ -261,6 +261,11 @@ change yet):
 new shape (e.g. Option (a) may let `feature/products` drop its own dependency on the now-promoted
 `ProductRepository`'s original location if nothing else in that module still needs it directly;
 Option (b) likely needs no `build.gradle.kts` change at all beyond what T5 already required).
+
+**Confirmed (2026-09-29)**: no change needed. Under AD-010, `ProductRepository` stays in
+`feature/products`; the only new dependency is `core/domain`'s `ProductReader`/`ShareShoppingUseCase`,
+and `feature/products/build.gradle.kts` already declares `implementation(project(":core:domain"))`
+(line 44). No stale dependency was introduced by T4/T5.
 **Where**: `feature/products/build.gradle.kts`
 **Depends on**: T5
 **Reuses**: N/A — config-only task
@@ -271,8 +276,8 @@ Option (b) likely needs no `build.gradle.kts` change at all beyond what T5 alrea
 - Skill: NONE
 
 **Done when**:
-- [ ] `feature/products/build.gradle.kts` has no dependency line left over from the pre-move shape that nothing imports anymore
-- [ ] Gate check passes: `./gradlew :feature:products:build`
+- [x] `feature/products/build.gradle.kts` has no dependency line left over from the pre-move shape that nothing imports anymore
+- [x] Gate check passes: `./gradlew :feature:products:build`
 
 **Tests**: none (build config only)
 **Gate**: build
