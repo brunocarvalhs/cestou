@@ -218,10 +218,17 @@ change yet):
 - Skill: NONE
 
 **Done when**:
-- [ ] `ProductReader` and `ShareShoppingUseCase` interfaces exist in `core/domain`, exactly as specified in `AD-011`
-- [ ] Neither interface imports any `android.*` type
-- [ ] No behavior change yet — this task only defines the contracts, T5 wires the implementation
-- [ ] Gate check passes: `./gradlew :core:domain:test`
+- [x] `ProductReader` and `ShareShoppingUseCase` interfaces exist in `core/domain`, exactly as specified in `AD-011`
+- [x] Neither interface imports any `android.*` type — confirmed via grep, zero matches
+- [x] No behavior change yet — this task only defines the contracts, T5 wires the implementation
+- [x] Gate check passes: `./gradlew :core:domain:test`
+
+**Execution notes** (`android-engineer-architecture`, 2026-09-29): impl class for the share use case
+renamed to `ShareShoppingUseCaseImpl` (matching `ShoppingRepositoryImpl`/`SettingsRepositoryImpl`'s
+naming convention) to avoid a same-name interface/impl collision. `bindProductReader`/
+`bindShareShoppingUseCase` `@Binds` methods added to `feature/products`'s existing `ProductDataModule`
+rather than a new DI module file. `ProductRepository`'s own `getAllProducts` declaration was deleted
+(now inherited from `ProductReader`) rather than left as a redundant re-declaration.
 
 **Tests**: unit
 **Gate**: quick
@@ -245,10 +252,10 @@ change yet):
 - Skill: NONE
 
 **Done when**:
-- [ ] `feature/shopping` and `feature/cart` no longer import `feature.products.domain.usecase.ShareShoppingUseCase` concretely — both now depend on `core/domain`'s `ShareShoppingUseCase` interface
-- [ ] `ProductRepository` extends `ProductReader`; no consumer outside `feature/products` depends on `ProductRepository` directly (only `ProductReader`)
-- [ ] `ShareShoppingUseCaseTest` passes from its final location with test count preserved (no silent deletions)
-- [ ] Gate check passes: `./gradlew :core:domain:test :feature:products:test :feature:shopping:test :feature:cart:test`
+- [x] `feature/shopping` and `feature/cart` no longer import `feature.products.domain.usecase.ShareShoppingUseCase` concretely — both now depend on `core/domain`'s `ShareShoppingUseCase` interface
+- [x] `ProductRepository` extends `ProductReader`; no consumer outside `feature/products` depends on `ProductRepository` directly (only `ProductReader`)
+- [x] `ShareShoppingUseCaseTest` passes from its final location with test count preserved (no silent deletions)
+- [x] Gate check passes: `./gradlew :core:domain:test :feature:products:test :feature:shopping:test :feature:cart:test`
 
 **Tests**: unit
 **Gate**: full
@@ -261,6 +268,11 @@ change yet):
 new shape (e.g. Option (a) may let `feature/products` drop its own dependency on the now-promoted
 `ProductRepository`'s original location if nothing else in that module still needs it directly;
 Option (b) likely needs no `build.gradle.kts` change at all beyond what T5 already required).
+
+**Confirmed (2026-09-29)**: no change needed. Under AD-010, `ProductRepository` stays in
+`feature/products`; the only new dependency is `core/domain`'s `ProductReader`/`ShareShoppingUseCase`,
+and `feature/products/build.gradle.kts` already declares `implementation(project(":core:domain"))`
+(line 44). No stale dependency was introduced by T4/T5.
 **Where**: `feature/products/build.gradle.kts`
 **Depends on**: T5
 **Reuses**: N/A — config-only task
@@ -271,8 +283,8 @@ Option (b) likely needs no `build.gradle.kts` change at all beyond what T5 alrea
 - Skill: NONE
 
 **Done when**:
-- [ ] `feature/products/build.gradle.kts` has no dependency line left over from the pre-move shape that nothing imports anymore
-- [ ] Gate check passes: `./gradlew :feature:products:build`
+- [x] `feature/products/build.gradle.kts` has no dependency line left over from the pre-move shape that nothing imports anymore
+- [x] Gate check passes: `./gradlew :feature:products:build`
 
 **Tests**: none (build config only)
 **Gate**: build
@@ -293,8 +305,8 @@ same way PR1/PR2 close with a full gate.
 - Skill: NONE
 
 **Done when**:
-- [ ] `./gradlew test lint` passes across every module touched by T3–T6
-- [ ] `tech-lead`'s `AD-0xx` from T3 is cross-referenced in this PR's description
+- [x] `./gradlew test lint` passes across every module touched by T3–T6
+- [x] `tech-lead`'s `AD-0xx` from T3 is cross-referenced in this PR's description — see `AD-010`, `.specs/STATE.md`
 
 **Tests**: unit
 **Gate**: full
