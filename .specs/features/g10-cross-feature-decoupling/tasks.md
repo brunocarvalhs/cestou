@@ -298,8 +298,8 @@ same way PR1/PR2 close with a full gate.
 - Skill: NONE
 
 **Done when**:
-- [ ] `./gradlew test lint` passes across every module touched by T3–T6
-- [ ] `tech-lead`'s `AD-0xx` from T3 is cross-referenced in this PR's description
+- [x] `./gradlew test lint` passes across every module touched by T3–T6
+- [x] `tech-lead`'s `AD-0xx` from T3 is cross-referenced in this PR's description — see `AD-010`, `.specs/STATE.md`
 
 **Tests**: unit
 **Gate**: full
