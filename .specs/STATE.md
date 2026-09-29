@@ -180,6 +180,40 @@
 - **Date**: 2026-09-10
 - **Status**: proposed — awaiting bruno's review and manual deploy
 
+### AD-010
+- **Decision**: Pro subscription, built and shipped to `develop` (PR #134): read-only
+  `SubscriptionStatus`/`SubscriptionRepository` contract in `core:domain`, Play Billing isolated in
+  `core:billing`, paywall reachable only via a `Paywall(source)` route in `core/navigation` (no
+  `feature/*` → `feature:subscription` import, no new G10), AI gating at the agent-dispatch
+  chokepoint (`AgentAction.requiresPro`), no Firestore `subscriptionTier` mirror. 4 features are
+  actually Pro-gated today (bruno's call, made directly in a chat session, not through a spec): AI
+  chat (1 free message, then locked), list sharing, the QR-code invite, and Wear OS pairing.
+- **Reason**: bruno directed implementation directly, overriding the `pm`'s recorded
+  recommendation (see `.specs/PERSONA-ACTION-PLAN.md` § "Monetização (assinatura Pro)", added by
+  PR #131, never merged — superseded by this decision) to defer monetization until 4 preconditions
+  were met: BETA-KPI.md's 7 blocking KPIs measured at least once, G9 resolved, F0.3/F2.2 run on a
+  real device, and a real (non-opt-in) user base large enough that "who would pay" stops being
+  hypothetical. **None of those four were satisfied when this shipped.** Recorded here so a future
+  session doesn't mistake this for a validated, KPI-backed monetization decision — it's an explicit
+  founder call made ahead of the data the `pm` said to wait for.
+- **Trade-off**: Ships paid gating to the entire beta cohort (950 Open-testing opt-ins, ~2 confirmed
+  real accounts) before activation/retention is known to be healthy — exactly the contamination risk
+  the deferred analysis warned about (a paywall is new friction on top of KPIs the beta is trying to
+  measure without noise). Also: `openrouter/auto` (the AI provider default this shipped with) is not
+  actually free — real, small per-message cost on every Free user's chat, unbounded until Pro
+  subscribers exist to offset it.
+- **Known gaps, not blocking `develop` but blocking production**:
+  - No real Play Console subscription product exists — `BillingConstants.PRO_MONTHLY` is a
+    placeholder. The Paywall's "Assinar" button will fail for any real user today.
+  - AD-009 (Firestore rules) is still undeployed — unrelated to AD-010 but bruno flagged it as a
+    reason to hold `develop` → `master` for now.
+- **Scope**: `core:domain`, `core:billing`, `feature:subscription`, `core:navigation`, plus the gate
+  points added in `feature/ai-agent`, `feature/chat`, `feature/cart`, `feature/shopping`, and
+  `feature/profile`.
+- **Date**: 2026-09-28
+- **Status**: active on `develop` — **not promoted to `master`/production**, pending the two gaps
+  above (bruno's call).
+
 ## Handoff
 
 - **Feature**: beta-launch (see `.specs/BETA-LAUNCH-PLAN.md` — the ordered task queue T1–T6 — and
