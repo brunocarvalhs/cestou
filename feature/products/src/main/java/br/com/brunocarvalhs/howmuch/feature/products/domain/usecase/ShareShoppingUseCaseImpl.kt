@@ -9,7 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
-// AD-010: implements core/domain's framework-free ShareShoppingUseCase port; this is where the
+// AD-011: implements core/domain's framework-free ShareShoppingUseCase port; this is where the
 // Android share Intent actually gets built.
 class ShareShoppingUseCaseImpl @Inject constructor(
     @ApplicationContext private val context: Context,

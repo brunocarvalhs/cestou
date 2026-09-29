@@ -23,7 +23,7 @@ abstract class ProductDataModule {
     @Singleton
     abstract fun bindProductRepository(impl: ProductRepositoryImpl): ProductRepository
 
-    // AD-010: same singleton also satisfies the segregated read-only port that
+    // AD-011: same singleton also satisfies the segregated read-only port that
     // feature/shopping and feature/cart depend on instead of the full ProductRepository.
     @Binds
     @Singleton
