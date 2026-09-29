@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +43,8 @@ internal fun CustomMethodPickerLayout(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         providers.forEach { provider ->
+            // Only Google is ever configured (see AuthConfigUseCase); the `else` branch is
+            // defensive exhaustiveness for AuthProvider, not a real UI path.
             val (text, icon) = when (provider) {
                 is AuthProvider.Google -> stringResource(R.string.auth_continue_with_google) to providerIcon {
                     Icon(
@@ -53,22 +54,12 @@ internal fun CustomMethodPickerLayout(
                     )
                 }
 
-                is AuthProvider.Email -> stringResource(R.string.auth_continue_with_email) to providerIcon {
-                    Icon(imageVector = Icons.Default.Email, contentDescription = null)
-                }
-
-                is AuthProvider.Phone -> stringResource(R.string.auth_continue_with_phone) to providerIcon {
-                    Icon(imageVector = Icons.Default.Phone, contentDescription = null)
-                }
-
                 else -> stringResource(R.string.auth_continue_with_provider, provider.providerId) to providerIcon {
                     Icon(imageVector = Icons.Default.Email, contentDescription = null)
                 }
             }
             val testTag = when (provider) {
                 is AuthProvider.Google -> "welcome_google_button"
-                is AuthProvider.Email -> "welcome_email_button"
-                is AuthProvider.Phone -> "welcome_phone_button"
                 else -> null
             }
 
