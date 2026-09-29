@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.settings.data.repository
+package br.com.brunocarvalhs.howmuch.core.data.repository
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -9,7 +9,7 @@ import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import app.cash.turbine.test
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
-import br.com.brunocarvalhs.howmuch.feature.settings.data.worker.ShoppingReminderScheduler
+import br.com.brunocarvalhs.howmuch.core.domain.services.ReminderScheduler
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -27,7 +27,7 @@ class SettingsRepositoryImplTest {
 
     private val dataStore = mockk<DataStore<Preferences>>()
     private val context = mockk<Context>(relaxed = true)
-    private val reminderScheduler = mockk<ShoppingReminderScheduler>(relaxed = true)
+    private val reminderScheduler = mockk<ReminderScheduler>(relaxed = true)
     private val repository = SettingsRepositoryImpl(dataStore, context, reminderScheduler)
 
     @Test

@@ -13,7 +13,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.navJson
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShoppingClearPurchasedUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.SortProductsUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -64,7 +64,7 @@ class CartViewModelObserveDataTest {
     private val repository = mockk<ShoppingRepository>()
     private val productsUseCase = mockk<ProductsUseCase>()
     private val clearPurchasedUseCase = mockk<ShoppingClearPurchasedUseCase>(relaxed = true)
-    private val getSettingsUseCase = mockk<GetSettingsUseCase>()
+    private val settingsRepository = mockk<SettingsRepository>()
     private val sortProductsUseCase = mockk<SortProductsUseCase>()
     private val userRepository = mockk<UserRepository>()
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
@@ -101,7 +101,7 @@ class CartViewModelObserveDataTest {
             repository,
             productsUseCase,
             clearPurchasedUseCase,
-            getSettingsUseCase,
+            settingsRepository,
             sortProductsUseCase,
             userRepository,
             analyticsTracker
@@ -133,7 +133,7 @@ class CartViewModelObserveDataTest {
             coEvery { productsUseCase(shopping.id) } returns trackedProducts
 
             val settingsFlow = MutableSharedFlow<AppSettings>(replay = 1)
-            every { getSettingsUseCase() } returns settingsFlow
+            every { settingsRepository.getSettings() } returns settingsFlow
             settingsFlow.tryEmit(AppSettings(sortingMode = "CATEGORY"))
 
             viewModel()
@@ -162,7 +162,7 @@ class CartViewModelObserveDataTest {
         every { sortProductsUseCase(products, "NAME") } returns products.sortedBy { it.name }
 
         val settingsFlow = MutableSharedFlow<AppSettings>(replay = 1)
-        every { getSettingsUseCase() } returns settingsFlow
+        every { settingsRepository.getSettings() } returns settingsFlow
         settingsFlow.tryEmit(AppSettings(sortingMode = "PRICE"))
 
         val vm = viewModel()

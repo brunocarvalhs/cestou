@@ -1,6 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase
 
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.repository.SettingsRepository
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.DeleteAllDataUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify

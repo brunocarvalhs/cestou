@@ -3,7 +3,7 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateThemeUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.ThemeSettingsViewModel
 import io.mockk.coEvery
@@ -27,14 +27,14 @@ import org.junit.Test
 class ThemeSettingsViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
-    private val getSettingsUseCase = mockk<GetSettingsUseCase>()
+    private val settingsRepository = mockk<SettingsRepository>()
     private val updateThemeUseCase = mockk<UpdateThemeUseCase>(relaxed = true)
     private val navigator = mockk<Navigator>(relaxed = true)
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        every { getSettingsUseCase() } returns flowOf(AppSettings(themeMode = ThemeMode.DARK))
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(themeMode = ThemeMode.DARK))
     }
 
     @After
@@ -44,7 +44,7 @@ class ThemeSettingsViewModelTest {
 
     @Test
     fun `init loads the current theme from the repository`() {
-        val vm = ThemeSettingsViewModel(getSettingsUseCase, updateThemeUseCase)
+        val vm = ThemeSettingsViewModel(settingsRepository, updateThemeUseCase)
 
         assertEquals(ThemeMode.DARK, vm.uiState.value.themeMode)
     }
@@ -52,7 +52,7 @@ class ThemeSettingsViewModelTest {
     @Test
     fun `onUpdateTheme forwards to the use case`() = runTest {
         coEvery { updateThemeUseCase(ThemeMode.LIGHT) } returns Result.success(Unit)
-        val vm = ThemeSettingsViewModel(getSettingsUseCase, updateThemeUseCase)
+        val vm = ThemeSettingsViewModel(settingsRepository, updateThemeUseCase)
 
         vm.intent.onUpdateTheme(ThemeMode.LIGHT)
 
@@ -61,7 +61,7 @@ class ThemeSettingsViewModelTest {
 
     @Test
     fun `onBack navigates back`() {
-        val vm = ThemeSettingsViewModel(getSettingsUseCase, updateThemeUseCase)
+        val vm = ThemeSettingsViewModel(settingsRepository, updateThemeUseCase)
         vm.setNavigator(navigator)
 
         vm.intent.onBack()

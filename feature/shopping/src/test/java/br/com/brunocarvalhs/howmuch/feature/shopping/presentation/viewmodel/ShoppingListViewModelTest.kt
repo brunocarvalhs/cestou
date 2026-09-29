@@ -9,7 +9,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.User
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShareShoppingUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.*
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -42,7 +42,7 @@ class ShoppingListViewModelTest {
     private val shoppingDeleteUseCase = mockk<ShoppingDeleteUseCase>()
     private val shareShoppingUseCase = mockk<ShareShoppingUseCase>(relaxed = true)
     private val shoppingReopenUseCase = mockk<ShoppingReopenUseCase>(relaxed = true)
-    private val getSettingsUseCase = mockk<GetSettingsUseCase>()
+    private val settingsRepository = mockk<SettingsRepository>()
     private val authService = mockk<AuthService>()
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
 
@@ -60,7 +60,7 @@ class ShoppingListViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         every { repository.observeAll() } returns flowOf(listOf(ownedShopping))
-        every { getSettingsUseCase() } returns flowOf(AppSettings())
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings())
         coEvery { shoppingGetAllUseCase() } returns Result.success(listOf(ownedShopping))
     }
 
@@ -81,7 +81,7 @@ class ShoppingListViewModelTest {
             shoppingDeleteUseCase,
             shareShoppingUseCase,
             shoppingReopenUseCase,
-            getSettingsUseCase,
+            settingsRepository,
             authService,
             analyticsTracker
         )

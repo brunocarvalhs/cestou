@@ -7,7 +7,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -47,11 +47,11 @@ class MainViewModelTest {
         settings: AppSettings = AppSettings(),
         currentUser: AuthenticatedUser? = null
     ): MainViewModel {
-        val getSettingsUseCase = mockk<GetSettingsUseCase>()
-        every { getSettingsUseCase() } returns flowOf(settings)
+        val settingsRepository = mockk<SettingsRepository>()
+        every { settingsRepository.getSettings() } returns flowOf(settings)
         every { authService.authState } returns MutableStateFlow(currentUser)
         every { authService.currentUser } returns currentUser
-        return MainViewModel(getSettingsUseCase, authService, analyticsTracker)
+        return MainViewModel(settingsRepository, authService, analyticsTracker)
     }
 
     @Test

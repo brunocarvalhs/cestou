@@ -7,6 +7,7 @@ import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.User
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.common.extensions.toMonthYearString
@@ -17,7 +18,6 @@ import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.exception.OwnershipRequiredException
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShareShoppingUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingCreateUseCase
@@ -50,7 +50,7 @@ internal class ShoppingListViewModel @Inject constructor(
     private val shoppingDeleteUseCase: ShoppingDeleteUseCase,
     private val shareShoppingUseCase: ShareShoppingUseCase,
     private val shoppingReopenUseCase: ShoppingReopenUseCase,
-    private val getSettingsUseCase: GetSettingsUseCase,
+    private val settingsRepository: SettingsRepository,
     private val authService: AuthService,
     private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
@@ -156,7 +156,7 @@ internal class ShoppingListViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            getSettingsUseCase().collect { settings ->
+            settingsRepository.getSettings().collect { settings ->
                 _uiState.update { it.copy(sortingMode = settings.sortingMode) }
                 applyFilters()
             }

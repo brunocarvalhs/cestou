@@ -2,7 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -13,7 +13,7 @@ import javax.inject.Inject
  */
 class CartAssistantUseCase @Inject constructor(
     private val agentFactory: AiAgentFactory,
-    private val getSettingsUseCase: GetSettingsUseCase
+    private val settingsRepository: SettingsRepository
 ) {
     /**
      * Envia uma mensagem para o assistente e recebe o fluxo de resposta.
@@ -22,7 +22,7 @@ class CartAssistantUseCase @Inject constructor(
         prompt: String,
         context: AiAgentContext
     ): Flow<String> {
-        val settings = getSettingsUseCase().first()
+        val settings = settingsRepository.getSettings().first()
         val agentService = agentFactory.create(settings)
 
         return agentService.sendMessage(prompt, context)

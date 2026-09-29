@@ -2,8 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.orchestrator
 
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AiAgentSession
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -17,7 +17,7 @@ import javax.inject.Singleton
 @Singleton
 class AiAgentOrchestrator @Inject constructor(
     private val factory: AiAgentFactory,
-    private val getSettingsUseCase: GetSettingsUseCase,
+    private val settingsRepository: SettingsRepository,
     val session: AiAgentSession
 ) {
     /**
@@ -25,7 +25,7 @@ class AiAgentOrchestrator @Inject constructor(
      * O histórico é mantido automaticamente na sessão.
      */
     suspend fun chat(prompt: String, context: AiAgentContext): Flow<String> {
-        val settings = getSettingsUseCase().first()
+        val settings = settingsRepository.getSettings().first()
         val agent = factory.create(settings)
         return agent.sendMessage(prompt, context)
     }

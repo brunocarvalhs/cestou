@@ -9,6 +9,7 @@ import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.extensions.orEmpty
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
@@ -25,7 +26,6 @@ import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseC
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShoppingClearPurchasedUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.SortProductsUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,7 +44,7 @@ internal class CartViewModel @Inject constructor(
     private val repository: ShoppingRepository,
     private val useCase: ProductsUseCase,
     private val clearPurchasedUseCase: ShoppingClearPurchasedUseCase,
-    private val getSettingsUseCase: GetSettingsUseCase,
+    private val settingsRepository: SettingsRepository,
     private val sortProductsUseCase: SortProductsUseCase,
     private val userRepository: UserRepository,
     private val analyticsTracker: AnalyticsTracker
@@ -105,7 +105,7 @@ internal class CartViewModel @Inject constructor(
             // as a newer settings emission arrives, so a settings write (theme, language, AI prefs,
             // sorting mode) anywhere in the app never leaves a stale collector running alongside the
             // new one (see G12 in .specs/MVP-ROADMAP.md).
-            getSettingsUseCase()
+            settingsRepository.getSettings()
                 .flatMapLatest { settings ->
                     _uiState.update { it.copy(sortingMode = settings.sortingMode) }
                     useCase(shopping.id).map { products -> settings.sortingMode to products }

@@ -47,7 +47,6 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:ai"))
     implementation(project(":feature:ai-agent"))
-    implementation(project(":feature:settings"))
 
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.markdown.renderer.m3)
