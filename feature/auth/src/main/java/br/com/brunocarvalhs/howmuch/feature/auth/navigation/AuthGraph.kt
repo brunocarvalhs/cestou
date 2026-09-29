@@ -11,7 +11,6 @@ import br.com.brunocarvalhs.howmuch.feature.auth.presentation.components.auth.Cu
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.components.auth.CustomMethodPickerTerms
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.components.auth.CustomMfaChallengeContent
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.components.auth.CustomMfaEnrollmentContent
-import br.com.brunocarvalhs.howmuch.feature.auth.presentation.components.auth.CustomPhoneContent
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.components.auth.CustomReauthContent
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.screen.WelcomeScreen
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.viewmodel.WelcomeViewModel
@@ -48,10 +47,9 @@ internal fun NavGraphBuilder.authGraph(
             customMethodPickerTermsConfiguration = MethodPickerTermsConfiguration(
                 content = { CustomMethodPickerTerms() }
             ),
-            // Only Google is configured (see AuthConfigUseCase); the FirebaseUI email flow is
-            // unreachable, so no emailContent slot is wired up here — the library's default
-            // (never shown) applies.
-            phoneContent = { CustomPhoneContent(it) },
+            // Only Google is configured (see AuthConfigUseCase); the FirebaseUI email/phone flows
+            // are unreachable, so no emailContent/phoneContent slot is wired up here — the
+            // library's default (never shown) applies.
             mfaEnrollmentContent = { CustomMfaEnrollmentContent(it) },
             mfaChallengeContent = { CustomMfaChallengeContent(it) },
             reauthContent = { state ->
