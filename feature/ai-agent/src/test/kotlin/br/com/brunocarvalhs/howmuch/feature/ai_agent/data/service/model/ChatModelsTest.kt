@@ -20,6 +20,7 @@ class ChatModelsTest {
             ),
             tools = listOf(
                 Tool(
+                    type = "function",
                     function = FunctionDeclaration(
                         name = "add_product",
                         description = "adds a product",
@@ -64,10 +65,15 @@ class ChatModelsTest {
     }
 
     @Test
-    fun `Tool defaults type to function`() {
-        val tool = Tool(function = FunctionDeclaration("x", "y", JsonObject(emptyMap())))
+    fun `Tool serializes type even though it never varies`() {
+        // type has no default on purpose: kotlinx.serialization omits a property equal to its
+        // default unless encodeDefaults = true (this Json instance doesn't set it), and some
+        // OpenRouter backends (observed: Azure) reject a tool with no "type" field at all.
+        val tool = Tool(type = "function", function = FunctionDeclaration("x", "y", JsonObject(emptyMap())))
 
-        assertEquals("function", tool.type)
+        val encoded = json.encodeToString(Tool.serializer(), tool)
+
+        assertEquals(true, encoded.contains("\"type\":\"function\""))
     }
 
     @Test

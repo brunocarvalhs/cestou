@@ -31,6 +31,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
 import br.com.brunocarvalhs.howmuch.feature.settings.navigation.Settings
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
@@ -47,8 +48,10 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.Join
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.NotificationsViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ScannerViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingListViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingSubscriptionGateViewModel
 
 private const val SCANNER_MAX_HEIGHT_FRACTION = 0.8f
+private const val PAYWALL_SOURCE_QR_CODE = "shopping_qr_code"
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.shoppingGraph(
@@ -90,6 +93,9 @@ private fun NavGraphBuilder.shoppingEditDialog(navigator: Navigator) {
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         val snackbarHostState = remember { SnackbarHostState() }
 
+        val gateViewModel: ShoppingSubscriptionGateViewModel = hiltViewModel()
+        val isPro by gateViewModel.isPro.collectAsStateWithLifecycle()
+
         LaunchedEffect(uiState.error) {
             uiState.error?.let {
                 snackbarHostState.showSnackbar(it)
@@ -107,7 +113,11 @@ private fun NavGraphBuilder.shoppingEditDialog(navigator: Navigator) {
                         shopping = shopping, onSave = { updated: Shopping ->
                         viewModel.intent.onUpdate(updated)
                     }, onCancel = { viewModel.intent.onCancel() }, onShareToken = {
-                        viewModel.intent.onShareToken(shopping.id)
+                        if (isPro) {
+                            viewModel.intent.onShareToken(shopping.id)
+                        } else {
+                            navigator.navigate(Paywall(source = PAYWALL_SOURCE_QR_CODE))
+                        }
                     }, sharingToken = uiState.sharingToken
                     )
                 }

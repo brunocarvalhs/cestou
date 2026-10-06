@@ -1,0 +1,14 @@
+<resources>
+    <string name="paywall_title">Cestou Pro</string>
+    <string name="paywall_back_content_description">Voltar</string>
+    <string name="paywall_headline">Desbloqueie o Cestou Pro</string>
+    <string name="paywall_description">Tudo que você ganha com a assinatura Pro:</string>
+    <string name="paywall_benefit_chat">Chat com o assistente de IA sem limites</string>
+    <string name="paywall_benefit_share">Compartilhe listas com quem quiser</string>
+    <string name="paywall_benefit_qr_code">Convide por QR Code</string>
+    <string name="paywall_benefit_wear">Use o Cestou no seu relógio Wear OS</string>
+    <string name="paywall_subscribe_button">Assinar por %1$s/mês</string>
+    <string name="paywall_subscribe_button_no_price">Assinar</string>
+    <string name="paywall_already_pro">Você já é assinante Pro.</string>
+    <string name="paywall_error_prefix">Falha na compra: %1$s</string>
+</resources>

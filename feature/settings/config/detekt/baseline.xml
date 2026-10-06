@@ -12,6 +12,5 @@
     <ID>MaximumLineLength:SettingsModule.kt$SettingsModule$ </ID>
     <ID>MaximumLineLength:SettingsViewModelTest.kt$SettingsViewModelTest$ </ID>
     <ID>ParameterListWrapping:SettingsModule.kt$SettingsModule$(impl: SettingsInitializerImpl)</ID>
-    <ID>TooManyFunctions:SettingsRepositoryImplTest.kt$SettingsRepositoryImplTest</ID>
   </CurrentIssues>
 </SmellBaseline>

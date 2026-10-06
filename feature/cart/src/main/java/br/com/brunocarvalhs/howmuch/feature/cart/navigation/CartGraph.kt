@@ -16,11 +16,13 @@ import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.ConfirmItemContent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.EditItemContent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.FinishPurchaseContent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.ProductHistoryContent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.screen.CartScreen
+import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.CartSubscriptionGateViewModel
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.CartViewModel
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.ConfirmItemViewModel
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.EditItemViewModel
@@ -28,6 +30,8 @@ import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.FinishPu
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.ShareOptionsViewModel
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.ShareOptionsBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.EditShopping
+
+private const val PAYWALL_SOURCE_SHARE = "cart_share"
 
 @OptIn(ExperimentalMaterial3Api::class)
 internal fun NavGraphBuilder.cartGraph(
@@ -59,10 +63,21 @@ private fun NavGraphBuilder.cartDestination(
         viewModel.setNavigator(navigator)
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+        val gateViewModel: CartSubscriptionGateViewModel = hiltViewModel()
+        val isPro by gateViewModel.isPro.collectAsStateWithLifecycle()
+
         CartScreen(
             uiState = uiState,
             windowSizeClass = windowSizeClass,
-            intent = viewModel.intent,
+            intent = viewModel.intent.copy(
+                onShareShopping = {
+                    if (isPro) {
+                        viewModel.intent.onShareShopping()
+                    } else {
+                        navigator.navigate(Paywall(source = PAYWALL_SOURCE_SHARE))
+                    }
+                }
+            ),
             onBack = { navigator.goBack() },
             onOpenAiChat = {
                 uiState.shopping?.id?.let { shoppingId ->

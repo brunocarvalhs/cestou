@@ -41,8 +41,8 @@ android {
         applicationId = "br.com.brunocarvalhs.howmuch"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 9
-        versionName = "2.0.1"
+        versionCode = 10
+        versionName = "2.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -111,6 +111,7 @@ dependencies {
     implementation(project(":core:ai"))
     implementation(project(":core:remote-config"))
     implementation(project(":core:analytics"))
+    implementation(project(":core:billing"))
     implementation(project(":feature:shopping"))
     implementation(project(":feature:products"))
     implementation(project(":feature:settings"))
@@ -118,6 +119,7 @@ dependencies {
     implementation(project(":feature:profile"))
     implementation(project(":feature:chat"))
     implementation(project(":feature:cart"))
+    implementation(project(":feature:subscription"))
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)

@@ -3,4 +3,5 @@
     <string name="ai_chat_input_label">Message</string>
     <string name="ai_chat_settings_content_description">Settings</string>
     <string name="ai_chat_keyboard_content_description">Show keyboard</string>
+    <string name="ai_chat_upgrade_banner">You\'ve used your free message. Subscribe to Cestou Pro to keep chatting.</string>
 </resources>

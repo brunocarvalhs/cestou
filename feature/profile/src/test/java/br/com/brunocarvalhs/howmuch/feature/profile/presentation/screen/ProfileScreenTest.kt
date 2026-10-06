@@ -1,10 +1,13 @@
 package br.com.brunocarvalhs.howmuch.feature.profile.presentation.screen
 
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
+import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.feature.profile.R
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.intent.ProfileIntent
@@ -37,5 +40,60 @@ class ProfileScreenTest {
 
         composeTestRule.onNodeWithText(title).assertExists()
         composeTestRule.onNodeWithText("Ana").assertExists()
+    }
+
+    @Test
+    fun `tapping the settings icon triggers onNavigate`() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        var navigated = false
+
+        composeTestRule.setContent {
+            CestouTheme {
+                ProfileScreen(
+                    state = ProfileUiState(),
+                    intent = ProfileIntent(onNavigate = { navigated = true })
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithContentDescription(context.getString(R.string.profile_settings_content_description))
+            .performClick()
+        assert(navigated)
+    }
+
+    @Test
+    fun `a Free user sees the upgrade card and can tap it`() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        var tapped = false
+
+        composeTestRule.setContent {
+            CestouTheme {
+                ProfileScreen(
+                    state = ProfileUiState(),
+                    intent = ProfileIntent(onManageSubscription = { tapped = true }),
+                    subscriptionStatus = SubscriptionStatus.FREE
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(context.getString(R.string.profile_subscription_free_title)).performClick()
+        assert(tapped)
+    }
+
+    @Test
+    fun `a Pro user sees the active subscription badge`() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+
+        composeTestRule.setContent {
+            CestouTheme {
+                ProfileScreen(
+                    state = ProfileUiState(),
+                    intent = ProfileIntent(),
+                    subscriptionStatus = SubscriptionStatus.PRO
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(context.getString(R.string.profile_subscription_pro_subtitle)).assertExists()
     }
 }

@@ -4,7 +4,7 @@ appcompat = "1.8.0"
 compileSdk = "37"
 minSdk = "28"
 targetSdk = "37"
-coreKtx = "1.19.0"
+coreKtx = "1.19.1"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
@@ -12,12 +12,12 @@ lifecycleRuntimeKtx = "2.11.0"
 lifecycleViewmodelCompose = "2.11.0"
 lifecycleRuntimeCompose = "2.11.0"
 activityCompose = "1.13.0"
-kotlin = "2.4.10"
+kotlin = "2.4.20"
 markdownRenderer = "0.45.0"
 kotlinReflect = "2.4.20"
 composeBom = "2026.09.00"
 googleDevtoolsKsp = "2.3.12"
-navigationCompose = "2.10.1"
+navigationCompose = "2.10.2"
 navigation3 = "1.1.4"
 roomRuntime = "2.8.5"
 roomKtx = "2.8.5"
@@ -61,7 +61,7 @@ secretsGradlePlugin = "2.0.1"
 firebaseAuthKtx = "24.2.0"
 animation = "1.11.4"
 generativeAi = "0.9.0"
-wearCompose = "1.6.2"
+wearCompose = "1.7.0"
 zxing = "3.5.4"
 coreSplashScreen = "1.2.0"
 composeAdaptive = "1.2.0"
@@ -74,12 +74,13 @@ ktor = "2.3.2"
 robolectric = "4.17"
 playServicesWearable = "20.0.1"
 wearToolingPreview = "1.0.0"
-composeNavigation = "1.6.2"
+composeNavigation = "1.7.0"
 wearRemoteInteractions = "1.1.0"
 konsist = "0.17.3"
-workRuntimeKtx = "2.10.1"
+workRuntimeKtx = "2.12.0"
 hiltWork = "1.4.0"
 lottie = "6.7.1"
+billing = "9.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -192,6 +193,7 @@ androidx-compose-navigation = { group = "androidx.wear.compose", name = "compose
 wear-remoteinteractions = { group = "androidx.wear", name = "wear-remote-interactions", version.ref = "wearRemoteInteractions" }
 konsist = { group = "com.lemonappdev", name = "konsist", version.ref = "konsist" }
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
+billing-ktx = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billing" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

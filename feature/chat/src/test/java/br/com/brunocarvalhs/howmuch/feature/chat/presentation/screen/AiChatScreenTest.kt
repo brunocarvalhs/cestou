@@ -51,4 +51,32 @@ class AiChatScreenTest {
 
         composeTestRule.onNodeWithText("how much did I spend?").assertExists()
     }
+
+    @Test
+    fun `shows the upgrade banner when the trial is spent`() {
+        val bannerText = ApplicationProvider.getApplicationContext<android.content.Context>()
+            .getString(R.string.ai_chat_upgrade_banner)
+
+        composeTestRule.setContent {
+            CestouTheme {
+                AiChatScreen(state = AiChatUiState(), intent = AiChatIntent(), isSendEnabled = false)
+            }
+        }
+
+        composeTestRule.onNodeWithText(bannerText).assertExists()
+    }
+
+    @Test
+    fun `hides the upgrade banner when send is enabled`() {
+        val bannerText = ApplicationProvider.getApplicationContext<android.content.Context>()
+            .getString(R.string.ai_chat_upgrade_banner)
+
+        composeTestRule.setContent {
+            CestouTheme {
+                AiChatScreen(state = AiChatUiState(), intent = AiChatIntent(), isSendEnabled = true)
+            }
+        }
+
+        composeTestRule.onNodeWithText(bannerText).assertDoesNotExist()
+    }
 }

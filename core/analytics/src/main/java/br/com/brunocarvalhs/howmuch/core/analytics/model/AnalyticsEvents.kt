@@ -34,8 +34,16 @@ object AnalyticsEvents {
     const val SETTINGS_CURRENCY_CHANGED = "settings_currency_changed"
 
     const val AUTH_SIGN_IN_FAILED = "auth_sign_in_failed"
+    const val AUTH_SIGN_UP_FAILED = "auth_sign_up_failed"
+
+    // REASON carries only the rule category (length/characters/contact/blocked), never the typed
+    // name - it measures false positives of the anti-fake-name rules (spec EPA-13 item 16).
+    const val AUTH_NAME_VALIDATION_FAILED = "auth_name_validation_failed"
 
     const val PROFILE_SIGN_OUT = "profile_sign_out"
+
+    const val PAYWALL_SUBSCRIBE_CLICKED = "paywall_subscribe_clicked"
+    const val PAYWALL_PURCHASE_FAILED = "paywall_purchase_failed"
 }
 
 /**
