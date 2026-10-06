@@ -44,6 +44,11 @@ android {
         versionCode = 10
         versionName = "2.1.0"
 
+        // build.yml (develop -> Firebase App Distribution) passes -PdevBuildNumber so every
+        // tester build is distinguishable ("2.1.0-dev.412"); release.yml (store) never does, so the
+        // published versionName stays exactly the line above, which .github/scripts/version.sh bumps.
+        providers.gradleProperty("devBuildNumber").orNull?.let { versionNameSuffix = "-dev.$it" }
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
