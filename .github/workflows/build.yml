@@ -195,7 +195,9 @@ jobs:
             GRADLE_TASK=$(echo "$VARIANT" | jq -r '.gradle_task')
             PATH_GLOB=$(echo "$VARIANT" | jq -r '.path')
             echo "::group::Building $MODULE:$GRADLE_TASK"
-            ./gradlew "$MODULE:$GRADLE_TASK"
+            # Suffixes versionName with the run number ("2.1.0-dev.412") so App Distribution
+            # builds from develop are distinguishable; store builds (release.yml) don't pass it.
+            ./gradlew "$MODULE:$GRADLE_TASK" -PdevBuildNumber="${{ github.run_number }}"
             echo "::endgroup::"
             PATHS="$PATHS"$'\n'"$PATH_GLOB"
           done < <(echo '${{ needs.prepare.outputs.variants }}' | jq -c --arg t "${{ matrix.target_name }}" '.[] | select(.target == $t)')
