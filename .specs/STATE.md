@@ -254,6 +254,30 @@
 - **Status**: active — unblocks `tasks.md`'s T3 (recorded here) and releases T4–T7 in
   `.specs/features/g10-cross-feature-decoupling/tasks.md` for `android-engineer-architecture`.
 
+### AD-012
+- **Decision** (G18 phase 1, 2026-10-06, after the 2nd Play rejection for missing reviewer login):
+  1. **E-mail/password is our own flow on `FirebaseAuth`, not FirebaseUI's email provider.**
+     FirebaseUI 10.0.0-beta05 routes every unverified password user to `RequiresEmailVerification`
+     without calling `onSignInSuccess` (it would strand the Play reviewer) and reports errors only as
+     display strings. `EmailAuthRepositoryImpl` (feature/auth/data) maps Firebase exceptions to a
+     typed `EmailAuthError`; FirebaseUI keeps hosting Google only. E-mail verification is sent but
+     never blocks.
+  2. **Required first + last name, validated by one pure `PersonNameValidator` (core/domain/util)**,
+     concatenated as `"<first> <last>"` into Auth `displayName` and `users/{uid}.name` (no separate
+     fields). Anti-fake rules per spec EPA-13; errs on the side of accepting.
+  3. **Required-name gate in `MainActivity`**: any signed-in account with a blank name goes to
+     `CompleteName`, except inside the auth flow (`NavDestination.isAuthFlow()`), where a fresh
+     account has no name for a moment. The decision re-reads `AuthService.currentUser` synchronously.
+     `AuthService.updateDisplayName` publishes the new name itself (`updateProfile` does not fire the
+     AuthStateListener).
+  4. **`users/{uid}` is finally written**: `UserRepository.updateProfile` (PUT -> `update()`, failed
+     on a missing doc, had no callers) became `saveProfile` (POST -> `set()`, writes only
+     `id`/`name`/`photoUrl`, never `email` - partly closes the AD-009 exposure for re-saved docs).
+     `MainViewModel` saves it whenever the signed-in user's name/photo change, for every method,
+     which also backfills existing Google accounts.
+- **Not done here**: phone sign-in (phase 2), `firestore.rules` name check (waits for the AD-009
+  deploy), Maestro flows (no device in this session), re-auth before deleting an e-mail account.
+
 ## Handoff
 
 - **Feature**: beta-launch (see `.specs/BETA-LAUNCH-PLAN.md` — the ordered task queue T1–T6 — and

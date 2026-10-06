@@ -82,4 +82,6 @@
         <item>pt-BR</item>
         <item>es</item>
     </string-array>
+    <string name="password_show">Mostrar contraseña</string>
+    <string name="password_hide">Ocultar contraseña</string>
 </resources>
