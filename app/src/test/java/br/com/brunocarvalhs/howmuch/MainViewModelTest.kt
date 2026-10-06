@@ -6,8 +6,12 @@ import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
+import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
+import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -26,12 +30,16 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+@Suppress("TooManyFunctions")
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val authService = mockk<AuthService>()
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
+    private val userRepository = mockk<UserRepository> {
+        coEvery { saveProfile(any()) } returns Result.success(Unit)
+    }
 
     @Before
     fun setup() {
@@ -49,10 +57,13 @@ class MainViewModelTest {
     ): MainViewModel {
         val settingsRepository = mockk<SettingsRepository>()
         every { settingsRepository.getSettings() } returns flowOf(settings)
-        every { authService.authState } returns MutableStateFlow(currentUser)
-        every { authService.currentUser } returns currentUser
-        return MainViewModel(settingsRepository, authService, analyticsTracker)
+        authState.value = currentUser
+        every { authService.authState } returns authState
+        every { authService.currentUser } answers { authState.value }
+        return MainViewModel(settingsRepository, authService, userRepository, analyticsTracker)
     }
+
+    private val authState = MutableStateFlow<AuthenticatedUser?>(null)
 
     @Test
     fun `init tracks app_open`() {
@@ -93,4 +104,75 @@ class MainViewModelTest {
 
         vm.photoUrl.test { assertEquals("http://x/y.png", awaitItem()) }
     }
+
+    // region required name (spec EPA-06/07) and profile sync
+
+    @Test
+    fun `requiresName is true for a signed-in user without a display name`() = runTest {
+        val vm = viewModel(currentUser = AuthenticatedUser(id = "u1", displayName = " "))
+
+        vm.requiresName.test { assertTrue(awaitItem()) }
+        assertTrue(vm.requiresNameNow())
+    }
+
+    @Test
+    fun `requiresName is false for a named user and for a signed-out user`() = runTest {
+        val named = viewModel(currentUser = AuthenticatedUser(id = "u1", displayName = "Ana Silva"))
+        named.requiresName.test { assertFalse(awaitItem()) }
+        assertFalse(named.requiresNameNow())
+
+        val signedOut = viewModel(currentUser = null)
+        signedOut.requiresName.test { assertFalse(awaitItem()) }
+        assertFalse(signedOut.requiresNameNow())
+    }
+
+    @Test
+    fun `requiresNameNow reads the latest auth state, not a stale flow value`() {
+        val vm = viewModel(currentUser = AuthenticatedUser(id = "u1"))
+
+        authState.value = AuthenticatedUser(id = "u1", displayName = "Ana Silva")
+
+        assertFalse(vm.requiresNameNow())
+    }
+
+    @Test
+    fun `saves the users profile for a signed-in user with a name, without the e-mail`() {
+        viewModel(
+            currentUser = AuthenticatedUser(
+                id = "u1", email = "ana@test.com", displayName = "Ana Silva", photoUrl = "http://x/y.png"
+            )
+        )
+
+        coVerify(exactly = 1) {
+            userRepository.saveProfile(UserProfile(id = "u1", name = "Ana Silva", photoUrl = "http://x/y.png"))
+        }
+    }
+
+    @Test
+    fun `saves the profile again only when name or photo change`() {
+        viewModel(currentUser = AuthenticatedUser(id = "u1", displayName = "Ana Silva"))
+
+        authState.value = AuthenticatedUser(id = "u1", displayName = "Ana Silva", email = "new@test.com")
+        authState.value = AuthenticatedUser(id = "u1", displayName = "Ana Souza")
+
+        coVerify(exactly = 2) { userRepository.saveProfile(any()) }
+        coVerify { userRepository.saveProfile(UserProfile(id = "u1", name = "Ana Souza")) }
+    }
+
+    @Test
+    fun `does not save a profile without a name or without a user`() {
+        viewModel(currentUser = AuthenticatedUser(id = "u1", displayName = null))
+        authState.value = null
+
+        coVerify(exactly = 0) { userRepository.saveProfile(any()) }
+    }
+
+    @Test
+    fun `a failed profile save does not crash the app`() {
+        coEvery { userRepository.saveProfile(any()) } returns Result.failure(IllegalStateException("offline"))
+
+        viewModel(currentUser = AuthenticatedUser(id = "u1", displayName = "Ana Silva"))
+    }
+
+    // endregion
 }
