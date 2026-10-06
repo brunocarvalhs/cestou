@@ -71,12 +71,10 @@ dependencies {
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.kotlinx.coroutines.play.services)
 
-    implementation(libs.androidx.camera.core)
-    implementation(libs.androidx.camera.camera2)
-    implementation(libs.androidx.camera.lifecycle)
-    implementation(libs.androidx.camera.view)
+    // CameraX (camera-core/camera2/lifecycle/view) and mlkit-barcode-scanning moved to
+    // core/ui/build.gradle.kts (G10-02) - still used here by CameraCaptureView via the
+    // transitive `api` exposure from implementation(project(":core:ui")) above.
     implementation(libs.generative.ai)
-    implementation(libs.google.mlkit.barcode.scanning)
     implementation(libs.mlkit.image.labeling)
     implementation(libs.mlkit.text.recognition)
 

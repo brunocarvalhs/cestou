@@ -7,5 +7,6 @@
     <ID>MagicNumber:CompatibilityConverterTest.kt$CompatibilityConverterTest$42</ID>
     <ID>MagicNumber:CryptoManagerTest.kt$CryptoManagerTest$42.5</ID>
     <ID>TooManyFunctions:FirebaseFirestoreManagerTest.kt$FirebaseFirestoreManagerTest</ID>
+    <ID>TooManyFunctions:SettingsRepositoryImplTest.kt$SettingsRepositoryImplTest</ID>
   </CurrentIssues>
 </SmellBaseline>

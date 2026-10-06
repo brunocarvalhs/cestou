@@ -2,8 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateShoppingPreferencesUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.ShoppingSettingsIntent
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.state.ShoppingSettingsUiState
@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class ShoppingSettingsViewModel @Inject constructor(
-    private val getSettingsUseCase: GetSettingsUseCase,
+    private val settingsRepository: SettingsRepository,
     private val updateShoppingPreferencesUseCase: UpdateShoppingPreferencesUseCase
 ) : ViewModel() {
 
@@ -40,7 +40,7 @@ internal class ShoppingSettingsViewModel @Inject constructor(
     }
 
     private fun observeSettings() {
-        getSettingsUseCase()
+        settingsRepository.getSettings()
             .onEach { settings ->
                 _uiState.update { it.copy(
                     defaultListId = settings.defaultListId,

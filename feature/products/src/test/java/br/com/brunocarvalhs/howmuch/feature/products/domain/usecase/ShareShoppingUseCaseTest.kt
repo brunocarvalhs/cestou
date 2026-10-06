@@ -6,7 +6,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShareShoppingUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShareShoppingUseCaseImpl
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
@@ -22,7 +22,7 @@ class ShareShoppingUseCaseTest {
 
     private val productsUseCase = mockk<ProductsUseCase>()
     private val context = ApplicationProvider.getApplicationContext<Application>()
-    private val useCase = ShareShoppingUseCase(context, productsUseCase)
+    private val useCase = ShareShoppingUseCaseImpl(context, productsUseCase)
 
     private val shopping = Shopping(
         id = "list1",

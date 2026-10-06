@@ -1,8 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.profile.presentation.screen
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,12 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material.icons.filled.WorkspacePremium
@@ -34,23 +30,21 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
+import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
+import br.com.brunocarvalhs.howmuch.core.ui.components.UserAvatar
 import br.com.brunocarvalhs.howmuch.feature.profile.R
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.intent.ProfileIntent
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.state.ProfileUiState
-import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,6 +90,7 @@ internal fun ProfileScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             UserInfoHeader(
+                id = state.user?.id.orEmpty(),
                 name = state.user?.displayName,
                 email = state.user?.email,
                 photoUrl = state.user?.photoUrl
@@ -141,9 +136,12 @@ internal fun ProfileScreen(
 }
 
 @Composable
-private fun UserInfoHeader(name: String?, email: String?, photoUrl: String?) {
+private fun UserInfoHeader(id: String, name: String?, email: String?, photoUrl: String?) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        ProfileAvatar(name = name, photoUrl = photoUrl)
+        UserAvatar(
+            profile = UserProfile(id = id, name = name, photoUrl = photoUrl),
+            size = AVATAR_SIZE_DP.dp
+        )
         Spacer(modifier = Modifier.height(16.dp))
         name?.let {
             Text(
@@ -163,43 +161,6 @@ private fun UserInfoHeader(name: String?, email: String?, photoUrl: String?) {
 }
 
 private const val AVATAR_SIZE_DP = 88
-
-@Composable
-private fun ProfileAvatar(name: String?, photoUrl: String?) {
-    Box(
-        modifier = Modifier
-            .size(AVATAR_SIZE_DP.dp)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.primaryContainer),
-        contentAlignment = Alignment.Center
-    ) {
-        if (photoUrl != null) {
-            AsyncImage(
-                model = photoUrl,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape)
-            )
-        } else if (!name.isNullOrBlank()) {
-            val locale = LocalLocale.current.platformLocale
-            Text(
-                text = name.trim().take(1).uppercase(locale),
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        } else {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(40.dp)
-            )
-        }
-    }
-}
 
 @Composable
 private fun ProfileMenuGroup(content: @Composable () -> Unit) {

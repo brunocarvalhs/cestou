@@ -3,8 +3,8 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateThemeUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.ThemeSettingsIntent
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.state.ThemeSettingsUiState
@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 internal class ThemeSettingsViewModel @Inject constructor(
-    private val getSettingsUseCase: GetSettingsUseCase,
+    private val settingsRepository: SettingsRepository,
     private val updateThemeUseCase: UpdateThemeUseCase
 ) : ViewModel() {
 
@@ -40,7 +40,7 @@ internal class ThemeSettingsViewModel @Inject constructor(
     }
 
     private fun observeSettings() {
-        getSettingsUseCase()
+        settingsRepository.getSettings()
             .onEach { settings ->
                 _uiState.update { it.copy(themeMode = settings.themeMode) }
             }.catch { e -> throw e }.launchIn(viewModelScope)

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Test-only manifest, merged only into core/ui's isolated androidTest APK — never into the shipped
+    app. Moved here from feature/products (G10-02: CameraPreviewExecutorLifecycleTest.kt relocated
+    alongside CameraPreview). `core/ui` has no google-services.json of its own (only `:app`/`:wear`
+    apply the Google Services plugin, per `.github/pipeline-config.yaml`), so `core/common`'s
+    `FirebaseInitializer` androidx.startup entry crashes this module's standalone instrumented tests
+    at process start with "Default FirebaseApp is not initialized". `TimberInitializer`
+    (core/common, a direct dependency of core/ui) declares both `FirebaseInitializer::class.java`
+    and `CrashlyticsInitializer::class.java` in its own `dependencies()` — androidx.startup
+    constructs declared dependencies transitively regardless of the manifest, so both must be
+    removed here too. `core/ui` does not depend on `core:auth`/`core:remote-config` (unlike
+    feature/products' original version of this file), so their initializers aren't in this
+    module's graph and aren't listed. Scoped to this module's androidTest APK only; `core/common`'s
+    manifest (which every module, including `:app`, still needs as-is) is untouched.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application>
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="br.com.brunocarvalhs.howmuch.core.common.initializer.FirebaseInitializer"
+                tools:node="remove" />
+            <meta-data
+                android:name="br.com.brunocarvalhs.howmuch.core.common.initializer.CrashlyticsInitializer"
+                tools:node="remove" />
+            <meta-data
+                android:name="br.com.brunocarvalhs.howmuch.core.common.initializer.TimberInitializer"
+                tools:node="remove" />
+        </provider>
+    </application>
+</manifest>
