@@ -8,6 +8,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.services.get
 import br.com.brunocarvalhs.howmuch.core.domain.services.observe
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -146,6 +147,21 @@ class FirebaseAuthService @Inject constructor(
     } catch (e: Exception) {
         if (e is kotlinx.coroutines.CancellationException) throw e
         Timber.tag(TAG).e(e, "Falha ao excluir conta")
+        Result.failure(e)
+    }
+
+    override suspend fun updateDisplayName(name: String): Result<Unit> = try {
+        val user = auth.currentUser
+            ?: return Result.failure(IllegalStateException("No authenticated user"))
+        user.updateProfile(userProfileChangeRequest { displayName = name }).await()
+        user.reload().await()
+        // updateProfile() does not fire the AuthStateListener; publish so gates relying on the
+        // display name (e.g. the required-name step) see it immediately.
+        _firebaseAuthState.value = auth.currentUser?.toAuthenticatedUserOrNull()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        if (e is kotlinx.coroutines.CancellationException) throw e
+        Timber.tag(TAG).e(e, "Falha ao atualizar o nome")
         Result.failure(e)
     }
 

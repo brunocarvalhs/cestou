@@ -1,8 +1,6 @@
 package br.com.brunocarvalhs.howmuch.core.data.repository
 
 import br.com.brunocarvalhs.howmuch.core.data.extensions.toDomain
-import br.com.brunocarvalhs.howmuch.core.data.extensions.toModel
-import br.com.brunocarvalhs.howmuch.core.data.extensions.toMap
 import br.com.brunocarvalhs.howmuch.core.data.model.UserProfileModel
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
@@ -28,12 +26,15 @@ class UserRepositoryImpl @Inject constructor(
         ).map { it?.toDomain() }
     }
 
-    override suspend fun updateProfile(user: UserProfile): Result<Unit> = runCatching {
+    // POST with an id maps to set() (create-or-replace); PUT maps to update(), which fails on a
+    // missing document. The e-mail is left out on purpose: users/{uid} is readable by any
+    // signed-in user who knows the uid (AD-009).
+    override suspend fun saveProfile(user: UserProfile): Result<Unit> = runCatching {
         networkService.make(
             request = NetworkService.NetworkRequest(
-                endpoint = "$ENDPOINT/${user.id}",
-                method = NetworkService.Method.PUT,
-                payload = user.toModel().toMap()
+                endpoint = ENDPOINT,
+                method = NetworkService.Method.POST,
+                payload = mapOf("id" to user.id, "name" to user.name, "photoUrl" to user.photoUrl)
             ),
             response = Boolean::class
         )
