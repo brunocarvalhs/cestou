@@ -1,10 +1,12 @@
 package br.com.brunocarvalhs.howmuch.feature.auth.presentation.components.auth
 
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.feature.auth.domain.usecase.GoogleProviderUseCase
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -67,5 +69,27 @@ class CustomMethodPickerTest {
 
         assert(privacyClicked)
         assert(!termsClicked)
+    }
+
+    @Test
+    fun `method picker lists Google then e-mail, with no phone option in phase 1`() {
+        var emailSelected = false
+        composeTestRule.setContent {
+            CestouTheme {
+                CustomMethodPickerLayout(
+                    providers = listOf(GoogleProviderUseCase()()),
+                    onProviderSelected = {},
+                    onEmailSelected = { emailSelected = true }
+                )
+            }
+        }
+
+        val google = composeTestRule.onNodeWithTag("welcome_google_button").fetchSemanticsNode().boundsInRoot
+        val email = composeTestRule.onNodeWithTag("welcome_email_button").fetchSemanticsNode().boundsInRoot
+        assert(google.top < email.top)
+        composeTestRule.onNodeWithTag("welcome_phone_button").assertDoesNotExist()
+
+        composeTestRule.onNodeWithTag("welcome_email_button").performClick()
+        assert(emailSelected)
     }
 }

@@ -1,7 +1,9 @@
 <resources>
     <string name="profile_title">Perfil</string>
-    <string name="profile_menu_notification_preferences">Preferências de Notificação</string>
-    <string name="profile_menu_theme_currency_language">Tema, Moeda e Idioma</string>
-    <string name="profile_menu_about">Sobre o App</string>
+    <string name="profile_settings_content_description">Configurações</string>
     <string name="profile_menu_sign_out">Sair</string>
+    <string name="profile_subscription_pro_title">Cestou Pro</string>
+    <string name="profile_subscription_pro_subtitle">Assinatura ativa</string>
+    <string name="profile_subscription_free_title">Cestou Free</string>
+    <string name="profile_subscription_free_subtitle">Desbloqueie recursos Pro</string>
 </resources>

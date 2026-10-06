@@ -25,8 +25,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.common.extensions.hasPermission
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.scanner.CameraPreview
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.scanner.QRCodeOverlay
+import br.com.brunocarvalhs.howmuch.core.ui.components.scanner.CameraPreview
+import br.com.brunocarvalhs.howmuch.core.ui.components.scanner.QRCodeOverlay
 
 @Composable
 internal fun QrCodeScanner(

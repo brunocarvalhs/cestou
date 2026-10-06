@@ -1,5 +1,73 @@
 # Changelog
 
+## [2.1.0] - 2026-10-06
+
+* Merge pull request #148 from brunocarvalhs/feat/g18-email-auth
+* Merge branch 'develop' into feat/g18-email-auth
+* fix(auth): start e-mail screens from LaunchedEffect, not remember
+* feat(app): required-name gate and users/{uid} sync (AD-012)
+* feat(auth): e-mail sign-in, sign-up, password reset and required-name step
+* feat(ui): avatar with photo and initials fallback, form-ready text fields
+* feat(core): add PersonNameValidator, saveProfile and updateDisplayName
+* docs(g18): add e-mail/phone auth spec and roadmap entry
+* build(deps): bump org.jetbrains.kotlinx:kover-gradle-plugin (#147)
+* Merge pull request #146 from brunocarvalhs/feat/g10-share-shopping-boundary
+* docs(g10): mark T4 done, tasks.md was missing its checkmarks
+* fix(g10): renumber ShareShoppingUseCase decision from AD-010 to AD-011
+* test(products): close PR3 with a full-suite green gate (AD-010)
+* chore(products): confirm no build.gradle.kts change needed (AD-010)
+* refactor(products): wire ProductReader and ShareShoppingUseCase ports
+* feat(core-domain): add ProductReader and ShareShoppingUseCase ports
+* build(deps): bump kotlin from 2.4.10 to 2.4.20 (#124)
+* Merge pull request #144 from brunocarvalhs/feat/g10-settings-repository
+* fix(g10): resolve Detekt violations introduced by T1's settings move
+* fix(app): reorder MainViewModelTest imports for Detekt ImportOrdering
+* feat(core): promote SettingsRepository to core/domain and core/data
+* chore(ci): update APK size baseline to 188779306 bytes
+* Merge pull request #143 from brunocarvalhs/fix/remove-dead-email-phone-auth
+* Merge pull request #145 from brunocarvalhs/feat/g10-scanner-core-ui
+* refactor(core-ui): move scanner CameraPreview/QRCodeOverlay to core/ui
+* fix(auth): remove dead Phone auth UI code, symmetric with Email
+* fix(auth): remove dead Email/Phone auth UI code
+* Merge pull request #142 from brunocarvalhs/docs/g10-sdd-baseline
+* docs(g10): land canonical SDD baseline (AD-010/AD-011)
+* build(deps): bump androidx.wear.compose:compose-navigation (#140)
+* build(deps): bump gradle-wrapper from 9.7.1 to 9.8.0 (#137)
+* build(deps): bump androidx.work:work-runtime-ktx from 2.10.1 to 2.12.0 (#141)
+* build(deps): bump androidx.navigation:navigation-compose (#138)
+* build(deps): bump androidx.core:core-ktx from 1.19.0 to 1.19.1 (#139)
+* build(deps): bump wearCompose from 1.6.2 to 1.7.0 (#136)
+* chore(ci): update APK size baseline to 188339914 bytes
+* Merge pull request #134 from brunocarvalhs/feature/pro-subscription
+* fix(wear): provide a stub SubscriptionRepository so :wear's Hilt graph compiles
+* feat(subscription): show a Pro benefits list on the Paywall
+* fix(ai): free-trial write could be lost if the chat screen closed quickly
+* fix(ai): two real OpenRouter request bugs causing intermittent chat failures
+* fix(chat): auto-scroll and banner color regressions
+* fix(ai): default to OpenRouter instead of native Gemini SDK
+* feat(subscription): gate list sharing, QR invites, and Wear pairing behind Pro
+* feat(ai): gate the AI chat behind a 1-free-message Pro trial
+* Merge remote-tracking branch 'origin/feat/subscription-paywall-ai-gate' into feature/pro-subscription
+* feat(subscription): paywall UI + purchase flow (AD-010)
+* feat(profile): collapse settings into a gear icon, add subscription card
+* fix(billing): declare one-time-product pending-purchase support
+* feat(ai): gate Pro-only agent actions at the dispatch chokepoint (AD-010)
+* Merge pull request #132 from brunocarvalhs/feat/core-billing-entitlement-contract
+* fix(billing): fix real compile errors CI caught in PR #132
+* feat(billing): entitlement contract + Play Billing repo + Paywall route (AD-010)
+* fix(deeplink): fill in the real app signing SHA-256 in assetlinks.json
+* chore(ci): update APK size baseline to 187679998 bytes
+* fix(deeplink): move invite App Links off the dead cestou.app host
+* fix(legal): host Privacy Policy / Terms on Firebase Hosting
+* build(deps): bump org.jetbrains.kotlinx:kover-gradle-plugin (#128)
+* build(deps): bump com.squareup.okhttp3:okhttp from 5.4.0 to 5.5.0 (#127)
+* build(deps): bump com.google.zxing:core from 3.5.3 to 3.5.4 (#126)
+* build(deps): bump com.google.devtools.ksp from 2.3.5 to 2.3.12 (#125)
+* build(deps): bump agp from 9.4.0 to 9.4.1 (#122)
+* build(deps): bump androidx.navigation:navigation-compose (#123)
+* Merge pull request #120 from brunocarvalhs/develop
+
+
 ## [2.0.1] - 2026-09-22
 
 * Merge pull request #119 from brunocarvalhs/fix/route-type-r8-keep

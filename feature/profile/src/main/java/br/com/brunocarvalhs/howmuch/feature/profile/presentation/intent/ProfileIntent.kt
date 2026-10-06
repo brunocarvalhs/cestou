@@ -4,5 +4,6 @@ internal data class ProfileIntent(
     val onNavigate: (Any) -> Unit = {},
     val onSignOut: () -> Unit = {},
     val onLinkWearDevice: () -> Unit = {},
-    val onLinkMobileDevice: () -> Unit = {}
+    val onLinkMobileDevice: () -> Unit = {},
+    val onManageSubscription: () -> Unit = {}
 )

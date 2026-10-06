@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model
 
 import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @OptIn(InternalSerializationApi::class)
@@ -10,4 +11,5 @@ data class ChatRequest(
     val messages: List<Message>,
     val tools: List<Tool>? = null,
     val temperature: Float? = null,
+    @SerialName("max_tokens") val maxTokens: Int? = null,
 )

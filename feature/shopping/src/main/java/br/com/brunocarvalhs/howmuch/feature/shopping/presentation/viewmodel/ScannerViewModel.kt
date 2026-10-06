@@ -23,11 +23,10 @@ internal class ScannerViewModel @Inject constructor(
 
     private var _navigator: Navigator? = null
 
-    // NOTE: BarcodeAnalyzer (feature/products, internal) fires onBarcodeScanned on every analyzed
-    // camera frame with no throttle of its own — the debounce guard below is what keeps holding a
-    // QR code in frame from re-triggering ShoppingJoinUseCase once per frame (see MVP-ROADMAP G13).
-    // feature/shopping depending on that internal class is a separate cross-module coupling issue
-    // (G10) and is intentionally not addressed here.
+    // NOTE: BarcodeAnalyzer (core/ui, internal — moved from feature/products by G10-02) fires
+    // onBarcodeScanned on every analyzed camera frame with no throttle of its own — the debounce
+    // guard below is what keeps holding a QR code in frame from re-triggering ShoppingJoinUseCase
+    // once per frame (see MVP-ROADMAP G13).
     private var isJoining = false
 
     val intent = ScannerIntent(

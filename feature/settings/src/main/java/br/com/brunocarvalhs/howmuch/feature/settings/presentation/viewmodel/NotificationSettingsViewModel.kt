@@ -2,8 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateNotificationSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.NotificationSettingsIntent
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.state.NotificationSettingsUiState
@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class NotificationSettingsViewModel @Inject constructor(
-    private val getSettingsUseCase: GetSettingsUseCase,
+    private val settingsRepository: SettingsRepository,
     private val updateNotificationSettingsUseCase: UpdateNotificationSettingsUseCase
 ) : ViewModel() {
 
@@ -38,7 +38,7 @@ internal class NotificationSettingsViewModel @Inject constructor(
     }
 
     private fun observeSettings() {
-        getSettingsUseCase()
+        settingsRepository.getSettings()
             .onEach { settings ->
                 _uiState.update { it.copy(
                     notificationsEnabled = settings.notificationsEnabled,

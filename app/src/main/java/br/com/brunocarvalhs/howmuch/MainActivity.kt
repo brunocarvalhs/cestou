@@ -41,7 +41,9 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouBottomNavigation
+import br.com.brunocarvalhs.howmuch.feature.auth.navigation.CompleteName
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.Welcome
+import br.com.brunocarvalhs.howmuch.feature.auth.navigation.isAuthFlow
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
@@ -104,6 +106,7 @@ class MainActivity : AppCompatActivity() {
             val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
 
             val initialAuthenticated = remember { isAuthenticated }
+            val requiresName by viewModel.requiresName.collectAsStateWithLifecycle()
             var wasAuthenticated by remember { mutableStateOf(isAuthenticated) }
             LaunchedEffect(isAuthenticated) {
                 if (isAuthenticated) {
@@ -129,6 +132,18 @@ class MainActivity : AppCompatActivity() {
             LaunchedEffect(isOnProtectedRoute, isAuthenticated) {
                 if (!isAuthenticated && isOnProtectedRoute) {
                     navigator.navigate(Welcome) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                }
+            }
+
+            // Required-name gate (spec EPA-06): a signed-in account without a name never reaches the
+            // app. Skipped inside the auth flow, where a just-created account has no name for a
+            // moment; the decision re-reads the auth state so a name saved a moment ago is honored.
+            LaunchedEffect(requiresName, currentDestination) {
+                val destination = currentDestination ?: return@LaunchedEffect
+                if (requiresName && !destination.isAuthFlow() && viewModel.requiresNameNow()) {
+                    navigator.navigate(CompleteName) {
                         popUpTo(navController.graph.id) { inclusive = true }
                     }
                 }
@@ -162,9 +177,16 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
 
+                    val startDestination = remember {
+                        when {
+                            !initialAuthenticated -> Welcome
+                            viewModel.requiresNameNow() -> CompleteName
+                            else -> ShoppingList
+                        }
+                    }
                     NavHost(
                         navController = navController,
-                        startDestination = if (initialAuthenticated) ShoppingList else Welcome
+                        startDestination = startDestination
                     ) {
                         featureInitializers.forEach {
                             it.registerGraph(this, navigator, windowSizeClass)

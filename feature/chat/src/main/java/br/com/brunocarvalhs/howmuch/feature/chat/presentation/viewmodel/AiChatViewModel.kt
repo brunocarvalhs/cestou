@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
@@ -20,7 +21,8 @@ import javax.inject.Inject
 class AiChatViewModel @Inject constructor(
     private val assistantUseCase: CartAssistantUseCase,
     private val chatHistoryRepository: ChatHistoryRepository,
-    private val analyticsTracker: AnalyticsTracker
+    private val analyticsTracker: AnalyticsTracker,
+    private val aiTrialRepository: AiTrialRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AiChatUiState())
@@ -50,6 +52,7 @@ class AiChatViewModel @Inject constructor(
         if (text.isBlank()) return
 
         analyticsTracker.trackEvent(AnalyticsEvents.AI_CHAT_MESSAGE_SENT)
+        viewModelScope.launch { aiTrialRepository.markFreeMessageUsed() }
 
         val userMessage = ChatMessage(text = text, sender = ChatMessage.Sender.USER)
         _uiState.update {

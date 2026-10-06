@@ -37,12 +37,17 @@ android {
         }
     }
 
+    // build.yml (develop -> Firebase App Distribution) passes -PdevBuildNumber so internal builds
+    // read "2.1.0-dev.412" (debug) / "2.1.0-release.412" (release); release.yml (store) never does,
+    // so the published versionName stays the defaultConfig line that .github/scripts/version.sh bumps.
+    val devBuildNumber = providers.gradleProperty("devBuildNumber").orNull
+
     defaultConfig {
         applicationId = "br.com.brunocarvalhs.howmuch"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 9
-        versionName = "2.0.1"
+        versionCode = 10
+        versionName = "2.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -50,9 +55,10 @@ android {
     buildTypes {
         debug {
             isDebuggable = true
-            versionNameSuffix = "-debug"
+            versionNameSuffix = devBuildNumber?.let { "-dev.$it" } ?: "-debug"
         }
         release {
+            devBuildNumber?.let { versionNameSuffix = "-release.$it" }
             if (canSignRelease) {
                 signingConfig = signingConfigs.getByName("release")
             }
@@ -111,6 +117,7 @@ dependencies {
     implementation(project(":core:ai"))
     implementation(project(":core:remote-config"))
     implementation(project(":core:analytics"))
+    implementation(project(":core:billing"))
     implementation(project(":feature:shopping"))
     implementation(project(":feature:products"))
     implementation(project(":feature:settings"))
@@ -118,6 +125,7 @@ dependencies {
     implementation(project(":feature:profile"))
     implementation(project(":feature:chat"))
     implementation(project(":feature:cart"))
+    implementation(project(":feature:subscription"))
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)

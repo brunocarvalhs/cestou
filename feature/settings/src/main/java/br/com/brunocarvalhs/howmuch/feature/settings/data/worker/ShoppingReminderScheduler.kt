@@ -5,6 +5,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
+import br.com.brunocarvalhs.howmuch.core.domain.services.ReminderScheduler
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
@@ -15,12 +16,14 @@ import javax.inject.Inject
  * enqueues (or updates the schedule of) a periodic [ShoppingReminderWorker] when both the
  * notifications master switch and the shopping-specific reminder are on, and cancels it
  * otherwise. Call [sync] after every settings write that can affect either flag or the time.
+ * Implements [ReminderScheduler] (`core/domain`) so `core/data`'s `SettingsRepositoryImpl` can
+ * trigger it without depending on `feature/settings`.
  */
 internal class ShoppingReminderScheduler @Inject constructor(
     @ApplicationContext private val context: Context
-) {
+) : ReminderScheduler {
 
-    fun sync(settings: AppSettings) {
+    override fun sync(settings: AppSettings) {
         val workManager = WorkManager.getInstance(context)
 
         if (!settings.notificationsEnabled || !settings.remindersEnabled) {

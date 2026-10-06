@@ -28,10 +28,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
@@ -89,6 +91,8 @@ private const val BUBBLE_TAIL_RADIUS_DP = 4
 private const val AVATAR_SIZE_DP = 40
 private const val EMOJI_PICKER_HEIGHT_DP = 260
 private const val EMOJI_PICKER_COLUMNS = 8
+// The LazyColumn always wraps state.messages with one leading and one trailing Spacer item.
+private const val LEADING_AND_TRAILING_SPACERS = 2
 
 private val QUICK_EMOJIS = listOf(
     "😀", "😁", "😂", "🤣", "😊", "😍", "😘", "😜",
@@ -101,7 +105,10 @@ private val QUICK_EMOJIS = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiChatScreen(
-    state: AiChatUiState, intent: AiChatIntent
+    state: AiChatUiState,
+    intent: AiChatIntent,
+    isSendEnabled: Boolean = true,
+    onUpgradeClick: () -> Unit = {}
 ) {
     var showEmojiPicker by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
@@ -157,6 +164,9 @@ fun AiChatScreen(
         },
         bottomBar = {
             Column(modifier = Modifier.navigationBarsPadding()) {
+                if (!isSendEnabled) {
+                    AiChatUpgradeBanner(onClick = onUpgradeClick)
+                }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -167,6 +177,7 @@ fun AiChatScreen(
                     OutlinedTextField(
                         value = state.input,
                         onValueChange = { intent.onInputChange(it) },
+                        enabled = isSendEnabled,
                         placeholder = { Text(text = stringResource(R.string.ai_chat_input_label)) },
                         leadingIcon = {
                             IconButton(
@@ -203,7 +214,7 @@ fun AiChatScreen(
                         )
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    FilledIconButton(onClick = { intent.onSendMessage() }) {
+                    FilledIconButton(onClick = { intent.onSendMessage() }, enabled = isSendEnabled) {
                         Icon(
                             Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(
                                 br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_send_message
@@ -224,10 +235,13 @@ fun AiChatScreen(
     ) { paddingValues ->
         val listState = rememberLazyListState()
 
+        // listState.layoutInfo.totalItemsCount lags one layout pass behind the state change
+        // that triggers this effect, so it must not be used to compute the scroll target —
+        // derive the count from the same state driving the LazyColumn content below instead.
         LaunchedEffect(state.messages.size, state.isLoading) {
-            val lastIndex = listState.layoutInfo.totalItemsCount - 1
-            if (lastIndex >= 0) {
-                listState.animateScrollToItem(lastIndex)
+            val itemCount = state.messages.size + LEADING_AND_TRAILING_SPACERS + if (state.isLoading) 1 else 0
+            if (itemCount > 0) {
+                listState.animateScrollToItem(itemCount - 1)
             }
         }
 
@@ -361,6 +375,46 @@ private fun TypingBubble() {
     }
 }
 
+// Matches CestouLockedBanner's errorContainer treatment (core:ui) — this is a hit-a-limit
+// alert, not a positive/brand-colored message, so it must not read as primaryContainer green.
+private const val UPGRADE_BANNER_BG_ALPHA = 0.7f
+private const val UPGRADE_BANNER_TEXT_ALPHA = 0.8f
+
+@Composable
+private fun AiChatUpgradeBanner(onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick),
+        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = UPGRADE_BANNER_BG_ALPHA)
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.WorkspacePremium,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onErrorContainer
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = stringResource(R.string.ai_chat_upgrade_banner),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = UPGRADE_BANNER_TEXT_ALPHA),
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onErrorContainer
+            )
+        }
+    }
+}
+
 private val previewMessages = listOf(
     ChatMessage(id = 1, text = "Quanto vou gastar nessa lista?", sender = ChatMessage.Sender.USER),
     ChatMessage(
@@ -403,6 +457,18 @@ private fun AiChatScreenLoadingPreview() {
             state = AiChatUiState(
                 messages = previewMessages, isLoading = true
             ), intent = AiChatIntent()
+        )
+    }
+}
+
+@PreviewCestouScreens
+@Composable
+private fun AiChatScreenTrialUsedPreview() {
+    CestouTheme {
+        AiChatScreen(
+            state = AiChatUiState(messages = previewMessages),
+            intent = AiChatIntent(),
+            isSendEnabled = false
         )
     }
 }

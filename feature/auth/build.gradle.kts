@@ -77,6 +77,7 @@ dependencies {
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
+    implementation(libs.kotlinx.coroutines.play.services)
     implementation("com.firebaseui:firebase-ui-auth:10.0.0-beta05")
 
     testImplementation(libs.junit)

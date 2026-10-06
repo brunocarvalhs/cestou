@@ -24,16 +24,16 @@ import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.common.BuildConfig
+import br.com.brunocarvalhs.howmuch.core.common.extensions.openBrowser
+import br.com.brunocarvalhs.howmuch.core.common.extensions.openEmail
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiModel
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
-import br.com.brunocarvalhs.howmuch.core.common.extensions.openBrowser
-import br.com.brunocarvalhs.howmuch.core.common.extensions.openEmail
-import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiSettings
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiSettings
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.settings.R
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.GetSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateCurrencyUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateLanguageUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.navigation.AppRate
@@ -68,7 +68,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val getSettingsUseCase: GetSettingsUseCase,
+    private val settingsRepository: SettingsRepository,
     private val updateLanguageUseCase: UpdateLanguageUseCase,
     private val updateCurrencyUseCase: UpdateCurrencyUseCase,
     private val analyticsTracker: AnalyticsTracker
@@ -109,7 +109,7 @@ internal class SettingsViewModel @Inject constructor(
     }
 
     private fun observeSettings() {
-        getSettingsUseCase().onEach { settings ->
+        settingsRepository.getSettings().onEach { settings ->
             _uiState.update { it.copy(sections = buildSections(settings)) }
         }.launchIn(viewModelScope)
     }

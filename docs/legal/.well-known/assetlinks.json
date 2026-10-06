@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "br.com.brunocarvalhs.howmuch",
+      "sha256_cert_fingerprints": [
+        "89:08:DB:A1:BF:0C:E0:CE:D8:BA:B3:16:B7:BB:A7:5F:6B:8E:12:DD:9D:CD:7C:4E:23:13:1E:F9:7E:A3:BA:D6"
+      ]
+    }
+  }
+]

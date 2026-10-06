@@ -48,7 +48,22 @@ dependencies {
     implementation(libs.timber)
     implementation(libs.zxing.core)
 
+    // CameraX: `api` because CameraPreview()'s public signature exposes androidx.camera.core.Camera
+    // (onCameraReady callback) and feature/products' CameraCaptureView still needs these classes
+    // transitively via its existing implementation(project(":core:ui")) dependency after this move.
+    api(libs.androidx.camera.core)
+    api(libs.androidx.camera.camera2)
+    api(libs.androidx.camera.lifecycle)
+    api(libs.androidx.camera.view)
+    implementation(libs.google.mlkit.barcode.scanning)
+
     testImplementation(libs.junit)
     testImplementation(libs.konsist)
     testImplementation(libs.mockk)
+
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.runner)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

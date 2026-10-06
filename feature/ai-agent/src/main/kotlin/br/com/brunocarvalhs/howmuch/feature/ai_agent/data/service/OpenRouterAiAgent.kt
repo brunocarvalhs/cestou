@@ -6,8 +6,11 @@ import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
+import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.ChatRequest
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.ChatResponse
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.FunctionCall
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.Message
 import com.google.ai.client.generativeai.type.Content
 import com.google.ai.client.generativeai.type.TextPart
@@ -24,6 +27,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import timber.log.Timber
@@ -42,6 +46,7 @@ internal class OpenRouterAiAgent(
     private val registry: AgentRegistry = dependencies.registry
     private val crashReporter: CrashReporter = dependencies.crashReporter
     private val systemPrompt: String = dependencies.systemPrompt
+    private val subscriptionRepository: SubscriptionRepository = dependencies.subscriptionRepository
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -90,7 +95,9 @@ internal class OpenRouterAiAgent(
 
             val tools = buildOpenRouterTools(registry.getAll())
 
-            var currentRequest = ChatRequest(model = model, messages = messages, tools = tools)
+            var currentRequest = ChatRequest(
+                model = model, messages = messages, tools = tools, maxTokens = MAX_RESPONSE_TOKENS
+            )
             var response: ChatResponse = executeRequest(currentRequest)
 
             // Loop para processar Function Calling
@@ -99,34 +106,7 @@ internal class OpenRouterAiAgent(
                 messages.add(assistantMessage)
 
                 assistantMessage.toolCalls?.forEach { toolCall ->
-                    val functionCall = toolCall.function
-                    val action = registry.find(functionCall.name)
-                    
-                    val result = if (action != null) {
-                        try {
-                            val args = parseFunctionCallArguments(json, functionCall.arguments)
-                            action.execute(args, session, meta).getOrNull()?.toString() ?: "Sucesso"
-                        } catch (e: Exception) {
-                            Timber.tag(TAG).e(
-                                e,
-                                "Erro executando a função '%s' com args=%s",
-                                functionCall.name,
-                                functionCall.arguments
-                            )
-                            crashReporter.recordException(
-                                e,
-                                extras = mapOf(
-                                    "provider" to "openrouter",
-                                    "model" to model,
-                                    "function" to functionCall.name
-                                )
-                            )
-                            "Erro na execução da ação: ${e.message}"
-                        }
-                    } else {
-                        Timber.tag(TAG).w("Ação '%s' não encontrada no registry", functionCall.name)
-                        "Erro: Ação '${functionCall.name}' não encontrada"
-                    }
+                    val result = executeToolCall(toolCall.function, meta)
 
                     messages.add(Message(
                         role = "tool",
@@ -135,7 +115,9 @@ internal class OpenRouterAiAgent(
                     ))
                 }
 
-                currentRequest = ChatRequest(model = model, messages = messages, tools = tools)
+                currentRequest = ChatRequest(
+                    model = model, messages = messages, tools = tools, maxTokens = MAX_RESPONSE_TOKENS
+                )
                 response = executeRequest(currentRequest)
             }
 
@@ -183,9 +165,57 @@ internal class OpenRouterAiAgent(
         }
     }
 
+    /**
+     * Dispatch chokepoint (AD-010): resolves [functionCall] against [registry], gates it behind
+     * the Pro subscription when [br.com.brunocarvalhs.howmuch.core.ai.contract.AgentAction.requiresPro]
+     * is set, and otherwise executes it. Extracted out of [sendMessage]'s tool-call loop so the
+     * gate is directly unit-testable without spinning up the full HTTP round-trip.
+     */
+    internal suspend fun executeToolCall(functionCall: FunctionCall, meta: Map<String, Any?>): String {
+        val action = registry.find(functionCall.name)
+        return if (action != null && action.requiresPro && !isPro()) {
+            "Essa ação é exclusiva do plano Pro."
+        } else if (action != null) {
+            try {
+                val args = parseFunctionCallArguments(json, functionCall.arguments)
+                action.execute(args, session, meta).getOrNull()?.toString() ?: "Sucesso"
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(
+                    e,
+                    "Erro executando a função '%s' com args=%s",
+                    functionCall.name,
+                    functionCall.arguments
+                )
+                crashReporter.recordException(
+                    e,
+                    extras = mapOf(
+                        "provider" to "openrouter",
+                        "model" to model,
+                        "function" to functionCall.name
+                    )
+                )
+                "Erro na execução da ação: ${e.message}"
+            }
+        } else {
+            Timber.tag(TAG).w("Ação '%s' não encontrada no registry", functionCall.name)
+            "Erro: Ação '${functionCall.name}' não encontrada"
+        }
+    }
+
+    /** Point-in-time read of the current entitlement (AD-010); the gate only needs "right now". */
+    private suspend fun isPro(): Boolean =
+        subscriptionRepository.observeStatus().first() == SubscriptionStatus.PRO
+
     companion object {
         private const val TAG = "OpenRouterAiAgent"
         private const val REQUEST_TIMEOUT_MS = 45_000L
         private const val CONNECT_TIMEOUT_MS = 15_000L
+        // Omitting max_tokens lets OpenRouter default to the routed model's own max output
+        // (up to 65535 on some), which "auto"/free-tier accounts often can't afford —
+        // observed as a real 402 "requires more credits" on this exact request shape. A chat
+        // reply plus tool-call round trips never needs anywhere near that; this stays safely
+        // under the free-tier credit ceiling seen in production while leaving room for a full
+        // multi-paragraph response.
+        private const val MAX_RESPONSE_TOKENS = 2_048
     }
 }

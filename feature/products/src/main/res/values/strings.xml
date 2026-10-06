@@ -11,7 +11,6 @@
 
     <!-- Feature: Product -->
     <string name="product_ai_identifying">AI is identifying items&#8230;</string>
-    <string name="product_barcode_instruction">Position the barcode within the area</string>
     <string name="product_photo_instruction">Frame the product\'s price tag inside the box</string>
     <string name="product_option_search">Search</string>
     <string name="product_option_photo">Photo</string>

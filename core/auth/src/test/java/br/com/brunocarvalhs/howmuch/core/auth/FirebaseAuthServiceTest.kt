@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.core.auth
 
+import android.text.TextUtils
 import app.cash.turbine.test
 import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
 import com.google.android.gms.tasks.Tasks
@@ -9,7 +10,9 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.slot
+import io.mockk.unmockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
@@ -52,6 +55,7 @@ class FirebaseAuthServiceTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+        unmockkStatic(TextUtils::class)
     }
 
     @Test
@@ -259,5 +263,45 @@ class FirebaseAuthServiceTest {
             assertEquals("linked-id", emitted?.id)
             assertEquals("user@test.com", emitted?.email)
         }
+    }
+
+    @Test
+    fun `updateDisplayName updates the Firebase profile and publishes the new name`() = runTest {
+        // UserProfileChangeRequest.Builder calls TextUtils, which is a stub on the plain JVM.
+        mockkStatic(TextUtils::class)
+        every { TextUtils.isEmpty(any()) } answers { firstArg<CharSequence?>().isNullOrEmpty() }
+        var name: String? = null
+        val user = mockk<FirebaseUser>(relaxed = true) {
+            every { uid } returns "user-1"
+            every { isAnonymous } returns false
+            every { photoUrl } returns null
+            every { displayName } answers { name }
+            every { updateProfile(any()) } answers {
+                name = "Ana Silva"
+                Tasks.forResult(null)
+            }
+            every { reload() } returns Tasks.forResult(null)
+        }
+        every { auth.currentUser } returns user
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        val result = service.updateDisplayName("Ana Silva")
+
+        assertTrue(result.isSuccess)
+        // updateProfile() does not fire the AuthStateListener, so the service must publish itself.
+        assertEquals("Ana Silva", service.currentUser?.displayName)
+        service.authState.test {
+            assertEquals("Ana Silva", awaitItem()?.displayName)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `updateDisplayName fails when nobody is signed in`() = runTest {
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        val result = service.updateDisplayName("Ana Silva")
+
+        assertTrue(result.isFailure)
     }
 }

@@ -12,14 +12,18 @@ import android.net.Uri
  * AndroidManifest.xml) - and to the Play Store when the app is not installed yet.
  *
  * [HOST] must stay in sync with that manifest intent-filter and with the
- * `https://<HOST>/.well-known/assetlinks.json` file that verifies the App Link. It is a
- * placeholder until a production domain (or Firebase Hosting project) is wired up.
+ * `https://<HOST>/.well-known/assetlinks.json` file that verifies the App Link.
+ *
+ * `cestou.app` was a placeholder that never actually pointed anywhere - the DNS for that domain
+ * belongs to unrelated infrastructure, so App Links against it could never verify. `HOST` now
+ * points at the app's own Firebase Hosting site (same project as Auth/Analytics/Crashlytics,
+ * see `docs/legal/join/` and `docs/legal/.well-known/assetlinks.json`), which is live today. If
+ * `cestou.app` (or another custom domain) is ever wired up for real, update this constant, the
+ * matching `<data android:host="...">` in AndroidManifest.xml, and redeploy the assetlinks file.
  */
 object InviteLink {
 
-    // TODO: replace with the real host once the domain / Firebase Hosting project is set up,
-    // and update the matching <data android:host="..."> in AndroidManifest.xml.
-    const val HOST = "cestou.app"
+    const val HOST = "how-much-2a72e.web.app"
 
     private const val PATH_SEGMENT = "join"
     private const val QUERY_PARAM_TOKEN = "token"

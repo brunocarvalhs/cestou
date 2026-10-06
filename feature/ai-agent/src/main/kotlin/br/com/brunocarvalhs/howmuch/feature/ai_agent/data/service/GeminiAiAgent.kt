@@ -6,6 +6,8 @@ import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
+import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.BlockThreshold
 import com.google.ai.client.generativeai.type.Content
@@ -18,6 +20,7 @@ import com.google.ai.client.generativeai.type.Schema
 import com.google.ai.client.generativeai.type.TextPart
 import com.google.ai.client.generativeai.type.Tool
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import org.json.JSONObject
 import timber.log.Timber
@@ -35,6 +38,7 @@ internal class GeminiAiAgent(
     private val registry: AgentRegistry = dependencies.registry
     private val crashReporter: CrashReporter = dependencies.crashReporter
     private val systemPrompt: String = dependencies.systemPrompt
+    private val subscriptionRepository: SubscriptionRepository = dependencies.subscriptionRepository
 
     private val generativeModel: GenerativeModel by lazy {
         GenerativeModel(
@@ -117,12 +121,19 @@ internal class GeminiAiAgent(
         }
     }
 
-    private suspend fun executeFunctionCall(
+    /**
+     * Dispatch chokepoint (AD-010): resolves [functionCall] against [registry], gates it behind
+     * the Pro subscription when [AgentAction.requiresPro] is set, and otherwise executes it.
+     * `internal` (not `private`) so the gate is directly unit-testable.
+     */
+    internal suspend fun executeFunctionCall(
         functionCall: FunctionCallPart,
         meta: Map<String, Any?>
     ): FunctionResponsePart {
         val action = registry.find(functionCall.name)
-        val result = if (action != null) {
+        val result = if (action != null && action.requiresPro && !isPro()) {
+            "Essa ação é exclusiva do plano Pro."
+        } else if (action != null) {
             try {
                 action.execute(
                     arguments = functionCall.args,
@@ -158,6 +169,10 @@ internal class GeminiAiAgent(
             response = JSONObject().apply { put("result", result) }
         )
     }
+
+    /** Point-in-time read of the current entitlement (AD-010); the gate only needs "right now". */
+    private suspend fun isPro(): Boolean =
+        subscriptionRepository.observeStatus().first() == SubscriptionStatus.PRO
 
     companion object {
         private const val TAG = "GeminiAiAgent"

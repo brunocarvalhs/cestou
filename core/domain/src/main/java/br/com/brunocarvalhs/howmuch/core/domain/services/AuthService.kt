@@ -10,4 +10,7 @@ interface AuthService {
     suspend fun signOut(): Result<Unit>
     suspend fun updateUserId(userId: String)
     suspend fun deleteAccount(): Result<Unit>
+
+    /** Sets the signed-in user's display name and publishes it on [authState] right away. */
+    suspend fun updateDisplayName(name: String): Result<Unit>
 }
