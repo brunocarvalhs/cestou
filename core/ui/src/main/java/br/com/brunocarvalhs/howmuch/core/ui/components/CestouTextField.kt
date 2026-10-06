@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -24,11 +26,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.ui.R
 
 @Composable
 fun CestouTextField(
@@ -40,7 +48,12 @@ fun CestouTextField(
     leadingIcon: ImageVector? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     isError: Boolean = false,
-    errorMessage: String? = null
+    errorMessage: String? = null,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    enabled: Boolean = true,
+    supportingText: String? = null,
+    textFieldModifier: Modifier = Modifier,
+    testTag: String? = null
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
@@ -52,7 +65,9 @@ fun CestouTextField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = textFieldModifier.optionalTestTag(testTag).fillMaxWidth(),
+            enabled = enabled,
+            singleLine = true,
             placeholder = placeholder?.let { { Text(text = it) } },
             leadingIcon = leadingIcon?.let {
                 {
@@ -65,19 +80,19 @@ fun CestouTextField(
             },
             shape = RoundedCornerShape(16.dp),
             keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
             isError = isError,
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 focusedBorderColor = MaterialTheme.colorScheme.primary
             )
         )
-        if (isError && errorMessage != null) {
-            Text(
-                text = errorMessage,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
+        FieldSupportingText(
+            isError = isError,
+            errorMessage = errorMessage,
+            supportingText = supportingText,
+            errorModifier = Modifier.optionalTestTag(testTag?.let { "${it}_error" })
+        )
     }
 }
 
@@ -89,7 +104,13 @@ fun CestouPasswordField(
     modifier: Modifier = Modifier,
     placeholder: String? = null,
     isError: Boolean = false,
-    errorMessage: String? = null
+    errorMessage: String? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    enabled: Boolean = true,
+    supportingText: String? = null,
+    textFieldModifier: Modifier = Modifier,
+    testTag: String? = null
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
 
@@ -103,7 +124,9 @@ fun CestouPasswordField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = textFieldModifier.optionalTestTag(testTag).fillMaxWidth(),
+            enabled = enabled,
+            singleLine = true,
             placeholder = placeholder?.let { { Text(text = it) } },
             leadingIcon = {
                 Icon(
@@ -116,28 +139,62 @@ fun CestouPasswordField(
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                        contentDescription = null
+                        contentDescription = stringResource(
+                            if (passwordVisible) R.string.password_hide else R.string.password_show
+                        )
                     )
                 }
             },
             shape = RoundedCornerShape(16.dp),
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
             isError = isError,
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 focusedBorderColor = MaterialTheme.colorScheme.primary
             )
         )
-        if (isError && errorMessage != null) {
-            Text(
-                text = errorMessage,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
+        FieldSupportingText(
+            isError = isError,
+            errorMessage = errorMessage,
+            supportingText = supportingText,
+            errorModifier = Modifier.optionalTestTag(testTag?.let { "${it}_error" })
+        )
     }
 }
+
+/**
+ * Error (announced by TalkBack as a polite live region) or, when there is none, a help text.
+ * The error node is tagged `<testTag>_error` so E2E flows can assert it without text.
+ */
+@Composable
+private fun FieldSupportingText(
+    isError: Boolean,
+    errorMessage: String?,
+    supportingText: String?,
+    errorModifier: Modifier
+) {
+    if (isError && errorMessage != null) {
+        Text(
+            text = errorMessage,
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = errorModifier
+                .padding(top = 4.dp)
+                .semantics { liveRegion = LiveRegionMode.Polite }
+        )
+    } else if (supportingText != null) {
+        Text(
+            text = supportingText,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+    }
+}
+
+private fun Modifier.optionalTestTag(tag: String?): Modifier = tag?.let { testTag(it) } ?: this
 
 @Preview
 @Composable
