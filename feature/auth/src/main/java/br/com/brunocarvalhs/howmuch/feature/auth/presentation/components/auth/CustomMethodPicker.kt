@@ -36,14 +36,15 @@ import br.com.brunocarvalhs.howmuch.core.ui.R as CoreUiR
 @Composable
 internal fun CustomMethodPickerLayout(
     providers: List<AuthProvider>,
-    onProviderSelected: (AuthProvider) -> Unit
+    onProviderSelected: (AuthProvider) -> Unit,
+    onEmailSelected: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         providers.forEach { provider ->
-            // Only Google is ever configured (see AuthConfigUseCase); the `else` branch is
+            // FirebaseUI only ever hosts Google (see AuthConfigUseCase); the `else` branch is
             // defensive exhaustiveness for AuthProvider, not a real UI path.
             val (text, icon) = when (provider) {
                 is AuthProvider.Google -> stringResource(R.string.auth_continue_with_google) to providerIcon {
@@ -70,6 +71,14 @@ internal fun CustomMethodPickerLayout(
                 modifier = testTag?.let { Modifier.testTag(it) } ?: Modifier
             )
         }
+
+        // E-mail is our own flow on FirebaseAuth, not a FirebaseUI provider (spec EPA-01: after Google).
+        SocialButton(
+            text = stringResource(R.string.auth_continue_with_email),
+            icon = { Icon(imageVector = Icons.Default.Email, contentDescription = null) },
+            onClick = onEmailSelected,
+            modifier = Modifier.testTag("welcome_email_button")
+        )
     }
 }
 
