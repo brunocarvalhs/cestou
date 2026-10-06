@@ -3,7 +3,6 @@ package br.com.brunocarvalhs.howmuch.feature.auth.navigation
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
@@ -85,7 +84,7 @@ private fun NavGraphBuilder.emailSignInDestination(navigator: Navigator, onAuthS
     composable<EmailSignIn> { entry ->
         val viewModel: EmailSignInViewModel = hiltViewModel()
         val email = entry.toRoute<EmailSignIn>().email
-        remember(viewModel) { viewModel.start(email) }
+        LaunchedEffect(viewModel, email) { viewModel.start(email) }
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         LaunchedEffect(state.isSuccess) { if (state.isSuccess) onAuthSuccess() }
 
@@ -122,7 +121,7 @@ private fun NavGraphBuilder.passwordResetDestination(navigator: Navigator) {
     composable<PasswordReset> { entry ->
         val viewModel: PasswordResetViewModel = hiltViewModel()
         val email = entry.toRoute<PasswordReset>().email
-        remember(viewModel) { viewModel.start(email) }
+        LaunchedEffect(viewModel, email) { viewModel.start(email) }
         val state by viewModel.uiState.collectAsStateWithLifecycle()
 
         PasswordResetScreen(state = state, intent = viewModel.intent, onBack = { navigator.goBack() })
