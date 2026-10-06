@@ -37,6 +37,11 @@ android {
         }
     }
 
+    // build.yml (develop -> Firebase App Distribution) passes -PdevBuildNumber so internal builds
+    // read "2.1.0-dev.412" (debug) / "2.1.0-release.412" (release); release.yml (store) never does,
+    // so the published versionName stays the defaultConfig line that .github/scripts/version.sh bumps.
+    val devBuildNumber = providers.gradleProperty("devBuildNumber").orNull
+
     defaultConfig {
         applicationId = "br.com.brunocarvalhs.howmuch"
         minSdk = libs.versions.minSdk.get().toInt()
@@ -44,20 +49,16 @@ android {
         versionCode = 10
         versionName = "2.1.0"
 
-        // build.yml (develop -> Firebase App Distribution) passes -PdevBuildNumber so every
-        // tester build is distinguishable ("2.1.0-dev.412"); release.yml (store) never does, so the
-        // published versionName stays exactly the line above, which .github/scripts/version.sh bumps.
-        providers.gradleProperty("devBuildNumber").orNull?.let { versionNameSuffix = "-dev.$it" }
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         debug {
             isDebuggable = true
-            versionNameSuffix = "-debug"
+            versionNameSuffix = devBuildNumber?.let { "-dev.$it" } ?: "-debug"
         }
         release {
+            devBuildNumber?.let { versionNameSuffix = "-release.$it" }
             if (canSignRelease) {
                 signingConfig = signingConfigs.getByName("release")
             }
