@@ -163,10 +163,12 @@ jobs:
   # to master with the admin PAT (enforce_admins is off), with [skip ci] so
   # the bump commit doesn't re-trigger this workflow; sync-develop then
   # carries it back into develop.
-  # `ship` is false when the version in the file already has a tag (nothing
-  # new to release, e.g. a merge of only chore/docs/ci commits), so build and
-  # deploy are skipped instead of re-uploading a used versionCode. A re-run
-  # after the bump was pushed but before the tag existed still ships it.
+  # Every PR merge bumps at least a patch: its "Merge pull request #N"
+  # subject is unique and isn't a non-bumping type (so a rollback PR always
+  # ships a new versionCode too). `ship` is false only when the version in
+  # the file already has a tag - a re-run after the release was cut - so
+  # build and deploy are skipped instead of re-uploading a used versionCode.
+  # A re-run after the bump was pushed but before the tag existed ships it.
   version:
     needs: [prepare, checks_stage_1, checks_stage_2]
     if: |
