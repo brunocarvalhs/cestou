@@ -5,8 +5,9 @@ name: Release - Rollback Master
 # bookkeeping (versionCode must keep increasing for the Play Store, so the
 # rollback still ships as a NEW, higher version - it just contains old code).
 # Opens a PR into master like any other change; merging it runs the normal
-# release.yml path (build, GitHub Release, manual approval gate, Google
-# Play), and sync-develop brings the rollback into develop too.
+# release.yml path (version bump - the `revert:` commit makes it a patch -,
+# build, GitHub Release, manual approval gate, Google Play), and
+# sync-develop brings the rollback into develop too.
 
 on:
   workflow_dispatch:
@@ -51,7 +52,6 @@ jobs:
           echo "step_validate_tag=$(yq '.rollback.step_names.validate_tag' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_create_branch=$(yq '.rollback.step_names.create_branch' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_restore_code=$(yq '.rollback.step_names.restore_code' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "step_bump_version=$(yq '.rollback.step_names.bump_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_push_open_pr=$(yq '.rollback.step_names.push_open_pr' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
       - name: ${{ steps.config.outputs.step_checkout_target_branch }}
@@ -94,17 +94,6 @@ jobs:
           git add -A
           git commit -m "revert: rollback master to ${{ inputs.tag }}" -m "${{ inputs.reason }}"
 
-      - name: ${{ steps.config.outputs.step_bump_version }}
-        id: bump
-        run: |
-          chmod +x .github/scripts/version.sh
-          new_version=$(.github/scripts/version.sh)
-          echo "new_version=$new_version" >> $GITHUB_OUTPUT
-          GRADLE_FILE="${{ steps.config.outputs.gradle_file }}"
-          CHANGELOG_FILE="${{ steps.config.outputs.changelog_file }}"
-          git add "$GRADLE_FILE" "$CHANGELOG_FILE"
-          git commit -m "chore(release): prepare $new_version"
-
       - name: ${{ steps.config.outputs.step_push_open_pr }}
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
@@ -113,8 +102,8 @@ jobs:
           BRANCH="${{ steps.branch.outputs.name }}"
           git push origin "$BRANCH"
 
-          BODY=$(printf '**Motivo:** %s\n\nRestaura o conteúdo de `%s` para o estado da tag `%s`, preservando o versionamento (nova versão: **%s**). Merge dispara `release.yml` normalmente: checks, build, GitHub Release, gate manual, Google Play - `sync-develop` então mergeia isso de volta em develop.' \
-            "${{ inputs.reason }}" "$MAIN" "${{ inputs.tag }}" "${{ steps.bump.outputs.new_version }}")
+          BODY=$(printf '**Motivo:** %s\n\nRestaura o conteúdo de `%s` para o estado da tag `%s`, preservando o versionamento. Merge dispara `release.yml` normalmente: checks, bump de versão (patch, versionCode novo), build, GitHub Release, gate manual, Google Play - `sync-develop` então mergeia isso de volta em develop.' \
+            "${{ inputs.reason }}" "$MAIN" "${{ inputs.tag }}")
 
           gh pr create \
             --title "🔴 Rollback: voltar $MAIN para ${{ inputs.tag }}" \
