@@ -231,16 +231,13 @@ pr_gate:
 release:
   enabled: true
   command_aab: "./gradlew bundleRelease"
-  # versionName/versionCode and CHANGELOG.md are bumped by .github/scripts/version.sh
-  # BEFORE master ever sees the commit - release-pr.yml runs it directly on
-  # develop (promote PR: develop -> master) and rollback.yml runs it on the
-  # rollback branch, both as part of the PR diff into master so it's reviewed
-  # like any other change (master is a protected branch with no direct
-  # pushes - see branch protection rules). This flag only toggles whether
-  # release.yml reads that already-bumped version back out and creates a
-  # tagged GitHub Release for it. Disable to build/deploy a master push
-  # without cutting a GitHub Release, e.g. re-running a failed Play Store
-  # deploy for a version already released.
+  # versionName/versionCode and CHANGELOG.md are bumped together by
+  # .github/scripts/version.sh in release.yml's `version` job, on every merge
+  # into master, and pushed to master as a [skip ci] commit (admin PAT) -
+  # so every master build gets a fresh versionCode. release-pr.yml only
+  # dry-runs it for the PR title. This flag toggles that bump plus the tagged
+  # GitHub Release. Disable to build/deploy a master push as-is, e.g.
+  # re-running a failed Play Store deploy for a version already released.
   versioning:
     enabled: true
   # Step names for release.yml's `build`/`release` jobs, plus release-pr.yml
@@ -250,13 +247,13 @@ release:
   step_names:
     build_aab: "\U0001F3D7️ Build AAB"
     upload_aab: "\U0001F4E4 Upload AAB Artifact"
-    read_version: "\U0001F522 Read current version"
     create_release: "\U0001F3F7️ Create Release"
     sync_merge: "\U0001F500 Merge master into develop"
     sync_open_pr_conflict: "⚠️ Open PR on conflict"
-    # release-pr.yml
     bump_version: "\U0001F522 Bump version and changelog"
-    commit_push_develop: "\U0001F4E4 Commit and push to develop"
+    commit_push_master: "\U0001F4E4 Commit and push version bump to master"
+    # release-pr.yml
+    preview_version: "\U0001F522 Preview next version"
     open_pr: "\U0001F500 Open PR develop → master"
     noop: "\U0001F4A4 No releasable changes"
   firebase:
@@ -298,7 +295,6 @@ rollback:
     validate_tag: "\U0001F50D Validate tag exists"
     create_branch: "\U0001F33F Create rollback branch"
     restore_code: "⏪ Restore code to target tag"
-    bump_version: "\U0001F522 Bump version and changelog"
     push_open_pr: "\U0001F500 Push and open PR"
 # Security & Supply-Chain Scanning.
 # - codeql / commitlint: `codeql`/`commitlint` jobs in tests.yml (part of PR
@@ -332,7 +328,7 @@ security:
   commitlint:
     enabled: true
     node_version: 24
-    # version.sh (release-pr.yml / rollback.yml) decides the semver bump by
+    # version.sh (release.yml, on merge into master) decides the semver bump by
     # grepping commit subjects for these prefixes, so an unenforced typo here
     # silently produces the wrong version - this is what actually keeps that
     # contract honest.
