@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.1.1] - 2026-10-08
+
+* Merge pull request #152 from brunocarvalhs/develop
+* Merge pull request #153 from brunocarvalhs/chore/feature-template-label
+* chore(github): label feature issues with the existing enhancement label
+* Merge pull request #151 from brunocarvalhs/ci/bump-version-on-master-merge
+* ci(release): document that every master merge bumps, rollbacks included
+* ci(release): bump versionName and versionCode together on merge into master
+* Merge pull request #149 from brunocarvalhs/develop
+
+
 ## [2.1.0] - 2026-10-06
 
 * Merge pull request #148 from brunocarvalhs/feat/g18-email-auth
