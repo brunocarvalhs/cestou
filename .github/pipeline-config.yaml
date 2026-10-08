@@ -275,6 +275,11 @@ release:
     # a higher user_fraction, then flip this to "completed" once it's at 100%.
     status: "inProgress"
     user_fraction: 0.1
+    # true = upload the AAB and create the release in the Play Console, but
+    # don't send it for review - that's done by hand in the Console UI.
+    # Required while the app has pending changes Play won't let the API send
+    # for review ("Changes cannot be sent for review automatically").
+    changes_not_sent_for_review: true
     # Job in release.yml targets this GitHub Environment before uploading to
     # the Play Store, so the actual gate (require a reviewer, yes/no) is
     # whatever protection rules that environment has under repo Settings >
