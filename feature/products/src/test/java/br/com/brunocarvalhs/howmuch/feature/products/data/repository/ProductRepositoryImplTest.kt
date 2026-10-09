@@ -11,8 +11,11 @@ import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.RemoteVariableKeys
 import br.com.brunocarvalhs.howmuch.feature.products.data.model.ProductModel
 import br.com.brunocarvalhs.howmuch.feature.products.data.services.PriceTagResult
 import br.com.brunocarvalhs.howmuch.feature.products.data.services.ProductImageTextRecognizer
+import br.com.brunocarvalhs.howmuch.feature.products.data.services.UriBitmapLoader
+import br.com.brunocarvalhs.howmuch.feature.products.domain.exception.ImageUnreadableException
 import com.google.ai.client.generativeai.GenerativeModel
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
@@ -32,6 +35,7 @@ class ProductRepositoryImplTest {
     private val cloudNetwork = mockk<NetworkService>()
     private val shoppingRepository = mockk<ShoppingRepository>()
     private val imageTextRecognizer = mockk<ProductImageTextRecognizer>()
+    private val bitmapLoader = mockk<UriBitmapLoader>()
     private val remoteVariableService = mockk<RemoteVariableService>()
     private lateinit var repository: ProductRepositoryImpl
 
@@ -56,6 +60,7 @@ class ProductRepositoryImplTest {
             cloudNetwork,
             shoppingRepository,
             imageTextRecognizer,
+            bitmapLoader,
             remoteVariableService
         )
     }
@@ -170,10 +175,11 @@ class ProductRepositoryImplTest {
     @Test
     fun `analyzeImage builds products straight from OCR candidates without calling Gemini`() = runTest {
         val bitmap = mockk<Bitmap>()
+        coEvery { bitmapLoader.load("content://photo") } returns bitmap
         coEvery { imageTextRecognizer.recognizePriceTag(bitmap) } returns
             PriceTagResult(nameCandidates = listOf("Arroz Branco"), price = 12.5)
 
-        val result = repository.analyzeImage(bitmap)
+        val result = repository.analyzeImage("content://photo")
 
         assertTrue(result.isSuccess)
         val products = result.getOrThrow()
@@ -185,11 +191,22 @@ class ProductRepositoryImplTest {
     @Test
     fun `analyzeImage fails when OCR throws`() = runTest {
         val bitmap = mockk<Bitmap>()
+        coEvery { bitmapLoader.load("content://photo") } returns bitmap
         coEvery { imageTextRecognizer.recognizePriceTag(bitmap) } throws IllegalStateException("ML Kit unavailable")
 
-        val result = repository.analyzeImage(bitmap)
+        val result = repository.analyzeImage("content://photo")
 
         assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `analyzeImage fails with ImageUnreadableException when the image can't be decoded`() = runTest {
+        coEvery { bitmapLoader.load("content://broken") } returns null
+
+        val result = repository.analyzeImage("content://broken")
+
+        assertTrue(result.exceptionOrNull() is ImageUnreadableException)
+        coVerify(exactly = 0) { imageTextRecognizer.recognizePriceTag(any(), any()) }
     }
 
     @Test

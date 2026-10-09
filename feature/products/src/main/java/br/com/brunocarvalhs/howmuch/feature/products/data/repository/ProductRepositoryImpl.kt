@@ -14,6 +14,8 @@ import br.com.brunocarvalhs.howmuch.feature.products.data.extensions.toDomain
 import br.com.brunocarvalhs.howmuch.feature.products.data.extensions.toModel
 import br.com.brunocarvalhs.howmuch.feature.products.data.model.ProductModel
 import br.com.brunocarvalhs.howmuch.feature.products.data.services.ProductImageTextRecognizer
+import br.com.brunocarvalhs.howmuch.feature.products.data.services.UriBitmapLoader
+import br.com.brunocarvalhs.howmuch.feature.products.domain.exception.ImageUnreadableException
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
 import com.google.ai.client.generativeai.GenerativeModel
 import kotlinx.coroutines.flow.Flow
@@ -40,6 +42,7 @@ class ProductRepositoryImpl @Inject constructor(
     private val cloudNetwork: NetworkService,
     private val shoppingRepository: ShoppingRepository,
     private val imageTextRecognizer: ProductImageTextRecognizer,
+    private val bitmapLoader: UriBitmapLoader,
     private val remoteVariableService: RemoteVariableService
 ) : ProductRepository {
 
@@ -209,8 +212,9 @@ class ProductRepositoryImpl @Inject constructor(
      * paid Gemini vision call when OCR finds nothing (e.g. produce with no printed
      * tag in frame), so the AI cost is only paid when it's actually needed.
      */
-    override suspend fun analyzeImage(bitmap: Bitmap): Result<List<Product>> {
+    override suspend fun analyzeImage(imageUri: String): Result<List<Product>> {
         return runCatching {
+            val bitmap = bitmapLoader.load(imageUri) ?: throw ImageUnreadableException()
             val tag = imageTextRecognizer.recognizePriceTag(bitmap)
             if (tag.nameCandidates.isNotEmpty()) {
                 tag.nameCandidates.map { name ->

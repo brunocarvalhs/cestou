@@ -1,6 +1,5 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
-import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentAction
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentParameter
 import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
@@ -10,8 +9,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.User
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
-import br.com.brunocarvalhs.howmuch.feature.shopping.R
-import dagger.hilt.android.qualifiers.ApplicationContext
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.text.ShoppingTexts
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,7 +30,7 @@ import javax.inject.Singleton
 )
 @Singleton
 class ShoppingCreateUseCase @Inject constructor(
-    @ApplicationContext private val context: Context,
+    private val texts: ShoppingTexts,
     private val repository: ShoppingRepository,
     private val authService: AuthService,
 ) : AgentActionUseCase<Shopping>() {
@@ -47,8 +45,8 @@ class ShoppingCreateUseCase @Inject constructor(
 
         val shopping = Shopping(
             id = UUID.randomUUID().toString(),
-            title = title ?: context.getString(R.string.shopping_list_new_title),
-            description = description ?: context.getString(R.string.shopping_list_new_description),
+            title = title ?: texts.newListTitle(),
+            description = description ?: texts.newListDescription(),
             price = 0.0,
             status = Shopping.Status.NEW,
             users = listOf(userId),

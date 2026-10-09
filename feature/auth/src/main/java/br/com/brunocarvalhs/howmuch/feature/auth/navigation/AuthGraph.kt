@@ -63,7 +63,7 @@ internal fun NavGraphBuilder.authGraph(
             customMethodPickerTermsConfiguration = MethodPickerTermsConfiguration(
                 content = { CustomMethodPickerTerms() }
             ),
-            // FirebaseUI hosts only Google (see AuthConfigUseCase). E-mail is our own flow below,
+            // FirebaseUI hosts only Google (see FirebaseAuthUiConfig). E-mail is our own flow below,
             // on FirebaseAuth, so no emailContent/phoneContent slot is wired up here.
             mfaEnrollmentContent = { CustomMfaEnrollmentContent(it) },
             mfaChallengeContent = { CustomMfaChallengeContent(it) },

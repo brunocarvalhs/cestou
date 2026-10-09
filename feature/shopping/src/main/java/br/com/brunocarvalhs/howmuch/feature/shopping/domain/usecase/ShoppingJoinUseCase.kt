@@ -1,18 +1,16 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
-import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
-import dagger.hilt.android.qualifiers.ApplicationContext
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.text.ShoppingTexts
 import timber.log.Timber
 import javax.inject.Inject
-import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
 private const val SHORT_CODE_MAX_LENGTH = 8
 
 class ShoppingJoinUseCase @Inject constructor(
-    @ApplicationContext private val context: Context,
+    private val texts: ShoppingTexts,
     private val repository: ShoppingRepository,
     private val authService: AuthService,
     private val notificationRepository: NotificationRepository
@@ -32,9 +30,8 @@ class ShoppingJoinUseCase @Inject constructor(
 
         repository.join(shopping.id, user.id)
 
-        val actorName = user.displayName ?: context.getString(CoreR.string.notification_someone)
-        val title = context.getString(CoreR.string.notification_list_joined_title)
-        val message = context.getString(CoreR.string.notification_list_joined_message, actorName, shopping.title)
+        val title = texts.listJoinedTitle()
+        val message = texts.listJoinedMessage(user.displayName, shopping.title)
         shopping.users.filter { it != user.id }.forEach { memberId ->
             notificationRepository.notify(memberId, title, message, TYPE_LIST_JOINED)
         }
