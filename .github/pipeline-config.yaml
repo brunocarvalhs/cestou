@@ -183,9 +183,12 @@ instrumented_tests:
   # results" instead of skipping cleanly - a real AGP behavior hit running
   # this for the first time in CI, not a config typo.
   # Add more `:module:connectedDebugAndroidTest` targets here once another
-  # module actually has androidTest sources. feature/products is the first
-  # (G11 camera-executor regression, .specs/COVERAGE-BASELINE.md).
-  command: "./gradlew :app:connectedDebugAndroidTest :feature:products:connectedDebugAndroidTest"
+  # module actually has androidTest sources. The G11 camera-executor test moved
+  # from feature/products to core/ui (G10-02); feature/settings covers the
+  # account deletion flow Play reviews. If a test process crashes at startup
+  # (e.g. Firebase initializers in a library module), AGP reports success with
+  # 0 tests - tests.yml's zero-test guard step fails the job on that.
+  command: "./gradlew :app:connectedDebugAndroidTest :core:ui:connectedDebugAndroidTest :feature:settings:connectedDebugAndroidTest"
   # Overrides build.default_timeout_minutes - emulator boot + test run is the
   # single slowest, most hang-prone step in the whole pipeline.
   timeout_minutes: 30

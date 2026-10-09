@@ -334,6 +334,14 @@ jobs:
         env:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
+      # AGP reports success with 0 tests when the test process crashes at startup.
+      - name: "\U0001F6A8 Fail on zero instrumented tests"
+        run: |
+          pattern='*/outputs/androidTest-results/connected/*'
+          [ -n "$(find . -path "$pattern" -name 'TEST-*.xml')" ] || { echo "::error::No instrumented test results found"; exit 1; }
+          empty=$(find . -path "$pattern" -name 'TEST-*.xml' -exec grep -l 'tests="0"' {} +)
+          [ -z "$empty" ] || { echo "::error::Instrumented tests ran 0 tests (startup crash?): $empty"; exit 1; }
+
       - name: ${{ needs.prepare.outputs.step_comment_failure }}
         if: ${{ failure() }}
         uses: mb2dev/github-action-comment-pull-request@1.0.0
