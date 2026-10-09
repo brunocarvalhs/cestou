@@ -339,7 +339,9 @@ jobs:
         run: |
           pattern='*/outputs/androidTest-results/connected/*'
           [ -n "$(find . -path "$pattern" -name 'TEST-*.xml')" ] || { echo "::error::No instrumented test results found"; exit 1; }
-          empty=$(find . -path "$pattern" -name 'TEST-*.xml' -exec grep -l 'tests="0"' {} +)
+          find . -path "$pattern" -name 'TEST-*.xml' -exec grep -oH 'tests="[0-9]*"' {} +
+          # grep exits 1 when nothing matches, which is the passing case; don't let `bash -e` abort on it.
+          empty=$(find . -path "$pattern" -name 'TEST-*.xml' -exec grep -l 'tests="0"' {} + || true)
           [ -z "$empty" ] || { echo "::error::Instrumented tests ran 0 tests (startup crash?): $empty"; exit 1; }
 
       - name: ${{ needs.prepare.outputs.step_comment_failure }}
