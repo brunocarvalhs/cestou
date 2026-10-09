@@ -189,7 +189,6 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.camera.core)
     implementation(libs.google.mlkit.barcode.scanning)
-    implementation(libs.mlkit.image.labeling)
     implementation(libs.accompanist.permissions)
 
     // Services
