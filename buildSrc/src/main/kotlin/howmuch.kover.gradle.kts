@@ -115,10 +115,9 @@ kover {
                     "*.MlKitImageAnalyzerService*",
                     "*.ProductImageTextRecognizer*"
                 )
-                // *InitializerImpl classes: by project convention (see feature-layer whitelist)
-                // these only wire NavGraphBuilder.composable<X> { ... } blocks per feature, same
-                // category as the already-excluded *.navigation.*Graph* wiring.
-                classes("*InitializerImpl*")
+                // Each feature's *NavGraph (feature root package) only wires NavGraphBuilder.composable<X>
+                // { ... } blocks, same category as the already-excluded *.navigation.*Graph* wiring.
+                classes("*.feature.*NavGraph")
                 // Composables puros de drag-and-drop (mesma categoria de presentation.screen/
                 // components acima); DragTargetInfo (o state holder) continua coberto por teste.
                 classes("br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragDropUtilsKt*")

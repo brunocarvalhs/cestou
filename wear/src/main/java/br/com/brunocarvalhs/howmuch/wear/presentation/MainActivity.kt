@@ -9,11 +9,11 @@ import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
-import br.com.brunocarvalhs.howmuch.core.navigation.FeatureInitializer
+import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingCode
-import br.com.brunocarvalhs.howmuch.core.navigation.mobile.LinkPhone
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.LinkPhone
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingCode
 import br.com.brunocarvalhs.howmuch.wear.presentation.theme.CestouTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
     lateinit var authService: AuthService
 
     @Inject
-    lateinit var featureInitializers: Set<@JvmSuppressWildcards FeatureInitializer>
+    lateinit var featureNavGraphs: Set<@JvmSuppressWildcards FeatureNavGraph>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             WearApp(
                 navigator = navigator,
-                featureInitializers = featureInitializers,
+                featureNavGraphs = featureNavGraphs,
                 startDestination = startDestination
             )
         }
@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun WearApp(
     navigator: Navigator,
-    featureInitializers: Set<FeatureInitializer>,
+    featureNavGraphs: Set<FeatureNavGraph>,
     startDestination: String
 ) {
     CestouTheme {
@@ -67,8 +67,8 @@ fun WearApp(
                 navController = navController,
                 startDestination = startDestination
             ) {
-                featureInitializers.forEach { initializer ->
-                    initializer.registerWearGraph(this, navigator)
+                featureNavGraphs.forEach { navGraph ->
+                    navGraph.registerWearGraph(this, navigator)
                 }
             }
         }

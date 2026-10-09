@@ -1,8 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.cart.di
 
-import br.com.brunocarvalhs.howmuch.core.navigation.FeatureInitializer
-import br.com.brunocarvalhs.howmuch.feature.cart.CartInitializer
-import br.com.brunocarvalhs.howmuch.feature.cart.CartInitializerImpl
+import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
+import br.com.brunocarvalhs.howmuch.feature.cart.CartNavGraph
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -15,5 +14,5 @@ internal abstract class CartModule {
 
     @Binds
     @IntoSet
-    abstract fun bindCartInitializer(impl: CartInitializerImpl): FeatureInitializer
+    abstract fun bindCartNavGraph(impl: CartNavGraph): FeatureNavGraph
 }
