@@ -1,10 +1,11 @@
-package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
+package br.com.brunocarvalhs.howmuch.feature.products.data.services
 
 import android.content.Context
 import android.content.Intent
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.services.ShareShoppingUseCase
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatQuantity
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject

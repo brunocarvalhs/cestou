@@ -1,42 +1,20 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.google.devtools.ksp)
-    alias(libs.plugins.hilt)
+    id("howmuch.android.library")
+    id("howmuch.android.hilt")
+    id("org.jetbrains.kotlin.plugin.compose")
     alias(libs.plugins.secrets)
 }
 
 android {
     namespace = "br.com.brunocarvalhs.howmuch.core.common"
-    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "VERSION_NAME", "\"1.0\"")
     }
 
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
     buildFeatures {
         compose = true
         buildConfig = true
-    }
-    testOptions {
-        unitTests {
-            isIncludeAndroidResources = true
-        }
     }
 }
 
@@ -56,15 +34,7 @@ dependencies {
     implementation(libs.firebase.appcheck.playintegrity)
     implementation(libs.firebase.appcheck.debug)
     implementation(libs.timber)
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
     implementation(libs.play.services.wearable)
     implementation(libs.wear.remoteinteractions)
     implementation(libs.kotlinx.coroutines.guava)
-
-    testImplementation(libs.junit)
-    testImplementation(libs.mockk)
-    testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.androidx.junit)
-    testImplementation(libs.robolectric)
 }

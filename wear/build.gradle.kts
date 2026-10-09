@@ -1,10 +1,10 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.google.devtools.ksp)
+    id("com.android.application")
+    id("com.google.devtools.ksp")
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
-    alias(libs.plugins.hilt)
-    alias(libs.plugins.kotlin.compose)
+    id("com.google.dagger.hilt.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 // Same keystore and credentials as :app - see the comment in app/build.gradle.kts.

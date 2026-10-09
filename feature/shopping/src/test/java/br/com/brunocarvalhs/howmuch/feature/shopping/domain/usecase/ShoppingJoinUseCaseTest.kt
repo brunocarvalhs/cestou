@@ -1,14 +1,15 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
-import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.text.ShoppingTexts
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingJoinUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
@@ -16,11 +17,14 @@ import org.junit.Test
 
 class ShoppingJoinUseCaseTest {
 
-    private val context = mockk<Context>(relaxed = true)
+    private val texts = mockk<ShoppingTexts> {
+        every { listJoinedTitle() } returns "New member"
+        every { listJoinedMessage(any(), any()) } answers { "${firstArg<String?>()} joined ${secondArg<String>()}" }
+    }
     private val repository = mockk<ShoppingRepository>()
     private val authService = mockk<AuthService>()
     private val notificationRepository = mockk<NotificationRepository>(relaxed = true)
-    private val useCase = ShoppingJoinUseCase(context, repository, authService, notificationRepository)
+    private val useCase = ShoppingJoinUseCase(texts, repository, authService, notificationRepository)
 
     private val shopping = Shopping(
         id = "list1",
@@ -43,7 +47,9 @@ class ShoppingJoinUseCaseTest {
         assertTrue(result.isSuccess)
         coVerify { repository.getByShortCode("ABC123") }
         coVerify { repository.join("list1", "u1") }
-        coVerify { notificationRepository.notify("owner1", any(), any(), "list_joined") }
+        coVerify {
+            notificationRepository.notify("owner1", "New member", "null joined Weekly Groceries", "list_joined")
+        }
     }
 
     @Test

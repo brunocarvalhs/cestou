@@ -1,12 +1,13 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
-import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.text.ShoppingTexts
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -15,10 +16,13 @@ import org.junit.Test
 
 class ShoppingCreateUseCaseTest {
 
-    private val context = mockk<Context>(relaxed = true)
+    private val texts = mockk<ShoppingTexts> {
+        every { newListTitle() } returns "New List"
+        every { newListDescription() } returns "Default shopping list"
+    }
     private val repository = mockk<ShoppingRepository>(relaxed = true)
     private val authService = mockk<AuthService>()
-    private val useCase = ShoppingCreateUseCase(context, repository, authService)
+    private val useCase = ShoppingCreateUseCase(texts, repository, authService)
 
     @Test
     fun `invoke should create shopping list with current user as owner`() = runTest {
@@ -69,5 +73,15 @@ class ShoppingCreateUseCaseTest {
         assertEquals("Churrasco", result.getOrNull()?.title)
         assertEquals("Amigos no sabado", result.getOrNull()?.description)
         coVerify { repository.create(any()) }
+    }
+
+    @Test
+    fun `invoke uses the default title and description when none are given`() = runTest {
+        coEvery { authService.getOrCreateUserId() } returns AuthenticatedUser(id = "user-123", email = "test@test.com")
+
+        val shopping = useCase().getOrNull()
+
+        assertEquals("New List", shopping?.title)
+        assertEquals("Default shopping list", shopping?.description)
     }
 }
