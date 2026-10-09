@@ -71,7 +71,6 @@ dependencies {
     // core/ui/build.gradle.kts (G10-02) - still used here by CameraCaptureView via the
     // transitive `api` exposure from implementation(project(":core:ui")) above.
     implementation(libs.generative.ai)
-    implementation(libs.mlkit.image.labeling)
     implementation(libs.mlkit.text.recognition)
 
     implementation(libs.hilt.android)

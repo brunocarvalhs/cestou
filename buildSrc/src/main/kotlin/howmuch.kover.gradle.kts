@@ -111,10 +111,7 @@ kover {
                 classes("*.initializer.*")
                 // ML Kit / CameraX wrappers (OCR, image analysis) — need instrumentation, not
                 // unit-testable in plain JVM tests without a real Android environment.
-                classes(
-                    "*.MlKitImageAnalyzerService*",
-                    "*.ProductImageTextRecognizer*"
-                )
+                classes("*.ProductImageTextRecognizer*")
                 // *InitializerImpl classes: by project convention (see feature-layer whitelist)
                 // these only wire NavGraphBuilder.composable<X> { ... } blocks per feature, same
                 // category as the already-excluded *.navigation.*Graph* wiring.
