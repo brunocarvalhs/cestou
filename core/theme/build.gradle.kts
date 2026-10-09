@@ -27,5 +27,4 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
 
     testImplementation(libs.junit)
-    testImplementation(libs.konsist)
 }
