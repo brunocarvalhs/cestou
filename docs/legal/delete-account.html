@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cestou — Excluir conta / Delete account</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #5f5f5f;
+    --accent: #2e7d32;
+    --border: #e5e5e5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121212;
+      --fg: #f2f2f2;
+      --muted: #b0b0b0;
+      --accent: #81c784;
+      --border: #2a2a2a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+  h1 { font-size: 1.75rem; margin-bottom: 0; }
+  h2 { font-size: 1.25rem; margin-top: 2.5rem; color: var(--accent); }
+  p.subtitle { color: var(--muted); margin-top: 4px; }
+  .lang-switch { display: flex; gap: 12px; margin: 24px 0; }
+  .lang-switch a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  ol { padding-left: 1.2rem; }
+  li { margin-bottom: 0.5rem; }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Cestou</h1>
+  <p class="subtitle">Exclusão de conta e dados / Account and data deletion</p>
+  <div class="lang-switch">
+    <a href="#pt">Português</a>
+    <a href="#en">English</a>
+  </div>
+
+  <section id="pt">
+    <h2>Como excluir sua conta</h2>
+    <p><strong>Pelo app:</strong></p>
+    <ol>
+      <li>Abra o Cestou e acesse <strong>Configurações &gt; Dados</strong>.</li>
+      <li>Toque em <strong>Excluir Conta</strong> e confirme.</li>
+    </ol>
+    <p><strong>Sem o app:</strong> envie um e-mail para <a href="mailto:brunocarvalhs@outlook.com.br?subject=Excluir%20minha%20conta%20Cestou">brunocarvalhs@outlook.com.br</a> com o assunto “Excluir minha conta Cestou”, a partir do e-mail cadastrado na conta. Concluímos a exclusão em até 30 dias e confirmamos por e-mail.</p>
+
+    <h2>Dados excluídos</h2>
+    <ol>
+      <li>Sua conta de login (identificador, e-mail e nome).</li>
+      <li>Seu perfil.</li>
+      <li>Listas de compras das quais você é o único membro, com todos os itens.</li>
+      <li>Configurações e dados salvos no dispositivo.</li>
+    </ol>
+
+    <h2>Dados mantidos</h2>
+    <ol>
+      <li>Listas compartilhadas com outras pessoas continuam disponíveis para elas; você é removido da lista.</li>
+      <li>Dados técnicos anônimos de falhas e uso (Firebase Crashlytics/Analytics), que não ficam vinculados à sua conta, seguem o período de retenção do Firebase e depois são apagados automaticamente.</li>
+    </ol>
+  </section>
+
+  <section id="en">
+    <h2>How to delete your account</h2>
+    <p><strong>In the app:</strong></p>
+    <ol>
+      <li>Open Cestou and go to <strong>Settings &gt; Data</strong>.</li>
+      <li>Tap <strong>Delete Account</strong> and confirm.</li>
+    </ol>
+    <p><strong>Without the app:</strong> email <a href="mailto:brunocarvalhs@outlook.com.br?subject=Delete%20my%20Cestou%20account">brunocarvalhs@outlook.com.br</a> with the subject “Delete my Cestou account”, from the email address on your account. We complete the deletion within 30 days and confirm by email.</p>
+
+    <h2>Data deleted</h2>
+    <ol>
+      <li>Your sign-in account (identifier, email and name).</li>
+      <li>Your profile.</li>
+      <li>Shopping lists where you are the only member, including all items.</li>
+      <li>Settings and data stored on the device.</li>
+    </ol>
+
+    <h2>Data retained</h2>
+    <ol>
+      <li>Lists shared with other people stay available to them; you are removed from the list.</li>
+      <li>Anonymous crash and usage data (Firebase Crashlytics/Analytics), which is not linked to your account, follows Firebase's retention period and is then deleted automatically.</li>
+    </ol>
+  </section>
+
+  <footer>
+    Cestou &middot; <a href="privacy.html">Privacy Policy / Política de Privacidade</a> &middot; <a href="terms.html">Terms of Use / Termos de Uso</a>
+  </footer>
+</main>
+</body>
+</html>
