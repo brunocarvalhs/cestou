@@ -25,7 +25,6 @@ local.properties
 !.idea/.gitignore
 !.idea/codeStyles/
 !.idea/compiler.xml
-!.idea/gradle.xml
 !.idea/vcs.xml
 !.idea/runConfigurations.xml
 !.idea/inspectionProfiles/
