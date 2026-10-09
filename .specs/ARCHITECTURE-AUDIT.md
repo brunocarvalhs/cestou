@@ -126,7 +126,9 @@ data/presentation/Android), feature não importa feature (exceto `navigation`), 
 órfãs. (O conjunto morto de UI do products — QuickAdd/Search/Suggestions, ~1.000 linhas — já foi
 removido na branch `test/layout-coverage-80`.)
 
-**13. Kover não mede `core:billing` nem `feature:subscription`** — ficam fora dos dois gates.
+**13. Kover não mede `core:billing` nem `feature:subscription`** — ficam fora dos dois gates. Medidos
+(PR #160): `feature:subscription` 93,3%, **`core:billing` 5,7%** — o código de pagamento quase não tem
+teste.
 
 **14. Higiene do repositório.** 14 worktrees antigas em `.claude/worktrees` (2,4 GB); 18 arquivos
 de `.idea/` versionados (`gradle.xml` aparece modificado o tempo todo); textos fixos em
