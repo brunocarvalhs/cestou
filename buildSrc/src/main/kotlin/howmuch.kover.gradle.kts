@@ -27,6 +27,7 @@ dependencies {
     kover(project(":core:ai"))
     kover(project(":core:remote-config"))
     kover(project(":core:analytics"))
+    kover(project(":core:billing"))
     kover(project(":feature:shopping"))
     kover(project(":feature:products"))
     kover(project(":feature:settings"))
@@ -35,6 +36,7 @@ dependencies {
     kover(project(":feature:chat"))
     kover(project(":feature:cart"))
     kover(project(":feature:ai-agent"))
+    kover(project(":feature:subscription"))
 }
 
 kover {
