@@ -29,7 +29,6 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:common"))
     implementation(project(":core:domain"))
 
     // api, not implementation: PlayBillingSubscriptionRepository's public purchase()/refresh()
@@ -45,7 +44,6 @@ dependencies {
     implementation(libs.timber)
 
     testImplementation(libs.junit)
-    testImplementation(libs.konsist)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)

@@ -36,7 +36,6 @@ android {
 
 dependencies {
     implementation(libs.androidx.startup)
-    implementation(project(":core:common"))
     implementation(project(":core:domain"))
 
     // Network
@@ -74,7 +73,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
-    testImplementation(libs.konsist)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)

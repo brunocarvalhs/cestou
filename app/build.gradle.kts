@@ -124,6 +124,7 @@ dependencies {
     implementation(project(":feature:auth"))
     implementation(project(":feature:profile"))
     implementation(project(":feature:chat"))
+    implementation(project(":feature:ai-agent"))
     implementation(project(":feature:cart"))
     implementation(project(":feature:subscription"))
     // Firebase
@@ -189,7 +190,6 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.camera.core)
     implementation(libs.google.mlkit.barcode.scanning)
-    implementation(libs.mlkit.image.labeling)
     implementation(libs.accompanist.permissions)
 
     // Services
@@ -204,6 +204,7 @@ dependencies {
 
     // Test
     testImplementation(libs.junit)
+    testImplementation(libs.konsist)
     testImplementation(libs.mockk)
     testImplementation(libs.turbine)
     testImplementation(libs.kotlinx.coroutines.test)
