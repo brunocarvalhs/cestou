@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.auth.domain.usecase
+package br.com.brunocarvalhs.howmuch.feature.auth.presentation.firebaseui
 
 import android.content.Context
 import com.firebase.ui.auth.configuration.AuthUIConfiguration
@@ -6,9 +6,9 @@ import com.firebase.ui.auth.configuration.authUIConfiguration
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-internal class AuthConfigUseCase @Inject constructor(
+internal class FirebaseAuthUiConfig @Inject constructor(
     @ApplicationContext context: Context,
-    private val googleProvider: GoogleProviderUseCase
+    private val googleProvider: GoogleAuthProviderFactory
 ) {
     private val providers = listOf(googleProvider()).map { it }
 

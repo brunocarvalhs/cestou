@@ -5,10 +5,10 @@ import br.com.brunocarvalhs.howmuch.core.domain.services.ShareShoppingUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.data.repository.CommonProductRepositoryImpl
 import br.com.brunocarvalhs.howmuch.feature.products.data.repository.ProductRepositoryImpl
 import br.com.brunocarvalhs.howmuch.feature.products.data.repository.RecipeRepositoryImpl
+import br.com.brunocarvalhs.howmuch.feature.products.data.services.ShareShoppingUseCaseImpl
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.CommonProductRepository
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.RecipeRepository
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShareShoppingUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

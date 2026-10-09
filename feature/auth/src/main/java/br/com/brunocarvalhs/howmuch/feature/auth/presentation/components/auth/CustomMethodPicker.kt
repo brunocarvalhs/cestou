@@ -44,7 +44,7 @@ internal fun CustomMethodPickerLayout(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         providers.forEach { provider ->
-            // FirebaseUI only ever hosts Google (see AuthConfigUseCase); the `else` branch is
+            // FirebaseUI only ever hosts Google (see FirebaseAuthUiConfig); the `else` branch is
             // defensive exhaustiveness for AuthProvider, not a real UI path.
             val (text, icon) = when (provider) {
                 is AuthProvider.Google -> stringResource(R.string.auth_continue_with_google) to providerIcon {

@@ -145,19 +145,10 @@ class ArchitectureTest {
 
         val PLATFORM_PREFIXES = listOf("android.", "androidx.", "com.google.firebase.", "com.firebase.")
 
-        // Audit item 4 (phase 2): domain still using Context, Intent, Bitmap, FirebaseUI, Compose.
+        // Audit item 4: ProductAnalyzeImageUseCase still takes a Bitmap (changing it ripples into
+        // ProductRepository and the ML Kit text recognizer).
         val KNOWN_DOMAIN_PLATFORM = setOf(
-            "feature.auth.domain.usecase.AuthConfigUseCase -> android.content.Context",
-            "feature.auth.domain.usecase.AuthConfigUseCase -> com.firebase.ui.auth.configuration.AuthUIConfiguration",
-            "feature.auth.domain.usecase.AuthConfigUseCase -> com.firebase.ui.auth.configuration.authUIConfiguration",
-            "feature.auth.domain.usecase.GoogleProviderUseCase -> com.firebase.ui.auth.configuration.auth_provider.AuthProvider",
-            "feature.chat.domain.entity.ChatMessage -> androidx.compose.runtime.Stable",
             "feature.products.domain.usecase.ProductAnalyzeImageUseCase -> android.graphics.Bitmap",
-            "feature.products.domain.usecase.ShareShoppingUseCaseImpl -> android.content.Context",
-            "feature.products.domain.usecase.ShareShoppingUseCaseImpl -> android.content.Intent",
-            "feature.shopping.domain.usecase.ShoppingCreateUseCase -> android.content.Context",
-            "feature.shopping.domain.usecase.ShoppingDuplicateUseCase -> android.content.Context",
-            "feature.shopping.domain.usecase.ShoppingJoinUseCase -> android.content.Context",
         )
 
         // Audit item 2 (phase 2): shared UI/resources/use cases still owned by another feature.
