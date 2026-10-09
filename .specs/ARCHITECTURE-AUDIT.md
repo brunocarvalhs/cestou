@@ -54,12 +54,13 @@ portanto de Firebase e Wear) **só para usar `AppException`**.
 para `core/data` (onde o Firebase já mora) e a sincronização Wear para `core/data`. `core:common`
 fica com utilitários puros. Resultado: `core:domain` sem nenhuma dependência Android.
 
-**4. Domínio com Android.** 7 arquivos de `domain/` importam Android:
+**4. Domínio com Android.** 8 arquivos de `domain/` importam Android ou Firebase:
 - `shopping/ShoppingCreateUseCase`, `ShoppingDuplicateUseCase`, `ShoppingJoinUseCase` usam
   `Context` para buscar textos (título padrão da lista, sufixo "cópia", texto de notificação);
 - `products/ShareShoppingUseCaseImpl` abre a tela de compartilhamento (`Intent`, `startActivity`)
   com o título "Compartilhar lista" fixo em português;
-- `auth/AuthConfigUseCase` monta a configuração do FirebaseUI (SDK de interface) dentro do domínio;
+- `auth/AuthConfigUseCase` e `GoogleProviderUseCase` montam a configuração do FirebaseUI (SDK de
+  interface) dentro do domínio;
 - `products/ProductAnalyzeImageUseCase` recebe `Bitmap`; `chat/ChatMessage` usa `@Stable` do Compose.
 → Textos padrão entram como parâmetro (resolvidos na apresentação; `UiText` já existe em
 `core/ui`); o compartilhamento vai para a apresentação; a configuração do FirebaseUI vai para `di`/`data`. Torna o domínio
