@@ -35,9 +35,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:common"))
     implementation(project(":core:domain"))
-    implementation(project(":core:data"))
 
     // AI
     implementation(platform(libs.firebase.bom))
@@ -55,7 +53,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
-    testImplementation(libs.konsist)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)

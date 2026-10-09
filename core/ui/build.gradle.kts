@@ -31,7 +31,6 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:common"))
     implementation(project(":core:domain"))
     implementation(project(":core:navigation"))
     api(project(":core:theme"))
@@ -58,7 +57,6 @@ dependencies {
     implementation(libs.google.mlkit.barcode.scanning)
 
     testImplementation(libs.junit)
-    testImplementation(libs.konsist)
     testImplementation(libs.mockk)
 
     androidTestImplementation(libs.androidx.junit)

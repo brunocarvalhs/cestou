@@ -75,6 +75,7 @@ dependencies {
     implementation(project(":core:theme"))
     implementation(project(":core:common"))
     implementation(project(":core:domain"))
+    implementation(project(":core:auth"))
     implementation(project(":core:navigation"))
     implementation(project(":feature:shopping"))
     implementation(project(":feature:profile"))
@@ -82,6 +83,7 @@ dependencies {
     implementation(project(":feature:products"))
     implementation(project(":feature:cart"))
     implementation(project(":feature:chat"))
+    implementation(project(":feature:ai-agent"))
     implementation(project(":feature:settings"))
 
     implementation(platform(libs.androidx.compose.bom))

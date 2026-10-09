@@ -41,10 +41,8 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:domain"))
-    implementation(project(":core:data"))
     implementation(project(":core:ai"))
     implementation(project(":core:remote-config"))
-    implementation(project(":feature:settings"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
@@ -59,7 +57,6 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
 
     testImplementation(libs.junit)
-    testImplementation(libs.konsist)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)

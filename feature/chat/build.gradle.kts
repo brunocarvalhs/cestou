@@ -39,14 +39,12 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:common"))
     implementation(project(":core:analytics"))
     implementation(project(":core:domain"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
     implementation(project(":core:data"))
     implementation(project(":core:ai"))
-    implementation(project(":feature:ai-agent"))
 
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.markdown.renderer.m3)
@@ -71,7 +69,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
-    testImplementation(libs.konsist)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
