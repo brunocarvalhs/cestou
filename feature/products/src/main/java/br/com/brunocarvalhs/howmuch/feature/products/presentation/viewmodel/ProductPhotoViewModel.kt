@@ -1,11 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.ImageDecoder
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,6 +11,7 @@ import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.feature.products.R
+import br.com.brunocarvalhs.howmuch.feature.products.domain.exception.ImageUnreadableException
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductAnalyzeImageUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute
@@ -73,18 +70,7 @@ internal class ProductPhotoViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isAnalyzing = true, errorMessage = null) }
             
-            val bitmap = loadBitmapFromUri(uri)
-            if (bitmap == null) {
-                _uiState.update { 
-                    it.copy(
-                        isAnalyzing = false, 
-                        errorMessage = context.getString(R.string.product_error_load_image)
-                    ) 
-                }
-                return@launch
-            }
-
-            analyzeImageUseCase(bitmap)
+            analyzeImageUseCase(uri.toString())
                 .onSuccess { products ->
                     analyticsTracker.trackEvent(
                         AnalyticsEvents.PRODUCT_PHOTO_SCAN_PERFORMED,
@@ -106,6 +92,15 @@ internal class ProductPhotoViewModel @Inject constructor(
                     }
                 }
                 .onFailure { error ->
+                    if (error is ImageUnreadableException) {
+                        _uiState.update {
+                            it.copy(
+                                isAnalyzing = false,
+                                errorMessage = context.getString(R.string.product_error_load_image)
+                            )
+                        }
+                        return@onFailure
+                    }
                     analyticsTracker.trackEvent(
                         AnalyticsEvents.PRODUCT_PHOTO_SCAN_FAILED,
                         mapOf(
@@ -120,20 +115,6 @@ internal class ProductPhotoViewModel @Inject constructor(
                         )
                     }
                 }
-        }
-    }
-
-    private fun loadBitmapFromUri(uri: Uri): Bitmap? {
-        return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val source = ImageDecoder.createSource(context.contentResolver, uri)
-                ImageDecoder.decodeBitmap(source)
-            } else {
-                @Suppress("DEPRECATION")
-                MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-            }
-        } catch (e: Exception) {
-            null
         }
     }
 

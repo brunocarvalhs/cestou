@@ -65,13 +65,19 @@ class ArchitectureTest {
         val violations = production
             .filter { ".domain" in it.packageName }
             .flatMap { file ->
-                file.imports
+                val imported = file.imports
                     .filter { import -> PLATFORM_PREFIXES.any { import.name.startsWith(it) } }
-                    .map { "${file.path()} -> ${it.name.removePrefix("$ROOT.")}" }
+                    .map { it.name }
+                // Fully qualified uses (e.g. `fun f(b: android.graphics.Bitmap)`) never show up as imports.
+                val qualified = file.text.lineSequence()
+                    .map { it.trim() }
+                    .filterNot { line -> NON_CODE_PREFIXES.any { line.startsWith(it) } }
+                    .flatMap { line -> PLATFORM_QUALIFIED_NAME.findAll(line).map { it.value } }
+                (imported + qualified).map { "${file.path()} -> $it" }
             }
             .toSet()
 
-        assertKnown("domain -> platform", violations, KNOWN_DOMAIN_PLATFORM)
+        assertKnown("domain -> platform", violations, known = emptySet())
     }
 
     @Test
@@ -145,11 +151,10 @@ class ArchitectureTest {
 
         val PLATFORM_PREFIXES = listOf("android.", "androidx.", "com.google.firebase.", "com.firebase.")
 
-        // Audit item 4: ProductAnalyzeImageUseCase still takes a Bitmap (changing it ripples into
-        // ProductRepository and the ML Kit text recognizer).
-        val KNOWN_DOMAIN_PLATFORM = setOf(
-            "feature.products.domain.usecase.ProductAnalyzeImageUseCase -> android.graphics.Bitmap",
-        )
+        val PLATFORM_QUALIFIED_NAME =
+            Regex("""\b(?:android|androidx|com\.google\.firebase|com\.firebase)(?:\.[a-z_][A-Za-z0-9_]*)+\.[A-Z]\w*""")
+
+        val NON_CODE_PREFIXES = listOf("import ", "package ", "//", "*", "/*")
 
         // Audit item 2 (phase 2): shared UI/resources/use cases still owned by another feature.
         val KNOWN_FEATURE_TO_FEATURE = setOf(
