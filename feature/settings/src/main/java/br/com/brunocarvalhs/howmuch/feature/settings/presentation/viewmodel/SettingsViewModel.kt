@@ -82,7 +82,7 @@ internal class SettingsViewModel @Inject constructor(
     val intent = SettingsIntent(
         onNavigate = { route -> _navigator?.navigate(route) },
         onBack = { _navigator?.goBack() },
-        onSendEmail = { subject -> context.openEmail("suporte@cestou.com.br", subject) },
+        onSendEmail = { subject -> context.openEmail("brunocarvalhs@outlook.com.br", subject) },
         onOpenUrl = { url -> context.openBrowser(url) },
         onUpdateLanguage = { language ->
             viewModelScope.launch {
@@ -216,7 +216,7 @@ internal class SettingsViewModel @Inject constructor(
         title = UiText.StringResource(R.string.settings_section_support), items = listOf(
             SettingItem(
                 title = UiText.StringResource(R.string.settings_item_contact),
-                subtitle = UiText.DynamicString("suporte@cestou.com.br"),
+                subtitle = UiText.DynamicString("brunocarvalhs@outlook.com.br"),
                 icon = Icons.Outlined.Email,
                 route = SupportContact
             ), SettingItem(
