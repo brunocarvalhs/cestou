@@ -32,6 +32,7 @@ jobs:
       play_track: ${{ steps.config.outputs.play_track }}
       play_status: ${{ steps.config.outputs.play_status }}
       play_user_fraction: ${{ steps.config.outputs.play_user_fraction }}
+      play_changes_not_sent_for_review: ${{ steps.config.outputs.play_changes_not_sent_for_review }}
       play_environment_name: ${{ steps.config.outputs.play_environment_name }}
       versioning_enabled: ${{ steps.config.outputs.versioning_enabled }}
       step_checkout: ${{ steps.config.outputs.step_checkout }}
@@ -80,6 +81,7 @@ jobs:
           echo "play_track=$(yq '.release.google_play.track' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "play_status=$(yq '.release.google_play.status' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "play_user_fraction=$(yq '.release.google_play.user_fraction // ""' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "play_changes_not_sent_for_review=$(yq '.release.google_play.changes_not_sent_for_review // false' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "play_environment_name=$(yq '.release.google_play.environment_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_checkout=$(yq '.build.step_names.checkout' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_setup_env=$(yq '.build.step_names.setup_environment' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
@@ -365,3 +367,4 @@ jobs:
           track: ${{ needs.prepare.outputs.play_track }}
           status: ${{ needs.prepare.outputs.play_status }}
           userFraction: ${{ needs.prepare.outputs.play_user_fraction }}
+          changesNotSentForReview: ${{ needs.prepare.outputs.play_changes_not_sent_for_review }}
