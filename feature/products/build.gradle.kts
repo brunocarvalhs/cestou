@@ -44,12 +44,8 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
-    implementation(project(":core:data"))
-    implementation(project(":core:auth"))
     implementation(project(":core:ai"))
     implementation(project(":core:remote-config"))
-    implementation(project(":feature:settings"))
-    implementation(project(":feature:chat"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
