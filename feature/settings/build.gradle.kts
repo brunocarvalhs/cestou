@@ -77,4 +77,10 @@ dependencies {
     testImplementation(libs.androidx.compose.ui.test.manifest)
     testImplementation(libs.androidx.core)
     testImplementation(libs.androidx.junit)
+
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.runner)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
