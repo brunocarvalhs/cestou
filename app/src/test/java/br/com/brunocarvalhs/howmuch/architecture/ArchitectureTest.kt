@@ -24,7 +24,7 @@ class ArchitectureTest {
             .filter { it.packageName.startsWith("$ROOT.feature.") }
             .filterNot { file ->
                 val layer = file.packageName.removePrefix("$ROOT.feature.").substringAfter(".", "")
-                if (layer.isEmpty()) "Initializer" in file.name else layer.substringBefore(".") in FEATURE_LAYERS
+                if (layer.isEmpty()) file.name.endsWith("NavGraph") else layer.substringBefore(".") in FEATURE_LAYERS
             }
             .map { it.path() }
             .toSet()

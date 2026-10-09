@@ -32,7 +32,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
-import br.com.brunocarvalhs.howmuch.core.navigation.FeatureInitializer
+import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.isProtectedRoute
@@ -52,7 +52,7 @@ import javax.inject.Inject
 class MainActivity : AppCompatActivity() {
 
     @Inject
-    lateinit var featureInitializers: Set<@JvmSuppressWildcards FeatureInitializer>
+    lateinit var featureNavGraphs: Set<@JvmSuppressWildcards FeatureNavGraph>
 
     @Inject
     lateinit var navigator: Navigator
@@ -188,7 +188,7 @@ class MainActivity : AppCompatActivity() {
                         navController = navController,
                         startDestination = startDestination
                     ) {
-                        featureInitializers.forEach {
+                        featureNavGraphs.forEach {
                             it.registerGraph(this, navigator, windowSizeClass)
                         }
                     }

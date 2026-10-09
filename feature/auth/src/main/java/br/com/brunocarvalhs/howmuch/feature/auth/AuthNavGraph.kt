@@ -5,6 +5,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.LinkWearDevice
@@ -16,7 +17,7 @@ import br.com.brunocarvalhs.howmuch.feature.auth.presentation.screen.LinkWearDev
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.viewmodel.LinkWearViewModel
 import javax.inject.Inject
 
-internal class AuthInitializerImpl @Inject constructor() : AuthInitializer {
+internal class AuthNavGraph @Inject constructor() : FeatureNavGraph {
     override fun registerGraph(
         navGraphBuilder: NavGraphBuilder,
         navigator: Navigator,

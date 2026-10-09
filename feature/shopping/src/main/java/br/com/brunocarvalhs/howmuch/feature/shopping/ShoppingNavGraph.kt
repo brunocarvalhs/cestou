@@ -1,25 +1,26 @@
-package br.com.brunocarvalhs.howmuch.feature.profile
+package br.com.brunocarvalhs.howmuch.feature.shopping
 
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.navigation.NavGraphBuilder
+import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.profile.navigation.profileGraph
-import br.com.brunocarvalhs.howmuch.feature.profile.navigation.wear.profileWearGraph
+import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.shoppingGraph
+import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.wear.shoppingWearGraph
 import javax.inject.Inject
 
-internal class ProfileInitializerImpl @Inject constructor() : ProfileInitializer {
+class ShoppingNavGraph @Inject constructor() : FeatureNavGraph {
     override fun registerGraph(
         navGraphBuilder: NavGraphBuilder,
         navigator: Navigator,
         windowSizeClass: WindowSizeClass
     ) {
-        navGraphBuilder.profileGraph(navigator)
+        navGraphBuilder.shoppingGraph(navigator, windowSizeClass)
     }
 
     override fun registerWearGraph(
         navGraphBuilder: NavGraphBuilder,
         navigator: Navigator
     ) {
-        navGraphBuilder.profileWearGraph(navigator)
+        navGraphBuilder.shoppingWearGraph(navigator)
     }
 }
