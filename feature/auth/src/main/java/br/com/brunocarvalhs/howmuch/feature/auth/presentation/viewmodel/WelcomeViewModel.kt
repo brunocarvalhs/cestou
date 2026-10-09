@@ -7,7 +7,7 @@ import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.appVersionName
-import br.com.brunocarvalhs.howmuch.feature.auth.domain.usecase.AuthConfigUseCase
+import br.com.brunocarvalhs.howmuch.feature.auth.presentation.firebaseui.FirebaseAuthUiConfig
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.intent.WelcomeIntent
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.state.WelcomeUiState
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateLanguageUseCase
@@ -21,7 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class WelcomeViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    val authConfig: AuthConfigUseCase,
+    val authConfig: FirebaseAuthUiConfig,
     private val updateLanguageUseCase: UpdateLanguageUseCase,
     private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {

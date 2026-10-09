@@ -13,5 +13,5 @@ interface ProductRepository : ProductReader {
     suspend fun updateProduct(product: Product, shoppingId: String): Result<Unit>
     suspend fun searchProducts(query: String): Result<List<Product>>
     fun getQuestionSuggestions(shoppingId: String): Flow<List<String>>
-    suspend fun analyzeImage(bitmap: android.graphics.Bitmap): Result<List<Product>>
+    suspend fun analyzeImage(imageUri: String): Result<List<Product>>
 }

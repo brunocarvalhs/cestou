@@ -2,6 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.di
 
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.repository.ShoppingRepositoryImpl
+import br.com.brunocarvalhs.howmuch.feature.shopping.data.text.ResourceShoppingTexts
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.text.ShoppingTexts
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -15,4 +17,7 @@ abstract class ShoppingDataModule {
     @Binds
     @Singleton
     abstract fun bindShoppingRepository(impl: ShoppingRepositoryImpl): ShoppingRepository
+
+    @Binds
+    internal abstract fun bindShoppingTexts(impl: ResourceShoppingTexts): ShoppingTexts
 }

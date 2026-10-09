@@ -1,9 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.chat.domain.entity
 
-import androidx.compose.runtime.Stable
 import java.time.Instant
 
-@Stable
 data class ChatMessage(
     val id: Long = System.currentTimeMillis(),
     val text: String,
