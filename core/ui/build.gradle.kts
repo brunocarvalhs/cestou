@@ -58,7 +58,6 @@ dependencies {
     implementation(libs.google.mlkit.barcode.scanning)
 
     testImplementation(libs.junit)
-    testImplementation(libs.konsist)
     testImplementation(libs.mockk)
 
     androidTestImplementation(libs.androidx.junit)
