@@ -105,7 +105,7 @@
 
     <string name="settings_privacy_content">
         Your privacy is our priority:\n\n
-        1. Data Collection: We only collect your anonymous user ID and your shopping lists for synchronization.\n
+        1. Data Collection: We collect your email address and name to create and access your account, and your shopping lists for synchronization. Your password is handled by Firebase Authentication (Google) and is never stored by us. We also collect technical crash and usage data (Firebase Crashlytics and Analytics) to improve the app.\n
         2. Sharing: We do not share your personal data with third parties for advertising purposes.\n
         3. Cookies: We do not use tracking cookies.\n
         4. Security: We use AES encryption to protect sensitive data on the device.\n\n

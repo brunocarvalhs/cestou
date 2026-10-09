@@ -105,7 +105,7 @@
 
     <string name="settings_privacy_content">
         Sua privacidade é nossa prioridade:\n\n
-        1. Coleta de Dados: Coletamos apenas seu ID de usuário anônimo e suas listas de compras para sincronização.\n
+        1. Coleta de Dados: Coletamos seu e-mail e nome para criar e acessar sua conta, e suas listas de compras para sincronização. Sua senha é gerenciada pelo Firebase Authentication (Google) e não fica armazenada por nós. Também coletamos dados técnicos de falhas e uso (Firebase Crashlytics e Analytics) para melhorar o app.\n
         2. Compartilhamento: Não compartilhamos seus dados pessoais com terceiros para fins publicitários.\n
         3. Cookies: Não utilizamos cookies de rastreamento.\n
         4. Segurança: Utilizamos criptografia AES para proteger dados sensíveis no dispositivo.\n\n
