@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.1.2] - 2026-10-09
+
+* Merge pull request #155 from brunocarvalhs/develop
+* Merge remote-tracking branch 'origin/master' into develop
+* Merge pull request #154 from brunocarvalhs/ci/play-changes-not-sent-for-review
+* ci(release): upload to Play Console without sending for review
+
+
 ## [2.1.1] - 2026-10-08
 
 * Merge pull request #152 from brunocarvalhs/develop
