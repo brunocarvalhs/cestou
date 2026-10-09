@@ -39,16 +39,11 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:common"))
     implementation(project(":core:analytics"))
     implementation(project(":core:domain"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
-    implementation(project(":core:data"))
-    implementation(project(":core:auth"))
     implementation(project(":core:ai"))
-    implementation(project(":feature:ai-agent"))
-    implementation(project(":feature:settings"))
     implementation(project(":feature:chat"))
     implementation(project(":feature:products"))
     implementation(project(":feature:shopping"))
