@@ -41,10 +41,8 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:domain"))
-    implementation(project(":core:data"))
     implementation(project(":core:ai"))
     implementation(project(":core:remote-config"))
-    implementation(project(":feature:settings"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
