@@ -1,6 +1,8 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
+import android.app.Application
 import android.content.Context
+import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
@@ -10,6 +12,8 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateCurrencyUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateLanguageUseCase
+import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
+import br.com.brunocarvalhs.howmuch.feature.settings.navigation.SupportContact
 import br.com.brunocarvalhs.howmuch.feature.settings.navigation.ThemeSettings
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.SettingsViewModel
 import io.mockk.coEvery
@@ -25,9 +29,12 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 @RunWith(AndroidJUnit4::class)
@@ -102,5 +109,31 @@ class SettingsViewModelTest {
         vm.intent.onBack()
 
         verify { navigator.goBack() }
+    }
+
+    @Test
+    fun `support contact item shows the support email`() {
+        val vm = viewModel()
+
+        val contact = vm.uiState.value.sections.flatMap { it.items }.single { it.route == SupportContact }
+
+        assertEquals(UiText.DynamicString(SUPPORT), contact.subtitle)
+    }
+
+    @Test
+    fun `onSendEmail opens an email to the support address with the subject`() {
+        val vm = viewModel()
+
+        vm.intent.onSendEmail("Bug")
+
+        val started = shadowOf(context as Application).nextStartedActivity
+        assertEquals(Intent.ACTION_SENDTO, started.action)
+        assertArrayEquals(arrayOf(SUPPORT), started.getStringArrayExtra(Intent.EXTRA_EMAIL))
+        assertEquals("Bug", started.getStringExtra(Intent.EXTRA_SUBJECT))
+    }
+
+    private companion object {
+        // Literal on purpose: the hosted delete-account/privacy pages point users here too.
+        const val SUPPORT = "brunocarvalhs@outlook.com.br"
     }
 }

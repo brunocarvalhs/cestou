@@ -65,6 +65,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+internal const val SUPPORT_EMAIL = "brunocarvalhs@outlook.com.br"
+
 @HiltViewModel
 internal class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -82,7 +84,7 @@ internal class SettingsViewModel @Inject constructor(
     val intent = SettingsIntent(
         onNavigate = { route -> _navigator?.navigate(route) },
         onBack = { _navigator?.goBack() },
-        onSendEmail = { subject -> context.openEmail("brunocarvalhs@outlook.com.br", subject) },
+        onSendEmail = { subject -> context.openEmail(SUPPORT_EMAIL, subject) },
         onOpenUrl = { url -> context.openBrowser(url) },
         onUpdateLanguage = { language ->
             viewModelScope.launch {
@@ -216,7 +218,7 @@ internal class SettingsViewModel @Inject constructor(
         title = UiText.StringResource(R.string.settings_section_support), items = listOf(
             SettingItem(
                 title = UiText.StringResource(R.string.settings_item_contact),
-                subtitle = UiText.DynamicString("brunocarvalhs@outlook.com.br"),
+                subtitle = UiText.DynamicString(SUPPORT_EMAIL),
                 icon = Icons.Outlined.Email,
                 route = SupportContact
             ), SettingItem(
