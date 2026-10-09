@@ -29,7 +29,6 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:common"))
     implementation(project(":core:domain"))
 
     // api, not implementation: PlayBillingSubscriptionRepository's public purchase()/refresh()

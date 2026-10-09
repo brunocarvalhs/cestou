@@ -124,6 +124,7 @@ dependencies {
     implementation(project(":feature:auth"))
     implementation(project(":feature:profile"))
     implementation(project(":feature:chat"))
+    implementation(project(":feature:ai-agent"))
     implementation(project(":feature:cart"))
     implementation(project(":feature:subscription"))
     // Firebase
