@@ -44,12 +44,8 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
-    implementation(project(":core:data"))
-    implementation(project(":core:auth"))
     implementation(project(":core:ai"))
     implementation(project(":core:remote-config"))
-    implementation(project(":feature:settings"))
-    implementation(project(":feature:chat"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
@@ -75,7 +71,6 @@ dependencies {
     // core/ui/build.gradle.kts (G10-02) - still used here by CameraCaptureView via the
     // transitive `api` exposure from implementation(project(":core:ui")) above.
     implementation(libs.generative.ai)
-    implementation(libs.mlkit.image.labeling)
     implementation(libs.mlkit.text.recognition)
 
     implementation(libs.hilt.android)

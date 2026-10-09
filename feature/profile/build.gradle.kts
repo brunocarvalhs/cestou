@@ -39,12 +39,10 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:common"))
     implementation(project(":core:analytics"))
     implementation(project(":core:domain"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
-    implementation(project(":core:data"))
     implementation(project(":feature:settings"))
 
     implementation(platform(libs.androidx.compose.bom))
