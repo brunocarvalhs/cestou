@@ -24,6 +24,7 @@ secrets {
 }
 
 dependencies {
+    implementation(project(":core:domain"))
     implementation(libs.androidx.startup)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.runtime)

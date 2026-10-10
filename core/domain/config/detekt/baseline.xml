@@ -2,6 +2,5 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>FinalNewline:DoubleExtensions.kt$br.com.brunocarvalhs.howmuch.core.domain.extensions.DoubleExtensions.kt</ID>
   </CurrentIssues>
 </SmellBaseline>

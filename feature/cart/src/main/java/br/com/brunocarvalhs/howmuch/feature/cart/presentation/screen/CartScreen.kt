@@ -177,7 +177,9 @@ internal fun CartScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_more_options)
+                                contentDescription = stringResource(
+                                    br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_more_options
+                                )
                             )
                         }
                         DropdownMenu(

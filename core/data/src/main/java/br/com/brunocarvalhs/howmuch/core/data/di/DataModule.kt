@@ -2,8 +2,8 @@ package br.com.brunocarvalhs.howmuch.core.data.di
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import br.com.brunocarvalhs.howmuch.core.data.cloud.CloudNetwork
 import br.com.brunocarvalhs.howmuch.core.data.network.CompatibilityConverter

@@ -176,7 +176,8 @@ private fun NotificationsPreview() {
                     NotificationItem(
                         id = "1",
                         title = "João completou 3 itens",
-                        description = "Leite Integral, Queijo Minas Frescal e Banana Prata foram riscados da lista Compras da Semana.",
+                        description = "Leite Integral, Queijo Minas Frescal e Banana Prata foram riscados " +
+                            "da lista Compras da Semana.",
                         time = "Há 5 min",
                         type = NotificationType.ACTION,
                         isRead = false
