@@ -161,7 +161,9 @@ internal fun ShoppingItem(
             HorizontalDivider()
             DropdownMenuItem(
                 text = { Text("Deletar", color = MaterialTheme.colorScheme.error) },
-                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                leadingIcon = {
+                    Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                },
                 onClick = { showMenu = false; onDeleteClick() }
             )
         }
