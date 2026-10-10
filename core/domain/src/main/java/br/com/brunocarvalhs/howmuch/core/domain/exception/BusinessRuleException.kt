@@ -1,6 +1,5 @@
 package br.com.brunocarvalhs.howmuch.core.domain.exception
 
-import br.com.brunocarvalhs.howmuch.core.common.exception.AppException
 
 /**
  * Base para violações de regra de negócio esperadas (ex: usuário sem permissão, estado
