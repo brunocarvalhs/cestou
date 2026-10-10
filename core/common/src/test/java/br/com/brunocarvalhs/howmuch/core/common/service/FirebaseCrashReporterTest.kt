@@ -1,6 +1,6 @@
 package br.com.brunocarvalhs.howmuch.core.common.service
 
-import br.com.brunocarvalhs.howmuch.core.common.exception.AppException
+import br.com.brunocarvalhs.howmuch.core.domain.exception.AppException
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.mockk.every
 import io.mockk.mockk

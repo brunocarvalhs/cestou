@@ -1,10 +1,10 @@
-package br.com.brunocarvalhs.howmuch.core.common.exception
+package br.com.brunocarvalhs.howmuch.core.domain.exception
 
 /**
  * Base para exceções da aplicação que devem ser facilmente identificáveis no Crashlytics.
  *
  * [tag] agrupa ocorrências relacionadas (ex: "ai_provider", "remote_config") e é reportado
- * como custom key pelo [br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter],
+ * como custom key pelo `CrashReporter` (core:common),
  * permitindo filtrar o Crashlytics por origem sem depender do nome da classe/stacktrace.
  */
 open class AppException(
