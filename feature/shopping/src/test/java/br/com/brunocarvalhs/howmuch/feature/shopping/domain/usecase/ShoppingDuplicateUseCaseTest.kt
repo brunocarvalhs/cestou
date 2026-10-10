@@ -1,10 +1,10 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
-import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.text.ShoppingTexts
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDuplicateUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -19,10 +19,10 @@ import org.junit.Test
 
 class ShoppingDuplicateUseCaseTest {
 
-    private val context = mockk<Context> { every { getString(any()) } returns "copy" }
+    private val texts = mockk<ShoppingTexts> { every { copySuffix() } returns "copy" }
     private val repository = mockk<ShoppingRepository>(relaxed = true)
     private val productsUseCase = mockk<ProductsUseCase>(relaxed = true)
-    private val useCase = ShoppingDuplicateUseCase(context, repository, productsUseCase)
+    private val useCase = ShoppingDuplicateUseCase(texts, repository, productsUseCase)
 
     private val original = Shopping(
         id = "list1",

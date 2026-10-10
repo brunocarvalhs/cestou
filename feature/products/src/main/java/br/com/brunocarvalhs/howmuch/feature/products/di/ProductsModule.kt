@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.products.di
 
-import br.com.brunocarvalhs.howmuch.feature.products.ProductsInitializer
-import br.com.brunocarvalhs.howmuch.feature.products.ProductsInitializerImpl
+import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
+import br.com.brunocarvalhs.howmuch.feature.products.ProductsNavGraph
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -14,5 +14,5 @@ abstract class ProductsModule {
 
     @Binds
     @IntoSet
-    abstract fun bindProductsInitializer(impl: ProductsInitializerImpl): br.com.brunocarvalhs.howmuch.core.navigation.FeatureInitializer
+    abstract fun bindProductsNavGraph(impl: ProductsNavGraph): FeatureNavGraph
 }

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Test-only manifest, merged only into feature/settings' androidTest APK. Same fix as
+    core/ui/src/androidTest/AndroidManifest.xml: library modules have no google-services.json, so
+    core/common's Firebase startup initializers crash the test process before any test runs.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application>
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="br.com.brunocarvalhs.howmuch.core.common.initializer.FirebaseInitializer"
+                tools:node="remove" />
+            <meta-data
+                android:name="br.com.brunocarvalhs.howmuch.core.common.initializer.CrashlyticsInitializer"
+                tools:node="remove" />
+            <meta-data
+                android:name="br.com.brunocarvalhs.howmuch.core.common.initializer.TimberInitializer"
+                tools:node="remove" />
+        </provider>
+    </application>
+</manifest>

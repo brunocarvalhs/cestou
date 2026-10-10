@@ -1,10 +1,10 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.google.devtools.ksp)
+    id("com.android.application")
+    id("com.google.devtools.ksp")
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
-    alias(libs.plugins.hilt)
-    alias(libs.plugins.kotlin.compose)
+    id("com.google.dagger.hilt.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 // Same keystore and credentials as :app - see the comment in app/build.gradle.kts.
@@ -75,6 +75,7 @@ dependencies {
     implementation(project(":core:theme"))
     implementation(project(":core:common"))
     implementation(project(":core:domain"))
+    implementation(project(":core:auth"))
     implementation(project(":core:navigation"))
     implementation(project(":feature:shopping"))
     implementation(project(":feature:profile"))
@@ -82,6 +83,7 @@ dependencies {
     implementation(project(":feature:products"))
     implementation(project(":feature:cart"))
     implementation(project(":feature:chat"))
+    implementation(project(":feature:ai-agent"))
     implementation(project(":feature:settings"))
 
     implementation(platform(libs.androidx.compose.bom))

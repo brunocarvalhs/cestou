@@ -5,7 +5,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
-import br.com.brunocarvalhs.howmuch.feature.auth.domain.usecase.AuthConfigUseCase
+import br.com.brunocarvalhs.howmuch.feature.auth.presentation.firebaseui.FirebaseAuthUiConfig
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateLanguageUseCase
 import io.mockk.coVerify
 import io.mockk.every
@@ -24,7 +24,7 @@ class WelcomeViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private val context = mockk<Context>()
     private val packageManager = mockk<PackageManager>()
-    private val authConfig = mockk<AuthConfigUseCase>(relaxed = true)
+    private val authConfig = mockk<FirebaseAuthUiConfig>(relaxed = true)
     private val updateLanguageUseCase = mockk<UpdateLanguageUseCase>(relaxed = true)
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
 

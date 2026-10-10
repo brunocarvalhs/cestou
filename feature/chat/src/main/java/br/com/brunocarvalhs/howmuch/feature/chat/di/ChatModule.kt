@@ -7,9 +7,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import br.com.brunocarvalhs.howmuch.core.data.service.DataStoreStorageService
 import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
-import br.com.brunocarvalhs.howmuch.core.navigation.FeatureInitializer
-import br.com.brunocarvalhs.howmuch.feature.chat.ChatInitializer
-import br.com.brunocarvalhs.howmuch.feature.chat.ChatInitializerImpl
+import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
+import br.com.brunocarvalhs.howmuch.feature.chat.ChatNavGraph
 import br.com.brunocarvalhs.howmuch.feature.chat.data.repository.ChatHistoryRepositoryImpl
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import dagger.Binds
@@ -32,7 +31,7 @@ internal abstract class ChatModule {
 
     @Binds
     @IntoSet
-    abstract fun bindChatInitializer(impl: ChatInitializerImpl): FeatureInitializer
+    abstract fun bindChatNavGraph(impl: ChatNavGraph): FeatureNavGraph
 
     @Binds
     abstract fun bindChatHistoryRepository(impl: ChatHistoryRepositoryImpl): ChatHistoryRepository

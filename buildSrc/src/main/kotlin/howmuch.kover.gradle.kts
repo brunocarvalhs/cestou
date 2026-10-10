@@ -27,6 +27,7 @@ dependencies {
     kover(project(":core:ai"))
     kover(project(":core:remote-config"))
     kover(project(":core:analytics"))
+    kover(project(":core:billing"))
     kover(project(":feature:shopping"))
     kover(project(":feature:products"))
     kover(project(":feature:settings"))
@@ -35,6 +36,7 @@ dependencies {
     kover(project(":feature:chat"))
     kover(project(":feature:cart"))
     kover(project(":feature:ai-agent"))
+    kover(project(":feature:subscription"))
 }
 
 kover {
@@ -111,14 +113,10 @@ kover {
                 classes("*.initializer.*")
                 // ML Kit / CameraX wrappers (OCR, image analysis) — need instrumentation, not
                 // unit-testable in plain JVM tests without a real Android environment.
-                classes(
-                    "*.MlKitImageAnalyzerService*",
-                    "*.ProductImageTextRecognizer*"
-                )
-                // *InitializerImpl classes: by project convention (see feature-layer whitelist)
-                // these only wire NavGraphBuilder.composable<X> { ... } blocks per feature, same
-                // category as the already-excluded *.navigation.*Graph* wiring.
-                classes("*InitializerImpl*")
+                classes("*.ProductImageTextRecognizer*")
+                // Each feature's *NavGraph (feature root package) only wires NavGraphBuilder.composable<X>
+                // { ... } blocks, same category as the already-excluded *.navigation.*Graph* wiring.
+                classes("*.feature.*NavGraph")
                 // Composables puros de drag-and-drop (mesma categoria de presentation.screen/
                 // components acima); DragTargetInfo (o state holder) continua coberto por teste.
                 classes("br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragDropUtilsKt*")

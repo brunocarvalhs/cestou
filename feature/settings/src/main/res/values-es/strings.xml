@@ -105,11 +105,11 @@
 
     <string name="settings_privacy_content">
         Su privacidad es nuestra prioridad:\n\n
-        1. Recopilación de Datos: Solo recopilamos su ID de usuario anónimo y sus listas de compras para la sincronización.\n
+        1. Recopilación de Datos: Recopilamos su correo electrónico y nombre para crear y acceder a su cuenta, y sus listas de compras para la sincronización. Su contraseña es gestionada por Firebase Authentication (Google) y nunca la almacenamos. También recopilamos datos técnicos de fallos y uso (Firebase Crashlytics y Analytics) para mejorar la aplicación.\n
         2. Compartir: No compartimos sus datos personales con terceros con fines publicitarios.\n
         3. Cookies: No utilizamos cookies de seguimiento.\n
         4. Seguridad: Utilizamos el cifrado AES para proteger los datos sensibles en el dispositivo.\n\n
-        ¿Preguntas? Contáctenos a través de suporte@cestou.com.br
+        ¿Preguntas? Contáctenos a través de brunocarvalhs@outlook.com.br
     </string>
 
     <string name="action_confirm">Confirmar</string>

@@ -180,19 +180,23 @@ jobs:
 
       - name: ${{ needs.prepare.outputs.step_comment_failure }}
         if: ${{ failure() && matrix.check.pr_comment.failure != null }}
-        uses: mb2dev/github-action-comment-pull-request@1.0.0
-        with:
-          message: ${{ matrix.check.pr_comment.failure }}
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-          reactions: "-1 | confused"
+        # Comment only; never fail the job over it.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MESSAGE: ${{ matrix.check.pr_comment.failure }}
+        run: gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$MESSAGE"
 
       - name: ${{ needs.prepare.outputs.step_comment_success }}
         if: ${{ success() && matrix.check.pr_comment.success != null }}
-        uses: mb2dev/github-action-comment-pull-request@1.0.0
-        with:
-          message: ${{ matrix.check.pr_comment.success }}
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-          reactions: "+1"
+        # Comment only; never fail the job over it.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MESSAGE: ${{ matrix.check.pr_comment.success }}
+        run: gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$MESSAGE"
 
   checks_stage_2:
     needs: [prepare, checks_stage_1]
@@ -228,19 +232,23 @@ jobs:
 
       - name: ${{ needs.prepare.outputs.step_comment_failure }}
         if: ${{ failure() && matrix.check.pr_comment.failure != null }}
-        uses: mb2dev/github-action-comment-pull-request@1.0.0
-        with:
-          message: ${{ matrix.check.pr_comment.failure }}
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-          reactions: "-1 | confused"
+        # Comment only; never fail the job over it.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MESSAGE: ${{ matrix.check.pr_comment.failure }}
+        run: gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$MESSAGE"
 
       - name: ${{ needs.prepare.outputs.step_comment_success }}
         if: ${{ success() && matrix.check.pr_comment.success != null }}
-        uses: mb2dev/github-action-comment-pull-request@1.0.0
-        with:
-          message: ${{ matrix.check.pr_comment.success }}
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-          reactions: "+1"
+        # Comment only; never fail the job over it.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MESSAGE: ${{ matrix.check.pr_comment.success }}
+        run: gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$MESSAGE"
 
   coverage-check:
     needs: [prepare, checks_stage_1]
@@ -280,19 +288,23 @@ jobs:
 
       - name: ${{ needs.prepare.outputs.step_comment_failure }}
         if: ${{ failure() }}
-        uses: mb2dev/github-action-comment-pull-request@1.0.0
-        with:
-          message: ${{ needs.prepare.outputs.coverage_pr_failure }}
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-          reactions: "-1 | confused"
+        # Comment only; never fail the job over it.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MESSAGE: ${{ needs.prepare.outputs.coverage_pr_failure }}
+        run: gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$MESSAGE"
 
       - name: ${{ needs.prepare.outputs.step_comment_success }}
         if: ${{ success() }}
-        uses: mb2dev/github-action-comment-pull-request@1.0.0
-        with:
-          message: ${{ needs.prepare.outputs.coverage_pr_success }}
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-          reactions: "+1"
+        # Comment only; never fail the job over it.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MESSAGE: ${{ needs.prepare.outputs.coverage_pr_success }}
+        run: gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$MESSAGE"
 
   instrumented-tests:
     needs: [prepare, checks_stage_1]
@@ -334,21 +346,35 @@ jobs:
         env:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
+      # AGP reports success with 0 tests when the test process crashes at startup.
+      - name: "\U0001F6A8 Fail on zero instrumented tests"
+        run: |
+          pattern='*/outputs/androidTest-results/connected/*'
+          [ -n "$(find . -path "$pattern" -name 'TEST-*.xml')" ] || { echo "::error::No instrumented test results found"; exit 1; }
+          find . -path "$pattern" -name 'TEST-*.xml' -exec grep -oH 'tests="[0-9]*"' {} +
+          # grep exits 1 when nothing matches, which is the passing case; don't let `bash -e` abort on it.
+          empty=$(find . -path "$pattern" -name 'TEST-*.xml' -exec grep -l 'tests="0"' {} + || true)
+          [ -z "$empty" ] || { echo "::error::Instrumented tests ran 0 tests (startup crash?): $empty"; exit 1; }
+
       - name: ${{ needs.prepare.outputs.step_comment_failure }}
         if: ${{ failure() }}
-        uses: mb2dev/github-action-comment-pull-request@1.0.0
-        with:
-          message: ${{ needs.prepare.outputs.instrumented_pr_failure }}
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-          reactions: "-1 | confused"
+        # Comment only; never fail the job over it.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MESSAGE: ${{ needs.prepare.outputs.instrumented_pr_failure }}
+        run: gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$MESSAGE"
 
       - name: ${{ needs.prepare.outputs.step_comment_success }}
         if: ${{ success() }}
-        uses: mb2dev/github-action-comment-pull-request@1.0.0
-        with:
-          message: ${{ needs.prepare.outputs.instrumented_pr_success }}
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-          reactions: "+1"
+        # Comment only; never fail the job over it.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MESSAGE: ${{ needs.prepare.outputs.instrumented_pr_success }}
+        run: gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$MESSAGE"
 
   codeql:
     needs: [prepare]
@@ -448,13 +474,9 @@ jobs:
       # security.commitlint.allowed_types drives this instead of a static
       # commitlint.config.cjs because version.sh's semver bump decision reads
       # the same commit-type prefixes - keeping one list in pipeline-config.yaml
-      # means they can't silently drift apart. ".cjs", not ".js": the
-      # wagoid/commitlint-github-action container has no package.json above
-      # /github/workspace of its own other than its bundled one, which sets
-      # "type": "module" - a plain ".js" file with `module.exports` gets
-      # parsed as ESM there and fails with "module is not defined in ES
-      # module scope". ".cjs" forces CommonJS regardless of any ancestor
-      # package.json's "type" field.
+      # means they can't silently drift apart. ".cjs", not ".js": it forces
+      # CommonJS (`module.exports`) regardless of any ancestor package.json's
+      # "type": "module".
       - name: ${{ needs.prepare.outputs.step_commitlint_generate_config }}
         run: |
           TYPES=$(yq -o=json '.security.commitlint.allowed_types' .github/pipeline-config.yaml)
@@ -479,10 +501,13 @@ jobs:
       - name: ${{ needs.prepare.outputs.step_commitlint_install }}
         run: npm install --no-save @commitlint/cli @commitlint/config-conventional
 
+      # The CLI installed above, not wagoid/commitlint-github-action: that one is a Docker action
+      # pulled anonymously from Docker Hub, which rate-limits (429) and fails the job at setup.
       - name: ${{ needs.prepare.outputs.step_commitlint_run }}
-        uses: wagoid/commitlint-github-action@v6
-        with:
-          configFile: ./commitlint.config.cjs
+        run: >-
+          npx commitlint --config ./commitlint.config.cjs --verbose
+          --from ${{ github.event.pull_request.base.sha }}
+          --to ${{ github.event.pull_request.head.sha }}
 
   apk-size-check:
     needs: [prepare, checks_stage_1]
@@ -545,19 +570,23 @@ jobs:
 
       - name: ${{ needs.prepare.outputs.step_comment_failure }}
         if: ${{ failure() }}
-        uses: mb2dev/github-action-comment-pull-request@1.0.0
-        with:
-          message: ${{ needs.prepare.outputs.size_pr_failure }}
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-          reactions: "-1 | confused"
+        # Comment only; never fail the job over it.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MESSAGE: ${{ needs.prepare.outputs.size_pr_failure }}
+        run: gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$MESSAGE"
 
       - name: ${{ needs.prepare.outputs.step_comment_success }}
         if: ${{ success() }}
-        uses: mb2dev/github-action-comment-pull-request@1.0.0
-        with:
-          message: ${{ needs.prepare.outputs.size_pr_success }}
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-          reactions: "+1"
+        # Comment only; never fail the job over it.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MESSAGE: ${{ needs.prepare.outputs.size_pr_success }}
+        run: gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "$MESSAGE"
 
   # Single stable-named job that branch protection actually requires. Every
   # job above it can be freely renamed/added/removed via pipeline-config.yaml

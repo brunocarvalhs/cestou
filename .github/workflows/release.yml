@@ -32,6 +32,7 @@ jobs:
       play_track: ${{ steps.config.outputs.play_track }}
       play_status: ${{ steps.config.outputs.play_status }}
       play_user_fraction: ${{ steps.config.outputs.play_user_fraction }}
+      play_changes_not_sent_for_review: ${{ steps.config.outputs.play_changes_not_sent_for_review }}
       play_environment_name: ${{ steps.config.outputs.play_environment_name }}
       versioning_enabled: ${{ steps.config.outputs.versioning_enabled }}
       step_checkout: ${{ steps.config.outputs.step_checkout }}
@@ -41,7 +42,8 @@ jobs:
       step_configure_git: ${{ steps.config.outputs.step_configure_git }}
       step_build_aab: ${{ steps.config.outputs.step_build_aab }}
       step_build_upload_aab: ${{ steps.config.outputs.step_build_upload_aab }}
-      step_release_read_version: ${{ steps.config.outputs.step_release_read_version }}
+      step_bump_version: ${{ steps.config.outputs.step_bump_version }}
+      step_commit_push_master: ${{ steps.config.outputs.step_commit_push_master }}
       step_release_create: ${{ steps.config.outputs.step_release_create }}
       step_sync_merge: ${{ steps.config.outputs.step_sync_merge }}
       step_sync_open_pr_conflict: ${{ steps.config.outputs.step_sync_open_pr_conflict }}
@@ -79,6 +81,7 @@ jobs:
           echo "play_track=$(yq '.release.google_play.track' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "play_status=$(yq '.release.google_play.status' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "play_user_fraction=$(yq '.release.google_play.user_fraction // ""' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "play_changes_not_sent_for_review=$(yq '.release.google_play.changes_not_sent_for_review // false' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "play_environment_name=$(yq '.release.google_play.environment_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_checkout=$(yq '.build.step_names.checkout' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_setup_env=$(yq '.build.step_names.setup_environment' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
@@ -87,7 +90,8 @@ jobs:
           echo "step_configure_git=$(yq '.git.step_names.configure_git' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_build_aab=$(yq '.release.step_names.build_aab' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_build_upload_aab=$(yq '.release.step_names.upload_aab' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "step_release_read_version=$(yq '.release.step_names.read_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_bump_version=$(yq '.release.step_names.bump_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_commit_push_master=$(yq '.release.step_names.commit_push_master' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_release_create=$(yq '.release.step_names.create_release' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_sync_merge=$(yq '.release.step_names.sync_merge' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_sync_open_pr_conflict=$(yq '.release.step_names.sync_open_pr_conflict' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
@@ -155,7 +159,19 @@ jobs:
         env:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
-  build:
+  # versionName + versionCode (and CHANGELOG.md) are bumped here, together,
+  # on every merge into master - never earlier on develop - so each master
+  # build ships a versionCode the Play Store hasn't seen yet. Pushed straight
+  # to master with the admin PAT (enforce_admins is off), with [skip ci] so
+  # the bump commit doesn't re-trigger this workflow; sync-develop then
+  # carries it back into develop.
+  # Every PR merge bumps at least a patch: its "Merge pull request #N"
+  # subject is unique and isn't a non-bumping type (so a rollback PR always
+  # ships a new versionCode too). `ship` is false only when the version in
+  # the file already has a tag - a re-run after the release was cut - so
+  # build and deploy are skipped instead of re-uploading a used versionCode.
+  # A re-run after the bump was pushed but before the tag existed ships it.
+  version:
     needs: [prepare, checks_stage_1, checks_stage_2]
     if: |
       always() &&
@@ -163,11 +179,62 @@ jobs:
       (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped') &&
       (needs.checks_stage_2.result == 'success' || needs.checks_stage_2.result == 'skipped')
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    name: 🔢 Bump version
+    outputs:
+      version: ${{ steps.result.outputs.version }}
+      sha: ${{ steps.result.outputs.sha }}
+      ship: ${{ steps.result.outputs.ship }}
+    steps:
+      # Tip of master (not github.sha): on a re-run the bump commit from the
+      # first attempt is already there and must not be bumped twice.
+      - name: ${{ needs.prepare.outputs.step_checkout }}
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+          token: ${{ secrets.TOKEN }}
+
+      - name: ${{ needs.prepare.outputs.step_bump_version }}
+        id: bump
+        if: needs.prepare.outputs.versioning_enabled == 'true'
+        run: |
+          chmod +x .github/scripts/version.sh
+          echo "new_version=$(.github/scripts/version.sh)" >> $GITHUB_OUTPUT
+
+      - name: ${{ needs.prepare.outputs.step_commit_push_master }}
+        if: steps.bump.outputs.new_version != ''
+        run: |
+          git config user.name "$(yq '.git.bot_name' .github/pipeline-config.yaml)"
+          git config user.email "$(yq '.git.bot_email' .github/pipeline-config.yaml)"
+          git add "$(yq '.paths.gradle_file' .github/pipeline-config.yaml)" "$(yq '.paths.changelog' .github/pipeline-config.yaml)"
+          git commit -m "chore(release): prepare ${{ steps.bump.outputs.new_version }} [skip ci]"
+          git push origin "HEAD:${{ github.ref_name }}"
+
+      - id: result
+        run: |
+          GRADLE_FILE=$(yq '.paths.gradle_file' .github/pipeline-config.yaml)
+          VERSION=$(grep "versionName = " "$GRADLE_FILE" | sed 's/.*versionName = "\(.*\)"/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          if [ "${{ needs.prepare.outputs.versioning_enabled }}" == "true" ] && git rev-parse -q --verify "refs/tags/$VERSION" >/dev/null; then
+            echo "::notice::$VERSION já tem tag - nada novo para publicar, build e deploy pulados."
+            echo "ship=false" >> $GITHUB_OUTPUT
+          else
+            echo "ship=true" >> $GITHUB_OUTPUT
+          fi
+
+  build:
+    needs: [prepare, version]
+    if: always() && needs.version.result == 'success' && needs.version.outputs.ship == 'true'
+    runs-on: ubuntu-24.04
     timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
     name: 📦 Build Bundle (AAB)
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
         uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.version.outputs.sha }}
 
       - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
@@ -199,31 +266,17 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
     name: 🏷️ GitHub Release
-    needs: [prepare, build]
+    needs: [prepare, version, build]
     steps:
-      - name: ${{ needs.prepare.outputs.step_checkout }}
-        uses: actions/checkout@v7
-
-      # versionName/versionCode and CHANGELOG.md were already bumped and
-      # reviewed pre-merge, by whichever workflow opened the PR this push
-      # came from (release-pr.yml bumps develop directly before promoting it
-      # to master; rollback.yml bumps its rollback branch the same way).
-      # This job only reads that back to tag a GitHub Release - it never
-      # pushes to master itself, keeping master a protected, PR-only branch.
-      - name: ${{ needs.prepare.outputs.step_release_read_version }}
-        id: version
-        if: needs.prepare.outputs.versioning_enabled == 'true'
-        run: |
-          GRADLE_FILE=$(yq '.paths.gradle_file' .github/pipeline-config.yaml)
-          VERSION_NAME=$(grep "versionName = " "$GRADLE_FILE" | sed 's/.*versionName = "\(.*\)"/\1/')
-          echo "version=$VERSION_NAME" >> $GITHUB_OUTPUT
-
+      # Tags the bump commit itself (not the merge commit that triggered this
+      # run), so version.sh's `git describe --tags` starts from it next time.
       - name: ${{ needs.prepare.outputs.step_release_create }}
         uses: softprops/action-gh-release@v3
-        if: steps.version.outputs.version != ''
+        if: needs.prepare.outputs.versioning_enabled == 'true'
         with:
-          tag_name: ${{ steps.version.outputs.version }}
-          name: v${{ steps.version.outputs.version }}
+          tag_name: ${{ needs.version.outputs.version }}
+          name: v${{ needs.version.outputs.version }}
+          target_commitish: ${{ needs.version.outputs.sha }}
           draft: ${{ needs.prepare.outputs.github_draft }}
           prerelease: ${{ needs.prepare.outputs.github_prerelease }}
           token: ${{ secrets.TOKEN }}
@@ -314,3 +367,4 @@ jobs:
           track: ${{ needs.prepare.outputs.play_track }}
           status: ${{ needs.prepare.outputs.play_status }}
           userFraction: ${{ needs.prepare.outputs.play_user_fraction }}
+          changesNotSentForReview: ${{ needs.prepare.outputs.play_changes_not_sent_for_review }}
