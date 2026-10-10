@@ -196,7 +196,9 @@ fun AiChatScreen(
                                 if (showEmojiPicker) {
                                     Icon(
                                         imageVector = Icons.Default.Keyboard,
-                                        contentDescription = stringResource(R.string.ai_chat_keyboard_content_description)
+                                        contentDescription = stringResource(
+                                            R.string.ai_chat_keyboard_content_description
+                                        )
                                     )
                                 } else {
                                     Text(text = EMOJI_ICON, style = MaterialTheme.typography.titleMedium)

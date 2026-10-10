@@ -52,7 +52,13 @@ class SettingsViewModelTest {
 
     private fun viewModel(): SettingsViewModel {
         every { settingsRepository.getSettings() } returns flowOf(AppSettings())
-        return SettingsViewModel(context, settingsRepository, updateLanguageUseCase, updateCurrencyUseCase, analyticsTracker).also {
+        return SettingsViewModel(
+            context,
+            settingsRepository,
+            updateLanguageUseCase,
+            updateCurrencyUseCase,
+            analyticsTracker
+        ).also {
             it.setNavigator(navigator)
         }
     }

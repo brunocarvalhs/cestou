@@ -241,28 +241,28 @@ private fun ShoppingListItemWrapper(
 //            modifier = Modifier.alpha(dragAlpha),
 //            dataToDrop = shopping
 //        ) {
-            ShoppingItem(
-                modifier = Modifier.padding(vertical = 4.dp),
-                onClick = { intent.onOpen(shopping.id) },
-                title = shopping.title,
-                emoji = shopping.emoji,
-                budget = shopping.budget,
-                users = shopping.users,
-                status = shopping.status,
-                onDeleteClick = { intent.onDelete(shopping.id) },
-                onDuplicateClick = { intent.onDuplicate(shopping) },
-                onShareClick = { intent.onShare(shopping) },
-                onEditClick = { intent.onEdit(shopping) },
-                onFinishClick = {
-                    if (shopping.status == Shopping.Status.FINISH) {
-                        intent.onReopen(shopping)
-                    } else {
-                        intent.onUpdate(
-                            shopping.copy(status = Shopping.Status.FINISH)
-                        )
-                    }
-                }
-            )
+    ShoppingItem(
+        modifier = Modifier.padding(vertical = 4.dp),
+        onClick = { intent.onOpen(shopping.id) },
+        title = shopping.title,
+        emoji = shopping.emoji,
+        budget = shopping.budget,
+        users = shopping.users,
+        status = shopping.status,
+        onDeleteClick = { intent.onDelete(shopping.id) },
+        onDuplicateClick = { intent.onDuplicate(shopping) },
+        onShareClick = { intent.onShare(shopping) },
+        onEditClick = { intent.onEdit(shopping) },
+        onFinishClick = {
+            if (shopping.status == Shopping.Status.FINISH) {
+                intent.onReopen(shopping)
+            } else {
+                intent.onUpdate(
+                    shopping.copy(status = Shopping.Status.FINISH)
+                )
+            }
+        }
+    )
 //        }
 //    }
 }

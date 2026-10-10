@@ -48,7 +48,8 @@ internal class NotificationsViewModel @Inject constructor(
                                 title = n.title,
                                 description = n.message,
                                 time = "Há pouco", // Need real time mapping
-                                type = try { NotificationType.valueOf(n.type) } catch (e: Exception) { NotificationType.FEATURE },
+                                type = runCatching { NotificationType.valueOf(n.type) }
+                                    .getOrDefault(NotificationType.FEATURE),
                                 isRead = n.isRead
                             )
                         },

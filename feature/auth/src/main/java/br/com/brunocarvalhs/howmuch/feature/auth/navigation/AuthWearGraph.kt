@@ -4,10 +4,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.wear.compose.navigation.composable
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingCode
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.LinkPhone
-import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.screen.PairingCodeWearScreen
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingCode
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.screen.LinkPhoneWearScreen
+import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.screen.PairingCodeWearScreen
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.viewmodel.PairingViewModel
 
 internal fun NavGraphBuilder.authWearGraph(navigator: Navigator) {
