@@ -43,7 +43,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.withActivity
 import br.com.brunocarvalhs.howmuch.core.ui.components.UserAvatar
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatQuantity
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
-import br.com.brunocarvalhs.howmuch.feature.products.R
+import br.com.brunocarvalhs.howmuch.feature.cart.R
 import br.com.brunocarvalhs.howmuch.core.ui.R as CoreUiR
 
 @OptIn(ExperimentalMaterial3Api::class)

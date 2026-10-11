@@ -32,7 +32,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatQuantity
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyVisualTransformation
-import br.com.brunocarvalhs.howmuch.feature.products.R
+import br.com.brunocarvalhs.howmuch.feature.cart.R
 
 private const val CURRENCY_DIVISOR = 100.0
 private const val MAX_PRICE_LENGTH = 12
