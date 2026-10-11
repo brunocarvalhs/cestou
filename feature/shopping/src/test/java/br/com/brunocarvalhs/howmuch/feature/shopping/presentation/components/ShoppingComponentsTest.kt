@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -8,6 +9,7 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.ui.utils.LocalCurrency
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.CreateShoppingContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.EditShoppingContent
@@ -126,6 +128,19 @@ class ShoppingComponentsTest {
             }
         }
         composeTestRule.onRoot().assertExists()
+    }
+
+    @Test
+    fun `shopping item budget follows the selected currency`() {
+        java.util.Locale.setDefault(java.util.Locale.US)
+        composeTestRule.setContent {
+            CestouTheme {
+                CompositionLocalProvider(LocalCurrency provides "USD") {
+                    ShoppingItem(title = "Market", budget = 1234.5)
+                }
+            }
+        }
+        composeTestRule.onNodeWithText("$1,234.50", substring = true).assertExists()
     }
 
     @Test
