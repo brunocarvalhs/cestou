@@ -96,11 +96,6 @@
     <string name="shopping_list_summary_items_in_cart">items in cart</string>
     <string name="shopping_list_empty_title">Your list is empty</string>
     <string name="shopping_list_empty_description">Add products or ask the AI for help!</string>
-    <string name="shopping_list_share_options_title">How do you want to share?</string>
-    <string name="shopping_list_share_invite_member">Invite to Collaborate</string>
-    <string name="shopping_list_share_invite_member_desc">Another user can edit the list in real time</string>
-    <string name="shopping_list_share_text">Send as Text</string>
-    <string name="shopping_list_share_text_desc">Send the item list via WhatsApp, email, etc.</string>
 
 
 
