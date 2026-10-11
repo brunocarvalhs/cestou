@@ -22,6 +22,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
+private const val TEST_TEMPERATURE = 0.5f
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class AiSettingsViewModelTest {
 
@@ -54,12 +56,12 @@ class AiSettingsViewModelTest {
     @Test
     fun `onUpdateAiSettings forwards to the use case`() = runTest {
         every { settingsRepository.getSettings() } returns flowOf(AppSettings())
-        coEvery { updateAiSettingsUseCase("gpt", "concise", 0.5f) } returns Unit
+        coEvery { updateAiSettingsUseCase("gpt", "concise", TEST_TEMPERATURE) } returns Unit
         val vm = AiSettingsViewModel(settingsRepository, updateAiSettingsUseCase)
 
-        vm.intent.onUpdateAiSettings("gpt", "concise", 0.5f)
+        vm.intent.onUpdateAiSettings("gpt", "concise", TEST_TEMPERATURE)
 
-        coVerify { updateAiSettingsUseCase("gpt", "concise", 0.5f) }
+        coVerify { updateAiSettingsUseCase("gpt", "concise", TEST_TEMPERATURE) }
     }
 
     @Test

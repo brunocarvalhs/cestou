@@ -2,9 +2,5 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>MagicNumber:DragTargetInfoTest.kt$DragTargetInfoTest$10f</ID>
-    <ID>MagicNumber:DragTargetInfoTest.kt$DragTargetInfoTest$20f</ID>
-    <ID>MagicNumber:UiTextTest.kt$UiTextTest$42</ID>
-    <ID>MagicNumber:UiTextTest.kt$UiTextTest$7</ID>
   </CurrentIssues>
 </SmellBaseline>
