@@ -2,12 +2,12 @@ package br.com.brunocarvalhs.howmuch.feature.cart.presentation.state
 
 import androidx.compose.runtime.Stable
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
+import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
-import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
 
 @Stable
 internal data class CartUiState(

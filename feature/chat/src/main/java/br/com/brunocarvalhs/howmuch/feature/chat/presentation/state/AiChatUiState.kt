@@ -2,7 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.chat.presentation.state
 
 import androidx.compose.runtime.Stable
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
-import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
+import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 
 @Stable
 data class AiChatUiState(

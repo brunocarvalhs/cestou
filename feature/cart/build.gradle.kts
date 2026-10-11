@@ -12,7 +12,6 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
     implementation(project(":core:ai"))
-    implementation(project(":feature:chat"))
     implementation(project(":feature:products"))
     implementation(project(":feature:shopping"))
 
