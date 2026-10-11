@@ -39,6 +39,7 @@ import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatQuantity
 import br.com.brunocarvalhs.howmuch.feature.products.R
+import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
 private const val QUANTITY_STEP = 1.0
 private const val MIN_QUANTITY = 1.0
@@ -164,7 +165,10 @@ private fun AnalysisResultItem(
                                 onUpdate(product.copy(quantity = newQuantity))
                             }
                         ) {
-                            Icon(Icons.Default.Remove, contentDescription = null)
+                            Icon(
+                                Icons.Default.Remove,
+                                contentDescription = stringResource(CoreR.string.content_description_remove_unit)
+                            )
                         }
                         Text(
                             text = product.quantity.formatQuantity(),
@@ -174,7 +178,10 @@ private fun AnalysisResultItem(
                             modifier = Modifier.size(32.dp),
                             onClick = { onUpdate(product.copy(quantity = product.quantity + QUANTITY_STEP)) }
                         ) {
-                            Icon(Icons.Default.Add, contentDescription = null)
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = stringResource(CoreR.string.content_description_add_unit)
+                            )
                         }
                     }
                 }

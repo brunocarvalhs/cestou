@@ -2,6 +2,7 @@
 <resources>
     <string name="action_confirm">Confirmar</string>
     <string name="cart_ai_input_placeholder">Mensaje para Cestou…</string>
+    <string name="cart_ai_voice_input">Entrada de voz</string>
     <string name="cart_assistant_status">En línea • IA activa</string>
     <string name="cart_assistant_title">Asistente Cestou</string>
     <string name="cart_checkout">Finalizar</string>

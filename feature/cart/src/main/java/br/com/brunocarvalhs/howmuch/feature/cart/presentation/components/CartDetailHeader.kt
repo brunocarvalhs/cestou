@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,6 +44,7 @@ import br.com.brunocarvalhs.howmuch.core.theme.CestouSoftGreen
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTextPrimary
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTextSecondary
 import coil.compose.AsyncImage
+import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,7 +97,7 @@ internal fun CartDetailHeader(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = null,
+                    contentDescription = stringResource(CoreR.string.content_description_back),
                 )
             }
         },
