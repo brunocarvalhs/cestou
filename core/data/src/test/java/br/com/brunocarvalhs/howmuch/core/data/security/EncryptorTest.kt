@@ -5,21 +5,21 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Test
 
-class CryptoManagerTest {
+class EncryptorTest {
 
-    private lateinit var cryptoManager: CryptoManager
+    private lateinit var encryptor: Encryptor
 
     @Before
     fun setup() {
-        cryptoManager = CryptoManager()
+        encryptor = Encryptor()
     }
 
     @Test
     fun `encrypt then decrypt round-trips to the original value`() {
         val original = "milk and eggs"
 
-        val encrypted = cryptoManager.encrypt(original)
-        val decrypted = cryptoManager.decrypt(encrypted)
+        val encrypted = encryptor.encrypt(original)
+        val decrypted = encryptor.decrypt(encrypted)
 
         assertNotEquals(original, encrypted)
         assertEquals(original, decrypted)
@@ -29,14 +29,14 @@ class CryptoManagerTest {
     fun `decrypt returns the input unchanged when it is not validly encoded`() {
         val notEncrypted = "plain text, not base64url"
 
-        assertEquals(notEncrypted, cryptoManager.decrypt(notEncrypted))
+        assertEquals(notEncrypted, encryptor.decrypt(notEncrypted))
     }
 
     @Test
     fun `encryptMap encrypts string values and leaves excluded keys untouched`() {
         val input = mapOf("title" to "Weekly Groceries", "id" to "list-1")
 
-        val result = cryptoManager.encryptMap(input, excludedKeys = setOf("id"))
+        val result = encryptor.encryptMap(input, excludedKeys = setOf("id"))
 
         assertEquals("list-1", result["id"])
         assertNotEquals("Weekly Groceries", result["title"])
@@ -46,7 +46,7 @@ class CryptoManagerTest {
     fun `encryptMap drops null values`() {
         val input = mapOf("title" to "Weekly Groceries", "description" to null)
 
-        val result = cryptoManager.encryptMap(input, excludedKeys = emptySet())
+        val result = encryptor.encryptMap(input, excludedKeys = emptySet())
 
         assertEquals(setOf("title"), result.keys)
     }
@@ -55,8 +55,8 @@ class CryptoManagerTest {
     fun `encryptMap then decryptMap round-trips non-excluded values`() {
         val input = mapOf("title" to "Weekly Groceries", "price" to 42.5, "id" to "list-1")
 
-        val encrypted = cryptoManager.encryptMap(input, excludedKeys = setOf("id"))
-        val decrypted = cryptoManager.decryptMap(encrypted, excludedKeys = setOf("id"))
+        val encrypted = encryptor.encryptMap(input, excludedKeys = setOf("id"))
+        val decrypted = encryptor.decryptMap(encrypted, excludedKeys = setOf("id"))
 
         assertEquals("Weekly Groceries", decrypted["title"])
         assertEquals(42.5, decrypted["price"])
@@ -70,8 +70,8 @@ class CryptoManagerTest {
             "users" to listOf("user-1", "user-2")
         )
 
-        val encrypted = cryptoManager.encryptMap(input, excludedKeys = emptySet())
-        val decrypted = cryptoManager.decryptMap(encrypted, excludedKeys = emptySet())
+        val encrypted = encryptor.encryptMap(input, excludedKeys = emptySet())
+        val decrypted = encryptor.decryptMap(encrypted, excludedKeys = emptySet())
 
         assertEquals(input["roles"], decrypted["roles"])
         assertEquals(input["users"], decrypted["users"])

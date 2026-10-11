@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class FirebaseFirestoreManager @Inject constructor(
+class FirestoreClient @Inject constructor(
     private val firestore: FirebaseFirestore
 ) {
 

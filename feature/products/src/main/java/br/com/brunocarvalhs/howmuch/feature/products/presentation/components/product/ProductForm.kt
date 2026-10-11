@@ -52,7 +52,7 @@ private const val QUANTITY_FIELD_WEIGHT = 0.6f
  * [ProductFormIntent].
  */
 @Composable
-internal fun FormProduct(
+internal fun ProductForm(
     modifier: Modifier = Modifier,
     uiState: ProductFormUiState,
     intent: ProductFormIntent = ProductFormIntent(),
@@ -220,14 +220,14 @@ internal fun FormProduct(
 
 @Preview(showBackground = true)
 @Composable
-private fun FormProductPreview() {
-    FormProduct(uiState = ProductFormUiState())
+private fun ProductFormPreview() {
+    ProductForm(uiState = ProductFormUiState())
 }
 
 @Preview(showBackground = true, name = "Preenchido")
 @Composable
-private fun FormProductFilledPreview() {
-    FormProduct(
+private fun ProductFormFilledPreview() {
+    ProductForm(
         uiState = ProductFormUiState(
             name = "Arroz Branco 5kg",
             quantity = "2",
@@ -239,8 +239,8 @@ private fun FormProductFilledPreview() {
 
 @Preview(showBackground = true, name = "Salvando")
 @Composable
-private fun FormProductSavingPreview() {
-    FormProduct(
+private fun ProductFormSavingPreview() {
+    ProductForm(
         uiState = ProductFormUiState(
             name = "Arroz Branco 5kg",
             quantity = "2",

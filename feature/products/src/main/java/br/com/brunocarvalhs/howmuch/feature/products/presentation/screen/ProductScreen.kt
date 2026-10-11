@@ -22,7 +22,7 @@ import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.core.ui.components.CategoryPickerDialog
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.Options
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.FormProduct
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductForm
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductHeader
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductPhotoForm
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.ProductFormViewModel
@@ -76,7 +76,7 @@ internal fun ProductScreen(
             composable(Options.FORM.name) {
                 val viewModel: ProductFormViewModel = hiltViewModel(viewModelStoreOwner = viewModelStoreOwner)
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-                FormProduct(
+                ProductForm(
                     uiState = uiState,
                     intent = viewModel.intent,
                     snackbarHostState = snackbarHostState,
