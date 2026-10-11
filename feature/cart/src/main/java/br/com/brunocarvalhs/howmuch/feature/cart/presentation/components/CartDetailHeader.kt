@@ -65,7 +65,7 @@ internal fun CartDetailHeader(
                     modifier = Modifier
                         .size(56.dp)
                         .clip(RoundedCornerShape(20.dp))
-                        .background(Color(0xFFF0F0F0)),
+                        .background(Color(HEADER_ICON_BACKGROUND)),
                     contentAlignment = Alignment.Center
                 ) {
                     if (iconUrl != null) {
@@ -109,3 +109,5 @@ internal fun CartDetailHeader(
 private fun CartDetailHeaderPreview() {
     CartDetailHeader(title = "Compras da Semana")
 }
+
+private const val HEADER_ICON_BACKGROUND = 0xFFF0F0F0

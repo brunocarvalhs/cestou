@@ -42,7 +42,7 @@ class ShoppingGetDetailsUseCaseTest {
         assertTrue(result.isSuccess)
         val details = result.getOrNull()!!
         assertEquals("Weekly Groceries", details["title"])
-        assertEquals(10.0, details["totalSpent"])
+        assertEquals(EXPECTED_TOTAL_SPENT, details["totalSpent"])
     }
 
     @Test
@@ -71,3 +71,5 @@ class ShoppingGetDetailsUseCaseTest {
         assertTrue(result.isFailure)
     }
 }
+
+private const val EXPECTED_TOTAL_SPENT = 10.0

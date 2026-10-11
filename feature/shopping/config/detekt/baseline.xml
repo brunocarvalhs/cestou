@@ -2,12 +2,6 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>MagicNumber:IconProduct.kt$0xFFF0F0F0</ID>
-    <ID>MagicNumber:ShoppingDetailViewModelTest.kt$ShoppingDetailViewModelTest$100.0</ID>
-    <ID>MagicNumber:ShoppingDetailViewModelTest.kt$ShoppingDetailViewModelTest$40.0</ID>
-    <ID>MagicNumber:ShoppingDetailViewModelTest.kt$ShoppingDetailViewModelTest$60.0</ID>
-    <ID>MagicNumber:ShoppingGetDetailsUseCaseTest.kt$ShoppingGetDetailsUseCaseTest$10.0</ID>
-    <ID>MagicNumber:ShoppingUpdateUseCaseTest.kt$ShoppingUpdateUseCaseTest$10.5</ID>
     <ID>TooManyFunctions:ShoppingRepositoryImplTest.kt$ShoppingRepositoryImplTest</ID>
   </CurrentIssues>
 </SmellBaseline>
