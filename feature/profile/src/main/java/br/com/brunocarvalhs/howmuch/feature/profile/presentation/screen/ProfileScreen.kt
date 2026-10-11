@@ -107,7 +107,7 @@ internal fun ProfileScreen(
 
             ProfileMenuGroup {
                 ProfileMenuOption(
-                    title = "Vincular Relógio (Wear OS)",
+                    title = stringResource(R.string.profile_link_wear_device),
                     icon = Icons.Default.Watch,
                     onClick = {
                         if (subscriptionStatus == SubscriptionStatus.PRO) {

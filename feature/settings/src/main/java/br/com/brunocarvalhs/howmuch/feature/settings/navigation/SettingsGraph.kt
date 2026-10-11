@@ -66,7 +66,7 @@ private fun NavGraphBuilder.generalSettings(navigator: Navigator) {
 
         // Simples placeholder ou implementação real
         PlaceholderSettingsScreen(
-            title = "Idioma",
+            title = stringResource(R.string.settings_item_language),
             onBack = { navigator.goBack() }
         )
     }
@@ -78,7 +78,7 @@ private fun NavGraphBuilder.generalSettings(navigator: Navigator) {
 
         // Simples placeholder ou implementação real
         PlaceholderSettingsScreen(
-            title = "Moeda",
+            title = stringResource(R.string.settings_item_currency),
             onBack = { navigator.goBack() }
         )
     }

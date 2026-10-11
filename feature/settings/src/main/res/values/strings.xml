@@ -115,4 +115,6 @@
     <string name="action_confirm">Confirm</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_select_time">Select Time</string>
+    <string name="settings_release_notes_title">Release notes</string>
+    <string name="settings_open_source_licenses_title">Licenses</string>
 </resources>

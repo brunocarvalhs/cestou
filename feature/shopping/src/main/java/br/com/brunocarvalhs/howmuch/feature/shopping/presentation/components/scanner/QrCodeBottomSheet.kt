@@ -106,7 +106,7 @@ fun QrCodeBottomSheet(
                 if (qrCodeBitmap != null) {
                     Image(
                         bitmap = qrCodeBitmap.asImageBitmap(),
-                        contentDescription = "QR Code",
+                        contentDescription = stringResource(R.string.shopping_qr_code_content_description),
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {

@@ -69,4 +69,25 @@
     <string name="name_step_continue">Continuar</string>
     <string name="name_step_use_another_account">Usar outra conta</string>
     <string name="name_step_save_error">Não conseguimos salvar seu nome. Verifique sua internet e tente de novo.</string>
+    <string name="reauth_title">Confirme sua Identidade</string>
+    <string name="mfa_setup_title">Configurar Segundo Fator (MFA)</string>
+    <string name="mfa_setup_choose_method">Escolha como deseja receber seus códigos de segurança.</string>
+    <string name="mfa_phone_label">Telefone para MFA</string>
+    <string name="mfa_send_sms">Enviar SMS</string>
+    <string name="mfa_totp_instructions">Escaneie o QR Code ou insira o código manual no seu app de autenticação.</string>
+    <string name="mfa_totp_secret">Segredo: %1$s</string>
+    <string name="mfa_scanned">Já escaneei</string>
+    <string name="mfa_verification_code_label">Código de Verificação</string>
+    <string name="mfa_two_step_title">Verificação em Duas Etapas</string>
+    <string name="mfa_enter_code_sent">Insira o código enviado para seu %1$s</string>
+    <string name="mfa_code_label">Código MFA</string>
+    <string name="mfa_verify">Verificar</string>
+    <string name="welcome_language_content_description">Idioma</string>
+    <string name="link_wear_title">Vincular Relógio</string>
+    <string name="link_wear_instructions">Digite o código exibido no seu relógio para sincronizar sua conta.</string>
+    <string name="pairing_code_label">Código de Pareamento</string>
+    <string name="link_wear_success">Sucesso! Seu relógio foi vinculado.</string>
+    <string name="link_wear_action">Vincular</string>
+    <string name="wear_link_phone">Vincular Celular</string>
+    <string name="wear_pairing_instructions">Abra o app no celular e digite este código.</string>
 </resources>

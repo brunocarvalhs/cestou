@@ -8,6 +8,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -29,6 +30,7 @@ import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatPrice
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.state.ShoppingDetailUiState
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.ShoppingDetailViewModel
 
@@ -82,7 +84,7 @@ private fun ShoppingDetailContent(
                     transformation = SurfaceTransformation(transformationSpec),
                     title = {
                         Text(
-                            text = "Saldo",
+                            text = stringResource(R.string.shopping_wear_balance),
                             style = MaterialTheme.typography.labelMedium
                         )
                     }
@@ -93,7 +95,7 @@ private fun ShoppingDetailContent(
                         color = if (state.balance < 0) Color.Red else MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = "Orçamento: ${state.budget.formatPrice()}",
+                        text = stringResource(R.string.shopping_wear_budget, state.budget.formatPrice()),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
@@ -105,7 +107,7 @@ private fun ShoppingDetailContent(
                         .fillMaxWidth()
                         .transformedHeight(this, transformationSpec)
                 ) {
-                    Text("Produtos")
+                    Text(stringResource(R.string.shopping_wear_products))
                 }
             }
 
@@ -139,7 +141,7 @@ private fun ShoppingDetailContent(
             if (state.items.items.isEmpty() && !state.isLoading) {
                 item {
                     Text(
-                        text = "Nenhum produto",
+                        text = stringResource(R.string.shopping_wear_no_products),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
