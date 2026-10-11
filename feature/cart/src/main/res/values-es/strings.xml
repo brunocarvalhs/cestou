@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="action_confirm">Confirmar</string>
+    <string name="cart_ai_input_placeholder">Mensaje para Cestou…</string>
+    <string name="cart_assistant_status">En línea • IA activa</string>
+    <string name="cart_assistant_title">Asistente Cestou</string>
+    <string name="cart_checkout">Finalizar</string>
     <string name="cart_item_delete_description">Eliminar artículo</string>
+    <string name="cart_item_quantity_price">%1$d ud. • %2$s c/u</string>
     <string name="shopping_list_confirm_item_title">Confirmar Artículo</string>
     <string name="shopping_list_confirm_save">Confirmar y Guardar</string>
     <string name="shopping_list_default_title">Lista de productos</string>

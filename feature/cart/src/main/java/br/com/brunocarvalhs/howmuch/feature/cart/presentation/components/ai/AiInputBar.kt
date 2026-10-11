@@ -29,8 +29,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.theme.CestouBrightGreen
+import br.com.brunocarvalhs.howmuch.feature.cart.R
 
 @Composable
 fun AiInputBar(
@@ -82,7 +84,7 @@ fun AiInputBar(
                 decorationBox = { innerTextField ->
                     if (value.isEmpty()) {
                         Text(
-                            text = "Mensagem para o Cestou...",
+                            text = stringResource(R.string.cart_ai_input_placeholder),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
