@@ -81,7 +81,7 @@ kover {
                 // Robolectric/instrumented test, não apenas JVM unit test; a maior parte das
                 // linhas aqui é log em branches de erro de framework, não lógica própria.
                 classes(
-                    "br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncServiceImpl*",
+                    "br.com.brunocarvalhs.howmuch.core.data.wearable.WearableSyncServiceImpl*",
                     "br.com.brunocarvalhs.howmuch.appfunctions.*"
                 )
                 // WorkManager.getInstance(context) é resolvido estaticamente pelo próprio

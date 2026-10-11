@@ -1,8 +1,8 @@
-package br.com.brunocarvalhs.howmuch.core.common.initializer
+package br.com.brunocarvalhs.howmuch.core.data.initializer
 
 import android.content.Context
 import androidx.startup.Initializer
-import br.com.brunocarvalhs.howmuch.core.common.BuildConfig
+import br.com.brunocarvalhs.howmuch.core.data.BuildConfig
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.appcheck.appCheck
