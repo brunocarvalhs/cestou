@@ -12,7 +12,6 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
-    implementation(project(":feature:settings"))
 
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.appcompat)

@@ -158,7 +158,6 @@ class ArchitectureTest {
 
         // Audit item 2 (phase 2): shared UI/resources/use cases still owned by another feature.
         val KNOWN_FEATURE_TO_FEATURE = setOf(
-            "feature.auth.presentation.viewmodel.WelcomeViewModel -> feature.settings.domain.usecase.UpdateLanguageUseCase",
             "feature.cart.navigation.CartGraph -> feature.products.presentation.components.common.ShareOptionsBottomSheet",
             "feature.cart.presentation.components.ConfirmItemContent -> feature.products.R",
             "feature.cart.presentation.components.EditItemContent -> feature.products.R",
