@@ -5,7 +5,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
 @Composable
 internal fun ShoppingAdd(
@@ -16,7 +18,7 @@ internal fun ShoppingAdd(
     ) {
         Icon(
             imageVector = Icons.Default.Add,
-            contentDescription = "Adicionar"
+            contentDescription = stringResource(CoreR.string.action_add)
         )
     }
 }

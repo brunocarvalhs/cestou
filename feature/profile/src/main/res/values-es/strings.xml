@@ -6,4 +6,6 @@
     <string name="profile_subscription_pro_subtitle">Suscripción activa</string>
     <string name="profile_subscription_free_title">Cestou Free</string>
     <string name="profile_subscription_free_subtitle">Desbloquea funciones Pro</string>
+    <string name="profile_link_wear_device">Vincular reloj (Wear OS)</string>
+    <string name="profile_wear_link_phone">Vincular teléfono</string>
 </resources>

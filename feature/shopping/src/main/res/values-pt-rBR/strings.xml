@@ -106,4 +106,15 @@
 
     <string name="state_description_in_cart">No carrinho</string>
     <string name="state_description_not_in_cart">Fora do carrinho</string>
+    <string name="shopping_summary_total_spent_month">TOTAL GASTO ESTE MÊS</string>
+    <string name="shopping_summary_saved">+%1$s economizados</string>
+    <string name="shopping_welcome_back">Bem-vinda de volta,</string>
+    <string name="shopping_notifications_content_description">Notificações</string>
+    <string name="shopping_qr_code_content_description">QR Code</string>
+    <string name="shopping_wear_my_lists">Minhas Listas</string>
+    <string name="shopping_wear_no_lists">Nenhuma lista encontrada</string>
+    <string name="shopping_wear_balance">Saldo</string>
+    <string name="shopping_wear_budget">Orçamento: %1$s</string>
+    <string name="shopping_wear_products">Produtos</string>
+    <string name="shopping_wear_no_products">Nenhum produto</string>
 </resources>
