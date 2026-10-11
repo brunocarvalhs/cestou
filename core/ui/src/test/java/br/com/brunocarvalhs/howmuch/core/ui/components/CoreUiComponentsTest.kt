@@ -7,11 +7,11 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -40,7 +40,11 @@ class CoreUiComponentsTest {
         var navigated: Any? = null
         composeTestRule.setContent {
             CestouTheme {
-                CestouBottomNavigation(currentRoute = null, onNavigate = { navigated = it }, photoUrl = "https://x/p.png")
+                CestouBottomNavigation(
+                    currentRoute = null,
+                    onNavigate = { navigated = it },
+                    photoUrl = "https://x/p.png"
+                )
             }
         }
         val count = composeTestRule.onAllNodes(hasClickAction()).fetchSemanticsNodes().size

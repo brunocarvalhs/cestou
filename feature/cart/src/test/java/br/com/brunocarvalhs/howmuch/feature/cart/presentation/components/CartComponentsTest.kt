@@ -22,6 +22,7 @@ import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 
 // Testes de layout via Robolectric (JVM): compõem os componentes reais do carrinho.
+@Suppress("MagicNumber")
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [34])
 class CartComponentsTest {

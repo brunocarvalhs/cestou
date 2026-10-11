@@ -57,7 +57,9 @@ class ProductComponentsTest {
             CestouTheme {
                 Column {
                     FormProduct(uiState = ProductFormUiState())
-                    FormProduct(uiState = ProductFormUiState(name = "Leite", quantity = "1", price = "500", isSaving = true))
+                    FormProduct(
+                        uiState = ProductFormUiState(name = "Leite", quantity = "1", price = "500", isSaving = true)
+                    )
                 }
             }
         }
