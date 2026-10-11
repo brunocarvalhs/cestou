@@ -2,7 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCaseImpl
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
@@ -14,10 +14,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class ProductsUseCaseTest {
+class ProductsUseCaseImplTest {
 
     private val repository = mockk<ProductRepository>()
-    private val useCase = ProductsUseCase(repository)
+    private val useCase = ProductsUseCaseImpl(repository)
 
     private val product = Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0)
 
