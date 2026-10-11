@@ -25,6 +25,9 @@ import timber.log.Timber
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
+private const val LINK_CODE_MIN = 100000
+private const val LINK_CODE_MAX = 999999
+
 internal class WearableSyncServiceImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val pairingCodeHolder: PairingCodeHolder
@@ -201,7 +204,7 @@ internal class WearableSyncServiceImpl @Inject constructor(
     }
 
     override fun generatePairingCode(): String {
-        val code = (100000..999999).random().toString()
+        val code = (LINK_CODE_MIN..LINK_CODE_MAX).random().toString()
         CoroutineScope(Dispatchers.IO).launch {
             updatePairingCode(code)
         }

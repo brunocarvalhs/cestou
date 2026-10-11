@@ -2,7 +2,5 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>MagicNumber:AiSettingsViewModelTest.kt$AiSettingsViewModelTest$0.5f</ID>
-    <ID>MagicNumber:UpdateAiSettingsUseCaseTest.kt$UpdateAiSettingsUseCaseTest$0.5f</ID>
   </CurrentIssues>
 </SmellBaseline>
