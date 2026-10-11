@@ -79,7 +79,8 @@
     <string name="mfa_scanned">Já escaneei</string>
     <string name="mfa_verification_code_label">Código de Verificação</string>
     <string name="mfa_two_step_title">Verificação em Duas Etapas</string>
-    <string name="mfa_enter_code_sent">Insira o código enviado para seu %1$s</string>
+    <string name="mfa_enter_code_sms">Insira o código enviado por SMS para seu celular</string>
+    <string name="mfa_enter_code_totp">Insira o código do seu app autenticador</string>
     <string name="mfa_code_label">Código MFA</string>
     <string name="mfa_verify">Verificar</string>
     <string name="welcome_language_content_description">Idioma</string>

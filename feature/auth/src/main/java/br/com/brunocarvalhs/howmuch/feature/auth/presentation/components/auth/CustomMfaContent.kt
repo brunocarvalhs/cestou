@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouTextField
 import br.com.brunocarvalhs.howmuch.feature.auth.R
+import com.firebase.ui.auth.configuration.MfaFactor
 import com.firebase.ui.auth.mfa.MfaChallengeContentState
 import com.firebase.ui.auth.mfa.MfaEnrollmentContentState
 import com.firebase.ui.auth.mfa.MfaEnrollmentStep
@@ -95,7 +96,11 @@ internal fun CustomMfaChallengeContent(state: MfaChallengeContentState) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text(text = stringResource(R.string.mfa_enter_code_sent, state.factorType))
+        val codeSentRes = when (state.factorType) {
+            MfaFactor.Sms -> R.string.mfa_enter_code_sms
+            MfaFactor.Totp -> R.string.mfa_enter_code_totp
+        }
+        Text(text = stringResource(codeSentRes))
 
         Spacer(modifier = Modifier.height(16.dp))
 
