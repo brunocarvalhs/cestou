@@ -60,6 +60,7 @@ import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.AiDockState
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
+import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
 private const val COLLAPSED_HEIGHT = 82
 private const val EXPANDED_HEIGHT = 180
@@ -183,7 +184,10 @@ fun CartAssistantDock(
                         }
                     }
                     IconButton(onClick = onToggleClick) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(CoreR.string.action_close)
+                        )
                     }
                 }
             }

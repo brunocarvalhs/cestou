@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.theme.CestouBrightGreen
 import br.com.brunocarvalhs.howmuch.feature.cart.R
+import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
 @Composable
 fun AiInputBar(
@@ -95,7 +96,7 @@ fun AiInputBar(
             IconButton(onClick = { /* Mic action */ }) {
                 Icon(
                     imageVector = Icons.Default.MicNone,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.cart_ai_voice_input),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -109,7 +110,7 @@ fun AiInputBar(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Send,
-                    contentDescription = null,
+                    contentDescription = stringResource(CoreR.string.content_description_send_message),
                     tint = Color.White,
                     modifier = Modifier.size(20.dp)
                 )
