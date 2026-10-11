@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Cestou — Excluir conta / Delete account</title>
+<title>Cestou — Excluir conta / Delete account / Eliminar cuenta</title>
 <style>
   :root {
     --bg: #ffffff;
@@ -11,6 +11,9 @@
     --muted: #5f5f5f;
     --accent: #2e7d32;
     --border: #e5e5e5;
+    --danger: #c62828;
+    --danger-fg: #ffffff;
+    --panel: #f7f7f7;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -19,6 +22,9 @@
       --muted: #b0b0b0;
       --accent: #81c784;
       --border: #2a2a2a;
+      --danger: #ef9a9a;
+      --danger-fg: #1a1a1a;
+      --panel: #1c1c1c;
     }
   }
   * { box-sizing: border-box; }
@@ -32,19 +38,22 @@
   main {
     max-width: 720px;
     margin: 0 auto;
-    padding: 40px 24px 80px;
+    padding: 40px 16px 80px;
   }
   h1 { font-size: 1.75rem; margin-bottom: 0; }
   h2 { font-size: 1.25rem; margin-top: 2.5rem; color: var(--accent); }
+  h3 { font-size: 1.05rem; margin: 0 0 0.5rem; }
   p.subtitle { color: var(--muted); margin-top: 4px; }
-  .lang-switch { display: flex; gap: 12px; margin: 24px 0; }
+  .lang-switch { display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0; }
   .lang-switch a {
     color: var(--accent);
     text-decoration: none;
     font-weight: 600;
     font-size: 0.9rem;
+    padding: 4px 2px;
   }
-  ol { padding-left: 1.2rem; }
+  .lang-switch a[aria-current="true"] { text-decoration: underline; }
+  ol, ul { padding-left: 1.2rem; }
   li { margin-bottom: 0.5rem; }
   footer {
     margin-top: 3rem;
@@ -54,32 +63,79 @@
     font-size: 0.85rem;
   }
   a { color: var(--accent); }
+  a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Web deletion panel */
+  .panel {
+    margin-top: 1rem;
+    padding: 20px 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel);
+  }
+  .panel h3:focus { outline: none; }
+  label { display: block; font-weight: 600; margin: 12px 0 4px; }
+  label.check { display: flex; gap: 8px; align-items: flex-start; font-weight: 400; }
+  input[type="email"], input[type="password"], input[type="text"] {
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 12px;
+    font: inherit;
+    color: var(--fg);
+    background: var(--bg);
+    border: 1px solid var(--muted);
+    border-radius: 8px;
+  }
+  input[type="checkbox"] { width: 20px; height: 20px; margin-top: 3px; flex: none; }
+  button {
+    min-height: 44px;
+    padding: 8px 16px;
+    font: inherit;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid var(--accent);
+    background: var(--bg);
+    color: var(--accent);
+    cursor: pointer;
+  }
+  button.primary { background: var(--accent); color: var(--bg); }
+  button.danger { background: var(--danger); border-color: var(--danger); color: var(--danger-fg); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+  .divider { color: var(--muted); text-align: center; margin: 16px 0 0; }
+  .error { color: var(--danger); font-weight: 600; }
+  .hint { color: var(--muted); font-size: 0.9rem; }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
 <main>
   <h1>Cestou</h1>
-  <p class="subtitle">Exclusão de conta e dados / Account and data deletion</p>
-  <div class="lang-switch">
-    <a href="#pt">Português</a>
-    <a href="#en">English</a>
-  </div>
+  <p class="subtitle">Exclusão de conta e dados / Account and data deletion / Eliminación de cuenta y datos</p>
+  <nav class="lang-switch" aria-label="Idioma / Language / Idioma">
+    <a href="#pt" hreflang="pt-BR" data-lang="pt">Português</a>
+    <a href="#en" hreflang="en" data-lang="en">English</a>
+    <a href="#es" hreflang="es" data-lang="es">Español</a>
+  </nav>
 
-  <section id="pt">
+  <section id="pt" lang="pt-BR" data-lang="pt">
     <h2>Como excluir sua conta</h2>
     <p><strong>Pelo app:</strong></p>
     <ol>
       <li>Abra o Cestou e acesse <strong>Configurações &gt; Dados</strong>.</li>
       <li>Toque em <strong>Excluir Conta</strong> e confirme.</li>
     </ol>
-    <p><strong>Sem o app:</strong> envie um e-mail para <a href="mailto:brunocarvalhs@outlook.com.br?subject=Excluir%20minha%20conta%20Cestou">brunocarvalhs@outlook.com.br</a> com o assunto “Excluir minha conta Cestou”, a partir do e-mail cadastrado na conta. Concluímos a exclusão em até 30 dias e confirmamos por e-mail.</p>
+    <p><strong>Pela web (sem o app):</strong> use a seção <a href="#excluir-web">Excluir pela web</a> abaixo. Você entra com a mesma conta do app (Google ou e-mail e senha), confirma e a exclusão acontece na hora, sem precisar falar com ninguém.</p>
 
     <h2>Dados excluídos</h2>
     <ol>
       <li>Sua conta de login (identificador, e-mail e nome).</li>
       <li>Seu perfil.</li>
       <li>Listas de compras das quais você é o único membro, com todos os itens.</li>
-      <li>Configurações e dados salvos no dispositivo.</li>
+      <li>Configurações e dados salvos no dispositivo. (Pela web, esses dados locais são apagados quando você desinstala o app ou limpa os dados dele no celular.)</li>
     </ol>
 
     <h2>Dados mantidos</h2>
@@ -89,21 +145,21 @@
     </ol>
   </section>
 
-  <section id="en">
+  <section id="en" lang="en" data-lang="en">
     <h2>How to delete your account</h2>
     <p><strong>In the app:</strong></p>
     <ol>
       <li>Open Cestou and go to <strong>Settings &gt; Data</strong>.</li>
       <li>Tap <strong>Delete Account</strong> and confirm.</li>
     </ol>
-    <p><strong>Without the app:</strong> email <a href="mailto:brunocarvalhs@outlook.com.br?subject=Delete%20my%20Cestou%20account">brunocarvalhs@outlook.com.br</a> with the subject “Delete my Cestou account”, from the email address on your account. We complete the deletion within 30 days and confirm by email.</p>
+    <p><strong>On the web (without the app):</strong> use the <a href="#excluir-web">Delete on the web</a> section below. Sign in with the same account you use in the app (Google or email and password), confirm, and the deletion happens immediately, with no need to contact anyone.</p>
 
     <h2>Data deleted</h2>
     <ol>
       <li>Your sign-in account (identifier, email and name).</li>
       <li>Your profile.</li>
       <li>Shopping lists where you are the only member, including all items.</li>
-      <li>Settings and data stored on the device.</li>
+      <li>Settings and data stored on the device. (When deleting on the web, this local data is removed when you uninstall the app or clear its data on your phone.)</li>
     </ol>
 
     <h2>Data retained</h2>
@@ -113,9 +169,109 @@
     </ol>
   </section>
 
+  <section id="es" lang="es" data-lang="es">
+    <h2>Cómo eliminar tu cuenta</h2>
+    <p><strong>En la app:</strong></p>
+    <ol>
+      <li>Abre Cestou y ve a <strong>Configuración &gt; Datos</strong>.</li>
+      <li>Toca <strong>Eliminar cuenta</strong> y confirma.</li>
+    </ol>
+    <p><strong>En la web (sin la app):</strong> usa la sección <a href="#excluir-web">Eliminar en la web</a> más abajo. Inicia sesión con la misma cuenta de la app (Google o correo y contraseña), confirma y la eliminación ocurre al instante, sin necesidad de contactar a nadie.</p>
+
+    <h2>Datos eliminados</h2>
+    <ol>
+      <li>Tu cuenta de inicio de sesión (identificador, correo y nombre).</li>
+      <li>Tu perfil.</li>
+      <li>Listas de compras en las que eres el único miembro, con todos sus artículos.</li>
+      <li>Configuración y datos guardados en el dispositivo. (Al eliminar en la web, estos datos locales se borran cuando desinstalas la app o borras sus datos en el teléfono.)</li>
+    </ol>
+
+    <h2>Datos conservados</h2>
+    <ol>
+      <li>Las listas compartidas con otras personas siguen disponibles para ellas; tú sales de la lista.</li>
+      <li>Datos técnicos anónimos de fallos y uso (Firebase Crashlytics/Analytics), que no están vinculados a tu cuenta, siguen el período de retención de Firebase y luego se eliminan automáticamente.</li>
+    </ol>
+  </section>
+
+  <section id="excluir-web" aria-labelledby="web-title">
+    <h2 id="web-title" data-i18n="title">Excluir pela web</h2>
+    <noscript><p class="error">Ative o JavaScript para excluir pela web. / Enable JavaScript to delete on the web. / Activa JavaScript para eliminar en la web.</p></noscript>
+
+    <div class="panel" id="panel" hidden>
+      <!-- Step 1: sign in -->
+      <div id="step-signin" data-step>
+        <h3 tabindex="-1" data-i18n="signinTitle"></h3>
+        <p data-i18n="signinIntro"></p>
+        <div class="actions">
+          <button type="button" id="google-btn" class="primary" data-i18n="google"></button>
+        </div>
+        <p class="divider" data-i18n="or"></p>
+        <form id="email-form" novalidate>
+          <label for="email" data-i18n="email"></label>
+          <input id="email" type="email" autocomplete="email" required />
+          <label for="password" data-i18n="password"></label>
+          <input id="password" type="password" autocomplete="current-password" required />
+          <div class="actions">
+            <button type="submit" data-i18n="signinEmail"></button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 2: confirm -->
+      <div id="step-confirm" data-step hidden>
+        <h3 tabindex="-1" data-i18n="confirmTitle"></h3>
+        <p><span data-i18n="signedInAs"></span> <strong id="who"></strong></p>
+        <p data-i18n="confirmWarning"></p>
+        <form id="confirm-form" novalidate>
+          <label for="confirm-email" data-i18n="typeEmail"></label>
+          <input id="confirm-email" type="text" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="confirm-hint" />
+          <p id="confirm-hint" class="hint" data-i18n="typeEmailHint"></p>
+          <label class="check"><input id="confirm-check" type="checkbox" /> <span data-i18n="checkbox"></span></label>
+          <div class="actions">
+            <button type="submit" id="delete-btn" class="danger" disabled data-i18n="deleteBtn"></button>
+            <button type="button" data-action="signout" data-i18n="cancel"></button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 2b: fresh sign-in required -->
+      <div id="step-reauth" data-step hidden>
+        <h3 tabindex="-1" data-i18n="reauthTitle"></h3>
+        <p data-i18n="reauthIntro"></p>
+        <form id="reauth-form" novalidate>
+          <div id="reauth-password" hidden>
+            <label for="reauth-pass" data-i18n="password"></label>
+            <input id="reauth-pass" type="password" autocomplete="current-password" />
+          </div>
+          <div class="actions">
+            <button type="submit" class="primary" data-i18n="reauthBtn"></button>
+            <button type="button" data-action="signout" data-i18n="cancel"></button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 3: in progress -->
+      <div id="step-progress" data-step hidden>
+        <h3 tabindex="-1" data-i18n="progressTitle"></h3>
+        <p id="progress-text"></p>
+        <p class="hint" data-i18n="progressHint"></p>
+      </div>
+
+      <!-- Step 4: done (only after user.delete() resolved) -->
+      <div id="step-done" data-step hidden>
+        <h3 tabindex="-1" data-i18n="doneTitle"></h3>
+        <p data-i18n="doneText"></p>
+      </div>
+
+      <p id="status" role="status" aria-live="polite" class="hint"></p>
+      <p id="error" role="alert" class="error"></p>
+    </div>
+  </section>
+
   <footer>
     Cestou &middot; <a href="privacy.html">Privacy Policy / Política de Privacidade</a> &middot; <a href="terms.html">Terms of Use / Termos de Uso</a>
   </footer>
 </main>
+<script type="module" src="delete-account.js"></script>
 </body>
 </html>
