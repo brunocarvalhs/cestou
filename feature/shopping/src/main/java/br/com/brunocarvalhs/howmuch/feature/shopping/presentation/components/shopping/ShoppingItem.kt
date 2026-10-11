@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.components.UserAvatars
+import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatPrice
+import br.com.brunocarvalhs.howmuch.core.ui.utils.LocalCurrency
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.common.IconProduct
 import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
@@ -109,7 +111,7 @@ internal fun ShoppingItem(
                 ) {
                     budget?.let {
                         Text(
-                            text = "R$ %.2f".format(it),
+                            text = it.formatPrice(LocalCurrency.current),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Medium
