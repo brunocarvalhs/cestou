@@ -12,7 +12,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingJoinUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.Scanner
+import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.Scanner
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.JoinListIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.JoinListUiState
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -29,7 +29,7 @@ import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.EditItem
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.FinishPurchaseViewModel
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.ShareOptionsViewModel
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.ShareOptionsBottomSheet
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.EditShopping
+import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.EditShopping
 
 private const val PAYWALL_SOURCE_SHARE = "cart_share"
 
