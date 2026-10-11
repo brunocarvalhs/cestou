@@ -14,7 +14,6 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":core:ai"))
     implementation(project(":feature:settings"))
-    implementation(project(":feature:products"))
 
     implementation(libs.androidx.compose.material3.adaptive)
     implementation(libs.androidx.compose.material3.adaptive.layout)
