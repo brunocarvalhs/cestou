@@ -5,18 +5,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
-import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.AnalyzingOverlay
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.PreviewActions
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.ShareOptionsBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.FormProduct
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductAnalysisConfirmation
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductHeader
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductPhotoForm
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.Suggestions
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.scanner.CaptureControls
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.scanner.ImagePreviewView
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.scanner.PermissionDeniedState
@@ -120,32 +117,6 @@ class ProductComponentsTest {
             }
         }
         composeTestRule.onRoot().assertExists()
-    }
-
-    @Test
-    fun `suggestions render items and loading and invoke click`() {
-        var clicked: String? = null
-        composeTestRule.setContent {
-            CestouTheme {
-                Column {
-                    Suggestions(items = listOf("Calcular total", "Sugerir receita"), onItemClick = { clicked = it })
-                    Suggestions(isLoading = true)
-                    Suggestions()
-                }
-            }
-        }
-        composeTestRule.onNodeWithText("Calcular total").performClick()
-        assertEquals("Calcular total", clicked)
-    }
-
-    @Test
-    fun `share options sheet renders`() {
-        composeTestRule.setContent {
-            CestouTheme {
-                ShareOptionsBottomSheet(onDismissRequest = {}, onInviteMember = {}, onShareAsText = {})
-            }
-        }
-        composeTestRule.waitForIdle()
     }
 
     @Test

@@ -105,4 +105,30 @@ class CoreUiComponentsTest {
         composeTestRule.onNodeWithText("arrastar").performTouchInput { swipeDown() }
         composeTestRule.onRoot().assertExists()
     }
+
+    @Test
+    fun `suggestions render items and loading and invoke click`() {
+        var clicked: String? = null
+        composeTestRule.setContent {
+            CestouTheme {
+                Column {
+                    Suggestions(items = listOf("Calcular total", "Sugerir receita"), onItemClick = { clicked = it })
+                    Suggestions(isLoading = true)
+                    Suggestions()
+                }
+            }
+        }
+        composeTestRule.onNodeWithText("Calcular total").performClick()
+        assertEquals("Calcular total", clicked)
+    }
+
+    @Test
+    fun `share options sheet renders`() {
+        composeTestRule.setContent {
+            CestouTheme {
+                ShareOptionsBottomSheet(onDismissRequest = {}, onInviteMember = {}, onShareAsText = {})
+            }
+        }
+        composeTestRule.waitForIdle()
+    }
 }

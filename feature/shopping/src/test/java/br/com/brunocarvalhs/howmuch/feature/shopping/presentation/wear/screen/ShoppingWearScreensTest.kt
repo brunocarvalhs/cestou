@@ -3,10 +3,12 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingListUiState
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingListViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.state.ShoppingDetailUiState
@@ -64,7 +66,10 @@ class ShoppingWearScreensTest {
         composeTestRule.setContent {
             ShoppingWearScreen(viewModel = listViewModel(ShoppingListUiState()), onNavigateToDetail = {})
         }
-        composeTestRule.onNodeWithText("Nenhuma lista encontrada").assertExists()
+        composeTestRule.onNodeWithText(
+            ApplicationProvider.getApplicationContext<android.content.Context>()
+                .getString(R.string.shopping_wear_no_lists)
+        ).assertExists()
     }
 
     @Test

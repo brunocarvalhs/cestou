@@ -2,8 +2,10 @@ package br.com.brunocarvalhs.howmuch.feature.profile.presentation.wear.screen
 
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
+import br.com.brunocarvalhs.howmuch.feature.profile.R
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.state.ProfileUiState
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.viewmodel.ProfileViewModel
 import io.mockk.every
@@ -22,6 +24,8 @@ class ProfileWearScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    private fun string(id: Int) = ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
+
     private fun viewModel(state: ProfileUiState) = mockk<ProfileViewModel>(relaxed = true) {
         every { uiState } returns MutableStateFlow(state)
     }
@@ -32,13 +36,13 @@ class ProfileWearScreenTest {
             user = AuthenticatedUser(id = "1", email = "bruno@example.com", displayName = "Bruno Carvalho")
         )
         composeTestRule.setContent { ProfileWearScreen(viewModel = viewModel(state)) }
-        composeTestRule.onNodeWithText("Perfil").assertExists()
-        composeTestRule.onNodeWithText("Sair").assertExists()
+        composeTestRule.onNodeWithText(string(R.string.profile_title)).assertExists()
+        composeTestRule.onNodeWithText(string(R.string.profile_menu_sign_out)).assertExists()
     }
 
     @Test
     fun `renders without a signed-in user`() {
         composeTestRule.setContent { ProfileWearScreen(viewModel = viewModel(ProfileUiState())) }
-        composeTestRule.onNodeWithText("Perfil").assertExists()
+        composeTestRule.onNodeWithText(string(R.string.profile_title)).assertExists()
     }
 }

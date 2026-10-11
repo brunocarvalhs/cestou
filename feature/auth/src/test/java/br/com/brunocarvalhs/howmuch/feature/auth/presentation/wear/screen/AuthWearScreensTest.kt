@@ -3,8 +3,10 @@ package br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.screen
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.feature.auth.R
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.state.PairingUiState
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.viewmodel.PairingViewModel
 import io.mockk.every
@@ -24,6 +26,8 @@ class AuthWearScreensTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    private fun string(id: Int) = ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
+
     private fun viewModel(state: PairingUiState) = mockk<PairingViewModel>(relaxed = true) {
         every { uiState } returns MutableStateFlow(state)
     }
@@ -42,7 +46,7 @@ class AuthWearScreensTest {
         composeTestRule.setContent {
             PairingCodeWearScreen(viewModel = viewModel(PairingUiState()), navigator = mockk(relaxed = true))
         }
-        composeTestRule.onNodeWithText("Código de Pareamento").assertExists()
+        composeTestRule.onNodeWithText(string(R.string.pairing_code_label)).assertExists()
     }
 
     @Test
@@ -61,7 +65,7 @@ class AuthWearScreensTest {
         composeTestRule.setContent {
             LinkPhoneWearScreen(viewModel = viewModel(PairingUiState()), navigator = navigator)
         }
-        composeTestRule.onNodeWithText("Vincular Celular").performClick()
+        composeTestRule.onNodeWithText(string(R.string.wear_link_phone)).performClick()
         verify { navigator.navigate(any(), any()) }
     }
 }
