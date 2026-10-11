@@ -78,4 +78,24 @@ class DataSettingsScreenUiTest {
         assertEquals(1, deleteAllCalls)
         assertEquals(0, deleteAccountCalls)
     }
+
+    @Test
+    fun reauthDialogOffersSignInAgain() {
+        var reauthCalls = 0
+        composeTestRule.setContent {
+            CestouTheme {
+                DataSettingsScreen(
+                    state = DataSettingsUiState(reauthRequired = true),
+                    intent = DataSettingsIntent(onReauthConfirmed = { reauthCalls++ })
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(text(R.string.settings_data_delete_account_reauth_title)).assertExists()
+        composeTestRule.onNodeWithText(text(R.string.settings_data_delete_account_reauth_button)).performClick()
+
+        composeTestRule.waitForIdle()
+        assertEquals(1, reauthCalls)
+        assertEquals(0, deleteAccountCalls)
+    }
 }

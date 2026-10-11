@@ -159,7 +159,7 @@ coverage:
     display_name: "\U0001F4CA Test Coverage Gate (min. 80%)"
     description: "Minimum aggregated line coverage gate (80%), enforced via kover { reports { total { verify { rule { minBound(80) } } } } } in the root build.gradle.kts"
     enabled: true
-    command: "./gradlew koverVerify"
+    command: "./gradlew koverVerify koverVerifyLayout"
     report_path: "build/reports/kover/html/index.html"
     pr_comment:
       success: "✅ Cobertura de testes acima de 80%! Bom trabalho."
@@ -211,7 +211,7 @@ size_check:
   variant: "debug"
   gradle_task: "assembleDebug"
   max_increase_percent: 10
-  baseline_bytes: 188454488
+  baseline_bytes: 188472080
   pr_comment:
     success: "✅ Tamanho do APK dentro do limite."
     failure: "❌ O APK cresceu além do limite configurado (size_check.max_increase_percent) - verifique se esse aumento é esperado."

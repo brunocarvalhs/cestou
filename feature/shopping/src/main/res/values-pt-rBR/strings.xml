@@ -96,14 +96,20 @@
     <string name="shopping_list_summary_items_in_cart">itens no carrinho</string>
     <string name="shopping_list_empty_title">Sua lista está vazia</string>
     <string name="shopping_list_empty_description">Adicione produtos ou peça ajuda à IA!</string>
-    <string name="shopping_list_share_options_title">Como deseja compartilhar?</string>
-    <string name="shopping_list_share_invite_member">Convidar para Colaborar</string>
-    <string name="shopping_list_share_invite_member_desc">Outro usuário poderá editar a lista em tempo real</string>
-    <string name="shopping_list_share_text">Enviar como Texto</string>
-    <string name="shopping_list_share_text_desc">Envie a lista de itens via WhatsApp, e-mail, etc.</string>
 
 
 
     <string name="state_description_in_cart">No carrinho</string>
     <string name="state_description_not_in_cart">Fora do carrinho</string>
+    <string name="shopping_summary_total_spent_month">TOTAL GASTO ESTE MÊS</string>
+    <string name="shopping_summary_saved">+%1$s economizados</string>
+    <string name="shopping_welcome_back">Que bom ver você de novo,</string>
+    <string name="shopping_notifications_content_description">Notificações</string>
+    <string name="shopping_qr_code_content_description">QR Code</string>
+    <string name="shopping_wear_my_lists">Minhas Listas</string>
+    <string name="shopping_wear_no_lists">Nenhuma lista encontrada</string>
+    <string name="shopping_wear_balance">Saldo</string>
+    <string name="shopping_wear_budget">Orçamento: %1$s</string>
+    <string name="shopping_wear_products">Produtos</string>
+    <string name="shopping_wear_no_products">Nenhum produto</string>
 </resources>

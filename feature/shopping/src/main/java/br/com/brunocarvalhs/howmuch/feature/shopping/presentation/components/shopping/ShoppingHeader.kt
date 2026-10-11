@@ -22,11 +22,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTextPrimary
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTextSecondary
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
 
 @Composable
 internal fun ShoppingHeader(
@@ -61,7 +63,7 @@ internal fun ShoppingHeader(
 
             Column {
                 Text(
-                    text = "Bem-vinda de volta,",
+                    text = stringResource(R.string.shopping_welcome_back),
                     style = MaterialTheme.typography.bodyMedium,
                     color = CestouTextSecondary
                 )
@@ -84,7 +86,7 @@ internal fun ShoppingHeader(
         ) {
             Icon(
                 imageVector = Icons.Default.NotificationsNone,
-                contentDescription = "Notificações",
+                contentDescription = stringResource(R.string.shopping_notifications_content_description),
                 tint = CestouTextPrimary
             )
         }
