@@ -53,7 +53,7 @@ internal fun CartBottomBar(
         ) {
             FilledTonalButton(
                 onClick = onFinished,
-                modifier = Modifier.height(56.dp).weight(3f),
+                modifier = Modifier.height(56.dp).weight(PRIMARY_BUTTON_WEIGHT),
                 shape = RoundedCornerShape(16.dp),
             ) {
                 Row(
@@ -92,3 +92,5 @@ private fun CartBottomBarPreview() {
         onAdd = {}
     )
 }
+
+private const val PRIMARY_BUTTON_WEIGHT = 3f
