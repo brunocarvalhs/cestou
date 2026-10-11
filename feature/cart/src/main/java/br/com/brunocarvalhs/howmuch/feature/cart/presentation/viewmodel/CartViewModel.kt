@@ -12,6 +12,9 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
+import br.com.brunocarvalhs.howmuch.core.domain.usecase.ProductsUseCase
+import br.com.brunocarvalhs.howmuch.core.domain.usecase.ShoppingClearPurchasedUseCase
+import br.com.brunocarvalhs.howmuch.core.domain.usecase.SortProductsUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
@@ -22,9 +25,6 @@ import br.com.brunocarvalhs.howmuch.feature.cart.navigation.ProductHistoryRoute
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.ShareOptionsRoute
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.intent.CartIntent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.CartUiState
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShoppingClearPurchasedUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.SortProductsUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi

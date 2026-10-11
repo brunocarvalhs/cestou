@@ -84,4 +84,9 @@
     </string-array>
     <string name="password_show">Mostrar contraseña</string>
     <string name="password_hide">Ocultar contraseña</string>
+    <string name="shopping_list_share_options_title">¿Cómo desea compartir?</string>
+    <string name="shopping_list_share_invite_member">Invitar a Colaborar</string>
+    <string name="shopping_list_share_invite_member_desc">Otro usuario podrá editar la lista en tiempo real</string>
+    <string name="shopping_list_share_text">Enviar como Texto</string>
+    <string name="shopping_list_share_text_desc">Envíe la lista de artículos por WhatsApp, correo electrónico, etc.</string>
 </resources>

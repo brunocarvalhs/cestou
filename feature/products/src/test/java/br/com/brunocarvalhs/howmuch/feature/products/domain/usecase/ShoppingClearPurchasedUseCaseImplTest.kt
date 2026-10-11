@@ -2,7 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShoppingClearPurchasedUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShoppingClearPurchasedUseCaseImpl
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -12,10 +12,10 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class ShoppingClearPurchasedUseCaseTest {
+class ShoppingClearPurchasedUseCaseImplTest {
 
     private val repository = mockk<ProductRepository>(relaxed = true)
-    private val useCase = ShoppingClearPurchasedUseCase(repository)
+    private val useCase = ShoppingClearPurchasedUseCaseImpl(repository)
 
     @Test
     fun `invoke deletes only purchased products`() = runTest {

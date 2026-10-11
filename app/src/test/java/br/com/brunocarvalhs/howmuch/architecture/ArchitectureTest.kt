@@ -159,27 +159,10 @@ class ArchitectureTest {
         // Audit item 2 (phase 2): shared UI/resources/use cases still owned by another feature.
         val KNOWN_FEATURE_TO_FEATURE = setOf(
             "feature.auth.presentation.viewmodel.WelcomeViewModel -> feature.settings.domain.usecase.UpdateLanguageUseCase",
-            "feature.cart.navigation.CartGraph -> feature.products.presentation.components.common.ShareOptionsBottomSheet",
-            "feature.cart.presentation.components.ConfirmItemContent -> feature.products.R",
-            "feature.cart.presentation.components.EditItemContent -> feature.products.R",
-            "feature.cart.presentation.components.FinishPurchaseContent -> feature.products.R",
-            "feature.cart.presentation.components.MoveToBar -> feature.products.R",
-            "feature.cart.presentation.components.ProductHistoryContent -> feature.products.R",
-            "feature.cart.presentation.components.ProductListItem -> feature.products.R",
             "feature.cart.presentation.components.ai.AiMessageBubble -> feature.chat.domain.entity.ChatMessage",
             "feature.cart.presentation.components.ai.CartAssistantDock -> feature.chat.domain.entity.ChatMessage",
-            "feature.cart.presentation.components.ai.CartAssistantDock -> feature.products.presentation.components.product.Suggestions",
             "feature.cart.presentation.components.ai.ChatContent -> feature.chat.domain.entity.ChatMessage",
-            "feature.cart.presentation.screen.CartScreen -> feature.products.R",
             "feature.cart.presentation.state.CartUiState -> feature.chat.domain.entity.ChatMessage",
-            "feature.cart.presentation.viewmodel.CartViewModel -> feature.products.domain.usecase.ProductsUseCase",
-            "feature.cart.presentation.viewmodel.CartViewModel -> feature.products.domain.usecase.ShoppingClearPurchasedUseCase",
-            "feature.cart.presentation.viewmodel.CartViewModel -> feature.products.domain.usecase.SortProductsUseCase",
-            "feature.cart.presentation.viewmodel.ConfirmItemViewModel -> feature.products.domain.usecase.ProductsUseCase",
-            "feature.cart.presentation.viewmodel.EditItemViewModel -> feature.products.domain.usecase.ProductsUseCase",
-            "feature.shopping.domain.usecase.ShoppingDuplicateUseCase -> feature.products.domain.usecase.ProductsUseCase",
-            "feature.shopping.domain.usecase.ShoppingGetDetailsUseCase -> feature.products.domain.usecase.ProductsUseCase",
-            "feature.shopping.presentation.wear.viewmodel.ShoppingDetailViewModel -> feature.products.domain.usecase.ProductsUseCase",
         )
 
         // Audit items 6/7 (phase 3): AD-011 port and AI base class outside domain.usecase; app root ViewModel.

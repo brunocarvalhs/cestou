@@ -7,6 +7,8 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
+private const val TEST_TEMPERATURE = 0.5f
+
 class UpdateAiSettingsUseCaseTest {
 
     private val repository = mockk<SettingsRepository>()
@@ -14,10 +16,10 @@ class UpdateAiSettingsUseCaseTest {
 
     @Test
     fun `invoke forwards model, prompt and creativity to the repository`() = runTest {
-        coEvery { repository.updateAiSettings("gemini", "be concise", 0.5f) } returns Unit
+        coEvery { repository.updateAiSettings("gemini", "be concise", TEST_TEMPERATURE) } returns Unit
 
-        useCase("gemini", "be concise", 0.5f)
+        useCase("gemini", "be concise", TEST_TEMPERATURE)
 
-        coVerify { repository.updateAiSettings("gemini", "be concise", 0.5f) }
+        coVerify { repository.updateAiSettings("gemini", "be concise", TEST_TEMPERATURE) }
     }
 }

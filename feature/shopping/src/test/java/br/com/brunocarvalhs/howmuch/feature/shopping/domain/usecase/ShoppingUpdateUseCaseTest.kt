@@ -45,7 +45,7 @@ class ShoppingUpdateUseCaseTest {
                 "shopping_id" to "list1",
                 "title" to "Weekly Groceries",
                 "description" to "desc",
-                "price" to 10.5,
+                "price" to UPDATED_PRICE,
                 "status" to "NEW"
             ),
             session = mockk(relaxed = true),
@@ -54,7 +54,7 @@ class ShoppingUpdateUseCaseTest {
 
         assertTrue(result.isSuccess)
         coVerify {
-            repository.update(match { it.id == "list1" && it.title == "Weekly Groceries" && it.price == 10.5 })
+            repository.update(match { it.id == "list1" && it.title == "Weekly Groceries" && it.price == UPDATED_PRICE })
         }
     }
 
@@ -71,3 +71,5 @@ class ShoppingUpdateUseCaseTest {
         }
     }
 }
+
+private const val UPDATED_PRICE = 10.5

@@ -47,43 +47,15 @@
     <string name="quick_add_save_error">Não foi possível adicionar \"%s\". Tente novamente.</string>
 
     <!-- Common Actions -->
-    <string name="action_confirm">Confirmar</string>
     <string name="action_cancel">Cancelar</string>
 
     <!-- Feature: Shopping List (Products) -->
 
-    <string name="shopping_list_updated">Lista atualizada!</string>
-    <string name="shopping_list_default_title">Lista de produtos</string>
-    <string name="shopping_list_menu_clear_purchased">Limpar comprados</string>
-    <string name="shopping_list_move_to">Mover para&#8230;</string>
-    <string name="shopping_list_finish_title">Finalizar Compra</string>
-    <string name="shopping_list_finish_description">Informe o valor total pago e o local da compra.</string>
-    <string name="shopping_list_label_total_value">Valor Total</string>
-    <string name="shopping_list_label_establishment">Estabelecimento (Opcional)</string>
-    <string name="shopping_list_placeholder_establishment">Ex: Supermercado X</string>
-    <string name="shopping_list_confirm_save">Confirmar e Salvar</string>
-    <string name="shopping_list_confirm_item_title">Confirmar Item</string>
     <string name="shopping_list_label_unit_price">Preço Unitário</string>
     <string name="shopping_list_label_quantity">Quantidade</string>
-    <string name="shopping_list_edit_title">Editar Produto</string>
-    <string name="shopping_list_edit_list_title">Editar lista</string>
     <string name="shopping_list_label_product_name">Nome do Produto</string>
     <string name="shopping_list_label_category">Categoria</string>
-    <string name="shopping_list_save_changes">Salvar Alterações</string>
-    <string name="shopping_list_share_options_title">Como deseja compartilhar?</string>
-    <string name="shopping_list_share_invite_member">Convidar para Colaborar</string>
-    <string name="shopping_list_share_invite_member_desc">Outro usuário poderá editar a lista em tempo real</string>
-    <string name="shopping_list_share_text">Enviar como Texto</string>
-    <string name="shopping_list_share_text_desc">Envie a lista de itens via WhatsApp, e-mail, etc.</string>
-    <string name="shopping_list_history_title">Histórico do Item</string>
-    <string name="shopping_list_history_empty">Nenhum histórico ainda para este item.</string>
-    <string name="shopping_list_history_action_added">Adicionado</string>
-    <string name="shopping_list_history_action_edited">Editado</string>
-    <string name="shopping_list_history_action_purchased">Comprado</string>
-    <string name="shopping_list_history_entry">%1$s por %2$s</string>
-    <string name="shopping_list_history_unknown_user">Alguém</string>
 
 
     <!-- Content Descriptions -->
-    <string name="cart_item_delete_description">Excluir item</string>
 </resources>

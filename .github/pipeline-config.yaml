@@ -159,7 +159,7 @@ coverage:
     display_name: "\U0001F4CA Test Coverage Gate (min. 80%)"
     description: "Minimum aggregated line coverage gate (80%), enforced via kover { reports { total { verify { rule { minBound(80) } } } } } in the root build.gradle.kts"
     enabled: true
-    command: "./gradlew koverVerify"
+    command: "./gradlew koverVerify koverVerifyLayout"
     report_path: "build/reports/kover/html/index.html"
     pr_comment:
       success: "✅ Cobertura de testes acima de 80%! Bom trabalho."

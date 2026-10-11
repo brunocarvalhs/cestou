@@ -62,11 +62,11 @@ class FinishPurchaseViewModelTest {
         every { authService.currentUser } returns AuthenticatedUser(id = "u1", displayName = "Ana")
         coEvery { repository.update(any()) } returns Unit
 
-        viewModel.onFinishPurchase(shopping, price = 42.0, establishment = "Mercado X")
+        viewModel.onFinishPurchase(shopping, price = PRICE, establishment = "Mercado X")
 
         coVerify {
             repository.update(
-                match { it.price == 42.0 && it.description == "Mercado X" && it.status == Shopping.Status.FINISH }
+                match { it.price == PRICE && it.description == "Mercado X" && it.status == Shopping.Status.FINISH }
             )
         }
         verify { navigator.goBack() }
@@ -77,9 +77,11 @@ class FinishPurchaseViewModelTest {
         every { authService.currentUser } returns AuthenticatedUser(id = "u1", displayName = "Ana")
         coEvery { repository.update(any()) } returns Unit
 
-        viewModel.onFinishPurchase(shopping, price = 42.0, establishment = "Mercado X")
+        viewModel.onFinishPurchase(shopping, price = PRICE, establishment = "Mercado X")
 
         coVerify { notificationRepository.notify("u2", any(), any(), "list_finished") }
         coVerify(exactly = 0) { notificationRepository.notify("u1", any(), any(), any()) }
     }
 }
+
+private const val PRICE = 42.0

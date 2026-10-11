@@ -12,11 +12,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
+import br.com.brunocarvalhs.howmuch.feature.auth.R
 import com.firebase.ui.auth.configuration.auth_provider.AuthProvider
 import com.firebase.ui.auth.ui.screens.reauth.ReauthContentState
+import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
 @Composable
 internal fun CustomReauthContent(state: ReauthContentState) {
@@ -27,7 +30,7 @@ internal fun CustomReauthContent(state: ReauthContentState) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Confirme sua Identidade",
+            text = stringResource(R.string.reauth_title),
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold
@@ -63,7 +66,7 @@ internal fun CustomReauthContent(state: ReauthContentState) {
         Spacer(modifier = Modifier.height(16.dp))
 
         TextButton(onClick = state.onDismiss) {
-            Text(text = "Cancelar", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text = stringResource(CoreR.string.action_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

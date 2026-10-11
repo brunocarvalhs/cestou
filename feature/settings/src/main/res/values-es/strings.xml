@@ -119,4 +119,6 @@
     <string name="action_confirm">Confirmar</string>
     <string name="action_cancel">Cancelar</string>
     <string name="action_select_time">Seleccionar Hora</string>
+    <string name="settings_release_notes_title">Novedades</string>
+    <string name="settings_open_source_licenses_title">Licencias</string>
 </resources>
