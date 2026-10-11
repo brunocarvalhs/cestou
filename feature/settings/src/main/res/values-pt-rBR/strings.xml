@@ -93,6 +93,10 @@
     <string name="settings_data_delete_account_button">Sim, excluir minha conta</string>
     <string name="settings_data_delete_account_success">Conta excluída</string>
     <string name="settings_data_delete_account_error">Não foi possível excluir sua conta. Tente novamente.</string>
+    <string name="settings_data_delete_account_reauth_title">Confirme sua identidade</string>
+    <string name="settings_data_delete_account_reauth_message">Por segurança, entre novamente para confirmar a exclusão. Nada foi excluído ainda.</string>
+    <string name="settings_data_delete_account_reauth_button">Entrar novamente</string>
+    <string name="settings_data_delete_account_reauth_toast">Você saiu. Entre novamente e volte em Ajustes > Dados > Excluir conta para confirmar.</string>
 
     <string name="settings_terms_content">
         Ao utilizar o Cestou, você concorda com os seguintes termos: \n\n

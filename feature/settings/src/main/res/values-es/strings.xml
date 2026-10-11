@@ -89,6 +89,10 @@
     <string name="settings_data_delete_account_button">Sí, eliminar mi cuenta</string>
     <string name="settings_data_delete_account_success">Cuenta eliminada</string>
     <string name="settings_data_delete_account_error">No se pudo eliminar su cuenta. Inténtelo de nuevo.</string>
+    <string name="settings_data_delete_account_reauth_title">Confirme su identidad</string>
+    <string name="settings_data_delete_account_reauth_message">Por seguridad, inicie sesión de nuevo para confirmar la eliminación. Todavía no se ha eliminado nada.</string>
+    <string name="settings_data_delete_account_reauth_button">Iniciar sesión de nuevo</string>
+    <string name="settings_data_delete_account_reauth_toast">Sesión cerrada. Inicie sesión de nuevo y vaya a Ajustes > Datos > Eliminar cuenta para confirmar.</string>
     <string name="settings_data_clear_cache_success">Caché borrada</string>
     <string name="settings_data_clear_cache_error">No se pudo borrar la caché. Inténtalo de nuevo.</string>
     <string name="settings_data_delete_all_success">Todos los datos fueron eliminados</string>

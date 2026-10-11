@@ -93,6 +93,10 @@
     <string name="settings_data_delete_account_button">Yes, delete my account</string>
     <string name="settings_data_delete_account_success">Account deleted</string>
     <string name="settings_data_delete_account_error">Couldn\'t delete your account. Please try again.</string>
+    <string name="settings_data_delete_account_reauth_title">Confirm it\'s you</string>
+    <string name="settings_data_delete_account_reauth_message">For your security, sign in again to confirm the deletion. Nothing has been deleted yet.</string>
+    <string name="settings_data_delete_account_reauth_button">Sign in again</string>
+    <string name="settings_data_delete_account_reauth_toast">Signed out. Sign in again, then go to Settings > Data > Delete account to confirm.</string>
 
     <string name="settings_terms_content">
         By using Cestou, you agree to the following terms: \n\n

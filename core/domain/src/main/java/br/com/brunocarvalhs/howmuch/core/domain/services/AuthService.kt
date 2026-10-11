@@ -9,7 +9,14 @@ interface AuthService {
     suspend fun getOrCreateUserId(): AuthenticatedUser
     suspend fun signOut(): Result<Unit>
     suspend fun updateUserId(userId: String)
+    /**
+     * Fails with [br.com.brunocarvalhs.howmuch.core.domain.exception.RecentLoginRequiredException]
+     * when Firebase demands a fresh sign-in first.
+     */
     suspend fun deleteAccount(): Result<Unit>
+
+    /** True when the last sign-in is recent enough for sensitive operations such as [deleteAccount]. */
+    fun hasRecentLogin(): Boolean
 
     /** Sets the signed-in user's display name and publishes it on [authState] right away. */
     suspend fun updateDisplayName(name: String): Result<Unit>
