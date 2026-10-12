@@ -5,6 +5,9 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+private const val TEST_INT = 5
+private const val TEST_DOUBLE = 5.5
+
 class AgentExtensionsTest {
 
     @Test
@@ -21,15 +24,15 @@ class AgentExtensionsTest {
 
     @Test
     fun `getInt reads numbers directly and parses strings`() {
-        assertEquals(5, mapOf("k" to 5).getInt("k"))
-        assertEquals(5, mapOf("k" to "5").getInt("k"))
+        assertEquals(TEST_INT, mapOf("k" to TEST_INT).getInt("k"))
+        assertEquals(TEST_INT, mapOf("k" to "5").getInt("k"))
         assertNull(mapOf("k" to "not-a-number").getInt("k"))
     }
 
     @Test
     fun `getDouble reads numbers directly and parses strings`() {
-        assertEquals(5.5, mapOf("k" to 5.5).getDouble("k"))
-        assertEquals(5.5, mapOf("k" to "5.5").getDouble("k"))
+        assertEquals(TEST_DOUBLE, mapOf("k" to TEST_DOUBLE).getDouble("k"))
+        assertEquals(TEST_DOUBLE, mapOf("k" to "5.5").getDouble("k"))
         assertNull(mapOf("k" to "not-a-number").getDouble("k"))
     }
 

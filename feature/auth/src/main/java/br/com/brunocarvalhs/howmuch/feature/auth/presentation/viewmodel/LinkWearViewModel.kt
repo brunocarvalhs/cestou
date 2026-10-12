@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val LINK_CODE_LENGTH = 6
+
 @HiltViewModel
 internal class LinkWearViewModel @Inject constructor(
     private val wearableSyncService: WearableSyncService,
@@ -31,7 +33,7 @@ internal class LinkWearViewModel @Inject constructor(
 
     private fun linkDevice() {
         val code = _uiState.value.code
-        if (code.length != 6) {
+        if (code.length != LINK_CODE_LENGTH) {
             _uiState.update { it.copy(error = "Código inválido (6 dígitos)") }
             return
         }

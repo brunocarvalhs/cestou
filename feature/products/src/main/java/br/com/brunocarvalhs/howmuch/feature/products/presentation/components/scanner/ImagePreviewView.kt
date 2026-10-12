@@ -7,9 +7,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.AnalyzingOverlay
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.PreviewActions
 import coil.compose.AsyncImage
+import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
 @Composable
 internal fun ImagePreviewView(
@@ -21,7 +23,7 @@ internal fun ImagePreviewView(
     Box(modifier = Modifier.fillMaxSize()) {
         AsyncImage(
             model = uri,
-            contentDescription = "Preview",
+            contentDescription = stringResource(CoreR.string.content_description_preview),
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )

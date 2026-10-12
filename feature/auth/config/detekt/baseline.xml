@@ -2,6 +2,5 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>MagicNumber:LinkWearViewModel.kt$LinkWearViewModel$6</ID>
   </CurrentIssues>
 </SmellBaseline>

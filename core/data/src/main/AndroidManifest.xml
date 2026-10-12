@@ -9,13 +9,13 @@
             android:exported="false"
             tools:node="merge">
             <meta-data
-                android:name="br.com.brunocarvalhs.howmuch.core.common.initializer.FirebaseInitializer"
+                android:name="br.com.brunocarvalhs.howmuch.core.data.initializer.FirebaseInitializer"
                 android:value="androidx.startup" />
             <meta-data
-                android:name="br.com.brunocarvalhs.howmuch.core.common.initializer.CrashlyticsInitializer"
+                android:name="br.com.brunocarvalhs.howmuch.core.data.initializer.CrashlyticsInitializer"
                 android:value="androidx.startup" />
             <meta-data
-                android:name="br.com.brunocarvalhs.howmuch.core.common.initializer.TimberInitializer"
+                android:name="br.com.brunocarvalhs.howmuch.core.data.initializer.TimberInitializer"
                 android:value="androidx.startup" />
         </provider>
     </application>

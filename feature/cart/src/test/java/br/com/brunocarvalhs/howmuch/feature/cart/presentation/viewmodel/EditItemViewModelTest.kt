@@ -7,9 +7,9 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
 import br.com.brunocarvalhs.howmuch.core.domain.model.withActivity
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.usecase.ProductsUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -60,10 +60,10 @@ class EditItemViewModelTest {
     fun `onSaveEdit updates price and quantity, then goes back`() = runTest {
         coEvery { useCase.update(any(), "list1") } returns Result.success(Unit)
 
-        viewModel.onSaveEdit(product, price = 8.0, quantity = 3.0)
+        viewModel.onSaveEdit(product, price = EDITED_PRICE, quantity = EDITED_QUANTITY)
 
         coVerify {
-            useCase.update(match { it.price == 8.0 && it.quantity == 3.0 }, "list1")
+            useCase.update(match { it.price == EDITED_PRICE && it.quantity == EDITED_QUANTITY }, "list1")
         }
         verify { navigator.goBack() }
     }
@@ -72,7 +72,7 @@ class EditItemViewModelTest {
     fun `onSaveEdit appends an EDITED entry for the current user on top of existing history`() = runTest {
         coEvery { useCase.update(any(), "list1") } returns Result.success(Unit)
 
-        viewModel.onSaveEdit(product, price = 8.0, quantity = 3.0)
+        viewModel.onSaveEdit(product, price = EDITED_PRICE, quantity = EDITED_QUANTITY)
 
         coVerify {
             useCase.update(
@@ -90,8 +90,12 @@ class EditItemViewModelTest {
     fun `onSaveEdit does not navigate back when the update fails`() = runTest {
         coEvery { useCase.update(any(), "list1") } returns Result.failure(IllegalStateException("boom"))
 
-        viewModel.onSaveEdit(product, price = 8.0, quantity = 3.0)
+        viewModel.onSaveEdit(product, price = EDITED_PRICE, quantity = EDITED_QUANTITY)
 
         verify(exactly = 0) { navigator.goBack() }
     }
 }
+
+private const val EDITED_PRICE = 8.0
+
+private const val EDITED_QUANTITY = 3.0

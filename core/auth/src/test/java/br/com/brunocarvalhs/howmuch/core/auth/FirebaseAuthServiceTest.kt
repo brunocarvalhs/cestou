@@ -2,9 +2,11 @@ package br.com.brunocarvalhs.howmuch.core.auth
 
 import android.text.TextUtils
 import app.cash.turbine.test
+import br.com.brunocarvalhs.howmuch.core.domain.exception.RecentLoginRequiredException
 import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.mockk.coEvery
@@ -22,10 +24,12 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlin.time.Duration.Companion.minutes
 
 @Suppress("TooManyFunctions")
 class FirebaseAuthServiceTest {
@@ -218,6 +222,37 @@ class FirebaseAuthServiceTest {
         val result = service.deleteAccount()
 
         assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `deleteAccount maps the recent-login error to RecentLoginRequiredException`() = runTest {
+        val user = fakeUser("user-1")
+        every { auth.currentUser } returns user
+        val recentLoginError = mockk<FirebaseAuthRecentLoginRequiredException>(relaxed = true)
+        every { user.delete() } returns Tasks.forException(recentLoginError)
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        val result = service.deleteAccount()
+
+        assertTrue(result.exceptionOrNull() is RecentLoginRequiredException)
+    }
+
+    @Test
+    fun `hasRecentLogin is true only for a sign-in within the window`() {
+        val user = fakeUser("user-1")
+        every { auth.currentUser } returns user
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        every { user.metadata } returns mockk { every { lastSignInTimestamp } returns System.currentTimeMillis() }
+        assertTrue(service.hasRecentLogin())
+
+        every { user.metadata } returns mockk {
+            every { lastSignInTimestamp } returns System.currentTimeMillis() - 10.minutes.inWholeMilliseconds
+        }
+        assertFalse(service.hasRecentLogin())
+
+        every { auth.currentUser } returns null
+        assertFalse(service.hasRecentLogin())
     }
 
     @Test

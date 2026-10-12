@@ -11,9 +11,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
+import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.components.SettingsHeader
 
 @Composable
@@ -33,7 +35,7 @@ internal fun ReleaseNotesScreen(
     Scaffold(
         topBar = {
             SettingsHeader(
-                title = "Novidades",
+                title = stringResource(R.string.settings_release_notes_title),
                 onBack = onBack
             )
         }

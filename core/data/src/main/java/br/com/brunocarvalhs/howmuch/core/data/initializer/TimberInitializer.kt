@@ -1,9 +1,9 @@
-package br.com.brunocarvalhs.howmuch.core.common.initializer
+package br.com.brunocarvalhs.howmuch.core.data.initializer
 
 import android.content.Context
 import android.util.Log
 import androidx.startup.Initializer
-import br.com.brunocarvalhs.howmuch.core.common.BuildConfig
+import br.com.brunocarvalhs.howmuch.core.data.BuildConfig
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import timber.log.Timber
 

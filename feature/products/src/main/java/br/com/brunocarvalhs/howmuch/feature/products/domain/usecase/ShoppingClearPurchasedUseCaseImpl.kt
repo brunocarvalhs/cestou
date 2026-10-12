@@ -5,6 +5,7 @@ import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentParameter
 import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getString
+import br.com.brunocarvalhs.howmuch.core.domain.usecase.ShoppingClearPurchasedUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -20,11 +21,11 @@ import javax.inject.Singleton
     isRequired = true
 )
 @Singleton
-class ShoppingClearPurchasedUseCase @Inject constructor(
+class ShoppingClearPurchasedUseCaseImpl @Inject constructor(
     private val productRepository: ProductRepository
-) : AgentActionUseCase<Unit>() {
+) : AgentActionUseCase<Unit>(), ShoppingClearPurchasedUseCase {
 
-    suspend operator fun invoke(shoppingId: String): Result<Unit> = runCatching {
+    override suspend operator fun invoke(shoppingId: String): Result<Unit> = runCatching {
         val products = productRepository.getAllProducts(shoppingId).first()
         products.filter { it.isPurchased }.forEach { product ->
             productRepository.deleteProduct(product.id, shoppingId)

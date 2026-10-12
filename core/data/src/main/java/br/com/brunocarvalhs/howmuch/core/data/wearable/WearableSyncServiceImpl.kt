@@ -1,8 +1,11 @@
-package br.com.brunocarvalhs.howmuch.core.common.wearable
+package br.com.brunocarvalhs.howmuch.core.data.wearable
 
 import android.content.Context
 import android.content.Intent
 import androidx.wear.remote.interactions.RemoteActivityHelper
+import br.com.brunocarvalhs.howmuch.core.common.wearable.PairingCodeHolder
+import br.com.brunocarvalhs.howmuch.core.common.wearable.WearablePaths
+import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.wearable.CapabilityClient
@@ -24,6 +27,10 @@ import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
+
+// Pairing codes are always 6 digits.
+private const val PAIRING_CODE_MIN = 100_000
+private const val PAIRING_CODE_MAX = 999_999
 
 internal class WearableSyncServiceImpl @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -201,7 +208,7 @@ internal class WearableSyncServiceImpl @Inject constructor(
     }
 
     override fun generatePairingCode(): String {
-        val code = (100000..999999).random().toString()
+        val code = (PAIRING_CODE_MIN..PAIRING_CODE_MAX).random().toString()
         CoroutineScope(Dispatchers.IO).launch {
             updatePairingCode(code)
         }
