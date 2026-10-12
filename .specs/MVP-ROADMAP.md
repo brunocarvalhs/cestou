@@ -67,7 +67,7 @@ regression suite (#16), this doc (#17), account & data deletion (#18), dead soci
   every collection the app uses now lives in `firestore.rules` (PR #84), reasoned through in AD-009
   (`.specs/STATE.md`) and checked by 60 emulator assertions. Production still runs the console
   placeholder, so what's left is yours: review, then
-  `firebase deploy --only firestore:rules --project cestou-86785`. Read AD-009's "known breakage on
+  `firebase deploy --only firestore:rules --project how-much-2a72e`. Read AD-009's "known breakage on
   deploy" first — as written the rules stop join-by-short-code and all Wear OS traffic until the
   client catches up.
 - **G9** needs your review/merge of PR #67 — don't duplicate the fix. T7's Detekt fix and the
@@ -240,7 +240,7 @@ specifically:
 3. Pick a host for the legal pages (G3) and wire the URL in.
 4. Review the proposed `firestore.rules` (G5 / AD-009 / PR #84), decide on the two client follow-ups it
    depends on, then deploy it yourself:
-   `firebase deploy --only firestore:rules --project cestou-86785`. Nobody else touches production
+   `firebase deploy --only firestore:rules --project how-much-2a72e`. Nobody else touches production
    rules.
 5. When ready, decide on `develop` → `master` for the actual store release — that merge is yours to
    make, same as G1 was.

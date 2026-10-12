@@ -4,6 +4,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
+import br.com.brunocarvalhs.howmuch.core.domain.services.deleteDocumentWithSubCollections
 import br.com.brunocarvalhs.howmuch.core.domain.services.make
 import br.com.brunocarvalhs.howmuch.core.domain.services.observe
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.mapper.toDomain
@@ -102,13 +103,7 @@ class ShoppingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun delete(shopping: Shopping): Unit = withContext(ioDispatcher) {
-        networkService.make(
-            request = NetworkService.NetworkRequest(
-                endpoint = "$ENDPOINT/${shopping.id}",
-                method = NetworkService.Method.DELETE,
-            ),
-            response = Boolean::class
-        )
+        networkService.deleteDocumentWithSubCollections("$ENDPOINT/${shopping.id}", "products")
     }
 
     override suspend fun join(shoppingId: String, userId: String): Unit = withContext(ioDispatcher) {
@@ -120,6 +115,22 @@ class ShoppingRepositoryImpl @Inject constructor(
             ),
             response = Boolean::class
         )
+    }
+
+    // make() swallows errors and returns null, so a null result here means the write failed.
+    override suspend fun leave(shoppingId: String, userId: String): Unit = withContext(ioDispatcher) {
+        networkService.make(
+            request = NetworkService.NetworkRequest(
+                endpoint = "$ENDPOINT/$shoppingId",
+                method = NetworkService.Method.PUT,
+                payload = mapOf(
+                    "users" to NetworkService.FieldOp.ArrayRemove(listOf(userId)),
+                    "roles.$userId" to NetworkService.FieldOp.Delete
+                )
+            ),
+            response = Boolean::class
+        ) ?: throw IllegalStateException("Failed to leave shopping $shoppingId")
+        Unit
     }
 
     override suspend fun getByShortCode(shortCode: String): Shopping? = withContext(ioDispatcher) {
