@@ -16,7 +16,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class CryptoManager @Inject constructor() {
+class Encryptor @Inject constructor() {
 
     private val json: Json = Json {
         ignoreUnknownKeys = true
@@ -135,6 +135,6 @@ class CryptoManager @Inject constructor() {
     }
 
     private companion object {
-        const val TAG = "CryptoManager"
+        const val TAG = "Encryptor"
     }
 }

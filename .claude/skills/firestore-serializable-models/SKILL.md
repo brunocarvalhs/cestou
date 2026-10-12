@@ -7,7 +7,7 @@ description: Verify every data-layer *Model class used with NetworkService (Fire
 
 ## The bug this prevents
 
-`NetworkManager.getResponse()` (`core/data/.../network/NetworkManager.kt`) resolves the
+`NetworkServiceImpl.getResponse()` (`core/data/.../network/NetworkServiceImpl.kt`) resolves the
 `KSerializer` for a response type reflectively:
 
 ```kotlin
@@ -63,4 +63,4 @@ val serializer = json.serializersModule.serializer(typeOf<List<ShoppingModel>>()
   declaration; a missing annotation is a valid, silently-broken compile.
 - Do not rely on manual `toMap()`/`toDomain()` mapper functions as proof the model round-trips through
   `NetworkService` — those bypass kotlinx.serialization entirely and will pass even when the reflective
-  serializer lookup used by `NetworkManager` is broken.
+  serializer lookup used by `NetworkServiceImpl` is broken.
