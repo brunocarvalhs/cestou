@@ -17,7 +17,7 @@ import {
 } from '@firebase/rules-unit-testing';
 import {
   doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs,
-  arrayRemove, deleteField,
+  arrayRemove, arrayUnion, deleteField,
 } from 'firebase/firestore';
 
 const RULES = readFileSync(
@@ -181,6 +181,42 @@ await t('account deletion: common-products then profile', async () => {
   await assertSucceeds(deleteDoc(doc(owner(), 'users', OWNER, 'common-products', 'c1')));
   await assertSucceeds(deleteDoc(doc(owner(), 'users', OWNER)));
 });
+
+console.log('\n== shortCodes (join by code) ==');
+const codeRef = (db, code = 'ABC123') => doc(db, 'shortCodes', code);
+const index = (shoppingId = LIST_ID, code = 'ABC123') => ({ id: code, shoppingId });
+await seed();
+await t('member writes the index for the list code', () =>
+  assertSucceeds(setDoc(codeRef(editor()), index())));
+await t('outsider resolves a code it knows', () =>
+  assertSucceeds(getDoc(codeRef(outsider()))));
+await t('unauthenticated cannot resolve a code', () =>
+  assertFails(getDoc(codeRef(anon()))));
+await t('codes cannot be enumerated', () =>
+  assertFails(getDocs(collection(outsider(), 'shortCodes'))));
+await t('index cannot be overwritten (re-pointed)', () =>
+  assertFails(setDoc(codeRef(owner()), index())));
+await t('outsider self-joins blind, then reads the list as member', async () => {
+  await assertSucceeds(updateDoc(listRef(outsider()), { users: arrayUnion(OUTSIDER) }));
+  await assertSucceeds(getDoc(listRef(outsider())));
+});
+await seed();
+await t('outsider cannot write an index for a list it is not in', () =>
+  assertFails(setDoc(codeRef(outsider()), index())));
+await t('member cannot index a code that is not the list code', () =>
+  assertFails(setDoc(codeRef(editor(), 'ZZZZZZ'), index(LIST_ID, 'ZZZZZZ'))));
+await t('index may not carry extra fields', () =>
+  assertFails(setDoc(codeRef(editor()), { ...index(), title: 'Mercado' })));
+await testEnv.withSecurityRulesDisabled((ctx) => setDoc(codeRef(ctx.firestore()), index()));
+await t('editor (not sole member) cannot delete the index', () =>
+  assertFails(deleteDoc(codeRef(editor()))));
+await t('owner deletes the index, then the list', async () => {
+  await assertSucceeds(deleteDoc(codeRef(owner())));
+  await assertSucceeds(deleteDoc(listRef(owner())));
+});
+await testEnv.withSecurityRulesDisabled((ctx) => setDoc(codeRef(ctx.firestore()), index()));
+await t('anyone may clean up an orphan index (list gone)', () =>
+  assertSucceeds(deleteDoc(codeRef(outsider()))));
 
 console.log('\n== shopping/{id}/products ==');
 await seed();

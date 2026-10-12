@@ -150,14 +150,13 @@
   - **catch-all `if false`** — explicit so a collection added by a future feature fails loudly in
     development instead of silently inheriting a broader rule.
 - **Trade-off / known breakage on deploy**:
-  1. **Join by short code stops working.** `getByShortCode` queries
-     `whereEqualTo("shortCode", code)` as a non-member, and rules cannot inspect a query's
-     where-clauses — "read only the list whose code I know" is inexpressible without also allowing
-     "read every list". Fix (client work, not a rules change): a `shortCodes/{CODE}` index document
-     holding only `{ shoppingId }`, readable by any signed-in user, written by the owner at create
-     time; the joiner resolves code → id, performs the blind self-join (already allowed by rule
-     (c)), and only then reads the list as a member. Not added to `firestore.rules` here because
-     the collection does not exist yet.
+  1. ~~**Join by short code stops working.**~~ Fixed client-side: `shortCodes/{CODE}` holds only
+     `{ id, shoppingId }` (any signed-in `get`, no `list`, create-only by a member for the list's own
+     code, delete by whoever may delete the list or anyone once it is gone). `ShoppingJoinUseCase`
+     resolves code → id, self-joins blind (rule (c)), then reads the list as a member; join by full
+     id also joins before reading. The index is written on create and backfilled when a member
+     opens "share"; `resolveShortCode` keeps the old `shortCode` query as a fallback, which these
+     rules deny, so lists never shared after the app update lose their old code once rules ship.
   2. **Wear OS traffic stops working entirely.** The watch never signs in to Firebase — pairing
      just copies the phone's uid into DataStore (`WearAuthListenerService` → `updateUserId`), so
      `request.auth` is null on every watch request while `AuthService` still reports an id. Any
