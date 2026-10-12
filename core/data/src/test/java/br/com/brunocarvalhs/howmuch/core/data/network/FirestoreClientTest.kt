@@ -6,6 +6,7 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.EventListener
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.ListenerRegistration
@@ -132,6 +133,24 @@ class FirestoreClientTest {
 
         assertEquals(true, result)
         verify { documentRef.update(mapOf("title" to "Updated")) }
+    }
+
+    @Test
+    fun `execute PUT turns FieldOp into arrayRemove and delete transforms`() = runTest {
+        val captured = slot<Map<String, Any>>()
+        every { documentRef.update(capture(captured)) } returns Tasks.forResult(null)
+        val data = mapOf(
+            "users" to NetworkService.FieldOp.ArrayRemove(listOf("u1")),
+            "roles.u1" to NetworkService.FieldOp.Delete
+        )
+
+        manager.execute("shopping/list-1", NetworkService.Method.PUT, data = data)
+
+        assertEquals(setOf("users", "roles.u1"), captured.captured.keys)
+        assertTrue(captured.captured.values.all { it is FieldValue })
+        // FieldValue has no equals(); compare the concrete transform types.
+        assertEquals(FieldValue.arrayRemove("u1").javaClass, captured.captured["users"]?.javaClass)
+        assertEquals(FieldValue.delete().javaClass, captured.captured["roles.u1"]?.javaClass)
     }
 
     @Test

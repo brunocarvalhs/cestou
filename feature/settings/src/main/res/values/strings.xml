@@ -87,9 +87,9 @@
     <string name="settings_data_delete_all_success">All data deleted</string>
     <string name="settings_data_delete_all_error">Couldn\'t delete your data. Please try again.</string>
     <string name="settings_data_delete_account">Delete Account</string>
-    <string name="settings_data_delete_account_hint">Permanently deletes your account and all your data</string>
+    <string name="settings_data_delete_account_hint">Permanently deletes your account, profile and your own lists</string>
     <string name="settings_data_delete_account_confirmation_title">Delete account?</string>
-    <string name="settings_data_delete_account_confirmation_message">This action cannot be undone. Your account, profile and shopping lists will be permanently deleted.</string>
+    <string name="settings_data_delete_account_confirmation_message">This action cannot be undone. Your account, profile, frequent products and the lists only you use will be permanently deleted. You will be removed from shared lists; they stay with the other members, along with the items you added.</string>
     <string name="settings_data_delete_account_button">Yes, delete my account</string>
     <string name="settings_data_delete_account_success">Account deleted</string>
     <string name="settings_data_delete_account_error">Couldn\'t delete your account. Please try again.</string>

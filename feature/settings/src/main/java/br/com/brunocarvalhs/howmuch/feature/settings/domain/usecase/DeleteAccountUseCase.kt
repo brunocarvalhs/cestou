@@ -27,7 +27,7 @@ internal class DeleteAccountUseCase @Inject constructor(
                 if (shopping.users.size <= 1) {
                     shoppingRepository.delete(shopping)
                 } else {
-                    shoppingRepository.update(shopping.copy(users = shopping.users - userId))
+                    shoppingRepository.leave(shopping.id, userId)
                 }
             }
             userRepository.deleteProfile(userId).getOrThrow()

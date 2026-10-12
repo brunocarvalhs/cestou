@@ -5,6 +5,7 @@ import br.com.brunocarvalhs.howmuch.core.data.model.UserProfileModel
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
+import br.com.brunocarvalhs.howmuch.core.domain.services.deleteDocumentWithSubCollections
 import br.com.brunocarvalhs.howmuch.core.domain.services.make
 import br.com.brunocarvalhs.howmuch.core.domain.services.observe
 import kotlinx.coroutines.flow.Flow
@@ -42,14 +43,7 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteProfile(id: String): Result<Unit> = runCatching {
-        networkService.make(
-            request = NetworkService.NetworkRequest(
-                endpoint = "$ENDPOINT/$id",
-                method = NetworkService.Method.DELETE
-            ),
-            response = Boolean::class
-        )
-        Unit
+        networkService.deleteDocumentWithSubCollections("$ENDPOINT/$id", "common-products")
     }
 
     companion object {

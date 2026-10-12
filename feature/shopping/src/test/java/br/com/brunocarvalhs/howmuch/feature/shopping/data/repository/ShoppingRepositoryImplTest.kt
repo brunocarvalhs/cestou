@@ -4,15 +4,19 @@ import app.cash.turbine.test
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.DocumentId
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.model.ShoppingModel
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -148,11 +152,40 @@ class ShoppingRepositoryImplTest {
         repository.update(model.toDomainForTest())
     }
 
+    private fun stubDelete(requests: MutableList<NetworkService.NetworkRequest>, deleteResult: Any?) {
+        coEvery { networkService.make<Any>(any(), any(), any()) } answers {
+            val request = firstArg<NetworkService.NetworkRequest>()
+            requests += request
+            if (request.method == NetworkService.Method.GET) listOf(DocumentId("p1")) else deleteResult
+        }
+    }
+
     @Test
-    fun `delete calls network with the shopping id`() = runTest {
-        coEvery { networkService.make<Boolean>(any(), any(), any()) } returns true
+    fun `delete removes products before the list document`() = runTest {
+        val requests = mutableListOf<NetworkService.NetworkRequest>()
+        stubDelete(requests, true)
 
         repository.delete(model.toDomainForTest())
+
+        assertEquals(
+            listOf(
+                "shopping/s1/products" to NetworkService.Method.GET,
+                "shopping/s1/products/p1" to NetworkService.Method.DELETE,
+                "shopping/s1" to NetworkService.Method.DELETE
+            ),
+            requests.map { it.endpoint to it.method }
+        )
+    }
+
+    @Test
+    fun `delete throws and keeps the list when a product cannot be deleted`() = runTest {
+        val requests = mutableListOf<NetworkService.NetworkRequest>()
+        stubDelete(requests, null)
+
+        val result = runCatching { repository.delete(model.toDomainForTest()) }
+
+        assertTrue(result.isFailure)
+        assertEquals(2, requests.size)
     }
 
     @Test
@@ -160,6 +193,31 @@ class ShoppingRepositoryImplTest {
         coEvery { networkService.make<Boolean>(any(), any(), any()) } returns true
 
         repository.join("s1", "user-2")
+    }
+
+    @Test
+    fun `leave sends arrayRemove for users and delete for the role`() = runTest {
+        val slot = slot<NetworkService.NetworkRequest>()
+        coEvery { networkService.make<Boolean>(capture(slot), any(), any()) } returns true
+
+        repository.leave("s1", "u1")
+
+        assertEquals("shopping/s1", slot.captured.endpoint)
+        assertEquals(NetworkService.Method.PUT, slot.captured.method)
+        assertEquals(
+            mapOf(
+                "users" to NetworkService.FieldOp.ArrayRemove(listOf("u1")),
+                "roles.u1" to NetworkService.FieldOp.Delete
+            ),
+            slot.captured.payload
+        )
+    }
+
+    @Test
+    fun `leave throws when the write fails`() = runTest {
+        coEvery { networkService.make<Boolean>(any(), any(), any()) } returns null
+
+        assertThrows(IllegalStateException::class.java) { runBlocking { repository.leave("s1", "u1") } }
     }
 
     @Test

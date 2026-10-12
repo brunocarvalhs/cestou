@@ -3,6 +3,7 @@ package br.com.brunocarvalhs.howmuch.core.data.repository
 import app.cash.turbine.test
 import br.com.brunocarvalhs.howmuch.core.data.model.UserProfileModel
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
+import br.com.brunocarvalhs.howmuch.core.domain.services.DocumentId
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import io.mockk.coEvery
 import io.mockk.every
@@ -80,12 +81,38 @@ class UserRepositoryImplTest {
     }
 
     @Test
-    fun `deleteProfile succeeds when network call succeeds`() = runTest {
-        coEvery { networkService.make<Boolean>(any(), any(), any()) } returns true
+    fun `deleteProfile removes common products before the user document`() = runTest {
+        val requests = mutableListOf<NetworkService.NetworkRequest>()
+        coEvery { networkService.make<Any>(any(), any(), any()) } answers {
+            val request = firstArg<NetworkService.NetworkRequest>()
+            requests += request
+            if (request.method == NetworkService.Method.GET) {
+                listOf(DocumentId("c1"))
+            } else {
+                true
+            }
+        }
 
         val result = repository.deleteProfile("u1")
 
         assertTrue(result.isSuccess)
+        assertEquals(
+            listOf(
+                "users/u1/common-products" to NetworkService.Method.GET,
+                "users/u1/common-products/c1" to NetworkService.Method.DELETE,
+                "users/u1" to NetworkService.Method.DELETE
+            ),
+            requests.map { it.endpoint to it.method }
+        )
+    }
+
+    @Test
+    fun `deleteProfile fails and keeps the user when listing common products fails`() = runTest {
+        coEvery { networkService.make<Any>(any(), any(), any()) } returns null
+
+        val result = repository.deleteProfile("u1")
+
+        assertTrue(result.isFailure)
     }
 
     @Test
