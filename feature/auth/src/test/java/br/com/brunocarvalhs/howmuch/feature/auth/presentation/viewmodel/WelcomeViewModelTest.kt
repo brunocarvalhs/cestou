@@ -5,8 +5,8 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.domain.usecase.UpdateLanguageUseCase
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.firebaseui.FirebaseAuthUiConfig
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateLanguageUseCase
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk

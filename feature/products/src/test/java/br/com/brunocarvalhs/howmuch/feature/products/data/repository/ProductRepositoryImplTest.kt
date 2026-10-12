@@ -177,7 +177,7 @@ class ProductRepositoryImplTest {
         val bitmap = mockk<Bitmap>()
         coEvery { bitmapLoader.load("content://photo") } returns bitmap
         coEvery { imageTextRecognizer.recognizePriceTag(bitmap) } returns
-            PriceTagResult(nameCandidates = listOf("Arroz Branco"), price = 12.5)
+            PriceTagResult(nameCandidates = listOf("Arroz Branco"), price = SCANNED_PRICE)
 
         val result = repository.analyzeImage("content://photo")
 
@@ -185,7 +185,7 @@ class ProductRepositoryImplTest {
         val products = result.getOrThrow()
         assertEquals(1, products.size)
         assertEquals("Arroz Branco", products[0].name)
-        assertEquals(12.5, products[0].price)
+        assertEquals(SCANNED_PRICE, products[0].price)
     }
 
     @Test
@@ -224,7 +224,7 @@ class ProductRepositoryImplTest {
 
         val first = repository.getQuestionSuggestions("s1").first()
 
-        assertEquals(3, first.size)
+        assertEquals(EXPECTED_PRODUCT_COUNT, first.size)
     }
 
     @Test
@@ -273,3 +273,7 @@ class ProductRepositoryImplTest {
         return (lazyModel.value as GenerativeModel).apiKey
     }
 }
+
+private const val SCANNED_PRICE = 12.5
+
+private const val EXPECTED_PRODUCT_COUNT = 3

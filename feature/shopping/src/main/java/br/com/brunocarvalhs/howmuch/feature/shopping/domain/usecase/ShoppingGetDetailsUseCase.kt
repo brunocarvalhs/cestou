@@ -6,7 +6,7 @@ import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getString
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
+import br.com.brunocarvalhs.howmuch.core.domain.usecase.ProductsUseCase
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 

@@ -2,7 +2,7 @@ package br.com.brunocarvalhs.howmuch.core.remoteconfig.initializer
 
 import android.content.Context
 import androidx.startup.Initializer
-import br.com.brunocarvalhs.howmuch.core.common.initializer.FirebaseInitializer
+import br.com.brunocarvalhs.howmuch.core.data.initializer.FirebaseInitializer
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.BuildConfig
 import com.google.firebase.Firebase
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig

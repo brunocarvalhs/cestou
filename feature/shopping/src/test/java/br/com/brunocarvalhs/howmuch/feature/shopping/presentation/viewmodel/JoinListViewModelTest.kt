@@ -5,7 +5,7 @@ import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingJoinUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.Scanner
+import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.Scanner
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.verify

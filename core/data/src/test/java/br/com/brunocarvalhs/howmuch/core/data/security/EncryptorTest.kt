@@ -5,6 +5,8 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Test
 
+private const val TEST_PRICE = 42.5
+
 class EncryptorTest {
 
     private lateinit var encryptor: Encryptor
@@ -53,13 +55,13 @@ class EncryptorTest {
 
     @Test
     fun `encryptMap then decryptMap round-trips non-excluded values`() {
-        val input = mapOf("title" to "Weekly Groceries", "price" to 42.5, "id" to "list-1")
+        val input = mapOf("title" to "Weekly Groceries", "price" to TEST_PRICE, "id" to "list-1")
 
         val encrypted = encryptor.encryptMap(input, excludedKeys = setOf("id"))
         val decrypted = encryptor.decryptMap(encrypted, excludedKeys = setOf("id"))
 
         assertEquals("Weekly Groceries", decrypted["title"])
-        assertEquals(42.5, decrypted["price"])
+        assertEquals(TEST_PRICE, decrypted["price"])
         assertEquals("list-1", decrypted["id"])
     }
 

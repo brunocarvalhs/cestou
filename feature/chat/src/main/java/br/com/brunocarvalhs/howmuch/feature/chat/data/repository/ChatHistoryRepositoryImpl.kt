@@ -1,12 +1,12 @@
 package br.com.brunocarvalhs.howmuch.feature.chat.data.repository
 
+import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
 import br.com.brunocarvalhs.howmuch.core.domain.services.get
 import br.com.brunocarvalhs.howmuch.feature.chat.data.mapper.toDomain
 import br.com.brunocarvalhs.howmuch.feature.chat.data.mapper.toModel
 import br.com.brunocarvalhs.howmuch.feature.chat.data.model.ChatHistoryModel
 import br.com.brunocarvalhs.howmuch.feature.chat.di.ChatDataStore
-import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import javax.inject.Inject
 

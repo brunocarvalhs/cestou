@@ -30,8 +30,8 @@ internal fun IconProduct(
     onClick: (Boolean) -> Unit,
     enabled: Boolean,
     iconUrl: String? = null,
-    iconBackgroundColor: Color = Color(0xFFF0F0F0),
-    iconSelectBackgroundColor: Color = Color(0xFF009688),
+    iconBackgroundColor: Color = Color(DEFAULT_BACKGROUND),
+    iconSelectBackgroundColor: Color = Color(SELECTED_BACKGROUND),
 ) {
     val title = remember { product.name }
     Box(
@@ -58,32 +58,32 @@ internal fun IconProduct(
                         "café",
                         true
                     ) -> "🍳" to Color(
-                        0xFFFEF9E7
+                        BREAKFAST_BACKGROUND
                     )
 
                     title.contains("dinner", true) || title.contains(
                         "jantar",
                         true
                     ) -> "🍏" to Color(
-                        0xFFE8F8F5
+                        DINNER_BACKGROUND
                     )
 
-                    title.contains("pizza", true) -> "🍕" to Color(0xFFFEF5E7)
+                    title.contains("pizza", true) -> "🍕" to Color(PIZZA_BACKGROUND)
                     title.contains("spaghetti", true) || title.contains(
                         "massa",
                         true
                     ) -> "🍝" to Color(
-                        0xFFFBEEE6
+                        PASTA_BACKGROUND
                     )
 
                     title.contains("drinks", true) || title.contains(
                         "bebidas",
                         true
                     ) -> "🍺" to Color(
-                        0xFFF5EEF8
+                        DRINKS_BACKGROUND
                     )
 
-                    title.contains("purchased", true) -> "🍉" to Color(0xFFFCE4EC)
+                    title.contains("purchased", true) -> "🍉" to Color(PURCHASED_BACKGROUND)
                     else -> "🛒" to iconBackgroundColor
                 }
                 Box(
@@ -97,3 +97,12 @@ internal fun IconProduct(
         }
     }
 }
+
+private const val DEFAULT_BACKGROUND = 0xFFF0F0F0
+private const val SELECTED_BACKGROUND = 0xFF009688
+private const val BREAKFAST_BACKGROUND = 0xFFFEF9E7
+private const val DINNER_BACKGROUND = 0xFFE8F8F5
+private const val PIZZA_BACKGROUND = 0xFFFEF5E7
+private const val PASTA_BACKGROUND = 0xFFFBEEE6
+private const val DRINKS_BACKGROUND = 0xFFF5EEF8
+private const val PURCHASED_BACKGROUND = 0xFFFCE4EC

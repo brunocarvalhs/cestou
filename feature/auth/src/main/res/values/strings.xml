@@ -69,4 +69,26 @@
     <string name="name_step_continue">Continue</string>
     <string name="name_step_use_another_account">Use another account</string>
     <string name="name_step_save_error">We couldn\'t save your name. Check your internet and try again.</string>
+    <string name="reauth_title">Confirm your identity</string>
+    <string name="mfa_setup_title">Set up second factor (MFA)</string>
+    <string name="mfa_setup_choose_method">Choose how you want to receive your security codes.</string>
+    <string name="mfa_phone_label">Phone for MFA</string>
+    <string name="mfa_send_sms">Send SMS</string>
+    <string name="mfa_totp_instructions">Scan the QR Code or enter the manual code in your authenticator app.</string>
+    <string name="mfa_totp_secret">Secret: %1$s</string>
+    <string name="mfa_scanned">I\'ve scanned it</string>
+    <string name="mfa_verification_code_label">Verification code</string>
+    <string name="mfa_two_step_title">Two-step verification</string>
+    <string name="mfa_enter_code_sms">Enter the code sent by SMS to your phone</string>
+    <string name="mfa_enter_code_totp">Enter the code from your authenticator app</string>
+    <string name="mfa_code_label">MFA code</string>
+    <string name="mfa_verify">Verify</string>
+    <string name="welcome_language_content_description">Language</string>
+    <string name="link_wear_title">Link watch</string>
+    <string name="link_wear_instructions">Enter the code shown on your watch to sync your account.</string>
+    <string name="pairing_code_label">Pairing code</string>
+    <string name="link_wear_success">Success! Your watch has been linked.</string>
+    <string name="link_wear_action">Link</string>
+    <string name="wear_link_phone">Link phone</string>
+    <string name="wear_pairing_instructions">Open the app on your phone and enter this code.</string>
 </resources>

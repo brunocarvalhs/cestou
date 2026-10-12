@@ -6,6 +6,9 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Test
 
+private const val DRAG_X = 10f
+private const val DRAG_Y = 20f
+
 class DragTargetInfoTest {
 
     @Test
@@ -25,12 +28,12 @@ class DragTargetInfoTest {
         val payload = "product-1"
 
         info.isDragging = true
-        info.dragPosition = Offset(10f, 20f)
+        info.dragPosition = Offset(DRAG_X, DRAG_Y)
         info.dragOffset = Offset(1f, 2f)
         info.dataToDrop = payload
 
         assertEquals(true, info.isDragging)
-        assertEquals(Offset(10f, 20f), info.dragPosition)
+        assertEquals(Offset(DRAG_X, DRAG_Y), info.dragPosition)
         assertEquals(Offset(1f, 2f), info.dragOffset)
         assertEquals(payload, info.dataToDrop)
     }

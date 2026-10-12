@@ -16,12 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.ui.components.UserAvatar
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatPrice
 import br.com.brunocarvalhs.howmuch.core.ui.utils.LocalCurrency
+import br.com.brunocarvalhs.howmuch.feature.cart.R
 
 @Composable
 internal fun CartProductItem(
@@ -62,7 +64,11 @@ internal fun CartProductItem(
                 )
 
                 Text(
-                    text = "$quantity un • ${price.formatPrice(currency)} cada",
+                    text = stringResource(
+                        R.string.cart_item_quantity_price,
+                        quantity,
+                        price.formatPrice(currency)
+                    ),
                     style = MaterialTheme.typography.bodySmall
                 )
             }
