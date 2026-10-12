@@ -8,7 +8,7 @@ import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveU
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSearchUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.RecipeAddToListUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.RecipeSearchUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShoppingClearPurchasedUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShoppingClearPurchasedUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -45,7 +45,7 @@ abstract class ProductAgentModule {
 
     @Binds
     @IntoSet
-    abstract fun bindShoppingClearPurchased(useCase: ShoppingClearPurchasedUseCase): AgentActionUseCase<*>
+    abstract fun bindShoppingClearPurchased(useCase: ShoppingClearPurchasedUseCaseImpl): AgentActionUseCase<*>
 
     @Binds
     @IntoSet

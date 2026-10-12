@@ -31,7 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyVisualTransformation
-import br.com.brunocarvalhs.howmuch.feature.products.R
+import br.com.brunocarvalhs.howmuch.feature.cart.R
 
 private const val CURRENCY_DIVISOR = 100.0
 private const val MAX_PRICE_LENGTH = 12

@@ -48,16 +48,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.theme.CestouBrightGreen
+import br.com.brunocarvalhs.howmuch.core.ui.components.Suggestions
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
+import br.com.brunocarvalhs.howmuch.feature.cart.R
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.AiDockState
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.Suggestions
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
+import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
 private const val COLLAPSED_HEIGHT = 82
 private const val EXPANDED_HEIGHT = 180
@@ -161,7 +164,7 @@ fun CartAssistantDock(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Assistente Cestou",
+                            text = stringResource(R.string.cart_assistant_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -174,14 +177,17 @@ fun CartAssistantDock(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Online • IA ativa",
+                                text = stringResource(R.string.cart_assistant_status),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = CestouBrightGreen
                             )
                         }
                     }
                     IconButton(onClick = onToggleClick) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(CoreR.string.action_close)
+                        )
                     }
                 }
             }

@@ -4,8 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.usecase.ProductsUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingGetByIdUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -37,7 +37,7 @@ class ShoppingDetailViewModelTest {
         title = "Weekly Groceries",
         description = "",
         price = 0.0,
-        budget = 100.0,
+        budget = BUDGET,
         status = Shopping.Status.NEW,
         users = emptyList(),
         roles = emptyMap()
@@ -71,9 +71,9 @@ class ShoppingDetailViewModelTest {
         val state = viewModel().uiState.value
 
         assertEquals("Weekly Groceries", state.title)
-        assertEquals(100.0, state.budget, 0.0)
-        assertEquals(40.0, state.totalSpent, 0.0)
-        assertEquals(60.0, state.balance, 0.0)
+        assertEquals(BUDGET, state.budget, 0.0)
+        assertEquals(TOTAL_SPENT, state.totalSpent, 0.0)
+        assertEquals(BALANCE, state.balance, 0.0)
         assertEquals(products, state.items.items)
         assertEquals(false, state.isLoading)
     }
@@ -120,3 +120,9 @@ class ShoppingDetailViewModelTest {
         viewModel().intent.onBack()
     }
 }
+
+private const val BUDGET = 100.0
+
+private const val TOTAL_SPENT = 40.0
+
+private const val BALANCE = 60.0

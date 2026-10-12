@@ -6,6 +6,9 @@ import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
+private const val TEST_RES_ID_WITH_ARGS = 42
+private const val TEST_RES_ID_PLAIN = 7
+
 class UiTextTest {
 
     @Test
@@ -20,9 +23,9 @@ class UiTextTest {
     @Test
     fun `StringResource asString with context resolves through context getString`() {
         val context = mockk<Context>()
-        every { context.getString(42, "World") } returns "Hello World"
+        every { context.getString(TEST_RES_ID_WITH_ARGS, "World") } returns "Hello World"
 
-        val result = UiText.StringResource(42, "World").asString(context)
+        val result = UiText.StringResource(TEST_RES_ID_WITH_ARGS, "World").asString(context)
 
         assertEquals("Hello World", result)
     }
@@ -30,9 +33,9 @@ class UiTextTest {
     @Test
     fun `StringResource asString with context and no args resolves through context getString`() {
         val context = mockk<Context>()
-        every { context.getString(7, *emptyArray<Any>()) } returns "Plain"
+        every { context.getString(TEST_RES_ID_PLAIN, *emptyArray<Any>()) } returns "Plain"
 
-        val result = UiText.StringResource(7).asString(context)
+        val result = UiText.StringResource(TEST_RES_ID_PLAIN).asString(context)
 
         assertEquals("Plain", result)
     }

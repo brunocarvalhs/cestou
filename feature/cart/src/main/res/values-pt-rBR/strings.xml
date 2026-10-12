@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_confirm">Confirmar</string>
+    <string name="cart_ai_input_placeholder">Mensagem para o Cestou…</string>
+    <string name="cart_ai_voice_input">Entrada por voz</string>
+    <string name="cart_assistant_status">Online • IA ativa</string>
+    <string name="cart_assistant_title">Assistente Cestou</string>
+    <string name="cart_checkout">Finalizar</string>
+    <string name="cart_item_delete_description">Excluir item</string>
+    <string name="cart_item_quantity_price">%1$d un • %2$s cada</string>
+    <string name="shopping_list_confirm_item_title">Confirmar Item</string>
+    <string name="shopping_list_confirm_save">Confirmar e Salvar</string>
+    <string name="shopping_list_default_title">Lista de produtos</string>
+    <string name="shopping_list_edit_list_title">Editar lista</string>
+    <string name="shopping_list_edit_title">Editar Produto</string>
+    <string name="shopping_list_finish_description">Informe o valor total pago e o local da compra.</string>
+    <string name="shopping_list_finish_title">Finalizar Compra</string>
+    <string name="shopping_list_history_action_added">Adicionado</string>
+    <string name="shopping_list_history_action_edited">Editado</string>
+    <string name="shopping_list_history_action_purchased">Comprado</string>
+    <string name="shopping_list_history_empty">Nenhum histórico ainda para este item.</string>
+    <string name="shopping_list_history_entry">%1$s por %2$s</string>
+    <string name="shopping_list_history_title">Histórico do Item</string>
+    <string name="shopping_list_history_unknown_user">Alguém</string>
+    <string name="shopping_list_label_category">Categoria</string>
+    <string name="shopping_list_label_establishment">Estabelecimento (Opcional)</string>
+    <string name="shopping_list_label_product_name">Nome do Produto</string>
+    <string name="shopping_list_label_quantity">Quantidade</string>
+    <string name="shopping_list_label_total_value">Valor Total</string>
+    <string name="shopping_list_label_unit_price">Preço Unitário</string>
+    <string name="shopping_list_menu_clear_purchased">Limpar comprados</string>
+    <string name="shopping_list_move_to">Mover para&#8230;</string>
+    <string name="shopping_list_placeholder_establishment">Ex: Supermercado X</string>
+    <string name="shopping_list_save_changes">Salvar Alterações</string>
+    <string name="shopping_list_updated">Lista atualizada!</string>
+</resources>
