@@ -48,13 +48,14 @@ internal fun NavGraphBuilder.authGraph(
             onSignInCancelled = {
 
             },
-            customMethodPickerLayout = { providers, onProviderSelected ->
+            customMethodPickerLayout = { _, onProviderSelected ->
                 WelcomeScreen(
                     state = uiState,
                     intent = viewModel.intent
                 ) {
                     CustomMethodPickerLayout(
-                        providers = providers,
+                        methods = viewModel.authConfig.methods,
+                        providers = viewModel.authConfig.providers,
                         onProviderSelected = onProviderSelected,
                         onEmailSelected = { navigator.navigate(EmailSignIn()) }
                     )
@@ -63,8 +64,9 @@ internal fun NavGraphBuilder.authGraph(
             customMethodPickerTermsConfiguration = MethodPickerTermsConfiguration(
                 content = { CustomMethodPickerTerms() }
             ),
-            // FirebaseUI hosts only Google (see FirebaseAuthUiConfig). E-mail is our own flow below,
-            // on FirebaseAuth, so no emailContent/phoneContent slot is wired up here.
+            // FirebaseUI hosts the social/phone providers enabled by feature flag (see
+            // FirebaseAuthUiConfig). E-mail is our own flow below, on FirebaseAuth, so no
+            // emailContent slot is wired up; phone uses FirebaseUI's default screens.
             mfaEnrollmentContent = { CustomMfaEnrollmentContent(it) },
             mfaChallengeContent = { CustomMfaChallengeContent(it) },
             reauthContent = { state ->
