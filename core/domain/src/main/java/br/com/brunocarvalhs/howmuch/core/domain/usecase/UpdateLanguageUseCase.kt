@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase
+package br.com.brunocarvalhs.howmuch.core.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import javax.inject.Inject

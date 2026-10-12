@@ -97,9 +97,9 @@ class AiChatViewModelTest {
     @Test
     fun `setShoppingContext loads persisted history for that shopping id`() {
         val persisted = listOf(
-            br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage(
+            br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage(
                 text = "previous message",
-                sender = br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage.Sender.USER
+                sender = br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage.Sender.USER
             )
         )
         coEvery { chatHistoryRepository.load("list1") } returns persisted

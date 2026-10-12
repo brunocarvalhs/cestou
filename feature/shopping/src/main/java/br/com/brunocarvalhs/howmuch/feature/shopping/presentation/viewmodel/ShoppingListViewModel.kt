@@ -27,7 +27,7 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingGetA
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingGetByIdUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingReopenUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingUpdateUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.EditShopping
+import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.EditShopping
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.ShoppingListIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingFilter
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingListUiState

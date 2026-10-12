@@ -1,6 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.chat.domain.repository
 
-import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
+import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 
 interface ChatHistoryRepository {
 

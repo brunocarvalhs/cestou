@@ -10,8 +10,8 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.AnalyzingOverlay
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.PreviewActions
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.FormProduct
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductAnalysisConfirmation
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductForm
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductHeader
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductPhotoForm
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.scanner.CaptureControls
@@ -37,7 +37,7 @@ class ProductComponentsTest {
     fun `form renders the filled product`() {
         composeTestRule.setContent {
             CestouTheme {
-                FormProduct(
+                ProductForm(
                     uiState = ProductFormUiState(
                         name = "Arroz Branco 5kg", quantity = "2", price = "2590", category = "Mercearia"
                     ),
@@ -53,8 +53,8 @@ class ProductComponentsTest {
         composeTestRule.setContent {
             CestouTheme {
                 Column {
-                    FormProduct(uiState = ProductFormUiState())
-                    FormProduct(
+                    ProductForm(uiState = ProductFormUiState())
+                    ProductForm(
                         uiState = ProductFormUiState(name = "Leite", quantity = "1", price = "500", isSaving = true)
                     )
                 }

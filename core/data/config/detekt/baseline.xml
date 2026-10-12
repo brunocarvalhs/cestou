@@ -2,7 +2,7 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>TooManyFunctions:FirebaseFirestoreManagerTest.kt$FirebaseFirestoreManagerTest</ID>
+    <ID>TooManyFunctions:FirestoreClientTest.kt$FirestoreClientTest</ID>
     <ID>TooManyFunctions:SettingsRepositoryImplTest.kt$SettingsRepositoryImplTest</ID>
   </CurrentIssues>
 </SmellBaseline>

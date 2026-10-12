@@ -10,8 +10,8 @@ import br.com.brunocarvalhs.howmuch.core.domain.services.observe
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.RemoteVariableService
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.RemoteVariableKeys
 import br.com.brunocarvalhs.howmuch.core.ui.entity.ProductCategory
-import br.com.brunocarvalhs.howmuch.feature.products.data.extensions.toDomain
-import br.com.brunocarvalhs.howmuch.feature.products.data.extensions.toModel
+import br.com.brunocarvalhs.howmuch.feature.products.data.mapper.toDomain
+import br.com.brunocarvalhs.howmuch.feature.products.data.mapper.toModel
 import br.com.brunocarvalhs.howmuch.feature.products.data.model.ProductModel
 import br.com.brunocarvalhs.howmuch.feature.products.data.services.ProductImageTextRecognizer
 import br.com.brunocarvalhs.howmuch.feature.products.data.services.UriBitmapLoader

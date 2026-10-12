@@ -52,12 +52,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 import br.com.brunocarvalhs.howmuch.core.theme.CestouBrightGreen
 import br.com.brunocarvalhs.howmuch.core.ui.components.Suggestions
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.cart.R
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.AiDockState
-import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR

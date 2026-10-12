@@ -1,6 +1,6 @@
 package br.com.brunocarvalhs.howmuch.core.data.network
 
-import br.com.brunocarvalhs.howmuch.core.data.security.CryptoManager
+import br.com.brunocarvalhs.howmuch.core.data.security.Encryptor
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -14,9 +14,9 @@ import javax.inject.Inject
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 
-class NetworkManager @Inject constructor(
-    private val firebaseFirestoreManager: FirebaseFirestoreManager,
-    private val cryptoManager: CryptoManager,
+class NetworkServiceImpl @Inject constructor(
+    private val firestoreClient: FirestoreClient,
+    private val encryptor: Encryptor,
     private val compatibilityConverter: CompatibilityConverter,
     private val networkLogger: NetworkLogger
 ) : NetworkService {
@@ -46,7 +46,7 @@ class NetworkManager @Inject constructor(
         )
 
         return try {
-            val result = firebaseFirestoreManager.execute(
+            val result = firestoreClient.execute(
                 endpoint = finalEndpoint,
                 method = request.method,
                 data = finalPayload,
@@ -84,7 +84,7 @@ class NetworkManager @Inject constructor(
     ): Flow<T?> {
         val finalEndpoint = getEndpoint(request.endpoint)
 
-        return firebaseFirestoreManager.observe(
+        return firestoreClient.observe(
             endpoint = finalEndpoint,
             query = request.query
         ).map { result ->
@@ -136,10 +136,10 @@ class NetworkManager @Inject constructor(
     @Suppress("UNCHECKED_CAST")
     private fun decryptData(data: Any): Any {
         return when (data) {
-            is Map<*, *> -> cryptoManager.decryptMap(data as Map<String, Any>, EXCLUDED_KEYS)
+            is Map<*, *> -> encryptor.decryptMap(data as Map<String, Any>, EXCLUDED_KEYS)
             is List<*> -> data.map { item ->
                 if (item is Map<*, *>) {
-                    cryptoManager.decryptMap(item as Map<String, Any>, EXCLUDED_KEYS)
+                    encryptor.decryptMap(item as Map<String, Any>, EXCLUDED_KEYS)
                 } else {
                     item
                 }

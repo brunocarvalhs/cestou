@@ -9,12 +9,12 @@ import kotlin.reflect.typeOf
 
 /**
  * Reproduces, at the unit-test level, the exact reflective serializer lookup that
- * `NetworkManager.getResponse()` performs at runtime for every Firestore response
+ * `NetworkServiceImpl.getResponse()` performs at runtime for every Firestore response
  * (`json.serializersModule.serializer(responseType)`, mirrored below via `typeOf<List<ShoppingModel>>()`).
  *
  * `ShoppingModel` once shipped without `@Serializable`. That did not fail the build: kotlinx.serialization
  * only generates a serializer for annotated classes, so the reflective lookup below threw
- * `SerializationException: Serializer for class 'ShoppingModel' is not found` at runtime. `NetworkManager`
+ * `SerializationException: Serializer for class 'ShoppingModel' is not found` at runtime. `NetworkServiceImpl`
  * catches that exception and falls back to `null`, so every shopping-list read silently returned an empty
  * list even though the writes to Firestore succeeded. See
  * `.claude/skills/firestore-serializable-models/SKILL.md`.
@@ -44,7 +44,7 @@ class ShoppingModelTest {
     )
 
     @Test
-    fun `NetworkManager's reflective serializer lookup resolves and decodes ShoppingModel`() {
+    fun `NetworkServiceImpl's reflective serializer lookup resolves and decodes ShoppingModel`() {
         val serializer = json.serializersModule.serializer(typeOf<List<ShoppingModel>>())
         val encoded = json.encodeToString(serializer, listOf(model))
 

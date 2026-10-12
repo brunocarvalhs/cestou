@@ -35,8 +35,6 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
 import br.com.brunocarvalhs.howmuch.feature.settings.navigation.Settings
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.EditShopping
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.Scanner
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.EditShoppingContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.JoinListContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.scanner.QrCodeBottomSheet
