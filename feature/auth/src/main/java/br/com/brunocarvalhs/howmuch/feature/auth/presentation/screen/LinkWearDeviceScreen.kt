@@ -21,6 +21,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -86,6 +87,7 @@ internal fun LinkWearDeviceScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            val context = LocalContext.current
             if (state.isLoading) {
                 CircularProgressIndicator()
             } else if (state.isSuccess) {
@@ -97,7 +99,7 @@ internal fun LinkWearDeviceScreen(
             } else {
                 CestouButton(
                     text = stringResource(R.string.link_wear_action),
-                    onClick = { intent.onLinkClick() },
+                    onClick = { intent.onLinkClick(context) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
