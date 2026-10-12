@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.core.domain.services
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
@@ -54,3 +55,26 @@ suspend inline fun <reified T : Any> NetworkService.make(
 inline fun <reified T : Any> NetworkService.observe(
     request: NetworkService.NetworkRequest
 ): Flow<T?> = observe(request, T::class, typeOf<T>())
+
+@Serializable
+data class DocumentId(val id: String)
+
+/**
+ * Deletes [path] (a document) after deleting every document of each sub-collection in
+ * [subCollections] (Firestore does not cascade). [NetworkService.make] swallows errors and returns
+ * null, so null is treated as failure here and thrown, so callers never proceed with data left over.
+ */
+suspend fun NetworkService.deleteDocumentWithSubCollections(path: String, vararg subCollections: String) {
+    subCollections.forEach { sub ->
+        val docs = make<List<DocumentId>>(
+            NetworkService.NetworkRequest(endpoint = "$path/$sub", method = NetworkService.Method.GET)
+        ) ?: throw NetworkService.NetworkException(message = "Failed to list $path/$sub")
+        docs.forEach { doc ->
+            make<Boolean>(
+                NetworkService.NetworkRequest(endpoint = "$path/$sub/${doc.id}", method = NetworkService.Method.DELETE)
+            ) ?: throw NetworkService.NetworkException(message = "Failed to delete $path/$sub/${doc.id}")
+        }
+    }
+    make<Boolean>(NetworkService.NetworkRequest(endpoint = path, method = NetworkService.Method.DELETE))
+        ?: throw NetworkService.NetworkException(message = "Failed to delete $path")
+}

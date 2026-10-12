@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.DocumentId
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.model.ShoppingModel
 import io.mockk.coEvery
@@ -151,11 +152,40 @@ class ShoppingRepositoryImplTest {
         repository.update(model.toDomainForTest())
     }
 
+    private fun stubDelete(requests: MutableList<NetworkService.NetworkRequest>, deleteResult: Any?) {
+        coEvery { networkService.make<Any>(any(), any(), any()) } answers {
+            val request = firstArg<NetworkService.NetworkRequest>()
+            requests += request
+            if (request.method == NetworkService.Method.GET) listOf(DocumentId("p1")) else deleteResult
+        }
+    }
+
     @Test
-    fun `delete calls network with the shopping id`() = runTest {
-        coEvery { networkService.make<Boolean>(any(), any(), any()) } returns true
+    fun `delete removes products before the list document`() = runTest {
+        val requests = mutableListOf<NetworkService.NetworkRequest>()
+        stubDelete(requests, true)
 
         repository.delete(model.toDomainForTest())
+
+        assertEquals(
+            listOf(
+                "shopping/s1/products" to NetworkService.Method.GET,
+                "shopping/s1/products/p1" to NetworkService.Method.DELETE,
+                "shopping/s1" to NetworkService.Method.DELETE
+            ),
+            requests.map { it.endpoint to it.method }
+        )
+    }
+
+    @Test
+    fun `delete throws and keeps the list when a product cannot be deleted`() = runTest {
+        val requests = mutableListOf<NetworkService.NetworkRequest>()
+        stubDelete(requests, null)
+
+        val result = runCatching { repository.delete(model.toDomainForTest()) }
+
+        assertTrue(result.isFailure)
+        assertEquals(2, requests.size)
     }
 
     @Test
