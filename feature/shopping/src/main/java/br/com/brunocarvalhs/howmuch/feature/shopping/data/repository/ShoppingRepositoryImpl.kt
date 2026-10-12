@@ -122,6 +122,22 @@ class ShoppingRepositoryImpl @Inject constructor(
         )
     }
 
+    // make() swallows errors and returns null, so a null result here means the write failed.
+    override suspend fun leave(shoppingId: String, userId: String): Unit = withContext(ioDispatcher) {
+        networkService.make(
+            request = NetworkService.NetworkRequest(
+                endpoint = "$ENDPOINT/$shoppingId",
+                method = NetworkService.Method.PUT,
+                payload = mapOf(
+                    "users" to NetworkService.FieldOp.ArrayRemove(listOf(userId)),
+                    "roles.$userId" to NetworkService.FieldOp.Delete
+                )
+            ),
+            response = Boolean::class
+        ) ?: throw IllegalStateException("Failed to leave shopping $shoppingId")
+        Unit
+    }
+
     override suspend fun getByShortCode(shortCode: String): Shopping? = withContext(ioDispatcher) {
         val response = networkService.make<List<ShoppingModel>>(
             request = NetworkService.NetworkRequest(

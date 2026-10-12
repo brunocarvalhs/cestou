@@ -9,10 +9,13 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.data.model.ShoppingModel
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -160,6 +163,31 @@ class ShoppingRepositoryImplTest {
         coEvery { networkService.make<Boolean>(any(), any(), any()) } returns true
 
         repository.join("s1", "user-2")
+    }
+
+    @Test
+    fun `leave sends arrayRemove for users and delete for the role`() = runTest {
+        val slot = slot<NetworkService.NetworkRequest>()
+        coEvery { networkService.make<Boolean>(capture(slot), any(), any()) } returns true
+
+        repository.leave("s1", "u1")
+
+        assertEquals("shopping/s1", slot.captured.endpoint)
+        assertEquals(NetworkService.Method.PUT, slot.captured.method)
+        assertEquals(
+            mapOf(
+                "users" to NetworkService.FieldOp.ArrayRemove(listOf("u1")),
+                "roles.u1" to NetworkService.FieldOp.Delete
+            ),
+            slot.captured.payload
+        )
+    }
+
+    @Test
+    fun `leave throws when the write fails`() = runTest {
+        coEvery { networkService.make<Boolean>(any(), any(), any()) } returns null
+
+        assertThrows(IllegalStateException::class.java) { runBlocking { repository.leave("s1", "u1") } }
     }
 
     @Test

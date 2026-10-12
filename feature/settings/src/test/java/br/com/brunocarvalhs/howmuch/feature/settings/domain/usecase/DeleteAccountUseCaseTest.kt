@@ -46,7 +46,7 @@ class DeleteAccountUseCaseTest {
         val shared = ownedList("2", listOf("u1", "u2"))
         coEvery { shoppingRepository.getAll() } returns listOf(solo, shared)
         coEvery { shoppingRepository.delete(solo) } returns Unit
-        coEvery { shoppingRepository.update(shared.copy(users = listOf("u2"))) } returns Unit
+        coEvery { shoppingRepository.leave("2", "u1") } returns Unit
         coEvery { userRepository.deleteProfile("u1") } returns Result.success(Unit)
         coEvery { settingsRepository.deleteAllData() } returns Unit
         coEvery { authService.deleteAccount() } returns Result.success(Unit)
@@ -55,10 +55,25 @@ class DeleteAccountUseCaseTest {
 
         assertTrue(result.isSuccess)
         coVerify { shoppingRepository.delete(solo) }
-        coVerify { shoppingRepository.update(shared.copy(users = listOf("u2"))) }
+        coVerify { shoppingRepository.leave("2", "u1") }
+        coVerify(exactly = 0) { shoppingRepository.update(any()) }
         coVerify { userRepository.deleteProfile("u1") }
         coVerify { settingsRepository.deleteAllData() }
         coVerify { authService.deleteAccount() }
+    }
+
+    @Test
+    fun `invoke does not delete the account when leaving a shared list fails`() = runTest {
+        every { authService.currentUser } returns AuthenticatedUser(id = "u1")
+        every { authService.hasRecentLogin() } returns true
+        coEvery { shoppingRepository.getAll() } returns listOf(ownedList("2", listOf("u1", "u2")))
+        coEvery { shoppingRepository.leave("2", "u1") } throws IllegalStateException("permission-denied")
+
+        val result = useCase()
+
+        assertTrue(result.isFailure)
+        coVerify(exactly = 0) { userRepository.deleteProfile(any()) }
+        coVerify(exactly = 0) { authService.deleteAccount() }
     }
 
     @Test

@@ -97,7 +97,11 @@ class FirestoreClient @Inject constructor(
         return try {
             val updateData = data.filterKeys { it != "id" }.filterValues { it != null }
                 .mapValues { (key, value) ->
-                    if (key in ARRAY_FIELDS && value is List<*>) {
+                    if (value is NetworkService.FieldOp.ArrayRemove) {
+                        FieldValue.arrayRemove(*value.values.toTypedArray())
+                    } else if (value is NetworkService.FieldOp.Delete) {
+                        FieldValue.delete()
+                    } else if (key in ARRAY_FIELDS && value is List<*>) {
                         FieldValue.arrayUnion(*value.toTypedArray())
                     } else {
                         value

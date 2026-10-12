@@ -27,6 +27,12 @@ interface NetworkService {
         val method: Method
     )
 
+    /** Payload values for PUT that are sent as Firestore field transforms instead of plain values. */
+    sealed interface FieldOp {
+        data class ArrayRemove(val values: List<Any>) : FieldOp
+        data object Delete : FieldOp
+    }
+
     enum class Method {
         GET,
         POST,
