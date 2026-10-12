@@ -20,4 +20,10 @@ interface AuthService {
 
     /** Sets the signed-in user's display name and publishes it on [authState] right away. */
     suspend fun updateDisplayName(name: String): Result<Unit>
+
+    /**
+     * Signs this device in with a Google ID token minted on another device (the paired phone).
+     * Fails, and stays signed out, when the token resolves to an account other than [expectedUserId].
+     */
+    suspend fun signInWithGoogleIdToken(idToken: String, expectedUserId: String): Result<Unit>
 }

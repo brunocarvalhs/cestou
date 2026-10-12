@@ -28,12 +28,18 @@ class WearAuthListenerService : WearableListenerService() {
     override fun onMessageReceived(messageEvent: MessageEvent) {
         when (messageEvent.path) {
             WearablePaths.AUTH_PAIR -> {
-                val userId = String(messageEvent.data)
+                val (userId, idToken) = WearablePaths.decodeAuthPair(messageEvent.data) ?: run {
+                    Timber.tag("WearAuth").w("Ignoring a pairing message without a Google ID token")
+                    return
+                }
                 Timber.tag("WearAuth").d("Received pairing message for user: $userId")
                 scope.launch {
-                    authService.updateUserId(userId)
+                    authService.signInWithGoogleIdToken(idToken, userId)
+                        .onFailure { Timber.tag("WearAuth").e(it, "Watch sign-in failed") }
                 }
             }
+
+            WearablePaths.AUTH_SIGN_OUT -> scope.launch { authService.signOut() }
 
             WearablePaths.PAIRING_VERIFY -> {
                 val receivedCode = String(messageEvent.data)

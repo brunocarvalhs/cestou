@@ -3,6 +3,7 @@ package br.com.brunocarvalhs.howmuch
 import app.cash.turbine.test
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
@@ -37,6 +38,7 @@ class MainViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private val authService = mockk<AuthService>()
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
+    private val wearableSyncService = mockk<WearableSyncService>(relaxed = true)
     private val userRepository = mockk<UserRepository> {
         coEvery { saveProfile(any()) } returns Result.success(Unit)
     }
@@ -60,10 +62,26 @@ class MainViewModelTest {
         authState.value = currentUser
         every { authService.authState } returns authState
         every { authService.currentUser } answers { authState.value }
-        return MainViewModel(settingsRepository, authService, userRepository, analyticsTracker)
+        return MainViewModel(settingsRepository, authService, userRepository, analyticsTracker, wearableSyncService)
     }
 
     private val authState = MutableStateFlow<AuthenticatedUser?>(null)
+
+    @Test
+    fun `signing out on the phone signs the watch out too`() {
+        viewModel(currentUser = AuthenticatedUser(id = "user-1", displayName = "Bruno"))
+
+        authState.value = null
+
+        coVerify(exactly = 1) { wearableSyncService.notifySignOut() }
+    }
+
+    @Test
+    fun `starting signed out does not message the watch`() {
+        viewModel(currentUser = null)
+
+        coVerify(exactly = 0) { wearableSyncService.notifySignOut() }
+    }
 
     @Test
     fun `init tracks app_open`() {

@@ -17,9 +17,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -159,19 +156,38 @@ internal class WearableSyncServiceImpl @Inject constructor(
         }
     }
 
-    override suspend fun sendAuthTokenToNode(nodeId: String, token: String) {
+    override suspend fun sendAuthPairToNode(nodeId: String, userId: String, googleIdToken: String) {
         try {
-            Timber.tag("WearableSync").d("Sending auth token to node: $nodeId")
-            Wearable.getMessageClient(context).sendMessage(nodeId, WearablePaths.AUTH_PAIR, token.toByteArray()).await()
-            Timber.tag("WearableSync").d("Auth token sent successfully")
+            Timber.tag("WearableSync").d("Sending auth pair to node: $nodeId")
+            Wearable.getMessageClient(context)
+                .sendMessage(nodeId, WearablePaths.AUTH_PAIR, WearablePaths.encodeAuthPair(userId, googleIdToken))
+                .await()
+            Timber.tag("WearableSync").d("Auth pair sent successfully")
         } catch (e: ApiException) {
             if (e.statusCode == CommonStatusCodes.API_NOT_CONNECTED) {
-                Timber.tag("WearableSync").w("Error sending auth token: Wearable API not connected (Code 17)")
+                Timber.tag("WearableSync").w("Error sending auth pair: Wearable API not connected (Code 17)")
             } else {
-                Timber.tag("WearableSync").e(e, "Error sending auth token")
+                Timber.tag("WearableSync").e(e, "Error sending auth pair")
             }
         } catch (e: Exception) {
-            Timber.tag("WearableSync").e(e, "Error sending auth token")
+            Timber.tag("WearableSync").e(e, "Error sending auth pair")
+        }
+    }
+
+    override suspend fun notifySignOut() {
+        try {
+            Wearable.getCapabilityClient(context)
+                .getCapability(WearablePaths.WEAR_CAPABILITY, CapabilityClient.FILTER_REACHABLE)
+                .await()
+                .nodes
+                .forEach { node ->
+                    Wearable.getMessageClient(context)
+                        .sendMessage(node.id, WearablePaths.AUTH_SIGN_OUT, ByteArray(0))
+                        .await()
+                }
+        } catch (e: Exception) {
+            // ponytail: an unreachable watch keeps its session until it next pairs; queue it if that matters.
+            Timber.tag("WearableSync").w(e, "Could not notify the watch of the sign-out")
         }
     }
 
@@ -213,17 +229,5 @@ internal class WearableSyncServiceImpl @Inject constructor(
             updatePairingCode(code)
         }
         return code
-    }
-
-    override val receivedAuthToken: Flow<String> = callbackFlow {
-        val listener = MessageClient.OnMessageReceivedListener { messageEvent ->
-            if (messageEvent.path == WearablePaths.AUTH_PAIR) {
-                trySend(String(messageEvent.data))
-            }
-        }
-        Wearable.getMessageClient(context).addListener(listener)
-        awaitClose {
-            Wearable.getMessageClient(context).removeListener(listener)
-        }
     }
 }

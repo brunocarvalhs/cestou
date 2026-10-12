@@ -17,6 +17,9 @@ object FeatureFlagKeys {
     const val AUTH_MICROSOFT_ENABLED = "auth_microsoft_enabled"
     const val AUTH_FACEBOOK_ENABLED = "auth_facebook_enabled"
     const val AUTH_GITHUB_ENABLED = "auth_github_enabled"
+
+    /** Pairing (and so signing in) a watch from the phone. Default on. */
+    const val WEAR_LOGIN_ENABLED = "wear_login_enabled"
 }
 
 /**

@@ -5,11 +5,14 @@ import app.cash.turbine.test
 import br.com.brunocarvalhs.howmuch.core.domain.exception.RecentLoginRequiredException
 import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
 import com.google.android.gms.tasks.Tasks
+import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -338,5 +341,37 @@ class FirebaseAuthServiceTest {
         val result = service.updateDisplayName("Ana Silva")
 
         assertTrue(result.isFailure)
+    }
+
+    private fun stubGoogleSignIn(uid: String) {
+        mockkStatic(GoogleAuthProvider::class)
+        every { GoogleAuthProvider.getCredential("id-token", null) } returns mockk()
+        val result = mockk<AuthResult> { every { user } returns fakeUser(uid) }
+        every { auth.signInWithCredential(any()) } returns Tasks.forResult(result)
+    }
+
+    @Test
+    fun `signInWithGoogleIdToken stores the uid when the account matches`() = runTest {
+        stubGoogleSignIn("user-1")
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        val result = service.signInWithGoogleIdToken("id-token", expectedUserId = "user-1")
+
+        assertTrue(result.isSuccess)
+        coVerify { storage.save("synced_user_id", "user-1") }
+        unmockkStatic(GoogleAuthProvider::class)
+    }
+
+    @Test
+    fun `signInWithGoogleIdToken signs back out when the account does not match`() = runTest {
+        stubGoogleSignIn("someone-else")
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        val result = service.signInWithGoogleIdToken("id-token", expectedUserId = "user-1")
+
+        assertTrue(result.isFailure)
+        verify { auth.signOut() }
+        coVerify(exactly = 0) { storage.save("synced_user_id", any<String>()) }
+        unmockkStatic(GoogleAuthProvider::class)
     }
 }
