@@ -24,6 +24,7 @@ rules_version = '2';
 //   /shopping/{id}/products/{id}                (feature/products ProductRepositoryImpl)
 //   /users/{uid}                                (core/data UserRepositoryImpl)
 //   /users/{uid}/common-products/{id}           (feature/products CommonProductRepositoryImpl)
+//   /shortCodes/{code}                          (feature/shopping ShoppingRepositoryImpl)
 //   /notifications/{id}                         (core/data NotificationRepositoryImpl)
 // Recipes (TheMealDB) and product search (OpenFoodFacts) are plain HTTP through
 // CloudNetwork — they are not Firestore collections. App settings live in
@@ -71,6 +72,12 @@ service cloud.firestore {
 
     function isOwner(data) {
       return isSignedIn() && roles(data).get(uid(), '') == 'OWNER';
+    }
+
+    // Owner, or the sole remaining member even if not OWNER (everyone else left).
+    function canDeleteList(data) {
+      return isOwner(data)
+          || (isMember(data) && members(data).toSet() == [uid()].toSet());
     }
 
     // ---------------------------------------------------------------------
@@ -175,9 +182,7 @@ service cloud.firestore {
       // sole-member path lets account deletion clean up a list nobody else can
       // reach. Other members leave via (d) instead. Account deletion removes
       // products/* first, while membership still grants access to them.
-      allow delete: if isOwner(resource.data)
-                    || (isMember(resource.data)
-                        && members(resource.data).toSet() == [uid()].toSet());
+      allow delete: if canDeleteList(resource.data);
 
       // -------------------------------------------------------------------
       // /shopping/{shoppingId}/products/{productId} — items of a shared list
@@ -253,6 +258,45 @@ service cloud.firestore {
                       && request.resource.data.keys().hasOnly(['id', 'name', 'category', 'unit']);
         allow update, delete: if isSignedIn() && uid() == userId;
       }
+    }
+
+    // ---------------------------------------------------------------------
+    // /shortCodes/{code} — share-code index: code -> shoppingId
+    // ---------------------------------------------------------------------
+    // Joining by code used to query /shopping by `shortCode` as a non-member,
+    // which the membership read rule cannot allow without exposing every list
+    // (AD-009). The joiner now reads this one document, self-joins the list
+    // blind (update rule (c)) and only then reads it as a member. The index
+    // holds nothing but the list id, so knowing a code reveals no list content.
+    match /shortCodes/{code} {
+
+      function listById(id) {
+        return get(/databases/$(database)/documents/shopping/$(id)).data;
+      }
+
+      // READ: whoever holds the code; `list` stays denied so codes can't be
+      // enumerated.
+      allow get: if isSignedIn();
+      allow list: if false;
+
+      // CREATE: a member of the list, only for the list's own code, and only
+      // when no index exists yet (no update), so a code can't be re-pointed at
+      // another list. Members (not just owners) may write it: lists created
+      // before the index existed are backfilled when anyone opens "share".
+      allow create: if isSignedIn()
+                    && request.resource.data.keys().hasOnly(['id', 'shoppingId'])
+                    && request.resource.data.id == code
+                    && request.resource.data.shoppingId is string
+                    && isMember(listById(request.resource.data.shoppingId))
+                    && listById(request.resource.data.shoppingId).get('shortCode', '') == code;
+      allow update: if false;
+
+      // DELETE: whoever may delete the list it points to (deleted just before
+      // the list), or anyone once that list is gone (orphan cleanup, harmless).
+      allow delete: if isSignedIn() && (
+        !exists(/databases/$(database)/documents/shopping/$(resource.data.shoppingId))
+        || canDeleteList(listById(resource.data.shoppingId))
+      );
     }
 
     // ---------------------------------------------------------------------

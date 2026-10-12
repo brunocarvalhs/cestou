@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.ShareShoppingUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
@@ -24,7 +25,8 @@ class ShareOptionsViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private val shareShoppingUseCase = mockk<ShareShoppingUseCase>()
     private val navigator = mockk<Navigator>(relaxed = true)
-    private val viewModel = ShareOptionsViewModel(shareShoppingUseCase)
+    private val shoppingRepository = mockk<ShoppingRepository>(relaxed = true)
+    private val viewModel = ShareOptionsViewModel(shareShoppingUseCase, shoppingRepository)
 
     private val shopping = Shopping(
         id = "list1",
@@ -62,7 +64,17 @@ class ShareOptionsViewModelTest {
     fun `onInviteMember navigates using the short code when available`() {
         viewModel.onInviteMember(shopping)
 
+        coVerify { shoppingRepository.ensureShortCodeIndex(shopping) }
         verify { navigator.goBack() }
+        verify { navigator.navigate(QrCode("ABC123")) }
+    }
+
+    @Test
+    fun `onInviteMember still navigates when the index write fails`() {
+        coEvery { shoppingRepository.ensureShortCodeIndex(any()) } throws IllegalStateException("offline")
+
+        viewModel.onInviteMember(shopping)
+
         verify { navigator.navigate(QrCode("ABC123")) }
     }
 

@@ -7,6 +7,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.DocumentId
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.model.ShoppingModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.data.model.ShortCodeModel
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -220,31 +221,94 @@ class ShoppingRepositoryImplTest {
         assertThrows(IllegalStateException::class.java) { runBlocking { repository.leave("s1", "u1") } }
     }
 
-    @Test
-    fun `getByShortCode returns the first mapped match`() = runTest {
-        coEvery { networkService.make<List<ShoppingModel>>(any(), any(), any()) } returns listOf(model)
-
-        val result = repository.getByShortCode("ABC123")
-
-        assertEquals("s1", result?.id)
+    private fun stubShortCodes(
+        requests: MutableList<NetworkService.NetworkRequest>,
+        index: ShortCodeModel?,
+        legacy: List<ShoppingModel>? = null
+    ) {
+        coEvery { networkService.make<Any>(any(), any(), any()) } answers {
+            val request = firstArg<NetworkService.NetworkRequest>()
+            requests += request
+            when {
+                request.method != NetworkService.Method.GET -> true
+                request.endpoint.startsWith("shortCodes/") -> index
+                request.endpoint.endsWith("/products") -> emptyList<DocumentId>()
+                else -> legacy
+            }
+        }
     }
 
     @Test
-    fun `getByShortCode returns null when nothing matches`() = runTest {
-        coEvery { networkService.make<List<ShoppingModel>>(any(), any(), any()) } returns emptyList()
+    fun `create writes the share code index after the list`() = runTest {
+        val requests = mutableListOf<NetworkService.NetworkRequest>()
+        stubShortCodes(requests, index = null)
 
-        val result = repository.getByShortCode("ABC123")
+        repository.create(model.toDomainForTest().copy(shortCode = "ABC123"))
 
-        assertNull(result)
+        assertEquals(listOf("shopping", "shortCodes"), requests.map { it.endpoint })
+        assertEquals(mapOf("id" to "ABC123", "shoppingId" to "s1"), requests[1].payload)
     }
 
     @Test
-    fun `getByShortCode returns null when network returns null`() = runTest {
-        coEvery { networkService.make<List<ShoppingModel>>(any(), any(), any()) } returns null
+    fun `resolveShortCode reads the index`() = runTest {
+        stubShortCodes(mutableListOf(), index = ShortCodeModel("ABC123", "s1"))
 
-        val result = repository.getByShortCode("ABC123")
+        assertEquals("s1", repository.resolveShortCode("ABC123"))
+    }
 
-        assertNull(result)
+    @Test
+    fun `resolveShortCode falls back to the legacy query for lists without an index`() = runTest {
+        stubShortCodes(mutableListOf(), index = null, legacy = listOf(model))
+
+        assertEquals("s1", repository.resolveShortCode("ABC123"))
+    }
+
+    @Test
+    fun `resolveShortCode returns null when nothing matches`() = runTest {
+        stubShortCodes(mutableListOf(), index = null, legacy = emptyList())
+
+        assertNull(repository.resolveShortCode("ABC123"))
+    }
+
+    @Test
+    fun `ensureShortCodeIndex writes the index only when it is missing`() = runTest {
+        val missing = mutableListOf<NetworkService.NetworkRequest>()
+        stubShortCodes(missing, index = null)
+        repository.ensureShortCodeIndex(model.toDomainForTest().copy(shortCode = "ABC123"))
+        assertEquals(NetworkService.Method.POST, missing.last().method)
+
+        val present = mutableListOf<NetworkService.NetworkRequest>()
+        stubShortCodes(present, index = ShortCodeModel("ABC123", "s1"))
+        repository.ensureShortCodeIndex(model.toDomainForTest().copy(shortCode = "ABC123"))
+        assertEquals(listOf(NetworkService.Method.GET), present.map { it.method })
+    }
+
+    @Test
+    fun `delete removes the share code index before the list when it points to it`() = runTest {
+        val requests = mutableListOf<NetworkService.NetworkRequest>()
+        stubShortCodes(requests, index = ShortCodeModel("ABC123", "s1"))
+
+        repository.delete(model.toDomainForTest().copy(shortCode = "ABC123"))
+
+        assertEquals(
+            listOf(
+                "shortCodes/ABC123" to NetworkService.Method.GET,
+                "shortCodes/ABC123" to NetworkService.Method.DELETE,
+                "shopping/s1/products" to NetworkService.Method.GET,
+                "shopping/s1" to NetworkService.Method.DELETE
+            ),
+            requests.map { it.endpoint to it.method }
+        )
+    }
+
+    @Test
+    fun `delete keeps a share code index that belongs to another list`() = runTest {
+        val requests = mutableListOf<NetworkService.NetworkRequest>()
+        stubShortCodes(requests, index = ShortCodeModel("ABC123", "original"))
+
+        repository.delete(model.toDomainForTest().copy(shortCode = "ABC123"))
+
+        assertTrue(requests.none { it.endpoint == "shortCodes/ABC123" && it.method == NetworkService.Method.DELETE })
     }
 
     @Test

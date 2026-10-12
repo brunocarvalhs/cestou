@@ -16,6 +16,9 @@ interface ShoppingRepository {
     suspend fun join(shoppingId: String, userId: String)
     /** Removes [userId] from the list's users and roles. Throws if the write fails. */
     suspend fun leave(shoppingId: String, userId: String)
-    suspend fun getByShortCode(shortCode: String): Shopping?
+    /** Resolves a share code to a list id without reading the list (non-members can't). */
+    suspend fun resolveShortCode(shortCode: String): String?
+    /** Writes the share-code index for [shopping] if it is missing (lists created before it existed). */
+    suspend fun ensureShortCodeIndex(shopping: Shopping)
     suspend fun updatePositions(shoppings: List<Shopping>): Result<Unit>
 }
