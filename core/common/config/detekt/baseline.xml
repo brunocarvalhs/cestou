@@ -1,8 +1,5 @@
 <?xml version="1.0" ?>
 <SmellBaseline>
   <ManuallySuppressedIssues/>
-  <CurrentIssues>
-    <ID>MagicNumber:WearableSyncServiceImpl.kt$WearableSyncServiceImpl$100000</ID>
-    <ID>MagicNumber:WearableSyncServiceImpl.kt$WearableSyncServiceImpl$999999</ID>
-  </CurrentIssues>
+  <CurrentIssues/>
 </SmellBaseline>

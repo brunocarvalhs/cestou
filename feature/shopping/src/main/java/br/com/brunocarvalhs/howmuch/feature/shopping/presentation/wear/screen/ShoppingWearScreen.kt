@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.Button
@@ -18,6 +19,7 @@ import androidx.wear.compose.material3.lazy.transformedHeight
 import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingListUiState
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingListViewModel
 
@@ -53,7 +55,7 @@ private fun ShoppingWearContent(
                         .transformedHeight(this, transformationSpec),
                     transformation = SurfaceTransformation(transformationSpec)
                 ) {
-                    Text("Minhas Listas")
+                    Text(stringResource(R.string.shopping_wear_my_lists))
                 }
             }
 
@@ -73,7 +75,7 @@ private fun ShoppingWearContent(
             if (state.list.items.isEmpty() && !state.isLoading) {
                 item {
                     Text(
-                        text = "Nenhuma lista encontrada",
+                        text = stringResource(R.string.shopping_wear_no_lists),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

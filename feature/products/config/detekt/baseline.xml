@@ -3,13 +3,6 @@
   <ManuallySuppressedIssues/>
   <CurrentIssues>
     <ID>Filename:ProductsRoutes.kt$br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductsRoutes.kt</ID>
-    <ID>MagicNumber:PriceComparisonUseCaseTest.kt$PriceComparisonUseCaseTest$3</ID>
-    <ID>MagicNumber:ProductModelTest.kt$ProductModelTest$10.0</ID>
-    <ID>MagicNumber:ProductModelTest.kt$ProductModelTest$5</ID>
-    <ID>MagicNumber:ProductModelTest.kt$ProductModelTest$5.0</ID>
-    <ID>MagicNumber:ProductRepositoryImplTest.kt$ProductRepositoryImplTest$12.5</ID>
-    <ID>MagicNumber:ProductRepositoryImplTest.kt$ProductRepositoryImplTest$3</ID>
-    <ID>MagicNumber:ProductSaveUseCaseTest.kt$ProductSaveUseCaseTest$5.0</ID>
     <ID>TooManyFunctions:ProductRepositoryImplTest.kt$ProductRepositoryImplTest</ID>
   </CurrentIssues>
 </SmellBaseline>

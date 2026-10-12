@@ -13,6 +13,23 @@ plugins {
 // de variant compatível.
 subprojects {
     apply(plugin = "org.jetbrains.kotlinx.kover")
+    // Variante "layout": mesmos testes JVM da debug, reportada só sobre telas/componentes Compose
+    // (ver reports.variant("layout") abaixo). optional = módulos sem build type debug só pulam.
+    extensions.configure<kotlinx.kover.gradle.plugin.dsl.KoverProjectExtension> {
+        currentProject { createVariant("layout") { add("debug", optional = true) } }
+    }
+}
+
+val LAYOUT_CLASSES = listOf(
+    "*.presentation.screen.*",
+    "*.presentation.wear.screen.*",
+    "*.presentation.components.*",
+    "br.com.brunocarvalhs.howmuch.core.ui.components.*",
+    "br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragDropUtilsKt*"
+)
+
+kover {
+    currentProject { createVariant("layout") {} }
 }
 
 dependencies {
@@ -27,7 +44,6 @@ dependencies {
     kover(project(":core:ai"))
     kover(project(":core:remote-config"))
     kover(project(":core:analytics"))
-    kover(project(":core:billing"))
     kover(project(":feature:shopping"))
     kover(project(":feature:products"))
     kover(project(":feature:settings"))
@@ -36,7 +52,6 @@ dependencies {
     kover(project(":feature:chat"))
     kover(project(":feature:cart"))
     kover(project(":feature:ai-agent"))
-    kover(project(":feature:subscription"))
 }
 
 kover {
@@ -58,30 +73,25 @@ kover {
                     "hilt_aggregated_deps.*"
                 )
                 annotatedBy("dagger.Module", "dagger.hilt.InstallIn")
+                // Funções @Preview só existem para o Android Studio; não são código do app nem testadas.
+                annotatedBy(
+                    "androidx.compose.ui.tooling.preview.Preview",
+                    "br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens",
+                    "androidx.wear.compose.ui.tooling.preview.WearPreviewDevices"
+                )
                 // Módulos de DI: apenas @Binds/@Provides declarativos, sem ramificação lógica.
                 classes("*.di.*")
                 // Tokens de tema (cores, tipografia, shapes): configuração declarativa do Compose.
                 classes("br.com.brunocarvalhs.howmuch.core.theme.*")
-                // Composables de tela/componente ainda sem teste de layout dedicado via Robolectric
-                // (rollout incremental cobre as telas principais nesta rodada; o restante fica para
-                // uma próxima passada). ViewModels e lógica de apresentação continuam cobertos
-                // normalmente — só a função @Composable em si fica de fora aqui. Inclui as telas
-                // Wear (presentation.wear.screen) e os NavGraphBuilder de cada feature
-                // (navigation.*Graph), que são só wiring de composable<X> { ... } sem ramificação
-                // própria — mesma categoria das telas, sem teste de layout dedicado ainda.
-                classes(
-                    "*.presentation.screen.*",
-                    "*.presentation.wear.screen.*",
-                    "*.presentation.components.*",
-                    "br.com.brunocarvalhs.howmuch.core.ui.components.*",
-                    "*.navigation.*Graph*"
-                )
+                // NavGraphBuilder de cada feature (navigation.*Graph): só wiring de composable<X> { ... }
+                // sem ramificação própria.
+                classes("*.navigation.*Graph*")
                 // Wrappers finos sobre APIs estáticas do Android (Play Services Wearable Data
                 // Layer, AppFunctionService do SO) — mocká-las de forma significativa exige
                 // Robolectric/instrumented test, não apenas JVM unit test; a maior parte das
                 // linhas aqui é log em branches de erro de framework, não lógica própria.
                 classes(
-                    "br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncServiceImpl*",
+                    "br.com.brunocarvalhs.howmuch.core.data.wearable.WearableSyncServiceImpl*",
                     "br.com.brunocarvalhs.howmuch.appfunctions.*"
                 )
                 // WorkManager.getInstance(context) é resolvido estaticamente pelo próprio
@@ -113,16 +123,29 @@ kover {
                 classes("*.initializer.*")
                 // ML Kit / CameraX wrappers (OCR, image analysis) — need instrumentation, not
                 // unit-testable in plain JVM tests without a real Android environment.
-                classes("*.ProductImageTextRecognizer*")
-                // Each feature's *NavGraph (feature root package) only wires NavGraphBuilder.composable<X>
-                // { ... } blocks, same category as the already-excluded *.navigation.*Graph* wiring.
-                classes("*.feature.*NavGraph")
-                // Composables puros de drag-and-drop (mesma categoria de presentation.screen/
-                // components acima); DragTargetInfo (o state holder) continua coberto por teste.
-                classes("br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragDropUtilsKt*")
+                classes(
+                    "*.MlKitImageAnalyzerService*",
+                    "*.ProductImageTextRecognizer*"
+                )
+                // *InitializerImpl classes: by project convention (see feature-layer whitelist)
+                // these only wire NavGraphBuilder.composable<X> { ... } blocks per feature, same
+                // category as the already-excluded *.navigation.*Graph* wiring.
+                classes("*InitializerImpl*")
             }
         }
+        // Gate geral (koverVerify): lógica, sem as telas/componentes Compose — essas têm gate próprio.
         total {
+            filtersAppend { excludes { classes(LAYOUT_CLASSES) } }
+            verify {
+                rule {
+                    minBound(80)
+                }
+            }
+        }
+        // Gate de layout (koverVerifyLayout): só telas/componentes Compose, cobertos por testes de
+        // layout Robolectric (JVM). Testes instrumentados (androidTest) não entram no Kover.
+        variant("layout") {
+            filtersAppend { includes { classes(LAYOUT_CLASSES) } }
             verify {
                 rule {
                     minBound(80)

@@ -15,7 +15,7 @@ class ProductModelTest {
             id = "1",
             name = "Arroz",
             quantity = 2.0,
-            price = 5.0,
+            price = UNIT_PRICE,
             isPurchased = true,
             category = "Mercearia",
             barcode = "789",
@@ -27,12 +27,12 @@ class ProductModelTest {
         assertEquals("1", map["id"])
         assertEquals("Arroz", map["name"])
         assertEquals(2.0, map["quantity"])
-        assertEquals(5.0, map["price"])
+        assertEquals(UNIT_PRICE, map["price"])
         assertEquals(true, map["isPurchased"])
         assertEquals("Mercearia", map["category"])
         assertEquals("789", map["barcode"])
         assertEquals("kg", map["unit"])
-        assertEquals(10.0, map["total"])
+        assertEquals(EXPECTED_TOTAL, map["total"])
         assertEquals(emptyList<Map<String, Any?>>(), map["history"])
     }
 
@@ -64,7 +64,7 @@ class ProductModelTest {
             "id" to "1",
             "name" to "Arroz",
             "quantity" to 2,
-            "price" to 5,
+            "price" to INT_PRICE,
             "isPurchased" to true,
             "category" to "Mercearia",
             "barcode" to "789",
@@ -76,7 +76,7 @@ class ProductModelTest {
         assertEquals("1", model.id)
         assertEquals("Arroz", model.name)
         assertEquals(2.0, model.quantity, 0.0)
-        assertEquals(5.0, model.price)
+        assertEquals(UNIT_PRICE, model.price)
         assertEquals(true, model.isPurchased)
         assertEquals("Mercearia", model.category)
         assertEquals("789", model.barcode)
@@ -139,3 +139,9 @@ class ProductModelTest {
         assertEquals("user-a", model.history.first().userId)
     }
 }
+
+private const val EXPECTED_TOTAL = 10.0
+
+private const val UNIT_PRICE = 5.0
+
+private const val INT_PRICE = 5

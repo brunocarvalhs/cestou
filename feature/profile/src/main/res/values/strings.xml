@@ -6,4 +6,6 @@
     <string name="profile_subscription_pro_subtitle">Active subscription</string>
     <string name="profile_subscription_free_title">Cestou Free</string>
     <string name="profile_subscription_free_subtitle">Unlock Pro features</string>
+    <string name="profile_link_wear_device">Link watch (Wear OS)</string>
+    <string name="profile_wear_link_phone">Link phone</string>
 </resources>

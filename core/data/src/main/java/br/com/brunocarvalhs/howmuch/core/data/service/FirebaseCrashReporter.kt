@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.core.common.service
+package br.com.brunocarvalhs.howmuch.core.data.service
 
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import br.com.brunocarvalhs.howmuch.core.domain.exception.AppException

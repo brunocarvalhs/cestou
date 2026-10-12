@@ -23,10 +23,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.common.extensions.hasPermission
 import br.com.brunocarvalhs.howmuch.core.ui.components.scanner.CameraPreview
 import br.com.brunocarvalhs.howmuch.core.ui.components.scanner.QRCodeOverlay
+import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
 @Composable
 internal fun QrCodeScanner(
@@ -78,7 +80,7 @@ internal fun QrCodeScanner(
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = "Fechar",
+                contentDescription = stringResource(CoreR.string.action_close),
                 tint = Color.White
             )
         }

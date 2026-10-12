@@ -59,7 +59,7 @@ fun AiMessageBubble(
         }
 
         Surface(
-            modifier = Modifier.fillMaxWidth(0.85f),
+            modifier = Modifier.fillMaxWidth(AI_BUBBLE_MAX_WIDTH_FRACTION),
             shape = RoundedCornerShape(
                 topStart = if (isUser) 20.dp else 4.dp,
                 topEnd = if (isUser) 4.dp else 20.dp,
@@ -113,3 +113,5 @@ private fun AiMessageBubbleAiPreview() {
         )
     )
 }
+
+private const val AI_BUBBLE_MAX_WIDTH_FRACTION = 0.85f

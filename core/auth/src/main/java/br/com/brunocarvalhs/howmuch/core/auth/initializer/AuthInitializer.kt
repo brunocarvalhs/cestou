@@ -2,7 +2,7 @@ package br.com.brunocarvalhs.howmuch.core.auth.initializer
 
 import android.content.Context
 import androidx.startup.Initializer
-import br.com.brunocarvalhs.howmuch.core.common.initializer.FirebaseInitializer
+import br.com.brunocarvalhs.howmuch.core.data.initializer.FirebaseInitializer
 import com.google.firebase.auth.FirebaseAuth
 
 class AuthInitializer : Initializer<FirebaseAuth> {
