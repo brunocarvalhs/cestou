@@ -10,8 +10,8 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.AnalyzingOverlay
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.PreviewActions
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductForm
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductAnalysisConfirmation
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductForm
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductHeader
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.product.ProductPhotoForm
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.scanner.CaptureControls
