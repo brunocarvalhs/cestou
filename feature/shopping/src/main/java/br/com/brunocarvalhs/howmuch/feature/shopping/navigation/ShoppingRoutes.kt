@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile
+package br.com.brunocarvalhs.howmuch.feature.shopping.navigation
 
 import androidx.navigation3.runtime.NavKey
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping

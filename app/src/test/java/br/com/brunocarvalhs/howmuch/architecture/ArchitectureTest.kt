@@ -157,13 +157,7 @@ class ArchitectureTest {
         val NON_CODE_PREFIXES = listOf("import ", "package ", "//", "*", "/*")
 
         // Audit item 2 (phase 2): shared UI/resources/use cases still owned by another feature.
-        val KNOWN_FEATURE_TO_FEATURE = setOf(
-            "feature.auth.presentation.viewmodel.WelcomeViewModel -> feature.settings.domain.usecase.UpdateLanguageUseCase",
-            "feature.cart.presentation.components.ai.AiMessageBubble -> feature.chat.domain.entity.ChatMessage",
-            "feature.cart.presentation.components.ai.CartAssistantDock -> feature.chat.domain.entity.ChatMessage",
-            "feature.cart.presentation.components.ai.ChatContent -> feature.chat.domain.entity.ChatMessage",
-            "feature.cart.presentation.state.CartUiState -> feature.chat.domain.entity.ChatMessage",
-        )
+        val KNOWN_FEATURE_TO_FEATURE = emptySet<String>()
 
         // Audit items 6/7 (phase 3): AD-011 port and AI base class outside domain.usecase; app root ViewModel.
         val KNOWN_SUFFIX_PACKAGE = setOf(

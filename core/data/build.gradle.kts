@@ -21,6 +21,7 @@ android {
 
 dependencies {
     implementation(libs.androidx.startup)
+    implementation(project(":core:common"))
     implementation(project(":core:domain"))
 
     // Network
@@ -49,6 +50,14 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.appcheck.debug)
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.appcheck)
+    implementation(libs.firebase.appcheck.playintegrity)
+
+    // Wear OS Data Layer (WearableSyncServiceImpl)
+    implementation(libs.play.services.wearable)
+    implementation(libs.wear.remoteinteractions)
+    implementation(libs.kotlinx.coroutines.guava)
 
     // Utils
     implementation(libs.timber)

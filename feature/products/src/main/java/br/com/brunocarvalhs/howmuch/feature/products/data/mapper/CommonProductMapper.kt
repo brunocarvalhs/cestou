@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.products.data.extensions
+package br.com.brunocarvalhs.howmuch.feature.products.data.mapper
 
 import br.com.brunocarvalhs.howmuch.feature.products.data.model.CommonProductModel
 import br.com.brunocarvalhs.howmuch.feature.products.domain.model.CommonProduct

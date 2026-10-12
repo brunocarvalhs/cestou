@@ -23,12 +23,12 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 
-class FirebaseFirestoreManagerTest {
+class FirestoreClientTest {
 
     private lateinit var firestore: FirebaseFirestore
     private lateinit var collectionRef: CollectionReference
     private lateinit var documentRef: DocumentReference
-    private lateinit var manager: FirebaseFirestoreManager
+    private lateinit var manager: FirestoreClient
 
     @Before
     fun setup() {
@@ -37,7 +37,7 @@ class FirebaseFirestoreManagerTest {
         documentRef = mockk()
         every { firestore.collection("shopping") } returns collectionRef
         every { collectionRef.document(any()) } returns documentRef
-        manager = FirebaseFirestoreManager(firestore)
+        manager = FirestoreClient(firestore)
     }
 
     @Test
