@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.chat.domain.entity
+package br.com.brunocarvalhs.howmuch.core.domain.model
 
 import java.time.Instant
 
