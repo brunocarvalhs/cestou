@@ -1,15 +1,20 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen
 
-import androidx.compose.foundation.layout.Row
+import android.app.RemoteInput
+import android.view.inputmethod.EditorInfo
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
@@ -17,6 +22,7 @@ import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.CardDefaults
+import androidx.wear.compose.material3.FilledTonalButton
 import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.ListHeaderDefaults
 import androidx.wear.compose.material3.MaterialTheme
@@ -27,31 +33,58 @@ import androidx.wear.compose.material3.TitleCard
 import androidx.wear.compose.material3.lazy.rememberTransformationSpec
 import androidx.wear.compose.material3.lazy.transformedHeight
 import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
+import androidx.wear.input.RemoteInputIntentHelper
+import androidx.wear.input.wearableExtender
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatPrice
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.intent.ShoppingDetailIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.state.ShoppingDetailUiState
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.ShoppingDetailViewModel
+
+private const val ITEM_INPUT_KEY = "item_name"
 
 @Composable
 internal fun ShoppingDetailScreen(
     viewModel: ShoppingDetailViewModel
 ) {
     val state by viewModel.uiState.collectAsState()
-    ShoppingDetailContent(
-        state = state,
-        onBack = { viewModel.intent.onBack() }
-    )
+    ShoppingDetailContent(state = state, intent = viewModel.intent)
+}
+
+/** Opens the system text input, which offers both voice and keyboard on Wear OS. */
+@Composable
+private fun rememberItemInput(onText: (String) -> Unit): () -> Unit {
+    val label = stringResource(R.string.shopping_wear_add_item_hint)
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        result.data
+            ?.let { RemoteInput.getResultsFromIntent(it) }
+            ?.getCharSequence(ITEM_INPUT_KEY)
+            ?.let { onText(it.toString()) }
+    }
+    return {
+        val remoteInput = RemoteInput.Builder(ITEM_INPUT_KEY)
+            .setLabel(label)
+            .wearableExtender {
+                setEmojisAllowed(false)
+                setInputActionType(EditorInfo.IME_ACTION_DONE)
+            }
+            .build()
+        val intent = RemoteInputIntentHelper.createActionRemoteInputIntent()
+        RemoteInputIntentHelper.putRemoteInputsExtra(intent, listOf(remoteInput))
+        launcher.launch(intent)
+    }
 }
 
 @Composable
 private fun ShoppingDetailContent(
     state: ShoppingDetailUiState,
-    onBack: () -> Unit
+    intent: ShoppingDetailIntent
 ) {
     val columnState = rememberTransformingLazyColumnState()
     val transformationSpec = rememberTransformationSpec()
+    val openItemInput = rememberItemInput(intent.onAddItem)
 
     ScreenScaffold(scrollState = columnState) { contentPadding ->
         TransformingLazyColumn(
@@ -67,8 +100,10 @@ private fun ShoppingDetailContent(
                     transformation = SurfaceTransformation(transformationSpec)
                 ) {
                     Text(
-                        text = state.title,
+                        text = "${state.emoji} ${state.title}".trim(),
                         textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -79,62 +114,68 @@ private fun ShoppingDetailContent(
                     onClick = { },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .testTag("wear_list_summary")
                         .transformedHeight(this, transformationSpec)
                         .minimumVerticalContentPadding(CardDefaults.minimumVerticalListContentPadding),
                     transformation = SurfaceTransformation(transformationSpec),
                     title = {
                         Text(
-                            text = stringResource(R.string.shopping_wear_balance),
+                            text = stringResource(R.string.shopping_wear_total),
                             style = MaterialTheme.typography.labelMedium
                         )
                     }
                 ) {
+                    Text(text = state.total.formatPrice(), style = MaterialTheme.typography.titleLarge)
+                    state.remaining?.let { remaining ->
+                        Text(
+                            text = if (remaining < 0) {
+                                stringResource(R.string.shopping_wear_over_budget, (-remaining).formatPrice())
+                            } else {
+                                stringResource(R.string.shopping_wear_remaining, remaining.formatPrice())
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (remaining < 0) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                MaterialTheme.colorScheme.primary
+                            }
+                        )
+                    }
                     Text(
-                        text = state.balance.formatPrice(),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = if (state.balance < 0) Color.Red else MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = stringResource(R.string.shopping_wear_budget, state.budget.formatPrice()),
+                        text = if (state.pending == 0) {
+                            stringResource(R.string.shopping_wear_all_done)
+                        } else {
+                            pluralStringResource(R.plurals.shopping_wear_pending, state.pending, state.pending)
+                        },
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
             }
 
             item {
-                ListHeader(
+                FilledTonalButton(
+                    onClick = openItemInput,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .testTag("wear_add_item")
                         .transformedHeight(this, transformationSpec)
-                ) {
-                    Text(stringResource(R.string.shopping_wear_products))
-                }
+                        .minimumVerticalContentPadding(ButtonDefaults.minimumVerticalListContentPadding),
+                    transformation = SurfaceTransformation(transformationSpec),
+                    label = { Text(stringResource(R.string.shopping_wear_add_item)) }
+                )
             }
 
             items(state.items.items.size) { index ->
                 val product = state.items.items[index]
-                Button(
-                    onClick = { },
+                ProductButton(
+                    product = product,
+                    onClick = { intent.onToggle(product) },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .testTag("wear_item_${product.id}")
                         .transformedHeight(this, transformationSpec)
                         .minimumVerticalContentPadding(ButtonDefaults.minimumVerticalListContentPadding),
-                    transformation = SurfaceTransformation(transformationSpec),
-                    label = {
-                        Text(
-                            text = product.name,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    secondaryLabel = {
-                        Row {
-                            Text(
-                                text = "${product.quantity.toInt()}x ${product.price?.formatPrice() ?: ""}",
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
+                    transformation = SurfaceTransformation(transformationSpec)
                 )
             }
 
@@ -154,10 +195,42 @@ private fun ShoppingDetailContent(
     }
 }
 
+@Composable
+private fun ProductButton(
+    product: Product,
+    onClick: () -> Unit,
+    modifier: Modifier,
+    transformation: SurfaceTransformation
+) {
+    val decoration = if (product.isPurchased) TextDecoration.LineThrough else null
+    val details = buildString {
+        append("${product.quantity.toInt()}x")
+        product.price?.let { append(" · ${it.formatPrice()}") }
+    }
+    val colors = if (product.isPurchased) ButtonDefaults.filledTonalButtonColors() else ButtonDefaults.buttonColors()
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        transformation = transformation,
+        colors = colors,
+        label = {
+            Text(
+                text = if (product.isPurchased) "✓ ${product.name}" else product.name,
+                textDecoration = decoration,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        secondaryLabel = {
+            Text(text = details, style = MaterialTheme.typography.bodySmall, textDecoration = decoration)
+        }
+    )
+}
+
 private val previewProducts = listOf(
     Product(id = "1", name = "Arroz", quantity = 2.0, price = 25.0),
     Product(id = "2", name = "Feijão", quantity = 1.0, price = 8.5),
-    Product(id = "3", name = "Café", quantity = 1.0, price = 15.0)
+    Product(id = "3", name = "Café", quantity = 1.0, price = 15.0, isPurchased = true)
 )
 
 @WearPreviewDevices
@@ -167,29 +240,30 @@ private fun ShoppingDetailContentPreview() {
         ShoppingDetailContent(
             state = ShoppingDetailUiState(
                 title = "Café da manhã",
+                emoji = "☕",
+                total = 73.5,
                 budget = 500.0,
-                totalSpent = 48.5,
-                balance = 451.5,
+                pending = 2,
                 items = StableList(previewProducts)
             ),
-            onBack = {}
+            intent = ShoppingDetailIntent()
         )
     }
 }
 
 @WearPreviewDevices
 @Composable
-private fun ShoppingDetailContentNegativeBalancePreview() {
+private fun ShoppingDetailContentOverBudgetPreview() {
     MaterialTheme {
         ShoppingDetailContent(
             state = ShoppingDetailUiState(
                 title = "Jantar de domingo",
+                total = 130.0,
                 budget = 100.0,
-                totalSpent = 130.0,
-                balance = -30.0,
+                pending = 1,
                 items = StableList(previewProducts)
             ),
-            onBack = {}
+            intent = ShoppingDetailIntent()
         )
     }
 }
@@ -199,13 +273,8 @@ private fun ShoppingDetailContentNegativeBalancePreview() {
 private fun ShoppingDetailContentEmptyPreview() {
     MaterialTheme {
         ShoppingDetailContent(
-            state = ShoppingDetailUiState(
-                title = "Pizza day!",
-                budget = 0.0,
-                totalSpent = 0.0,
-                balance = 0.0
-            ),
-            onBack = {}
+            state = ShoppingDetailUiState(title = "Pizza day!"),
+            intent = ShoppingDetailIntent()
         )
     }
 }

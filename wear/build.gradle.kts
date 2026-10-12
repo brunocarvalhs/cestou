@@ -98,6 +98,10 @@ dependencies {
     implementation(libs.androidx.wear.compose.ui.tooling)
     implementation(libs.androidx.wear.tooling.preview)
     implementation(libs.play.services.wearable)
+    implementation(libs.androidx.wear.tiles)
+    implementation(libs.androidx.wear.protolayout)
+    implementation(libs.androidx.wear.protolayout.expression)
+    implementation(libs.kotlinx.coroutines.guava)
 
     implementation(libs.timber)
     implementation(libs.hilt.android)

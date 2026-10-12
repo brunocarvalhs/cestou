@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen
 
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -11,6 +12,7 @@ import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingListUiState
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingListViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.intent.ShoppingDetailIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.state.ShoppingDetailUiState
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.ShoppingDetailViewModel
 import io.mockk.every
@@ -34,8 +36,12 @@ class ShoppingWearScreensTest {
         every { uiState } returns MutableStateFlow(state)
     }
 
-    private fun detailViewModel(state: ShoppingDetailUiState) = mockk<ShoppingDetailViewModel>(relaxed = true) {
+    private fun detailViewModel(
+        state: ShoppingDetailUiState,
+        intent: ShoppingDetailIntent = ShoppingDetailIntent()
+    ) = mockk<ShoppingDetailViewModel>(relaxed = true) {
         every { uiState } returns MutableStateFlow(state)
+        every { this@mockk.intent } returns intent
     }
 
     private val shopping = Shopping(
@@ -57,7 +63,7 @@ class ShoppingWearScreensTest {
                 onNavigateToDetail = { opened = it }
             )
         }
-        composeTestRule.onNodeWithText("Café da manhã").performClick()
+        composeTestRule.onNodeWithText("Café da manhã", substring = true).performClick()
         assertEquals("s1", opened)
     }
 
@@ -79,15 +85,44 @@ class ShoppingWearScreensTest {
                 viewModel = detailViewModel(
                     ShoppingDetailUiState(
                         title = "Café da manhã",
+                        total = 10.0,
                         budget = 500.0,
-                        totalSpent = 48.5,
-                        balance = 451.5,
+                        pending = 1,
                         items = StableList(listOf(Product(id = "1", name = "Pão", quantity = 2.0, price = 5.0)))
                     )
                 )
             )
         }
         composeTestRule.onNodeWithText("Café da manhã", substring = true).assertExists()
+        composeTestRule.onNodeWithTag("wear_add_item").assertExists()
+    }
+
+    @Test
+    fun `tapping an item toggles it`() {
+        val pao = Product(id = "1", name = "Pão", quantity = 2.0, price = 5.0)
+        var toggled: Product? = null
+        composeTestRule.setContent {
+            ShoppingDetailScreen(
+                viewModel = detailViewModel(
+                    ShoppingDetailUiState(title = "Café", pending = 1, items = StableList(listOf(pao))),
+                    ShoppingDetailIntent(onToggle = { toggled = it })
+                )
+            )
+        }
+        composeTestRule.onNodeWithTag("wear_item_1").performClick()
+        assertEquals(pao, toggled)
+    }
+
+    @Test
+    fun `list screen hides finished lists`() {
+        val finished = shopping.copy(id = "s2", title = "Feira antiga", status = Shopping.Status.FINISH)
+        composeTestRule.setContent {
+            ShoppingWearScreen(
+                viewModel = listViewModel(ShoppingListUiState(list = StableList(listOf(shopping, finished)))),
+                onNavigateToDetail = {}
+            )
+        }
+        composeTestRule.onNodeWithText("Feira antiga", substring = true).assertDoesNotExist()
     }
 
     @Test
@@ -95,7 +130,7 @@ class ShoppingWearScreensTest {
         composeTestRule.setContent {
             ShoppingDetailScreen(
                 viewModel = detailViewModel(
-                    ShoppingDetailUiState(title = "Jantar", budget = 100.0, totalSpent = 130.0, balance = -30.0)
+                    ShoppingDetailUiState(title = "Jantar", total = 130.0, budget = 100.0)
                 )
             )
         }

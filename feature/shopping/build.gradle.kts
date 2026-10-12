@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
+    implementation(project(":core:data"))
     implementation(project(":core:ai"))
     implementation(project(":feature:settings"))
 
@@ -27,6 +28,8 @@ dependencies {
     implementation(libs.androidx.compose.navigation)
     implementation(libs.androidx.wear.compose.navigation3)
     implementation(libs.androidx.wear.compose.ui.tooling)
+    implementation(libs.androidx.wear.input)
+    implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
