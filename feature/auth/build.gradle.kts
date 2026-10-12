@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
+    implementation(project(":core:remote-config"))
 
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.appcompat)
@@ -30,4 +31,6 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation("com.firebaseui:firebase-ui-auth:10.0.0-beta05")
+    // Only needed by FirebaseUI's Facebook provider (it checks for LoginManager at runtime).
+    implementation("com.facebook.android:facebook-login:18.3.0")
 }

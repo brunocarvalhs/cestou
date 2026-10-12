@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.auth.presentation.components.auth
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,7 +12,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -30,11 +33,13 @@ import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.common.extensions.openBrowser
 import br.com.brunocarvalhs.howmuch.core.common.util.LegalUrls
 import br.com.brunocarvalhs.howmuch.feature.auth.R
+import br.com.brunocarvalhs.howmuch.feature.auth.presentation.firebaseui.AuthMethod
 import com.firebase.ui.auth.configuration.auth_provider.AuthProvider
 import br.com.brunocarvalhs.howmuch.core.ui.R as CoreUiR
 
 @Composable
 internal fun CustomMethodPickerLayout(
+    methods: List<AuthMethod>,
     providers: List<AuthProvider>,
     onProviderSelected: (AuthProvider) -> Unit,
     onEmailSelected: () -> Unit = {}
@@ -43,46 +48,47 @@ internal fun CustomMethodPickerLayout(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        providers.forEach { provider ->
-            // FirebaseUI only ever hosts Google (see FirebaseAuthUiConfig); the `else` branch is
-            // defensive exhaustiveness for AuthProvider, not a real UI path.
-            val (text, icon) = when (provider) {
-                is AuthProvider.Google -> stringResource(R.string.auth_continue_with_google) to providerIcon {
-                    Icon(
-                        painter = painterResource(CoreUiR.drawable.ic_google),
-                        contentDescription = null,
-                        tint = Color.Unspecified
-                    )
-                }
-
-                else -> stringResource(R.string.auth_continue_with_provider, provider.providerId) to providerIcon {
-                    Icon(imageVector = Icons.Default.Email, contentDescription = null)
-                }
+        methods.forEach { method ->
+            // E-mail is our own flow on FirebaseAuth, not a FirebaseUI provider (spec EPA-01: after Google).
+            val provider = providers.firstOrNull { it.providerId == method.providerId }
+            if (method == AuthMethod.EMAIL || provider != null) {
+                SocialButton(
+                    text = stringResource(method.labelRes()),
+                    icon = { MethodIcon(method) },
+                    onClick = { if (provider == null) onEmailSelected() else onProviderSelected(provider) },
+                    modifier = Modifier.testTag("welcome_${method.name.lowercase()}_button")
+                )
             }
-            val testTag = when (provider) {
-                is AuthProvider.Google -> "welcome_google_button"
-                else -> null
-            }
-
-            SocialButton(
-                text = text,
-                icon = icon,
-                onClick = { onProviderSelected(provider) },
-                modifier = testTag?.let { Modifier.testTag(it) } ?: Modifier
-            )
         }
-
-        // E-mail is our own flow on FirebaseAuth, not a FirebaseUI provider (spec EPA-01: after Google).
-        SocialButton(
-            text = stringResource(R.string.auth_continue_with_email),
-            icon = { Icon(imageVector = Icons.Default.Email, contentDescription = null) },
-            onClick = onEmailSelected,
-            modifier = Modifier.testTag("welcome_email_button")
-        )
     }
 }
 
-private fun providerIcon(icon: @Composable () -> Unit): @Composable () -> Unit = icon
+@StringRes
+private fun AuthMethod.labelRes(): Int = when (this) {
+    AuthMethod.GOOGLE -> R.string.auth_continue_with_google
+    AuthMethod.EMAIL -> R.string.auth_continue_with_email
+    AuthMethod.PHONE -> R.string.auth_continue_with_phone
+    AuthMethod.APPLE -> R.string.auth_continue_with_apple
+    AuthMethod.MICROSOFT -> R.string.auth_continue_with_microsoft
+    AuthMethod.FACEBOOK -> R.string.auth_continue_with_facebook
+    AuthMethod.GITHUB -> R.string.auth_continue_with_github
+}
+
+// ponytail: only Google has a brand icon in the repo; the rest use generic Material icons. Add the
+// official logos (Apple's HIG requires its mark) before enabling those providers in production.
+@Composable
+private fun MethodIcon(method: AuthMethod) {
+    when (method) {
+        AuthMethod.GOOGLE -> Icon(
+            painter = painterResource(CoreUiR.drawable.ic_google),
+            contentDescription = null,
+            tint = Color.Unspecified
+        )
+        AuthMethod.EMAIL -> Icon(imageVector = Icons.Default.Email, contentDescription = null)
+        AuthMethod.PHONE -> Icon(imageVector = Icons.Default.Phone, contentDescription = null)
+        else -> Icon(imageVector = Icons.Default.AccountCircle, contentDescription = null)
+    }
+}
 
 @Composable
 private fun SocialButton(

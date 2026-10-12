@@ -9,7 +9,6 @@
     <string name="welcome_select_language">Select Language</string>
     <string name="welcome_agree_and_continue">Agree and continue</string>
     <string name="auth_continue_with_google">Continue with Google</string>
-    <string name="auth_continue_with_provider">Sign in with %1$s</string>
     <string name="auth_terms_prefix">By continuing, you agree to our </string>
     <string name="auth_terms_of_use">Terms of Use</string>
     <string name="auth_terms_and"> and </string>
@@ -21,6 +20,11 @@
 
     <!-- E-mail auth and required-name step (spec EPA-02..04, 06, 13) -->
     <string name="auth_continue_with_email">Continue with email</string>
+    <string name="auth_continue_with_phone">Continue with phone</string>
+    <string name="auth_continue_with_apple">Continue with Apple</string>
+    <string name="auth_continue_with_microsoft">Continue with Microsoft</string>
+    <string name="auth_continue_with_facebook">Continue with Facebook</string>
+    <string name="auth_continue_with_github">Continue with GitHub</string>
     <string name="auth_navigate_back">Back</string>
     <string name="auth_field_given_name">First name</string>
     <string name="auth_field_family_name">Last name</string>
