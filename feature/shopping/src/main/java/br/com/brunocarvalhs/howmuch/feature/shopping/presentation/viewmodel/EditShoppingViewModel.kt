@@ -85,6 +85,7 @@ internal class EditShoppingViewModel @Inject constructor(
     private fun shareToken(shoppingId: String) {
         viewModelScope.launch {
             val shopping = repository.getById(shoppingId)
+            shopping?.let { runCatching { repository.ensureShortCodeIndex(it) } }
             val token = shopping?.shortCode ?: shoppingId
             _navigator?.navigate(QrCode(token))
         }

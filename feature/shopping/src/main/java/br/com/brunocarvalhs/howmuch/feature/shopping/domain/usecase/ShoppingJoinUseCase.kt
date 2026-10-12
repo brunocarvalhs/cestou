@@ -19,16 +19,18 @@ class ShoppingJoinUseCase @Inject constructor(
         Timber.d("Joining shopping with token: $token")
         val user = authService.getOrCreateUserId()
 
-        val shopping = if (token.length <= SHORT_CODE_MAX_LENGTH) {
-            repository.getByShortCode(token.uppercase())
+        val shoppingId = if (token.length <= SHORT_CODE_MAX_LENGTH) {
+            repository.resolveShortCode(token.uppercase())
         } else {
-            repository.getById(token)
+            token
         }
+        requireNotNull(shoppingId) { "Lista não encontrada para o token informado." }
 
-        Timber.d("Shopping found: $shopping")
+        // Join before reading: the rules only let members read a list (AD-009).
+        repository.join(shoppingId, user.id)
+        val shopping = repository.getById(shoppingId)
         requireNotNull(shopping) { "Lista não encontrada para o token informado." }
-
-        repository.join(shopping.id, user.id)
+        Timber.d("Joined shopping: ${shopping.id}")
 
         val title = texts.listJoinedTitle()
         val message = texts.listJoinedMessage(user.displayName, shopping.title)
