@@ -16,7 +16,7 @@ class PriceComparisonUseCaseTest {
         val result = useCase.execute(mapOf("productName" to "Milk"), mockk(relaxed = true), emptyMap())
 
         assertTrue(result.isSuccess)
-        assertEquals(3, result.getOrNull()?.size)
+        assertEquals(EXPECTED_RESULT_COUNT, result.getOrNull()?.size)
     }
 
     @Test
@@ -26,3 +26,5 @@ class PriceComparisonUseCaseTest {
         assertTrue(result.isFailure)
     }
 }
+
+private const val EXPECTED_RESULT_COUNT = 3

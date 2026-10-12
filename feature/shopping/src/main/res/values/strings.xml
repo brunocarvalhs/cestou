@@ -96,14 +96,20 @@
     <string name="shopping_list_summary_items_in_cart">items in cart</string>
     <string name="shopping_list_empty_title">Your list is empty</string>
     <string name="shopping_list_empty_description">Add products or ask the AI for help!</string>
-    <string name="shopping_list_share_options_title">How do you want to share?</string>
-    <string name="shopping_list_share_invite_member">Invite to Collaborate</string>
-    <string name="shopping_list_share_invite_member_desc">Another user can edit the list in real time</string>
-    <string name="shopping_list_share_text">Send as Text</string>
-    <string name="shopping_list_share_text_desc">Send the item list via WhatsApp, email, etc.</string>
 
 
 
     <string name="state_description_in_cart">In cart</string>
     <string name="state_description_not_in_cart">Not in cart</string>
+    <string name="shopping_summary_total_spent_month">TOTAL SPENT THIS MONTH</string>
+    <string name="shopping_summary_saved">+%1$s saved</string>
+    <string name="shopping_welcome_back">Welcome back,</string>
+    <string name="shopping_notifications_content_description">Notifications</string>
+    <string name="shopping_qr_code_content_description">QR Code</string>
+    <string name="shopping_wear_my_lists">My Lists</string>
+    <string name="shopping_wear_no_lists">No lists found</string>
+    <string name="shopping_wear_balance">Balance</string>
+    <string name="shopping_wear_budget">Budget: %1$s</string>
+    <string name="shopping_wear_products">Products</string>
+    <string name="shopping_wear_no_products">No products</string>
 </resources>

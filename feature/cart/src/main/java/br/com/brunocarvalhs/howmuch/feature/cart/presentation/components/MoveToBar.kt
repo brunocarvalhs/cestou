@@ -36,7 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DropTarget
-import br.com.brunocarvalhs.howmuch.feature.products.R
+import br.com.brunocarvalhs.howmuch.feature.cart.R
 
 private const val BORDER_ALPHA = 0.3f
 private val ROUNDED_CORNER_LARGE = 24.dp

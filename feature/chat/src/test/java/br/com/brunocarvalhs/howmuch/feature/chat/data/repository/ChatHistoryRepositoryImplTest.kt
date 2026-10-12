@@ -4,7 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import br.com.brunocarvalhs.howmuch.core.data.service.DataStoreStorageService
-import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
+import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk

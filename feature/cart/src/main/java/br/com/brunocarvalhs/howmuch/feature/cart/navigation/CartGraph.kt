@@ -17,6 +17,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
+import br.com.brunocarvalhs.howmuch.core.ui.components.ShareOptionsBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.ConfirmItemContent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.EditItemContent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.FinishPurchaseContent
@@ -28,7 +29,6 @@ import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.ConfirmI
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.EditItemViewModel
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.FinishPurchaseViewModel
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.ShareOptionsViewModel
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.components.common.ShareOptionsBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.EditShopping
 
 private const val PAYWALL_SOURCE_SHARE = "cart_share"

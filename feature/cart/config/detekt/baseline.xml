@@ -2,20 +2,5 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>MagicNumber:AiMessageBubble.kt$0.85f</ID>
-    <ID>MagicNumber:CartBottomBar.kt$3f</ID>
-    <ID>MagicNumber:CartDetailHeader.kt$0xFFF0F0F0</ID>
-    <ID>MagicNumber:ConfirmItemViewModelTest.kt$ConfirmItemViewModelTest$5.0</ID>
-    <ID>MagicNumber:EditItemViewModelTest.kt$EditItemViewModelTest$3.0</ID>
-    <ID>MagicNumber:EditItemViewModelTest.kt$EditItemViewModelTest$8.0</ID>
-    <ID>MagicNumber:FinishPurchaseViewModelTest.kt$FinishPurchaseViewModelTest$42.0</ID>
-    <ID>MagicNumber:IconProduct.kt$0xFF009688</ID>
-    <ID>MagicNumber:IconProduct.kt$0xFFE8F8F5</ID>
-    <ID>MagicNumber:IconProduct.kt$0xFFF0F0F0</ID>
-    <ID>MagicNumber:IconProduct.kt$0xFFF5EEF8</ID>
-    <ID>MagicNumber:IconProduct.kt$0xFFFBEEE6</ID>
-    <ID>MagicNumber:IconProduct.kt$0xFFFCE4EC</ID>
-    <ID>MagicNumber:IconProduct.kt$0xFFFEF5E7</ID>
-    <ID>MagicNumber:IconProduct.kt$0xFFFEF9E7</ID>
   </CurrentIssues>
 </SmellBaseline>

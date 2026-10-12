@@ -1,12 +1,14 @@
 package br.com.brunocarvalhs.howmuch.core.auth
 
 import br.com.brunocarvalhs.howmuch.core.auth.di.AuthDataStore
+import br.com.brunocarvalhs.howmuch.core.domain.exception.RecentLoginRequiredException
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
 import br.com.brunocarvalhs.howmuch.core.domain.services.get
 import br.com.brunocarvalhs.howmuch.core.domain.services.observe
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -147,7 +149,13 @@ class FirebaseAuthService @Inject constructor(
     } catch (e: Exception) {
         if (e is kotlinx.coroutines.CancellationException) throw e
         Timber.tag(TAG).e(e, "Falha ao excluir conta")
-        Result.failure(e)
+        Result.failure(if (e is FirebaseAuthRecentLoginRequiredException) RecentLoginRequiredException(e) else e)
+    }
+
+    // Firebase enforces ~5 min server-side; the margin keeps us under it so the check is conservative.
+    override fun hasRecentLogin(): Boolean {
+        val lastSignIn = auth.currentUser?.metadata?.lastSignInTimestamp ?: return false
+        return System.currentTimeMillis() - lastSignIn < RECENT_LOGIN_WINDOW_MS
     }
 
     override suspend fun updateDisplayName(name: String): Result<Unit> = try {
@@ -195,5 +203,6 @@ class FirebaseAuthService @Inject constructor(
     companion object {
         private const val TAG = "FirebaseAuthService"
         private const val USER_ID_KEY = "synced_user_id"
+        private const val RECENT_LOGIN_WINDOW_MS = 4 * 60 * 1000L
     }
 }

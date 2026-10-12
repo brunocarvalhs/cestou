@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -99,6 +100,22 @@ internal fun DataSettingsScreen(
                 supportingContent = { Text(stringResource(R.string.settings_data_delete_account_hint)) }
             )
         }
+    }
+
+    if (state.reauthRequired) {
+        AlertDialog(
+            onDismissRequest = intent.onReauthDismissed,
+            title = { Text(stringResource(R.string.settings_data_delete_account_reauth_title)) },
+            text = { Text(stringResource(R.string.settings_data_delete_account_reauth_message)) },
+            confirmButton = {
+                TextButton(onClick = intent.onReauthConfirmed) {
+                    Text(stringResource(R.string.settings_data_delete_account_reauth_button))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = intent.onReauthDismissed) { Text(stringResource(R.string.action_cancel)) }
+            }
+        )
     }
 
     if (showDeleteAllConfirmation) {

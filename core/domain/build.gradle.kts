@@ -18,6 +18,5 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.androidx.camera.core)
     implementation("javax.inject:javax.inject:1")
 }

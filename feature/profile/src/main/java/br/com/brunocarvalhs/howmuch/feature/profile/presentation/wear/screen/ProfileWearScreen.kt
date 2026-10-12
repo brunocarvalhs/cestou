@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.Button
@@ -17,6 +18,7 @@ import androidx.wear.compose.material3.lazy.rememberTransformationSpec
 import androidx.wear.compose.material3.lazy.transformedHeight
 import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
+import br.com.brunocarvalhs.howmuch.feature.profile.R
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.state.ProfileUiState
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.viewmodel.ProfileViewModel
 
@@ -53,7 +55,7 @@ private fun ProfileWearContent(
                         .transformedHeight(this, transformationSpec),
                     transformation = SurfaceTransformation(transformationSpec)
                 ) {
-                    Text("Perfil")
+                    Text(stringResource(R.string.profile_title))
                 }
             }
 
@@ -72,7 +74,7 @@ private fun ProfileWearContent(
                         .transformedHeight(this, transformationSpec),
                     transformation = SurfaceTransformation(transformationSpec)
                 ) {
-                    Text("Vincular Celular")
+                    Text(stringResource(R.string.profile_wear_link_phone))
                 }
             }
 
@@ -84,7 +86,7 @@ private fun ProfileWearContent(
                         .transformedHeight(this, transformationSpec),
                     transformation = SurfaceTransformation(transformationSpec)
                 ) {
-                    Text("Sair")
+                    Text(stringResource(R.string.profile_menu_sign_out))
                 }
             }
         }

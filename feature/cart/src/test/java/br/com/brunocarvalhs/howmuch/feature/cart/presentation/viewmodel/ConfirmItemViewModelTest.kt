@@ -7,9 +7,9 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
 import br.com.brunocarvalhs.howmuch.core.domain.model.withActivity
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.usecase.ProductsUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -64,11 +64,11 @@ class ConfirmItemViewModelTest {
         runTest {
             coEvery { useCase.update(any(), "list1") } returns Result.success(Unit)
 
-            viewModel.onConfirmPurchased(product, price = 5.0, quantity = 2.0)
+            viewModel.onConfirmPurchased(product, price = CONFIRMED_PRICE, quantity = 2.0)
 
             coVerify {
                 useCase.update(
-                    match { it.isPurchased && it.price == 5.0 && it.quantity == 2.0 },
+                    match { it.isPurchased && it.price == CONFIRMED_PRICE && it.quantity == 2.0 },
                     "list1"
                 )
             }
@@ -79,7 +79,7 @@ class ConfirmItemViewModelTest {
     fun `onConfirmPurchased appends a PURCHASED entry for the current user on top of existing history`() = runTest {
         coEvery { useCase.update(any(), "list1") } returns Result.success(Unit)
 
-        viewModel.onConfirmPurchased(product, price = 5.0, quantity = 2.0)
+        viewModel.onConfirmPurchased(product, price = CONFIRMED_PRICE, quantity = 2.0)
 
         coVerify {
             useCase.update(
@@ -97,8 +97,10 @@ class ConfirmItemViewModelTest {
     fun `onConfirmPurchased does not navigate back when the update fails`() = runTest {
         coEvery { useCase.update(any(), "list1") } returns Result.failure(IllegalStateException("boom"))
 
-        viewModel.onConfirmPurchased(product, price = 5.0, quantity = 2.0)
+        viewModel.onConfirmPurchased(product, price = CONFIRMED_PRICE, quantity = 2.0)
 
         verify(exactly = 0) { navigator.goBack() }
     }
 }
+
+private const val CONFIRMED_PRICE = 5.0

@@ -18,7 +18,7 @@ import coil.compose.AsyncImage
 @Composable
 internal fun IconProduct(
     iconUrl: String? = null,
-    iconBackgroundColor: Color = Color(0xFFF0F0F0),
+    iconBackgroundColor: Color = Color(DEFAULT_BACKGROUND),
     emoji: String = Shopping.DEFAULT_EMOJI,
 ) {
     Box(
@@ -39,3 +39,5 @@ internal fun IconProduct(
         }
     }
 }
+
+private const val DEFAULT_BACKGROUND = 0xFFF0F0F0

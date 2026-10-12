@@ -49,7 +49,7 @@ class ProductSaveUseCaseTest {
 
     @Test
     fun `invoke by product appends an ADDED entry for the current user before saving`() = runTest {
-        val product = Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0)
+        val product = Product(id = "p1", name = "Milk", quantity = 1.0, price = UNIT_PRICE)
         coEvery { authService.getOrCreateUserId() } returns AuthenticatedUser(id = "user1")
         coEvery { repository.saveProduct(any(), "list1") } returns Result.success(Unit)
 
@@ -70,14 +70,14 @@ class ProductSaveUseCaseTest {
         coEvery { repository.saveProduct(any(), "list1") } returns Result.success(Unit)
 
         val result = useCase.execute(
-            mapOf("name" to "Milk", "quantity" to 2.0, "price" to 5.0, "shoppingId" to "list1"),
+            mapOf("name" to "Milk", "quantity" to 2.0, "price" to UNIT_PRICE, "shoppingId" to "list1"),
             mockk(relaxed = true) { every { userId } returns "session-user" },
             emptyMap()
         )
 
         assertTrue(result.isSuccess)
         coVerify {
-            repository.saveProduct(match { it.name == "Milk" && it.quantity == 2.0 && it.price == 5.0 }, "list1")
+            repository.saveProduct(match { it.name == "Milk" && it.quantity == 2.0 && it.price == UNIT_PRICE }, "list1")
         }
     }
 
@@ -138,7 +138,7 @@ class ProductSaveUseCaseTest {
             id = "p0",
             name = "Leite",
             quantity = 1.0,
-            price = 5.0,
+            price = UNIT_PRICE,
             history = listOf(ProductActivity(userId = "user-a", action = ProductActivity.Action.ADDED))
         )
         coEvery { duplicateCheckUseCase("Milk", "list1") } returns duplicate
@@ -167,7 +167,7 @@ class ProductSaveUseCaseTest {
             id = "p0",
             name = "Leite",
             quantity = 1.0,
-            price = 5.0,
+            price = UNIT_PRICE,
             history = listOf(ProductActivity(userId = "user-a", action = ProductActivity.Action.ADDED))
         )
         coEvery { duplicateCheckUseCase("Milk", "list1") } returns duplicate
@@ -198,3 +198,5 @@ class ProductSaveUseCaseTest {
         assertTrue(result.isFailure)
     }
 }
+
+private const val UNIT_PRICE = 5.0

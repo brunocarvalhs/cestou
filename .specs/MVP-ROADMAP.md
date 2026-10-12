@@ -188,8 +188,10 @@ Não inventar causa raiz. Próximos passos, em ordem:
 
 - ~~**F1.1 — Account & data deletion (G2).**~~ Done — PR #18. `DeleteAccountUseCase` leaves/deletes
   the user's shopping lists, deletes their profile, clears local settings, then deletes the
-  Firebase account, in that order. No re-auth flow for `FirebaseAuthRecentLoginRequiredException`
-  — surfaces as a generic error if Firebase demands a recent login.
+  Firebase account, in that order. A recent login is checked first (`AuthService.hasRecentLogin()`);
+  if stale, nothing is touched and the user is asked to sign in again (sign-out fallback for every
+  provider, Google and e-mail alike; a late `FirebaseAuthRecentLoginRequiredException` takes the
+  same path). Success ends on Welcome with a confirmation toast.
 - ~~**F1.2 — Hosted Privacy Policy + Terms (G3).**~~ Pages drafted — PR #21
   (`docs/legal/privacy.html`, `terms.html`). Not linked from the app yet: needs a hosting decision
   (`cestou.app` vs. GitHub Pages) before wiring the URL into `CustomMethodPickerTerms`, Settings,
