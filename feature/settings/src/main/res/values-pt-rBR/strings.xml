@@ -87,16 +87,16 @@
     <string name="settings_data_delete_all_success">Todos os dados foram apagados</string>
     <string name="settings_data_delete_all_error">Não foi possível apagar seus dados. Tente novamente.</string>
     <string name="settings_data_delete_account">Excluir Conta</string>
-    <string name="settings_data_delete_account_hint">Exclui permanentemente sua conta e todos os seus dados</string>
+    <string name="settings_data_delete_account_hint">Exclui permanentemente sua conta, seu perfil e suas listas</string>
     <string name="settings_data_delete_account_confirmation_title">Excluir conta?</string>
-    <string name="settings_data_delete_account_confirmation_message">Esta ação não pode ser desfeita. Sua conta, perfil e listas de compras serão excluídos permanentemente.</string>
+    <string name="settings_data_delete_account_confirmation_message">Esta ação não pode ser desfeita. Sua conta, seu perfil, seus produtos frequentes e as listas que só você usa serão excluídos permanentemente. Você sairá das listas compartilhadas; elas continuam com os outros membros, junto com os itens que você adicionou.</string>
     <string name="settings_data_delete_account_button">Sim, excluir minha conta</string>
     <string name="settings_data_delete_account_success">Conta excluída</string>
     <string name="settings_data_delete_account_error">Não foi possível excluir sua conta. Tente novamente.</string>
     <string name="settings_data_delete_account_reauth_title">Confirme sua identidade</string>
     <string name="settings_data_delete_account_reauth_message">Por segurança, entre novamente para confirmar a exclusão. Nada foi excluído ainda.</string>
     <string name="settings_data_delete_account_reauth_button">Entrar novamente</string>
-    <string name="settings_data_delete_account_reauth_toast">Você saiu. Entre novamente e volte em Ajustes > Dados > Excluir conta para confirmar.</string>
+    <string name="settings_data_delete_account_reauth_toast">Você saiu. Entre novamente e volte em Configurações > Dados > Excluir conta para confirmar.</string>
 
     <string name="settings_terms_content">
         Ao utilizar o Cestou, você concorda com os seguintes termos: \n\n
