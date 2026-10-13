@@ -30,12 +30,12 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.AiModel
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
+import br.com.brunocarvalhs.howmuch.core.domain.usecase.UpdateLanguageUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiSettings
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateCurrencyUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateLanguageUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.navigation.AppRate
 import br.com.brunocarvalhs.howmuch.feature.settings.navigation.CurrencySettings
 import br.com.brunocarvalhs.howmuch.feature.settings.navigation.DataSettings
@@ -65,6 +65,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+internal const val SUPPORT_EMAIL = "brunocarvalhs@outlook.com.br"
+
 @HiltViewModel
 internal class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -82,7 +84,7 @@ internal class SettingsViewModel @Inject constructor(
     val intent = SettingsIntent(
         onNavigate = { route -> _navigator?.navigate(route) },
         onBack = { _navigator?.goBack() },
-        onSendEmail = { subject -> context.openEmail("suporte@cestou.com.br", subject) },
+        onSendEmail = { subject -> context.openEmail(SUPPORT_EMAIL, subject) },
         onOpenUrl = { url -> context.openBrowser(url) },
         onUpdateLanguage = { language ->
             viewModelScope.launch {
@@ -216,7 +218,7 @@ internal class SettingsViewModel @Inject constructor(
         title = UiText.StringResource(R.string.settings_section_support), items = listOf(
             SettingItem(
                 title = UiText.StringResource(R.string.settings_item_contact),
-                subtitle = UiText.DynamicString("suporte@cestou.com.br"),
+                subtitle = UiText.DynamicString(SUPPORT_EMAIL),
                 icon = Icons.Outlined.Email,
                 route = SupportContact
             ), SettingItem(

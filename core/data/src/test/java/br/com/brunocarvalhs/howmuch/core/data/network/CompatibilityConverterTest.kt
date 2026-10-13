@@ -8,6 +8,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+private const val TEST_INT = 42
+
 class CompatibilityConverterTest {
 
     private val converter = CompatibilityConverter()
@@ -16,7 +18,7 @@ class CompatibilityConverterTest {
     fun `toJsonElement converts primitives`() {
         assertEquals(JsonNull, converter.toJsonElement(null))
         assertEquals(JsonPrimitive(true), converter.toJsonElement(true))
-        assertEquals(JsonPrimitive(42), converter.toJsonElement(42))
+        assertEquals(JsonPrimitive(TEST_INT), converter.toJsonElement(TEST_INT))
         assertEquals(JsonPrimitive("text"), converter.toJsonElement("text"))
     }
 

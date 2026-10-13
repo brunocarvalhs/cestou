@@ -35,8 +35,6 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
 import br.com.brunocarvalhs.howmuch.feature.settings.navigation.Settings
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.EditShopping
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.Scanner
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.EditShoppingContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.JoinListContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.scanner.QrCodeBottomSheet
@@ -55,7 +53,8 @@ private const val PAYWALL_SOURCE_QR_CODE = "shopping_qr_code"
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.shoppingGraph(
-    navigator: Navigator, windowSizeClass: WindowSizeClass
+    navigator: Navigator,
+    windowSizeClass: WindowSizeClass
 ) {
     composable<ShoppingList> {
         val viewModel: ShoppingListViewModel = hiltViewModel()
@@ -110,15 +109,17 @@ private fun NavGraphBuilder.shoppingEditDialog(navigator: Navigator) {
             Box(modifier = Modifier.fillMaxWidth()) {
                 uiState.shopping?.let { shopping ->
                     EditShoppingContent(
-                        shopping = shopping, onSave = { updated: Shopping ->
-                        viewModel.intent.onUpdate(updated)
-                    }, onCancel = { viewModel.intent.onCancel() }, onShareToken = {
-                        if (isPro) {
-                            viewModel.intent.onShareToken(shopping.id)
-                        } else {
-                            navigator.navigate(Paywall(source = PAYWALL_SOURCE_QR_CODE))
-                        }
-                    }, sharingToken = uiState.sharingToken
+                        shopping = shopping,
+                        onSave = { updated: Shopping -> viewModel.intent.onUpdate(updated) },
+                        onCancel = { viewModel.intent.onCancel() },
+                        onShareToken = {
+                            if (isPro) {
+                                viewModel.intent.onShareToken(shopping.id)
+                            } else {
+                                navigator.navigate(Paywall(source = PAYWALL_SOURCE_QR_CODE))
+                            }
+                        },
+                        sharingToken = uiState.sharingToken
                     )
                 }
                 SnackbarHost(

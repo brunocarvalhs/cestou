@@ -22,8 +22,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatPrice
 import br.com.brunocarvalhs.howmuch.core.theme.CestouDarkGreen
+import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatPrice
 import br.com.brunocarvalhs.howmuch.core.ui.utils.LocalCurrency
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 
@@ -51,7 +51,7 @@ internal fun ShoppingSummaryCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "TOTAL GASTO ESTE MÊS",
+                    text = stringResource(R.string.shopping_summary_total_spent_month),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
@@ -73,7 +73,7 @@ internal fun ShoppingSummaryCard(
                     .padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
                 Text(
-                    text = "+${savedAmount.formatPrice(currency)} economizados",
+                    text = stringResource(R.string.shopping_summary_saved, savedAmount.formatPrice(currency)),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold

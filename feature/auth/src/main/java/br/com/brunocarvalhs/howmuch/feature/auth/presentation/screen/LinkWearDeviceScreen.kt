@@ -21,12 +21,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
+import br.com.brunocarvalhs.howmuch.feature.auth.R
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.intent.LinkWearIntent
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.state.LinkWearUiState
 
@@ -40,10 +43,13 @@ internal fun LinkWearDeviceScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Vincular Relógio") },
+                title = { Text(stringResource(R.string.link_wear_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.auth_navigate_back)
+                        )
                     }
                 }
             )
@@ -57,7 +63,7 @@ internal fun LinkWearDeviceScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Digite o código exibido no seu relógio para sincronizar sua conta.",
+                text = stringResource(R.string.link_wear_instructions),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center
             )
@@ -67,7 +73,7 @@ internal fun LinkWearDeviceScreen(
             OutlinedTextField(
                 value = state.code,
                 onValueChange = { intent.onCodeChange(it) },
-                label = { Text("Código de Pareamento") },
+                label = { Text(stringResource(R.string.pairing_code_label)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
@@ -81,18 +87,19 @@ internal fun LinkWearDeviceScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            val context = LocalContext.current
             if (state.isLoading) {
                 CircularProgressIndicator()
             } else if (state.isSuccess) {
                 Text(
-                    text = "Sucesso! Seu relógio foi vinculado.",
+                    text = stringResource(R.string.link_wear_success),
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodyMedium
                 )
             } else {
                 CestouButton(
-                    text = "Vincular",
-                    onClick = { intent.onLinkClick() },
+                    text = stringResource(R.string.link_wear_action),
+                    onClick = { intent.onLinkClick(context) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }

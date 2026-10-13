@@ -4,15 +4,20 @@ import app.cash.turbine.test
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.DocumentId
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.model.ShoppingModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.data.model.ShortCodeModel
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -148,11 +153,40 @@ class ShoppingRepositoryImplTest {
         repository.update(model.toDomainForTest())
     }
 
+    private fun stubDelete(requests: MutableList<NetworkService.NetworkRequest>, deleteResult: Any?) {
+        coEvery { networkService.make<Any>(any(), any(), any()) } answers {
+            val request = firstArg<NetworkService.NetworkRequest>()
+            requests += request
+            if (request.method == NetworkService.Method.GET) listOf(DocumentId("p1")) else deleteResult
+        }
+    }
+
     @Test
-    fun `delete calls network with the shopping id`() = runTest {
-        coEvery { networkService.make<Boolean>(any(), any(), any()) } returns true
+    fun `delete removes products before the list document`() = runTest {
+        val requests = mutableListOf<NetworkService.NetworkRequest>()
+        stubDelete(requests, true)
 
         repository.delete(model.toDomainForTest())
+
+        assertEquals(
+            listOf(
+                "shopping/s1/products" to NetworkService.Method.GET,
+                "shopping/s1/products/p1" to NetworkService.Method.DELETE,
+                "shopping/s1" to NetworkService.Method.DELETE
+            ),
+            requests.map { it.endpoint to it.method }
+        )
+    }
+
+    @Test
+    fun `delete throws and keeps the list when a product cannot be deleted`() = runTest {
+        val requests = mutableListOf<NetworkService.NetworkRequest>()
+        stubDelete(requests, null)
+
+        val result = runCatching { repository.delete(model.toDomainForTest()) }
+
+        assertTrue(result.isFailure)
+        assertEquals(2, requests.size)
     }
 
     @Test
@@ -163,30 +197,118 @@ class ShoppingRepositoryImplTest {
     }
 
     @Test
-    fun `getByShortCode returns the first mapped match`() = runTest {
-        coEvery { networkService.make<List<ShoppingModel>>(any(), any(), any()) } returns listOf(model)
+    fun `leave sends arrayRemove for users and delete for the role`() = runTest {
+        val slot = slot<NetworkService.NetworkRequest>()
+        coEvery { networkService.make<Boolean>(capture(slot), any(), any()) } returns true
 
-        val result = repository.getByShortCode("ABC123")
+        repository.leave("s1", "u1")
 
-        assertEquals("s1", result?.id)
+        assertEquals("shopping/s1", slot.captured.endpoint)
+        assertEquals(NetworkService.Method.PUT, slot.captured.method)
+        assertEquals(
+            mapOf(
+                "users" to NetworkService.FieldOp.ArrayRemove(listOf("u1")),
+                "roles.u1" to NetworkService.FieldOp.Delete
+            ),
+            slot.captured.payload
+        )
     }
 
     @Test
-    fun `getByShortCode returns null when nothing matches`() = runTest {
-        coEvery { networkService.make<List<ShoppingModel>>(any(), any(), any()) } returns emptyList()
+    fun `leave throws when the write fails`() = runTest {
+        coEvery { networkService.make<Boolean>(any(), any(), any()) } returns null
 
-        val result = repository.getByShortCode("ABC123")
+        assertThrows(IllegalStateException::class.java) { runBlocking { repository.leave("s1", "u1") } }
+    }
 
-        assertNull(result)
+    private fun stubShortCodes(
+        requests: MutableList<NetworkService.NetworkRequest>,
+        index: ShortCodeModel?,
+        legacy: List<ShoppingModel>? = null
+    ) {
+        coEvery { networkService.make<Any>(any(), any(), any()) } answers {
+            val request = firstArg<NetworkService.NetworkRequest>()
+            requests += request
+            when {
+                request.method != NetworkService.Method.GET -> true
+                request.endpoint.startsWith("shortCodes/") -> index
+                request.endpoint.endsWith("/products") -> emptyList<DocumentId>()
+                else -> legacy
+            }
+        }
     }
 
     @Test
-    fun `getByShortCode returns null when network returns null`() = runTest {
-        coEvery { networkService.make<List<ShoppingModel>>(any(), any(), any()) } returns null
+    fun `create writes the share code index after the list`() = runTest {
+        val requests = mutableListOf<NetworkService.NetworkRequest>()
+        stubShortCodes(requests, index = null)
 
-        val result = repository.getByShortCode("ABC123")
+        repository.create(model.toDomainForTest().copy(shortCode = "ABC123"))
 
-        assertNull(result)
+        assertEquals(listOf("shopping", "shortCodes"), requests.map { it.endpoint })
+        assertEquals(mapOf("id" to "ABC123", "shoppingId" to "s1"), requests[1].payload)
+    }
+
+    @Test
+    fun `resolveShortCode reads the index`() = runTest {
+        stubShortCodes(mutableListOf(), index = ShortCodeModel("ABC123", "s1"))
+
+        assertEquals("s1", repository.resolveShortCode("ABC123"))
+    }
+
+    @Test
+    fun `resolveShortCode falls back to the legacy query for lists without an index`() = runTest {
+        stubShortCodes(mutableListOf(), index = null, legacy = listOf(model))
+
+        assertEquals("s1", repository.resolveShortCode("ABC123"))
+    }
+
+    @Test
+    fun `resolveShortCode returns null when nothing matches`() = runTest {
+        stubShortCodes(mutableListOf(), index = null, legacy = emptyList())
+
+        assertNull(repository.resolveShortCode("ABC123"))
+    }
+
+    @Test
+    fun `ensureShortCodeIndex writes the index only when it is missing`() = runTest {
+        val missing = mutableListOf<NetworkService.NetworkRequest>()
+        stubShortCodes(missing, index = null)
+        repository.ensureShortCodeIndex(model.toDomainForTest().copy(shortCode = "ABC123"))
+        assertEquals(NetworkService.Method.POST, missing.last().method)
+
+        val present = mutableListOf<NetworkService.NetworkRequest>()
+        stubShortCodes(present, index = ShortCodeModel("ABC123", "s1"))
+        repository.ensureShortCodeIndex(model.toDomainForTest().copy(shortCode = "ABC123"))
+        assertEquals(listOf(NetworkService.Method.GET), present.map { it.method })
+    }
+
+    @Test
+    fun `delete removes the share code index before the list when it points to it`() = runTest {
+        val requests = mutableListOf<NetworkService.NetworkRequest>()
+        stubShortCodes(requests, index = ShortCodeModel("ABC123", "s1"))
+
+        repository.delete(model.toDomainForTest().copy(shortCode = "ABC123"))
+
+        assertEquals(
+            listOf(
+                "shortCodes/ABC123" to NetworkService.Method.GET,
+                "shortCodes/ABC123" to NetworkService.Method.DELETE,
+                "shopping/s1/products" to NetworkService.Method.GET,
+                "shopping/s1" to NetworkService.Method.DELETE
+            ),
+            requests.map { it.endpoint to it.method }
+        )
+    }
+
+    @Test
+    fun `delete keeps a share code index that belongs to another list`() = runTest {
+        val requests = mutableListOf<NetworkService.NetworkRequest>()
+        stubShortCodes(requests, index = ShortCodeModel("ABC123", "original"))
+
+        repository.delete(model.toDomainForTest().copy(shortCode = "ABC123"))
+
+        assertTrue(requests.none { it.endpoint == "shortCodes/ABC123" && it.method == NetworkService.Method.DELETE })
     }
 
     @Test

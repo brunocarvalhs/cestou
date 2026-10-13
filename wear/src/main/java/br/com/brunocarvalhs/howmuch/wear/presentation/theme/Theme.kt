@@ -13,8 +13,8 @@ import br.com.brunocarvalhs.howmuch.core.theme.CestouOrange
 import br.com.brunocarvalhs.howmuch.core.theme.CestouSoftGreen
 import br.com.brunocarvalhs.howmuch.core.theme.CestouSoftOrange
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTextTertiary
-import br.com.brunocarvalhs.howmuch.core.theme.Error as CestouError
 import br.com.brunocarvalhs.howmuch.core.theme.SurfaceDark
+import br.com.brunocarvalhs.howmuch.core.theme.Error as CestouError
 
 private val WearDarkColorScheme = ColorScheme(
     primary = CestouBrightGreen,

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
@@ -15,6 +16,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -27,12 +30,26 @@ internal class MainViewModel @Inject constructor(
     settingsRepository: SettingsRepository,
     private val authService: AuthService,
     private val userRepository: UserRepository,
-    private val analyticsTracker: AnalyticsTracker
+    private val analyticsTracker: AnalyticsTracker,
+    private val wearableSyncService: WearableSyncService
 ) : ViewModel() {
 
     init {
         analyticsTracker.trackEvent(AnalyticsEvents.APP_OPEN)
         syncUserProfile()
+        signOutWatchOnSignOut()
+    }
+
+    /** The watch has its own Firebase session (AD-009); drop it whenever the phone signs out. */
+    private fun signOutWatchOnSignOut() {
+        viewModelScope.launch {
+            authService.authState
+                .map { it != null }
+                .distinctUntilChanged()
+                .drop(1)
+                .filter { signedIn -> !signedIn }
+                .collect { wearableSyncService.notifySignOut() }
+        }
     }
 
     /**

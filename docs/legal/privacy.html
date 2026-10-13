@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Cestou — Privacy Policy / Política de Privacidade</title>
+<title>Cestou — Política de Privacidade / Privacy Policy / Política de Privacidad</title>
 <style>
   :root {
     --bg: #ffffff;
@@ -36,7 +36,9 @@
   }
   h1 { font-size: 1.75rem; margin-bottom: 0; }
   h2 { font-size: 1.25rem; margin-top: 2.5rem; color: var(--accent); }
+  h3 { font-size: 1.05rem; margin-top: 1.75rem; }
   p.subtitle { color: var(--muted); margin-top: 4px; }
+  p.meta { color: var(--muted); font-size: 0.9rem; }
   .lang-switch { display: flex; gap: 12px; margin: 24px 0; }
   .lang-switch a {
     color: var(--accent);
@@ -44,7 +46,7 @@
     font-weight: 600;
     font-size: 0.9rem;
   }
-  ol { padding-left: 1.2rem; }
+  ol, ul { padding-left: 1.2rem; }
   li { margin-bottom: 0.5rem; }
   footer {
     margin-top: 3rem;
@@ -59,40 +61,255 @@
 <body>
 <main>
   <h1>Cestou</h1>
-  <p class="subtitle">Privacy Policy / Política de Privacidade</p>
+  <p class="subtitle">Política de Privacidade / Privacy Policy / Política de Privacidad</p>
   <div class="lang-switch">
     <a href="#pt">Português</a>
     <a href="#en">English</a>
+    <a href="#es">Español</a>
   </div>
 
-  <section id="pt">
+  <!-- ===================================================================== -->
+  <section id="pt" lang="pt-BR">
     <h2>Política de Privacidade</h2>
-    <p>Sua privacidade é nossa prioridade:</p>
+    <p class="meta">Versão 2.0 &middot; Última atualização: 2026-10-11</p>
+    <p>Esta política explica quais dados pessoais o app Cestou trata, por quê, com quem eles são compartilhados e como você exerce seus direitos, conforme a Lei Geral de Proteção de Dados (LGPD, Lei 13.709/2018).</p>
+
+    <h3>1. Quem é o responsável (controlador)</h3>
+    <p>O Cestou é desenvolvido e mantido por <strong>Bruno Carvalho</strong>, pessoa física, que é o controlador dos dados pessoais tratados pelo app.</p>
+    <p><strong>Canal de comunicação (encarregado):</strong> como agente de tratamento de pequeno porte (Resolução CD/ANPD nº 2/2022), o canal de comunicação exigido pelo art. 41 da LGPD é o contato do desenvolvedor informado na página do Cestou no Google Play. Os seus direitos podem ser exercidos diretamente no app, como descrito na seção 7.</p>
+
+    <h3>2. Dados tratados, finalidade e base legal</h3>
     <ol>
-      <li><strong>Coleta de Dados:</strong> Coletamos apenas seu ID de usuário anônimo e suas listas de compras para sincronização.</li>
-      <li><strong>Compartilhamento:</strong> Não compartilhamos seus dados pessoais com terceiros para fins publicitários.</li>
-      <li><strong>Cookies:</strong> Não utilizamos cookies de rastreamento.</li>
-      <li><strong>Segurança:</strong> Utilizamos criptografia AES para proteger dados sensíveis no dispositivo.</li>
-      <li><strong>Exclusão de conta:</strong> Você pode excluir permanentemente sua conta e todos os seus dados a qualquer momento, em Configurações &gt; Dados &gt; Excluir Conta.</li>
+      <li><strong>Conta e login.</strong> Com e-mail e senha: nome, e-mail e senha. Com login do Google: nome, e-mail, foto de perfil e um identificador da conta Google. A senha é gerenciada pelo Firebase Authentication (Google) e nunca fica acessível para nós. <em>Finalidade:</em> criar sua conta e permitir o login. <em>Base legal:</em> execução de contrato (art. 7º, V).</li>
+      <li><strong>Perfil.</strong> Identificador da conta, nome, e-mail e endereço da foto de perfil, guardados no banco de dados (Firebase Firestore). <em>Finalidade:</em> identificar você no app e mostrar seu nome e foto aos membros das listas que você compartilha. <em>Base legal:</em> execução de contrato.</li>
+      <li><strong>Listas de compras.</strong> Título, descrição, orçamento, status e os itens (nome, quantidade, preço, categoria, código de barras), além do registro de qual membro adicionou ou alterou cada item. Também a sua "cesta básica" personalizada (nome, categoria e unidade dos produtos). <em>Finalidade:</em> guardar e sincronizar suas listas entre aparelhos e com os membros. <em>Base legal:</em> execução de contrato.</li>
+      <li><strong>Avisos de colaboração.</strong> Quando alguém entra em uma lista ou finaliza uma compra, o app grava um aviso (título e mensagem) para os outros membros. Lembretes que você agenda são gerados no próprio aparelho. <em>Base legal:</em> execução de contrato.</li>
+      <li><strong>Configurações no aparelho.</strong> Tema, idioma, moeda, lembretes, provedor e modelo de IA e instruções personalizadas para a IA ficam guardados só no seu aparelho. <em>Base legal:</em> execução de contrato.</li>
+      <li><strong>Câmera e fotos de produtos.</strong> A leitura de códigos de barras e de etiquetas de preço é feita no próprio aparelho (Google ML Kit, sem envio da imagem). Somente quando a leitura no aparelho não reconhece nada, a foto é enviada ao Google Gemini para identificar os produtos. <em>Base legal:</em> consentimento (art. 7º, I), que você dá ou retira na chave de consentimento para envio de fotos à IA, em <strong>Configurações &gt; Dados</strong>.</li>
+      <li><strong>Assistente de IA e sugestões.</strong> No chat, enviamos ao provedor de IA o texto que você digita, o histórico da conversa, o identificador da lista aberta e, quando o assistente consulta ou altera suas listas a seu pedido, os dados dessas listas necessários para responder (nomes de listas, itens e preços). O provedor é o escolhido em Configurações &gt; IA: OpenRouter (padrão) ou Google Gemini. Para sugerir itens e perguntas, o título, a descrição e os nomes dos itens da lista são enviados ao Google Gemini. Seu nome e e-mail não são enviados de propósito, mas evite escrever dados pessoais no chat. <em>Base legal:</em> execução de contrato (recurso que você aciona).</li>
+      <li><strong>Busca de produtos e receitas.</strong> O termo que você busca é enviado ao Open Food Facts (produtos) e o termo ou código da receita ao TheMealDB (receitas), sem identificador da sua conta. O texto das receitas é traduzido pelo Google Gemini. <em>Base legal:</em> execução de contrato.</li>
+      <li><strong>Assinatura Cestou Pro.</strong> O pagamento é feito pelo Google Play; não recebemos os dados do seu cartão. O app consulta no Google Play o status da sua assinatura e confirma a compra. <em>Base legal:</em> execução de contrato.</li>
+      <li><strong>Relógio Wear OS.</strong> Se você usa o app no relógio, o celular envia ao relógio pareado o status do login, o identificador da sua conta e suas listas. <em>Base legal:</em> execução de contrato.</li>
+      <li><strong>Diagnóstico e uso.</strong> Firebase Crashlytics (relatórios de falha com modelo do aparelho, versão do Android e do app, detalhes técnicos do erro e o identificador interno da conta, sem nome ou e-mail), Firebase Analytics (eventos de uso do app, como telas abertas e ações) e Firebase Performance Monitoring (tempos de carregamento e de rede). <em>Finalidade:</em> corrigir erros e melhorar o app. <em>Base legal:</em> legítimo interesse (art. 7º, IX). Você pode desligar a coleta de Analytics e Crashlytics em <strong>Configurações &gt; Dados</strong>.</li>
+      <li><strong>Segurança e configuração.</strong> O Firebase App Check (com Google Play Integrity) verifica se as requisições vêm do app original, e o Firebase Remote Config entrega configurações ao app. Ambos usam identificadores técnicos da instalação. <em>Base legal:</em> legítimo interesse (segurança e prevenção a fraude).</li>
+      <li><strong>Assistentes do sistema.</strong> O app oferece ações (criar e consultar listas, buscar produtos e receitas) a assistentes do Android compatíveis com App Functions. Elas só são executadas quando você pede ao assistente; o tratamento feito pelo assistente segue a política do fornecedor dele.</li>
     </ol>
-    <p>Dúvidas? Entre em contato via <a href="mailto:suporte@cestou.com.br">suporte@cestou.com.br</a></p>
+    <p>Não vendemos seus dados, não usamos seus dados para publicidade e não fazemos perfil para anúncios. O app não exibe anúncios. Estas páginas não usam cookies de rastreamento.</p>
+
+    <h3>3. Com quem compartilhamos</h3>
+    <ul>
+      <li><strong>Google (Firebase):</strong> Authentication, Firestore, Crashlytics, Analytics, Performance Monitoring, Remote Config, App Check e Hosting. Recebe os dados descritos acima para armazená-los e operá-los em nosso nome.</li>
+      <li><strong>Google (Gemini API):</strong> fotos de produtos (quando a leitura no aparelho falha), mensagens do chat quando o Gemini é o provedor, dados de listas para sugestões e textos de receitas para tradução.</li>
+      <li><strong>OpenRouter:</strong> mensagens do chat e os dados de listas usados pelo assistente, quando ele é o provedor (padrão). O OpenRouter encaminha a conversa a um modelo de IA, que pode ser de outra empresa.</li>
+      <li><strong>Open Food Facts</strong> e <strong>TheMealDB:</strong> apenas os termos de busca.</li>
+      <li><strong>Google Play:</strong> processa a compra e a renovação da assinatura, conforme a política de privacidade do Google.</li>
+      <li><strong>Outros membros das suas listas compartilhadas</strong> (veja a seção 4).</li>
+      <li><strong>Autoridades</strong>, quando houver obrigação legal ou ordem judicial.</li>
+    </ul>
+
+    <h3>4. Listas compartilhadas</h3>
+    <p>Quando você compartilha uma lista (por link, QR code ou código) ou entra em uma, todos os membros veem e podem editar o conteúdo dela (itens, preços, orçamento) e veem o nome e a foto de perfil dos demais membros, além de quem adicionou ou alterou cada item. Compartilhe apenas com quem você confia.</p>
+
+    <h3>5. Transferência internacional</h3>
+    <p>Google, OpenRouter, Open Food Facts e TheMealDB podem tratar dados em servidores fora do Brasil. Essas transferências ocorrem para executar o serviço que você solicitou e com base nas garantias contratuais e de segurança oferecidas por esses fornecedores, nos termos do art. 33 da LGPD.</p>
+
+    <h3>6. Por quanto tempo guardamos</h3>
+    <ul>
+      <li>Conta, perfil e listas: enquanto sua conta existir.</li>
+      <li>Ao excluir a conta pelo app, apagamos seu login, seu perfil, seus produtos frequentes, as listas em que você é o único membro e os dados salvos no aparelho; nas listas compartilhadas, você é removido e a lista continua com os outros membros, junto com os itens que você adicionou. Notificações já enviadas a outros membros não são apagadas. A exclusão também pode ser feita pela web, na página <a href="delete-account.html">Excluir conta</a>.</li>
+      <li>Dados de diagnóstico e uso (Crashlytics/Analytics) seguem os prazos de retenção do Firebase e depois são apagados automaticamente.</li>
+      <li>Podemos guardar dados por mais tempo apenas quando a lei exigir.</li>
+    </ul>
+
+    <h3>7. Seus direitos e como exercê-los</h3>
+    <p>Pelo art. 18 da LGPD, você pode pedir: confirmação de que tratamos seus dados; acesso aos dados; correção de dados incompletos ou errados; anonimização, bloqueio ou eliminação de dados desnecessários ou tratados em desacordo com a lei; portabilidade; eliminação dos dados tratados com base no consentimento; informação sobre com quem compartilhamos; informação sobre a possibilidade de não consentir e suas consequências; e revogação do consentimento. Você também pode se opor a tratamento baseado em legítimo interesse.</p>
+    <ul>
+      <li><strong>Acesso e portabilidade:</strong> em Configurações &gt; Dados &gt; Exportar meus dados, o app gera um arquivo com os dados da sua conta.</li>
+      <li><strong>Correção:</strong> edite seu nome no seu perfil, no app. Itens e listas podem ser editados diretamente.</li>
+      <li><strong>Eliminação:</strong> exclua a conta no app, em Configurações &gt; Dados &gt; Excluir Conta, ou na web, pela página <a href="delete-account.html">Excluir conta</a>.</li>
+      <li><strong>Revogação do consentimento e oposição:</strong> use as chaves em Configurações &gt; Dados para desligar os dados de uso e falhas (Analytics/Crashlytics) e o consentimento para envio de fotos à IA.</li>
+      <li><strong>Informações sobre compartilhamento:</strong> estão nesta política, na seção 3.</li>
+    </ul>
+    <p>Você também pode apresentar reclamação à Autoridade Nacional de Proteção de Dados (ANPD).</p>
+
+    <h3>8. Crianças e adolescentes</h3>
+    <p>O Cestou é um app de compras de supermercado para famílias e não é direcionado a crianças menores de 13 anos. Adolescentes de 13 a 17 anos podem usá-lo. Nesse caso, o tratamento é feito no melhor interesse do adolescente (art. 14 da LGPD): usamos apenas os dados necessários para o serviço, sem publicidade, sem criação de perfil e sem venda de dados. Pais ou responsáveis podem exercer os direitos do titular pelos recursos do app descritos na seção 7. Se soubermos que uma criança menor de 12 anos criou uma conta sem o consentimento de um dos pais ou responsável (art. 14, §1º), excluiremos a conta.</p>
+
+    <h3>9. Segurança</h3>
+    <ul>
+      <li>Toda a comunicação com nossos servidores e fornecedores usa conexão criptografada (TLS/HTTPS).</li>
+      <li>O acesso ao banco de dados exige login e é controlado por regras de segurança do Firebase, que limitam cada lista aos seus membros.</li>
+      <li>O Firebase App Check bloqueia requisições que não venham do app original.</li>
+      <li>Os dados guardados no aparelho ficam no armazenamento privado do app, protegido pelo isolamento do Android.</li>
+    </ul>
+    <p>Nenhum sistema é totalmente seguro. Se ocorrer um incidente de segurança que possa trazer risco ou dano relevante a você, comunicaremos a ANPD e os titulares afetados, conforme o art. 48 da LGPD.</p>
+
+    <h3>10. Alterações desta política</h3>
+    <p>Podemos atualizar esta política quando o app mudar. A data e a versão no topo indicam a última alteração. Mudanças relevantes serão avisadas no app ou nesta página antes de entrarem em vigor.</p>
   </section>
 
-  <section id="en">
+  <!-- ===================================================================== -->
+  <section id="en" lang="en">
     <h2>Privacy Policy</h2>
-    <p>Your privacy is our priority:</p>
+    <p class="meta">Version 2.0 &middot; Last updated: 2026-10-11</p>
+    <p>This policy explains what personal data the Cestou app processes, why, who it is shared with and how you exercise your rights under Brazil's General Data Protection Law (LGPD, Law 13,709/2018). The Portuguese version prevails in case of conflict.</p>
+
+    <h3>1. Who is responsible (controller)</h3>
+    <p>Cestou is developed and maintained by <strong>Bruno Carvalho</strong>, an individual, who is the controller of the personal data processed by the app.</p>
+    <p><strong>Communication channel (data protection officer role):</strong> as a small processing agent (ANPD Resolution CD/ANPD No. 2/2022), the communication channel required by LGPD art. 41 is the developer contact listed on Cestou's Google Play page. You can exercise your rights directly in the app, as described in section 7.</p>
+
+    <h3>2. Data processed, purpose and legal basis</h3>
     <ol>
-      <li><strong>Data Collection:</strong> We only collect your anonymous user ID and your shopping lists for synchronization.</li>
-      <li><strong>Sharing:</strong> We do not share your personal data with third parties for advertising purposes.</li>
-      <li><strong>Cookies:</strong> We do not use tracking cookies.</li>
-      <li><strong>Security:</strong> We use AES encryption to protect sensitive data on the device.</li>
-      <li><strong>Account deletion:</strong> You can permanently delete your account and all your data at any time, from Settings &gt; Data &gt; Delete Account.</li>
+      <li><strong>Account and sign-in.</strong> With email and password: name, email and password. With Google sign-in: name, email, profile photo and a Google account identifier. Your password is handled by Firebase Authentication (Google) and is never accessible to us. <em>Purpose:</em> create your account and let you sign in. <em>Legal basis:</em> performance of a contract (art. 7, V).</li>
+      <li><strong>Profile.</strong> Account identifier, name, email and profile photo address, stored in our database (Firebase Firestore). <em>Purpose:</em> identify you in the app and show your name and photo to members of lists you share. <em>Legal basis:</em> performance of a contract.</li>
+      <li><strong>Shopping lists.</strong> Title, description, budget, status and items (name, quantity, price, category, barcode), plus a record of which member added or changed each item. Also your personalised "staples" list (product name, category and unit). <em>Purpose:</em> store and sync your lists across devices and with members. <em>Legal basis:</em> performance of a contract.</li>
+      <li><strong>Collaboration notices.</strong> When someone joins a list or finishes a purchase, the app writes a notice (title and message) for the other members. Reminders you schedule are created on your device. <em>Legal basis:</em> performance of a contract.</li>
+      <li><strong>Settings on the device.</strong> Theme, language, currency, reminders, AI provider and model, and custom AI instructions are stored only on your device. <em>Legal basis:</em> performance of a contract.</li>
+      <li><strong>Camera and product photos.</strong> Barcode and price-tag reading happens on your device (Google ML Kit, the image is not sent). Only when on-device reading recognises nothing is the photo sent to Google Gemini to identify the products. <em>Legal basis:</em> consent (art. 7, I), which you give or withdraw with the AI photo consent switch in <strong>Settings &gt; Data</strong>.</li>
+      <li><strong>AI assistant and suggestions.</strong> In the chat, we send the AI provider the text you type, the conversation history, the identifier of the open list and, when the assistant reads or changes your lists at your request, the list data it needs to answer (list names, items and prices). The provider is the one chosen in Settings &gt; AI: OpenRouter (default) or Google Gemini. To suggest items and questions, the list's title, description and item names are sent to Google Gemini. Your name and email are not deliberately sent, but avoid typing personal data in the chat. <em>Legal basis:</em> performance of a contract (a feature you trigger).</li>
+      <li><strong>Product and recipe search.</strong> Your search term is sent to Open Food Facts (products) and the search term or recipe code to TheMealDB (recipes), without your account identifier. Recipe text is translated by Google Gemini. <em>Legal basis:</em> performance of a contract.</li>
+      <li><strong>Cestou Pro subscription.</strong> Payment is made through Google Play; we do not receive your card details. The app checks your subscription status with Google Play and confirms the purchase. <em>Legal basis:</em> performance of a contract.</li>
+      <li><strong>Wear OS watch.</strong> If you use the app on a watch, the phone sends the paired watch your sign-in status, your account identifier and your lists. <em>Legal basis:</em> performance of a contract.</li>
+      <li><strong>Diagnostics and usage.</strong> Firebase Crashlytics (crash reports with device model, Android and app version, technical error details and the internal account identifier, without name or email), Firebase Analytics (app usage events, such as screens opened and actions) and Firebase Performance Monitoring (loading and network times). <em>Purpose:</em> fix bugs and improve the app. <em>Legal basis:</em> legitimate interest (art. 7, IX). You can turn off Analytics and Crashlytics collection in <strong>Settings &gt; Data</strong>.</li>
+      <li><strong>Security and configuration.</strong> Firebase App Check (with Google Play Integrity) verifies that requests come from the genuine app, and Firebase Remote Config delivers settings to the app. Both use technical installation identifiers. <em>Legal basis:</em> legitimate interest (security and fraud prevention).</li>
+      <li><strong>System assistants.</strong> The app offers actions (create and view lists, search products and recipes) to Android assistants that support App Functions. They only run when you ask the assistant; the assistant's own processing follows its provider's policy.</li>
     </ol>
-    <p>Questions? Contact us at <a href="mailto:suporte@cestou.com.br">suporte@cestou.com.br</a></p>
+    <p>We do not sell your data, do not use it for advertising and do not build advertising profiles. The app shows no ads. These pages do not use tracking cookies.</p>
+
+    <h3>3. Who we share data with</h3>
+    <ul>
+      <li><strong>Google (Firebase):</strong> Authentication, Firestore, Crashlytics, Analytics, Performance Monitoring, Remote Config, App Check and Hosting. Receives the data described above to store and run it on our behalf.</li>
+      <li><strong>Google (Gemini API):</strong> product photos (when on-device reading fails), chat messages when Gemini is the provider, list data for suggestions and recipe text for translation.</li>
+      <li><strong>OpenRouter:</strong> chat messages and the list data used by the assistant, when it is the provider (default). OpenRouter forwards the conversation to an AI model that may belong to another company.</li>
+      <li><strong>Open Food Facts</strong> and <strong>TheMealDB:</strong> search terms only.</li>
+      <li><strong>Google Play:</strong> processes the subscription purchase and renewal, under Google's privacy policy.</li>
+      <li><strong>Other members of your shared lists</strong> (see section 4).</li>
+      <li><strong>Authorities</strong>, when required by law or court order.</li>
+    </ul>
+
+    <h3>4. Shared lists</h3>
+    <p>When you share a list (by link, QR code or code) or join one, every member can see and edit its content (items, prices, budget) and sees the other members' names and profile photos, as well as who added or changed each item. Only share with people you trust.</p>
+
+    <h3>5. International transfer</h3>
+    <p>Google, OpenRouter, Open Food Facts and TheMealDB may process data on servers outside Brazil. These transfers take place to provide the service you requested and rely on the contractual and security safeguards offered by these providers, under art. 33 of the LGPD.</p>
+
+    <h3>6. How long we keep data</h3>
+    <ul>
+      <li>Account, profile and lists: while your account exists.</li>
+      <li>When you delete your account in the app, we delete your sign-in, your profile, your frequent products, lists where you are the only member and data stored on the device; in shared lists you are removed and the list stays with the other members, along with the items you added. Notifications already sent to other members are not deleted. You can also delete it on the web, on the <a href="delete-account.html">Delete account</a> page.</li>
+      <li>Diagnostics and usage data (Crashlytics/Analytics) follow Firebase's retention periods and are then deleted automatically.</li>
+      <li>We keep data longer only when the law requires it.</li>
+    </ul>
+
+    <h3>7. Your rights and how to exercise them</h3>
+    <p>Under art. 18 of the LGPD you may request: confirmation that we process your data; access to it; correction of incomplete or wrong data; anonymisation, blocking or deletion of unnecessary data or data processed unlawfully; portability; deletion of data processed on the basis of consent; information about who we share data with; information about the option not to consent and its consequences; and revocation of consent. You may also object to processing based on legitimate interest.</p>
+    <ul>
+      <li><strong>Access and portability:</strong> Settings &gt; Data &gt; Export my data generates a file with your account's data.</li>
+      <li><strong>Correction:</strong> edit your name in your profile in the app. Items and lists can be edited directly.</li>
+      <li><strong>Deletion:</strong> delete your account in the app, Settings &gt; Data &gt; Delete Account, or on the web, via the <a href="delete-account.html">Delete account</a> page.</li>
+      <li><strong>Withdrawing consent and objecting:</strong> use the switches in Settings &gt; Data to turn off usage and crash data (Analytics/Crashlytics) and consent to send photos to the AI.</li>
+      <li><strong>Information about sharing:</strong> see section 3 of this policy.</li>
+    </ul>
+    <p>You may also file a complaint with Brazil's National Data Protection Authority (ANPD).</p>
+
+    <h3>8. Children and teenagers</h3>
+    <p>Cestou is a grocery shopping app for families and is not directed to children under 13. Teenagers aged 13 to 17 may use it. In that case, processing is done in the teenager's best interest (LGPD art. 14): we use only the data needed for the service, with no advertising, no profiling and no sale of data. Parents or guardians may exercise the data subject's rights through the in-app tools described in section 7. If we learn that a child under 12 created an account without a parent's or guardian's consent (art. 14, §1), we will delete the account.</p>
+
+    <h3>9. Security</h3>
+    <ul>
+      <li>All communication with our servers and providers uses an encrypted connection (TLS/HTTPS).</li>
+      <li>Database access requires sign-in and is controlled by Firebase security rules that restrict each list to its members.</li>
+      <li>Firebase App Check blocks requests that do not come from the genuine app.</li>
+      <li>Data stored on the device stays in the app's private storage, protected by Android's app isolation.</li>
+    </ul>
+    <p>No system is completely secure. If a security incident may cause you relevant risk or harm, we will notify the ANPD and the affected data subjects, as required by LGPD art. 48.</p>
+
+    <h3>10. Changes to this policy</h3>
+    <p>We may update this policy when the app changes. The date and version at the top show the latest change. Relevant changes will be announced in the app or on this page before they take effect.</p>
+  </section>
+
+  <!-- ===================================================================== -->
+  <section id="es" lang="es">
+    <h2>Política de Privacidad</h2>
+    <p class="meta">Versión 2.0 &middot; Última actualización: 2026-10-11</p>
+    <p>Esta política explica qué datos personales trata la app Cestou, por qué, con quién se comparten y cómo ejerces tus derechos, según la Ley General de Protección de Datos de Brasil (LGPD, Ley 13.709/2018). En caso de conflicto, prevalece la versión en portugués.</p>
+
+    <h3>1. Quién es el responsable (controlador)</h3>
+    <p>Cestou es desarrollada y mantenida por <strong>Bruno Carvalho</strong>, persona física, que es el responsable de los datos personales tratados por la app.</p>
+    <p><strong>Canal de comunicación (función de encargado):</strong> como agente de tratamiento de pequeño porte (Resolución CD/ANPD nº 2/2022), el canal de comunicación exigido por el art. 41 de la LGPD es el contacto del desarrollador indicado en la página de Cestou en Google Play. Puedes ejercer tus derechos directamente en la app, como se describe en la sección 7.</p>
+
+    <h3>2. Datos tratados, finalidad y base legal</h3>
+    <ol>
+      <li><strong>Cuenta e inicio de sesión.</strong> Con correo y contraseña: nombre, correo y contraseña. Con inicio de sesión de Google: nombre, correo, foto de perfil y un identificador de la cuenta de Google. La contraseña la gestiona Firebase Authentication (Google) y nunca es accesible para nosotros. <em>Finalidad:</em> crear tu cuenta y permitir el inicio de sesión. <em>Base legal:</em> ejecución de contrato (art. 7, V).</li>
+      <li><strong>Perfil.</strong> Identificador de la cuenta, nombre, correo y dirección de la foto de perfil, guardados en la base de datos (Firebase Firestore). <em>Finalidad:</em> identificarte en la app y mostrar tu nombre y foto a los miembros de las listas que compartes. <em>Base legal:</em> ejecución de contrato.</li>
+      <li><strong>Listas de compras.</strong> Título, descripción, presupuesto, estado y artículos (nombre, cantidad, precio, categoría, código de barras), además del registro de qué miembro agregó o cambió cada artículo. También tu "canasta básica" personalizada (nombre, categoría y unidad de los productos). <em>Finalidad:</em> guardar y sincronizar tus listas entre dispositivos y con los miembros. <em>Base legal:</em> ejecución de contrato.</li>
+      <li><strong>Avisos de colaboración.</strong> Cuando alguien se une a una lista o finaliza una compra, la app guarda un aviso (título y mensaje) para los demás miembros. Los recordatorios que programas se generan en el propio dispositivo. <em>Base legal:</em> ejecución de contrato.</li>
+      <li><strong>Configuración en el dispositivo.</strong> Tema, idioma, moneda, recordatorios, proveedor y modelo de IA e instrucciones personalizadas para la IA se guardan solo en tu dispositivo. <em>Base legal:</em> ejecución de contrato.</li>
+      <li><strong>Cámara y fotos de productos.</strong> La lectura de códigos de barras y etiquetas de precio se hace en el dispositivo (Google ML Kit, sin enviar la imagen). Solo cuando la lectura en el dispositivo no reconoce nada, la foto se envía a Google Gemini para identificar los productos. <em>Base legal:</em> consentimiento (art. 7, I), que das o retiras con el interruptor de consentimiento para enviar fotos a la IA, en <strong>Configuraciones &gt; Datos</strong>.</li>
+      <li><strong>Asistente de IA y sugerencias.</strong> En el chat enviamos al proveedor de IA el texto que escribes, el historial de la conversación, el identificador de la lista abierta y, cuando el asistente consulta o cambia tus listas a pedido tuyo, los datos de esas listas necesarios para responder (nombres de listas, artículos y precios). El proveedor es el elegido en Configuraciones &gt; IA: OpenRouter (predeterminado) o Google Gemini. Para sugerir artículos y preguntas, el título, la descripción y los nombres de los artículos de la lista se envían a Google Gemini. Tu nombre y correo no se envían a propósito, pero evita escribir datos personales en el chat. <em>Base legal:</em> ejecución de contrato (función que tú activas).</li>
+      <li><strong>Búsqueda de productos y recetas.</strong> El término que buscas se envía a Open Food Facts (productos) y el término o código de la receta a TheMealDB (recetas), sin identificador de tu cuenta. El texto de las recetas lo traduce Google Gemini. <em>Base legal:</em> ejecución de contrato.</li>
+      <li><strong>Suscripción Cestou Pro.</strong> El pago se hace a través de Google Play; no recibimos los datos de tu tarjeta. La app consulta en Google Play el estado de tu suscripción y confirma la compra. <em>Base legal:</em> ejecución de contrato.</li>
+      <li><strong>Reloj Wear OS.</strong> Si usas la app en el reloj, el teléfono envía al reloj vinculado el estado de la sesión, el identificador de tu cuenta y tus listas. <em>Base legal:</em> ejecución de contrato.</li>
+      <li><strong>Diagnóstico y uso.</strong> Firebase Crashlytics (informes de fallos con modelo del dispositivo, versión de Android y de la app, detalles técnicos del error y el identificador interno de la cuenta, sin nombre ni correo), Firebase Analytics (eventos de uso de la app, como pantallas abiertas y acciones) y Firebase Performance Monitoring (tiempos de carga y de red). <em>Finalidad:</em> corregir errores y mejorar la app. <em>Base legal:</em> interés legítimo (art. 7, IX). Puedes desactivar Analytics y Crashlytics en <strong>Configuraciones &gt; Datos</strong>.</li>
+      <li><strong>Seguridad y configuración.</strong> Firebase App Check (con Google Play Integrity) verifica que las solicitudes provengan de la app original, y Firebase Remote Config entrega configuraciones a la app. Ambos usan identificadores técnicos de la instalación. <em>Base legal:</em> interés legítimo (seguridad y prevención de fraude).</li>
+      <li><strong>Asistentes del sistema.</strong> La app ofrece acciones (crear y consultar listas, buscar productos y recetas) a asistentes de Android compatibles con App Functions. Solo se ejecutan cuando se lo pides al asistente; el tratamiento que haga el asistente sigue la política de su proveedor.</li>
+    </ol>
+    <p>No vendemos tus datos, no los usamos para publicidad ni creamos perfiles publicitarios. La app no muestra anuncios. Estas páginas no usan cookies de seguimiento.</p>
+
+    <h3>3. Con quién compartimos</h3>
+    <ul>
+      <li><strong>Google (Firebase):</strong> Authentication, Firestore, Crashlytics, Analytics, Performance Monitoring, Remote Config, App Check y Hosting. Recibe los datos descritos arriba para almacenarlos y operarlos en nuestro nombre.</li>
+      <li><strong>Google (Gemini API):</strong> fotos de productos (cuando falla la lectura en el dispositivo), mensajes del chat cuando Gemini es el proveedor, datos de listas para sugerencias y textos de recetas para traducir.</li>
+      <li><strong>OpenRouter:</strong> mensajes del chat y los datos de listas que usa el asistente, cuando es el proveedor (predeterminado). OpenRouter reenvía la conversación a un modelo de IA que puede ser de otra empresa.</li>
+      <li><strong>Open Food Facts</strong> y <strong>TheMealDB:</strong> solo los términos de búsqueda.</li>
+      <li><strong>Google Play:</strong> procesa la compra y la renovación de la suscripción, según la política de privacidad de Google.</li>
+      <li><strong>Otros miembros de tus listas compartidas</strong> (ver la sección 4).</li>
+      <li><strong>Autoridades</strong>, cuando lo exija la ley o una orden judicial.</li>
+    </ul>
+
+    <h3>4. Listas compartidas</h3>
+    <p>Cuando compartes una lista (por enlace, código QR o código) o te unes a una, todos los miembros ven y pueden editar su contenido (artículos, precios, presupuesto) y ven el nombre y la foto de perfil de los demás miembros, además de quién agregó o cambió cada artículo. Comparte solo con personas de confianza.</p>
+
+    <h3>5. Transferencia internacional</h3>
+    <p>Google, OpenRouter, Open Food Facts y TheMealDB pueden tratar datos en servidores fuera de Brasil. Estas transferencias se realizan para prestar el servicio que solicitaste y se basan en las garantías contractuales y de seguridad que ofrecen estos proveedores, según el art. 33 de la LGPD.</p>
+
+    <h3>6. Cuánto tiempo guardamos los datos</h3>
+    <ul>
+      <li>Cuenta, perfil y listas: mientras tu cuenta exista.</li>
+      <li>Al eliminar la cuenta en la app, borramos tu inicio de sesión, tu perfil, tus productos frecuentes, las listas en las que eres el único miembro y los datos guardados en el dispositivo; en las listas compartidas se te quita y la lista sigue con los demás miembros, junto con los artículos que agregaste. Las notificaciones ya enviadas a otros miembros no se borran. También puedes eliminarla en la web, en la página <a href="delete-account.html">Eliminar cuenta</a>.</li>
+      <li>Los datos de diagnóstico y uso (Crashlytics/Analytics) siguen los plazos de retención de Firebase y luego se borran automáticamente.</li>
+      <li>Solo guardamos datos por más tiempo cuando la ley lo exige.</li>
+    </ul>
+
+    <h3>7. Tus derechos y cómo ejercerlos</h3>
+    <p>Según el art. 18 de la LGPD puedes solicitar: confirmación de que tratamos tus datos; acceso a ellos; corrección de datos incompletos o erróneos; anonimización, bloqueo o eliminación de datos innecesarios o tratados en contra de la ley; portabilidad; eliminación de los datos tratados con base en el consentimiento; información sobre con quién los compartimos; información sobre la posibilidad de no consentir y sus consecuencias; y revocación del consentimiento. También puedes oponerte al tratamiento basado en interés legítimo.</p>
+    <ul>
+      <li><strong>Acceso y portabilidad:</strong> en Configuraciones &gt; Datos &gt; Exportar mis datos, la app genera un archivo con los datos de tu cuenta.</li>
+      <li><strong>Corrección:</strong> edita tu nombre en tu perfil, en la app. Los artículos y las listas se pueden editar directamente.</li>
+      <li><strong>Eliminación:</strong> elimina tu cuenta en la app, en Configuraciones &gt; Datos &gt; Eliminar Cuenta, o en la web, en la página <a href="delete-account.html">Eliminar cuenta</a>.</li>
+      <li><strong>Revocación del consentimiento y oposición:</strong> usa los interruptores de Configuraciones &gt; Datos para desactivar los datos de uso y fallos (Analytics/Crashlytics) y el consentimiento para enviar fotos a la IA.</li>
+      <li><strong>Información sobre con quién compartimos:</strong> está en la sección 3 de esta política.</li>
+    </ul>
+    <p>También puedes presentar una reclamación ante la Autoridad Nacional de Protección de Datos de Brasil (ANPD).</p>
+
+    <h3>8. Niños y adolescentes</h3>
+    <p>Cestou es una app de compras de supermercado para familias y no está dirigida a niños menores de 13 años. Los adolescentes de 13 a 17 años pueden usarla. En ese caso, el tratamiento se hace en el mejor interés del adolescente (art. 14 de la LGPD): usamos solo los datos necesarios para el servicio, sin publicidad, sin creación de perfiles y sin venta de datos. Los padres o tutores pueden ejercer los derechos del titular con las herramientas de la app descritas en la sección 7. Si sabemos que un niño menor de 12 años creó una cuenta sin el consentimiento de uno de sus padres o tutor (art. 14, §1), eliminaremos la cuenta.</p>
+
+    <h3>9. Seguridad</h3>
+    <ul>
+      <li>Toda la comunicación con nuestros servidores y proveedores usa una conexión cifrada (TLS/HTTPS).</li>
+      <li>El acceso a la base de datos requiere iniciar sesión y está controlado por reglas de seguridad de Firebase que limitan cada lista a sus miembros.</li>
+      <li>Firebase App Check bloquea las solicitudes que no provienen de la app original.</li>
+      <li>Los datos guardados en el dispositivo quedan en el almacenamiento privado de la app, protegido por el aislamiento de Android.</li>
+    </ul>
+    <p>Ningún sistema es totalmente seguro. Si ocurre un incidente de seguridad que pueda causarte un riesgo o daño relevante, lo comunicaremos a la ANPD y a los titulares afectados, según el art. 48 de la LGPD.</p>
+
+    <h3>10. Cambios en esta política</h3>
+    <p>Podemos actualizar esta política cuando la app cambie. La fecha y la versión al inicio indican el último cambio. Los cambios relevantes se avisarán en la app o en esta página antes de entrar en vigor.</p>
   </section>
 
   <footer>
-    Cestou &middot; <a href="terms.html">Terms of Use / Termos de Uso</a>
+    Cestou &middot; <a href="terms.html">Termos de Uso / Terms of Use / Términos de Uso</a> &middot; <a href="delete-account.html">Excluir conta / Delete account</a>
   </footer>
 </main>
 </body>

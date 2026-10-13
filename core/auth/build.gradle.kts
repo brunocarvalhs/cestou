@@ -1,31 +1,10 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.google.devtools.ksp)
-    alias(libs.plugins.hilt)
+    id("howmuch.android.library")
+    id("howmuch.android.hilt")
 }
 
 android {
     namespace = "br.com.brunocarvalhs.howmuch.core.auth"
-    compileSdk = libs.versions.compileSdk.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
 }
 
 dependencies {
@@ -39,14 +18,6 @@ dependencies {
     implementation(libs.firebase.crashlytics)
     implementation(libs.kotlinx.coroutines.play.services)
 
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
     implementation(libs.timber)
     implementation(libs.androidx.datastore.preferences)
-
-    testImplementation(libs.junit)
-    testImplementation(libs.konsist)
-    testImplementation(libs.mockk)
-    testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.turbine)
 }

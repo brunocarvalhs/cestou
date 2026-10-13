@@ -3,6 +3,7 @@ package br.com.brunocarvalhs.howmuch.wear.presentation.service
 import br.com.brunocarvalhs.howmuch.core.common.wearable.PairingCodeHolder
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearablePaths
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.feature.shopping.data.local.WearListStore
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
@@ -23,16 +24,28 @@ class WearAuthListenerService : WearableListenerService() {
     @Inject
     lateinit var pairingCodeHolder: PairingCodeHolder
 
+    @Inject
+    lateinit var wearListStore: WearListStore
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun onMessageReceived(messageEvent: MessageEvent) {
         when (messageEvent.path) {
             WearablePaths.AUTH_PAIR -> {
-                val userId = String(messageEvent.data)
+                val (userId, idToken) = WearablePaths.decodeAuthPair(messageEvent.data) ?: run {
+                    Timber.tag("WearAuth").w("Ignoring a pairing message without a Google ID token")
+                    return
+                }
                 Timber.tag("WearAuth").d("Received pairing message for user: $userId")
                 scope.launch {
-                    authService.updateUserId(userId)
+                    authService.signInWithGoogleIdToken(idToken, userId)
+                        .onFailure { Timber.tag("WearAuth").e(it, "Watch sign-in failed") }
                 }
+            }
+
+            WearablePaths.AUTH_SIGN_OUT -> scope.launch {
+                authService.signOut()
+                wearListStore.clear()
             }
 
             WearablePaths.PAIRING_VERIFY -> {

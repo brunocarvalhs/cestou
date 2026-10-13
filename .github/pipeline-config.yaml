@@ -159,7 +159,7 @@ coverage:
     display_name: "\U0001F4CA Test Coverage Gate (min. 80%)"
     description: "Minimum aggregated line coverage gate (80%), enforced via kover { reports { total { verify { rule { minBound(80) } } } } } in the root build.gradle.kts"
     enabled: true
-    command: "./gradlew koverVerify"
+    command: "./gradlew koverVerify koverVerifyLayout"
     report_path: "build/reports/kover/html/index.html"
     pr_comment:
       success: "✅ Cobertura de testes acima de 80%! Bom trabalho."
@@ -183,9 +183,12 @@ instrumented_tests:
   # results" instead of skipping cleanly - a real AGP behavior hit running
   # this for the first time in CI, not a config typo.
   # Add more `:module:connectedDebugAndroidTest` targets here once another
-  # module actually has androidTest sources. feature/products is the first
-  # (G11 camera-executor regression, .specs/COVERAGE-BASELINE.md).
-  command: "./gradlew :app:connectedDebugAndroidTest :feature:products:connectedDebugAndroidTest"
+  # module actually has androidTest sources. The G11 camera-executor test moved
+  # from feature/products to core/ui (G10-02); feature/settings covers the
+  # account deletion flow Play reviews. If a test process crashes at startup
+  # (e.g. Firebase initializers in a library module), AGP reports success with
+  # 0 tests - tests.yml's zero-test guard step fails the job on that.
+  command: "./gradlew :app:connectedDebugAndroidTest :core:ui:connectedDebugAndroidTest :feature:settings:connectedDebugAndroidTest"
   # Overrides build.default_timeout_minutes - emulator boot + test run is the
   # single slowest, most hang-prone step in the whole pipeline.
   timeout_minutes: 30
@@ -208,7 +211,7 @@ size_check:
   variant: "debug"
   gradle_task: "assembleDebug"
   max_increase_percent: 10
-  baseline_bytes: 189117106
+  baseline_bytes: 188627527
   pr_comment:
     success: "✅ Tamanho do APK dentro do limite."
     failure: "❌ O APK cresceu além do limite configurado (size_check.max_increase_percent) - verifique se esse aumento é esperado."
@@ -320,6 +323,10 @@ security:
     enabled: true
     languages: "java-kotlin"
     build_command: "./gradlew assembleDebug -x lint -x test -x detekt"
+    # Overrides build.default_timeout_minutes: a full assembleDebug under the
+    # CodeQL tracer takes 9-12 min on a warm cache and hit the 15 min default
+    # (cancelled at 15:04) once new dependencies had to be downloaded (#191).
+    timeout_minutes: 25
     # No standalone schedule: master and develop are both PR-only now (branch
     # protection blocks direct pushes to master, and the whole promotion/
     # hotfix/rollback flow goes through PRs into develop too), so every

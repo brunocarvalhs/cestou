@@ -7,8 +7,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import br.com.brunocarvalhs.howmuch.core.common.util.LegalUrls
-import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiSettings
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiSettings
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.screen.AiSettingsScreen
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.screen.DataSettingsScreen
@@ -66,7 +66,7 @@ private fun NavGraphBuilder.generalSettings(navigator: Navigator) {
 
         // Simples placeholder ou implementação real
         PlaceholderSettingsScreen(
-            title = "Idioma",
+            title = stringResource(R.string.settings_item_language),
             onBack = { navigator.goBack() }
         )
     }
@@ -78,7 +78,7 @@ private fun NavGraphBuilder.generalSettings(navigator: Navigator) {
 
         // Simples placeholder ou implementação real
         PlaceholderSettingsScreen(
-            title = "Moeda",
+            title = stringResource(R.string.settings_item_currency),
             onBack = { navigator.goBack() }
         )
     }

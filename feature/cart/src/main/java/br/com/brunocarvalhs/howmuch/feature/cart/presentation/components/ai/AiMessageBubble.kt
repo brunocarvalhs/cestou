@@ -25,8 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 import br.com.brunocarvalhs.howmuch.core.theme.CestouBrightGreen
-import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
 
 @Composable
 fun AiMessageBubble(
@@ -59,7 +59,7 @@ fun AiMessageBubble(
         }
 
         Surface(
-            modifier = Modifier.fillMaxWidth(0.85f),
+            modifier = Modifier.fillMaxWidth(AI_BUBBLE_MAX_WIDTH_FRACTION),
             shape = RoundedCornerShape(
                 topStart = if (isUser) 20.dp else 4.dp,
                 topEnd = if (isUser) 4.dp else 20.dp,
@@ -113,3 +113,5 @@ private fun AiMessageBubbleAiPreview() {
         )
     )
 }
+
+private const val AI_BUBBLE_MAX_WIDTH_FRACTION = 0.85f

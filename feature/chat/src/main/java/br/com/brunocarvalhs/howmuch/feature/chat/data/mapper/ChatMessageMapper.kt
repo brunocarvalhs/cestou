@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.chat.data.mapper
 
+import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 import br.com.brunocarvalhs.howmuch.feature.chat.data.model.ChatMessageModel
-import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
 import java.time.Instant
 
 internal fun ChatMessageModel.toDomain(): ChatMessage = ChatMessage(

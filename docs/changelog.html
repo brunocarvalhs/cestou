@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Novidades do Cestou — changelog</title>
+<meta name="description" content="O que mudou em cada versão do Cestou, o app de lista de compras compartilhada.">
+<meta name="theme-color" content="#16A34A">
+<link rel="icon" type="image/png" href="assets/icon.png">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<!-- Gerado por docs/scripts/build-changelog.py a partir de CHANGELOG.md. Não edite à mão. -->
+<a class="skip" href="#conteudo">Pular para o conteúdo</a>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/icon.png" alt="" width="36" height="36">Cestou</a>
+    <nav aria-label="Principal">
+      <ul>
+        <li><a href="./">Início</a></li>
+        <li><a href="./#documentos">Documentos</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main id="conteudo">
+  <section>
+    <div class="wrap">
+      <h1>Novidades</h1>
+      <p class="section-intro">Novos recursos e correções de cada versão do app. As descrições vêm do histórico do projeto, por isso algumas estão em inglês.</p>
+<article class="release" aria-labelledby="v-0">
+<h2 id="v-0">Versão 2.1.1 <time datetime="2026-10-08">2026-10-08</time></h2>
+<p>Só melhorias internas nesta versão.</p>
+</article>
+<article class="release" aria-labelledby="v-1">
+<h2 id="v-1">Versão 2.1.0 <time datetime="2026-10-06">2026-10-06</time></h2>
+<h3>Novidades</h3>
+<ul>
+<li>Required-name gate and users/{uid} sync</li>
+<li>E-mail sign-in, sign-up, password reset and required-name step</li>
+<li>Avatar with photo and initials fallback, form-ready text fields</li>
+<li>Show a Pro benefits list on the Paywall</li>
+<li>Gate list sharing, QR invites, and Wear pairing behind Pro</li>
+<li>Gate the AI chat behind a 1-free-message Pro trial</li>
+<li>Paywall UI + purchase flow</li>
+<li>Collapse settings into a gear icon, add subscription card</li>
+<li>Gate Pro-only agent actions at the dispatch chokepoint</li>
+</ul>
+<h3>Correções</h3>
+<ul>
+<li>Start e-mail screens from LaunchedEffect, not remember</li>
+<li>Free-trial write could be lost if the chat screen closed quickly</li>
+<li>Two real OpenRouter request bugs causing intermittent chat failures</li>
+<li>Auto-scroll and banner color regressions</li>
+<li>Host Privacy Policy / Terms on Firebase Hosting</li>
+</ul>
+</article>
+<article class="release" aria-labelledby="v-2">
+<h2 id="v-2">Versão 2.0.1 <time datetime="2026-09-22">2026-09-22</time></h2>
+<p>Só melhorias internas nesta versão.</p>
+</article>
+<article class="release" aria-labelledby="v-3">
+<h2 id="v-3">Versão 2.0.0 <time datetime="2026-09-21">2026-09-21</time></h2>
+<h3>Novidades</h3>
+<ul>
+<li>Ajuste de layout e mensagens</li>
+<li>Encode invite QR codes and shares as deep links</li>
+<li>Add smart category picker to Add/Edit Product, collapsible category headers</li>
+<li>Add AI chat entry point via FAB, WhatsApp-style UI, and fix broken OpenRouter tool calling</li>
+<li>Removendo chat de IA</li>
+<li>Shopping item adaptado</li>
+<li>Redesign welcome screen with language picker and theme fixes</li>
+<li>Redesenhar tela de welcome/login com logomarca própria</li>
+<li>Instrument beta funnel gaps and document watch plan</li>
+<li>Add Quick Add as the default item entry point</li>
+<li>Attribution avatars on item rows + history sheet</li>
+<li>Warn on duplicate active items in the AI add path</li>
+<li>Wire the three history write points (ADDED/EDITED/PURCHASED)</li>
+<li>Add Product.history for item add/edit/purchase attribution</li>
+<li>Let users pick an emoji when creating a shopping list</li>
+<li>Notify other list members on join and finish</li>
+<li>Add in-app account and data deletion</li>
+<li>Implement the shopping reminder notification</li>
+<li>Refactor navigation routes and implement Wear OS shopping detail</li>
+<li>Vinculo de relogio com a conta</li>
+<li>Limpando funções não utilizadas</li>
+<li>Removendo unidade de medida</li>
+<li>Suporte a wear</li>
+<li>Ajustando o layout para lista de cart</li>
+<li>Recriando tela nova</li>
+<li>New layout abordagem</li>
+<li>Adiciona traduções para ações comuns e descrições de conteúdo em espanhol e português</li>
+<li>Assinatura do aplicativo</li>
+<li>Removendo wear</li>
+</ul>
+<h3>Correções</h3>
+<ul>
+<li>Wait for the actions sheet to compose before asserting</li>
+<li>Adapt to firebase-ui-auth 10.0.0-beta05 breaking API changes</li>
+<li>Respect categorization toggle and fix broken Edit List action</li>
+<li>Add a continuous guard against protected routes while signed out</li>
+<li>Stop NavHost from reacting to isAuthenticated after first frame</li>
+<li>Clear the entire back stack on sign-out, not just push Welcome</li>
+<li>Close race that lets sign-out enter the app with no user data</li>
+<li>Localize sign-in terms text and provider icons</li>
+<li>Persist list position on drag-reorder</li>
+<li>Wire hosted Privacy Policy / Terms of Use URLs</li>
+<li>Reconcile Firestore profile emission into ProfileViewModel state</li>
+<li>Debounce product search and cancel stale requests</li>
+<li>Debounce QR-code join scans</li>
+<li>Shut down scanner camera executor, log bug audit</li>
+<li>Give wear its own applicationId and standalone pairing protocol</li>
+<li>Remove anonymous login and stop faking profile identity</li>
+<li>4 correctness issues from item-add-authorship review</li>
+<li>Hide attribution avatar for products with no history</li>
+<li>Parse malformed Product.history entries defensively</li>
+<li>Cart detail header shows the real shopping description and emoji</li>
+<li>Refresh shopping list reliably on resume and pull-to-refresh</li>
+<li>Shopping lists silently vanishing due to missing @Serializable</li>
+<li>Use LocalLocale instead of Locale.getDefault() in CestouCategoryHeader</li>
+<li>Surface shopping list creation failures instead of failing silently</li>
+<li>Reserve system navigation bar inset in cart bottom bar</li>
+<li>Keep bottom nav mounted and stop it flickering across navigation</li>
+<li>Corrigir problema de flow</li>
+</ul>
+</article>
+<article class="release" aria-labelledby="v-4">
+<h2 id="v-4">Sem versão <time datetime="2026-09-21">2026-09-21</time></h2>
+<h3>Novidades</h3>
+<ul>
+<li>AI chat FAB with WhatsApp-style UI and OpenRouter tool-calling fixes.</li>
+<li>Product attribution (<code>Product.history</code>) for add/edit/purchase, with an attribution avatar and history bottom sheet in the cart.</li>
+<li>Quick Add as the default product entry point; smart category picker with collapsible category headers.</li>
+<li>Shopping invites/shares now encode as deep links (QR + code join).</li>
+<li>Standalone Wear OS pairing protocol with its own Firebase <code>applicationId</code>.</li>
+</ul>
+<h3>Correções</h3>
+<ul>
+<li>Debounced QR-code list-join scans; product search debounced with stale-request cancellation; cart no longer leaks duplicate product collectors; cart respects the categorization toggle and the "Edit List" action works again.</li>
+<li>Profile screen reconciles the Firestore emission correctly; hosted Privacy Policy / Terms of Use URLs wired in.</li>
+</ul>
+</article>
+<article class="release" aria-labelledby="v-5">
+<h2 id="v-5">Versão 1.4.0 <time datetime="2026-08-21">2026-08-21</time></h2>
+<p>Só melhorias internas nesta versão.</p>
+</article>
+<article class="release" aria-labelledby="v-6">
+<h2 id="v-6">Versão 1.3.0 <time datetime="2025-10-21">2025-10-21</time></h2>
+<h3>Novidades</h3>
+<ul>
+<li>Importa lista de compra</li>
+<li>Incluindo permissão de assinatura</li>
+</ul>
+<h3>Correções</h3>
+<ul>
+<li>Processo de captura dos dados e depois compartilhar</li>
+<li>Incluindo código para captura do changelog</li>
+<li>Fluxo de geração de versão automatico</li>
+</ul>
+</article>
+<article class="release" aria-labelledby="v-7">
+<h2 id="v-7">Versão 1.2.2 <time datetime="2025-10-21">2025-10-21</time></h2>
+<p>Só melhorias internas nesta versão.</p>
+</article>
+<article class="release" aria-labelledby="v-8">
+<h2 id="v-8">Versão 1.2.1 <time datetime="2025-10-21">2025-10-21</time></h2>
+<p>Só melhorias internas nesta versão.</p>
+</article>
+<article class="release" aria-labelledby="v-9">
+<h2 id="v-9">Versão 1.2.0 <time datetime="2025-10-21">2025-10-21</time></h2>
+<h3>Novidades</h3>
+<ul>
+<li>Implementando tradução para cada idioma suportado</li>
+<li>Centralizando calculo de produtos</li>
+<li>Criando detalhe do historico</li>
+<li>Criação de plano para suporte a backend</li>
+<li>Ajuste de bug da atualização de layout</li>
+<li>Statusbar color</li>
+<li>Limit de caixa padrão</li>
+<li>Layout responsivo e melhor distribuido</li>
+<li>Mudando conceito de layout da lista</li>
+<li>Invertendo ordem da lista</li>
+<li>Tela de editar produtos</li>
+<li>Refazendo layout para finalizar compra</li>
+<li>Simplificando parte de history</li>
+<li>Formulario para lista de compras</li>
+<li>Configurando o componente para bottom sheet via navigation</li>
+<li>Implementando bottom sheet via navigation</li>
+<li>Checkout com preço estimado definido</li>
+<li>Suporte em multiplos idiomas</li>
+<li>Atualizando texto</li>
+<li>Ajuste de tela</li>
+<li>IsIncludeAndroidResources implementation</li>
+<li>Icones das tabs</li>
+<li>Salvando lista de compra</li>
+<li>Filtro de produtos por lista</li>
+<li>Shopping list logica de card</li>
+<li>Incluindo fluxo de criar lista de compra</li>
+<li>Implementando indicador de card para facilitar identificação de funcionalidade</li>
+</ul>
+<h3>Correções</h3>
+<ul>
+<li>Modo desenvolvedor para controle de assinatura</li>
+<li>Modelo de plano por assinatura</li>
+<li>Removendo crash do componente InputCode</li>
+<li>Removendo crash de quantidade de caixas</li>
+<li>Editor de produtos da lista</li>
+<li>Refazendo processo de remover e alterar quantidade do item</li>
+<li>Ajuste de statusbar</li>
+</ul>
+</article>
+<article class="release" aria-labelledby="v-10">
+<h2 id="v-10">Versão 1.1.0</h2>
+<h3>Novidades</h3>
+<ul>
+<li>Salvando lista de compra</li>
+<li>Filtro de produtos por lista</li>
+<li>Lógica de card da lista de compras</li>
+<li>Incluindo fluxo de criar lista de compra</li>
+<li>Implementando indicador de card para facilitar identificação de funcionalidade</li>
+</ul>
+</article>
+<article class="release" aria-labelledby="v-11">
+<h2 id="v-11">Versão 1.0.1</h2>
+<h3>Novidades</h3>
+<ul>
+<li>Track de eventos para performance e analytics</li>
+<li>Ajustes de layout para eventos nulos e interação do cliente na lista</li>
+<li>MVP da aplicação</li>
+</ul>
+</article>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <nav aria-label="Rodapé">
+      <ul>
+        <li><a href="legal/privacy.html">Política de Privacidade</a></li>
+        <li><a href="legal/terms.html">Termos de Uso</a></li>
+        <li><a href="legal/delete-account.html">Excluir conta</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </nav>
+    <p>Cestou · Android e Wear OS</p>
+  </div>
+</footer>
+</body>
+</html>

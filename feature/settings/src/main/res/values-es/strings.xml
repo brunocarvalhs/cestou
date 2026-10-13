@@ -80,15 +80,19 @@
     <string name="settings_data_delete_all">Eliminar todos los datos</string>
     <string name="settings_data_delete_all_hint">Elimina listas y configuraciones permanentemente</string>
     <string name="settings_data_delete_confirmation_title">¿Eliminar todos los datos?</string>
-    <string name="settings_data_delete_confirmation_message">Esta action no se puede deshacer. Todas sus listas y configuraciones locales se eliminarán permanentemente.</string>
+    <string name="settings_data_delete_confirmation_message">Esta acción no se puede deshacer. Todas sus listas y configuraciones locales se eliminarán permanentemente.</string>
     <string name="settings_data_delete_button">Sí, eliminar todo</string>
     <string name="settings_data_delete_account">Eliminar Cuenta</string>
-    <string name="settings_data_delete_account_hint">Elimina permanentemente su cuenta y todos sus datos</string>
+    <string name="settings_data_delete_account_hint">Elimina permanentemente su cuenta, su perfil y sus listas</string>
     <string name="settings_data_delete_account_confirmation_title">¿Eliminar cuenta?</string>
-    <string name="settings_data_delete_account_confirmation_message">Esta acción no se puede deshacer. Su cuenta, perfil y listas de compras se eliminarán permanentemente.</string>
+    <string name="settings_data_delete_account_confirmation_message">Esta acción no se puede deshacer. Su cuenta, su perfil, sus productos frecuentes y las listas que solo usted usa se eliminarán permanentemente. Saldrá de las listas compartidas; seguirán con los demás miembros, junto con los artículos que agregó.</string>
     <string name="settings_data_delete_account_button">Sí, eliminar mi cuenta</string>
     <string name="settings_data_delete_account_success">Cuenta eliminada</string>
     <string name="settings_data_delete_account_error">No se pudo eliminar su cuenta. Inténtelo de nuevo.</string>
+    <string name="settings_data_delete_account_reauth_title">Confirme su identidad</string>
+    <string name="settings_data_delete_account_reauth_message">Por seguridad, inicie sesión de nuevo para confirmar la eliminación. Todavía no se ha eliminado nada.</string>
+    <string name="settings_data_delete_account_reauth_button">Iniciar sesión de nuevo</string>
+    <string name="settings_data_delete_account_reauth_toast">Sesión cerrada. Inicie sesión de nuevo y vaya a Configuraciones > Datos > Eliminar cuenta para confirmar.</string>
     <string name="settings_data_clear_cache_success">Caché borrada</string>
     <string name="settings_data_clear_cache_error">No se pudo borrar la caché. Inténtalo de nuevo.</string>
     <string name="settings_data_delete_all_success">Todos los datos fueron eliminados</string>
@@ -105,14 +109,16 @@
 
     <string name="settings_privacy_content">
         Su privacidad es nuestra prioridad:\n\n
-        1. Recopilación de Datos: Solo recopilamos su ID de usuario anónimo y sus listas de compras para la sincronización.\n
+        1. Recopilación de Datos: Recopilamos su correo electrónico y nombre para crear y acceder a su cuenta, y sus listas de compras para la sincronización. Su contraseña es gestionada por Firebase Authentication (Google) y nunca la almacenamos. También recopilamos datos técnicos de fallos y uso (Firebase Crashlytics y Analytics) para mejorar la aplicación.\n
         2. Compartir: No compartimos sus datos personales con terceros con fines publicitarios.\n
         3. Cookies: No utilizamos cookies de seguimiento.\n
         4. Seguridad: Utilizamos el cifrado AES para proteger los datos sensibles en el dispositivo.\n\n
-        ¿Preguntas? Contáctenos a través de suporte@cestou.com.br
+        ¿Preguntas? Contáctenos a través de brunocarvalhs@outlook.com.br
     </string>
 
     <string name="action_confirm">Confirmar</string>
     <string name="action_cancel">Cancelar</string>
     <string name="action_select_time">Seleccionar Hora</string>
+    <string name="settings_release_notes_title">Novedades</string>
+    <string name="settings_open_source_licenses_title">Licencias</string>
 </resources>

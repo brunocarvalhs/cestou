@@ -4,8 +4,8 @@ import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import br.com.brunocarvalhs.howmuch.core.domain.services.make
 import br.com.brunocarvalhs.howmuch.core.domain.services.observe
-import br.com.brunocarvalhs.howmuch.feature.products.data.extensions.toDomain
-import br.com.brunocarvalhs.howmuch.feature.products.data.extensions.toModel
+import br.com.brunocarvalhs.howmuch.feature.products.data.mapper.toDomain
+import br.com.brunocarvalhs.howmuch.feature.products.data.mapper.toModel
 import br.com.brunocarvalhs.howmuch.feature.products.data.model.CommonProductModel
 import br.com.brunocarvalhs.howmuch.feature.products.domain.model.CommonProduct
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.CommonProductRepository

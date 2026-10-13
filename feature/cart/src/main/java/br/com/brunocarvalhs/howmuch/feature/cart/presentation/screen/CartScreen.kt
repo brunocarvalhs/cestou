@@ -58,13 +58,13 @@ import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.CurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
+import br.com.brunocarvalhs.howmuch.feature.cart.R
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.CartBottomBar
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.CartDetailHeader
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.ProductListItem
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.intent.CartIntent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.AiDockState
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.CartUiState
-import br.com.brunocarvalhs.howmuch.feature.products.R
 import kotlin.collections.component1
 import kotlin.collections.component2
 
@@ -177,7 +177,9 @@ internal fun CartScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_more_options)
+                                contentDescription = stringResource(
+                                    br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_more_options
+                                )
                             )
                         }
                         DropdownMenu(

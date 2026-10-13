@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_confirm">Confirm</string>
+    <string name="cart_ai_input_placeholder">Message Cestou…</string>
+    <string name="cart_ai_voice_input">Voice input</string>
+    <string name="cart_assistant_status">Online • AI active</string>
+    <string name="cart_assistant_title">Cestou Assistant</string>
+    <string name="cart_checkout">Checkout</string>
+    <string name="cart_item_delete_description">Delete item</string>
+    <string name="cart_item_quantity_price">%1$d un • %2$s each</string>
+    <string name="shopping_list_confirm_item_title">Confirm Item</string>
+    <string name="shopping_list_confirm_save">Confirm and Save</string>
+    <string name="shopping_list_default_title">Product List</string>
+    <string name="shopping_list_edit_list_title">Edit list</string>
+    <string name="shopping_list_edit_title">Edit Product</string>
+    <string name="shopping_list_finish_description">Enter the total amount paid and the purchase location.</string>
+    <string name="shopping_list_finish_title">Finish Purchase</string>
+    <string name="shopping_list_history_action_added">Added</string>
+    <string name="shopping_list_history_action_edited">Edited</string>
+    <string name="shopping_list_history_action_purchased">Purchased</string>
+    <string name="shopping_list_history_empty">No history yet for this item.</string>
+    <string name="shopping_list_history_entry">%1$s by %2$s</string>
+    <string name="shopping_list_history_title">Item History</string>
+    <string name="shopping_list_history_unknown_user">Someone</string>
+    <string name="shopping_list_label_category">Category</string>
+    <string name="shopping_list_label_establishment">Establishment (Optional)</string>
+    <string name="shopping_list_label_product_name">Product Name</string>
+    <string name="shopping_list_label_quantity">Quantity</string>
+    <string name="shopping_list_label_total_value">Total Amount</string>
+    <string name="shopping_list_label_unit_price">Unit Price</string>
+    <string name="shopping_list_menu_clear_purchased">Clear purchased</string>
+    <string name="shopping_list_move_to">Move to...</string>
+    <string name="shopping_list_placeholder_establishment">Ex: Supermarket X</string>
+    <string name="shopping_list_save_changes">Save Changes</string>
+    <string name="shopping_list_updated">List updated!</string>
+</resources>

@@ -10,7 +10,7 @@ rules_version = '2';
 // delete on every collection to anyone holding the project config (G5).
 //
 // Deploying is a production infrastructure change and is bruno's call only:
-//   firebase deploy --only firestore:rules --project cestou-86785
+//   firebase deploy --only firestore:rules --project how-much-2a72e
 // Test first with the emulator or the Rules Playground in the console.
 //
 // READ THIS BEFORE DEPLOYING: `.specs/STATE.md` § AD-009 documents the reasoning
@@ -24,6 +24,7 @@ rules_version = '2';
 //   /shopping/{id}/products/{id}                (feature/products ProductRepositoryImpl)
 //   /users/{uid}                                (core/data UserRepositoryImpl)
 //   /users/{uid}/common-products/{id}           (feature/products CommonProductRepositoryImpl)
+//   /shortCodes/{code}                          (feature/shopping ShoppingRepositoryImpl)
 //   /notifications/{id}                         (core/data NotificationRepositoryImpl)
 // Recipes (TheMealDB) and product search (OpenFoodFacts) are plain HTTP through
 // CloudNetwork — they are not Firestore collections. App settings live in
@@ -73,6 +74,12 @@ service cloud.firestore {
       return isSignedIn() && roles(data).get(uid(), '') == 'OWNER';
     }
 
+    // Owner, or the sole remaining member even if not OWNER (everyone else left).
+    function canDeleteList(data) {
+      return isOwner(data)
+          || (isMember(data) && members(data).toSet() == [uid()].toSet());
+    }
+
     // ---------------------------------------------------------------------
     // /shopping/{shoppingId} — shared shopping lists
     // ---------------------------------------------------------------------
@@ -108,7 +115,7 @@ service cloud.firestore {
                     && uid() in members(request.resource.data)
                     && roles(request.resource.data).keys().hasOnly(members(request.resource.data));
 
-      // UPDATE: three legitimate shapes, nothing else.
+      // UPDATE: four legitimate shapes, nothing else.
       //
       // (a) The OWNER may change anything, including membership and roles, as
       //     long as they do not write themselves out of the list (a self-lockout
@@ -127,6 +134,14 @@ service cloud.firestore {
       //     pins the resulting set to exactly (old members + me), so the join
       //     cannot be used to add third parties, drop members, grant itself a
       //     role, or touch any other field.
+      //
+      // (d) Any member (OWNER included) may remove THEMSELVES and nothing else —
+      //     "leave list" and the shared-list step of account deletion (app and
+      //     web page), written as {users: arrayRemove(uid), roles.<uid>: deleteField()}.
+      //     The result must be exactly (old members - me), `roles` may only lose my
+      //     own key, and no other field may change. An owner leaving leaves the
+      //     list ownerless; the remaining members keep editing it, and the last one
+      //     can delete it (see DELETE).
       allow update: if isSignedIn() && (
         // (a) owner
         (
@@ -149,15 +164,25 @@ service cloud.firestore {
           && members(request.resource.data).toSet()
              == members(resource.data).toSet().union([uid()].toSet())
         )
+        ||
+        // (d) self-leave
+        (
+          isMember(resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['users', 'roles'])
+          && members(request.resource.data).toSet()
+             == members(resource.data).toSet().difference([uid()].toSet())
+          && roles(request.resource.data).diff(roles(resource.data)).affectedKeys().hasOnly([uid()])
+          && !(uid() in roles(request.resource.data))
+        )
       );
 
-      // DELETE: owner only. This already matches the client
-      // (ShoppingListViewModel checks roles[uid] == OWNER before deleting and
-      // shows shopping_management_error_only_owner_delete otherwise); the rule
-      // makes the check authoritative instead of cosmetic. A guest who wants out
-      // of a shared list needs a "leave list" action, which does not exist yet
-      // (see AD-009 open questions).
-      allow delete: if isOwner(resource.data);
+      // DELETE: the owner, or the sole remaining member even if not OWNER (e.g.
+      // everyone else left, or the owner left via (d)). Owner-only matches the
+      // client (ShoppingListViewModel gates delete on roles[uid] == OWNER); the
+      // sole-member path lets account deletion clean up a list nobody else can
+      // reach. Other members leave via (d) instead. Account deletion removes
+      // products/* first, while membership still grants access to them.
+      allow delete: if canDeleteList(resource.data);
 
       // -------------------------------------------------------------------
       // /shopping/{shoppingId}/products/{productId} — items of a shared list
@@ -233,6 +258,45 @@ service cloud.firestore {
                       && request.resource.data.keys().hasOnly(['id', 'name', 'category', 'unit']);
         allow update, delete: if isSignedIn() && uid() == userId;
       }
+    }
+
+    // ---------------------------------------------------------------------
+    // /shortCodes/{code} — share-code index: code -> shoppingId
+    // ---------------------------------------------------------------------
+    // Joining by code used to query /shopping by `shortCode` as a non-member,
+    // which the membership read rule cannot allow without exposing every list
+    // (AD-009). The joiner now reads this one document, self-joins the list
+    // blind (update rule (c)) and only then reads it as a member. The index
+    // holds nothing but the list id, so knowing a code reveals no list content.
+    match /shortCodes/{code} {
+
+      function listById(id) {
+        return get(/databases/$(database)/documents/shopping/$(id)).data;
+      }
+
+      // READ: whoever holds the code; `list` stays denied so codes can't be
+      // enumerated.
+      allow get: if isSignedIn();
+      allow list: if false;
+
+      // CREATE: a member of the list, only for the list's own code, and only
+      // when no index exists yet (no update), so a code can't be re-pointed at
+      // another list. Members (not just owners) may write it: lists created
+      // before the index existed are backfilled when anyone opens "share".
+      allow create: if isSignedIn()
+                    && request.resource.data.keys().hasOnly(['id', 'shoppingId'])
+                    && request.resource.data.id == code
+                    && request.resource.data.shoppingId is string
+                    && isMember(listById(request.resource.data.shoppingId))
+                    && listById(request.resource.data.shoppingId).get('shortCode', '') == code;
+      allow update: if false;
+
+      // DELETE: whoever may delete the list it points to (deleted just before
+      // the list), or anyone once that list is gone (orphan cleanup, harmless).
+      allow delete: if isSignedIn() && (
+        !exists(/databases/$(database)/documents/shopping/$(resource.data.shoppingId))
+        || canDeleteList(listById(resource.data.shoppingId))
+      );
     }
 
     // ---------------------------------------------------------------------

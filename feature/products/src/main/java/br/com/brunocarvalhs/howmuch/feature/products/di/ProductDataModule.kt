@@ -2,13 +2,17 @@ package br.com.brunocarvalhs.howmuch.feature.products.di
 
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ProductReader
 import br.com.brunocarvalhs.howmuch.core.domain.services.ShareShoppingUseCase
+import br.com.brunocarvalhs.howmuch.core.domain.usecase.ProductsUseCase
+import br.com.brunocarvalhs.howmuch.core.domain.usecase.ShoppingClearPurchasedUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.data.repository.CommonProductRepositoryImpl
 import br.com.brunocarvalhs.howmuch.feature.products.data.repository.ProductRepositoryImpl
 import br.com.brunocarvalhs.howmuch.feature.products.data.repository.RecipeRepositoryImpl
+import br.com.brunocarvalhs.howmuch.feature.products.data.services.ShareShoppingUseCaseImpl
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.CommonProductRepository
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.RecipeRepository
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShareShoppingUseCaseImpl
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCaseImpl
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ShoppingClearPurchasedUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -36,6 +40,13 @@ abstract class ProductDataModule {
     @Binds
     @Singleton
     abstract fun bindCommonProductRepository(impl: CommonProductRepositoryImpl): CommonProductRepository
+
+    // AD-011: contracts live in core/domain, impls stay here.
+    @Binds
+    abstract fun bindProductsUseCase(impl: ProductsUseCaseImpl): ProductsUseCase
+
+    @Binds
+    abstract fun bindShoppingClearPurchased(impl: ShoppingClearPurchasedUseCaseImpl): ShoppingClearPurchasedUseCase
 
     @Binds
     abstract fun bindShareShoppingUseCase(impl: ShareShoppingUseCaseImpl): ShareShoppingUseCase

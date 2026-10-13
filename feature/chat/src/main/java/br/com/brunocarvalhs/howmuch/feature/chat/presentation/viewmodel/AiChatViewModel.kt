@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
-import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatIntent

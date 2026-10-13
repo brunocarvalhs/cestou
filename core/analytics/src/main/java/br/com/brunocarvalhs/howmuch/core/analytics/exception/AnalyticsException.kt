@@ -1,6 +1,6 @@
 package br.com.brunocarvalhs.howmuch.core.analytics.exception
 
-import br.com.brunocarvalhs.howmuch.core.common.exception.AppException
+import br.com.brunocarvalhs.howmuch.core.domain.exception.AppException
 
 class AnalyticsException(
     message: String? = null,

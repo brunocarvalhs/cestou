@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase
 
+import br.com.brunocarvalhs.howmuch.core.domain.exception.RecentLoginRequiredException
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
@@ -17,12 +18,16 @@ internal class DeleteAccountUseCase @Inject constructor(
         val userId = authService.currentUser?.id
             ?: return Result.failure(IllegalStateException("No authenticated user"))
 
+        // Guarantee a fresh sign-in BEFORE any destructive step: otherwise user.delete() would fail
+        // after the data is already gone, leaving an account with no data.
+        if (!authService.hasRecentLogin()) return Result.failure(RecentLoginRequiredException())
+
         return runCatching {
             shoppingRepository.getAll().forEach { shopping ->
                 if (shopping.users.size <= 1) {
                     shoppingRepository.delete(shopping)
                 } else {
-                    shoppingRepository.update(shopping.copy(users = shopping.users - userId))
+                    shoppingRepository.leave(shopping.id, userId)
                 }
             }
             userRepository.deleteProfile(userId).getOrThrow()

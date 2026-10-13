@@ -360,7 +360,7 @@ private fun LanguageSelector(
     ) {
         Icon(
             imageVector = Icons.Default.Language,
-            contentDescription = "Language",
+            contentDescription = stringResource(R.string.welcome_language_content_description),
             modifier = Modifier.size(30.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -373,7 +373,7 @@ private fun LanguageSelector(
         Spacer(modifier = Modifier.width(24.dp))
         Icon(
             imageVector = Icons.Default.KeyboardArrowDown,
-            contentDescription = "Select language",
+            contentDescription = stringResource(R.string.welcome_select_language),
             modifier = Modifier.size(30.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )

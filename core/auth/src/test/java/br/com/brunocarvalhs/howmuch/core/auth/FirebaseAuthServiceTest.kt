@@ -2,12 +2,17 @@ package br.com.brunocarvalhs.howmuch.core.auth
 
 import android.text.TextUtils
 import app.cash.turbine.test
+import br.com.brunocarvalhs.howmuch.core.domain.exception.RecentLoginRequiredException
 import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
 import com.google.android.gms.tasks.Tasks
+import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -22,10 +27,12 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlin.time.Duration.Companion.minutes
 
 @Suppress("TooManyFunctions")
 class FirebaseAuthServiceTest {
@@ -221,6 +228,37 @@ class FirebaseAuthServiceTest {
     }
 
     @Test
+    fun `deleteAccount maps the recent-login error to RecentLoginRequiredException`() = runTest {
+        val user = fakeUser("user-1")
+        every { auth.currentUser } returns user
+        val recentLoginError = mockk<FirebaseAuthRecentLoginRequiredException>(relaxed = true)
+        every { user.delete() } returns Tasks.forException(recentLoginError)
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        val result = service.deleteAccount()
+
+        assertTrue(result.exceptionOrNull() is RecentLoginRequiredException)
+    }
+
+    @Test
+    fun `hasRecentLogin is true only for a sign-in within the window`() {
+        val user = fakeUser("user-1")
+        every { auth.currentUser } returns user
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        every { user.metadata } returns mockk { every { lastSignInTimestamp } returns System.currentTimeMillis() }
+        assertTrue(service.hasRecentLogin())
+
+        every { user.metadata } returns mockk {
+            every { lastSignInTimestamp } returns System.currentTimeMillis() - 10.minutes.inWholeMilliseconds
+        }
+        assertFalse(service.hasRecentLogin())
+
+        every { auth.currentUser } returns null
+        assertFalse(service.hasRecentLogin())
+    }
+
+    @Test
     fun `authState reflects the listener registered on FirebaseAuth`() {
         val listenerSlot = slot<FirebaseAuth.AuthStateListener>()
         every { auth.addAuthStateListener(capture(listenerSlot)) } returns Unit
@@ -303,5 +341,37 @@ class FirebaseAuthServiceTest {
         val result = service.updateDisplayName("Ana Silva")
 
         assertTrue(result.isFailure)
+    }
+
+    private fun stubGoogleSignIn(uid: String) {
+        mockkStatic(GoogleAuthProvider::class)
+        every { GoogleAuthProvider.getCredential("id-token", null) } returns mockk()
+        val result = mockk<AuthResult> { every { user } returns fakeUser(uid) }
+        every { auth.signInWithCredential(any()) } returns Tasks.forResult(result)
+    }
+
+    @Test
+    fun `signInWithGoogleIdToken stores the uid when the account matches`() = runTest {
+        stubGoogleSignIn("user-1")
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        val result = service.signInWithGoogleIdToken("id-token", expectedUserId = "user-1")
+
+        assertTrue(result.isSuccess)
+        coVerify { storage.save("synced_user_id", "user-1") }
+        unmockkStatic(GoogleAuthProvider::class)
+    }
+
+    @Test
+    fun `signInWithGoogleIdToken signs back out when the account does not match`() = runTest {
+        stubGoogleSignIn("someone-else")
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        val result = service.signInWithGoogleIdToken("id-token", expectedUserId = "user-1")
+
+        assertTrue(result.isFailure)
+        verify { auth.signOut() }
+        coVerify(exactly = 0) { storage.save("synced_user_id", any<String>()) }
+        unmockkStatic(GoogleAuthProvider::class)
     }
 }

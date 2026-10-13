@@ -2,18 +2,18 @@ package br.com.brunocarvalhs.howmuch.core.data.di
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import br.com.brunocarvalhs.howmuch.core.data.cloud.CloudNetwork
 import br.com.brunocarvalhs.howmuch.core.data.network.CompatibilityConverter
-import br.com.brunocarvalhs.howmuch.core.data.network.FirebaseFirestoreManager
+import br.com.brunocarvalhs.howmuch.core.data.network.FirestoreClient
 import br.com.brunocarvalhs.howmuch.core.data.network.NetworkLogger
-import br.com.brunocarvalhs.howmuch.core.data.network.NetworkManager
+import br.com.brunocarvalhs.howmuch.core.data.network.NetworkServiceImpl
 import br.com.brunocarvalhs.howmuch.core.data.repository.AiTrialRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.data.repository.NotificationRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.data.repository.UserRepositoryImpl
-import br.com.brunocarvalhs.howmuch.core.data.security.CryptoManager
+import br.com.brunocarvalhs.howmuch.core.data.security.Encryptor
 import br.com.brunocarvalhs.howmuch.core.data.service.DataStoreStorageService
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
@@ -47,7 +47,7 @@ abstract class DataModule {
 
     @Binds
     @Singleton
-    abstract fun bindNetworkService(impl: NetworkManager): NetworkService
+    abstract fun bindNetworkService(impl: NetworkServiceImpl): NetworkService
 
     @Binds
     @Singleton
@@ -77,12 +77,12 @@ abstract class DataModule {
 
         @Provides
         @Singleton
-        fun provideFirebaseFirestoreManager(firestore: FirebaseFirestore): FirebaseFirestoreManager =
-            FirebaseFirestoreManager(firestore)
+        fun provideFirestoreClient(firestore: FirebaseFirestore): FirestoreClient =
+            FirestoreClient(firestore)
 
         @Provides
         @Singleton
-        fun provideCryptoManager(): CryptoManager = CryptoManager()
+        fun provideEncryptor(): Encryptor = Encryptor()
 
         @Provides
         @Singleton

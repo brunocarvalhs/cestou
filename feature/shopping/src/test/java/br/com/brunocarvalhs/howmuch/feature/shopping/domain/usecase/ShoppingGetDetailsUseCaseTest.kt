@@ -3,7 +3,7 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductsUseCase
+import br.com.brunocarvalhs.howmuch.core.domain.usecase.ProductsUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingGetDetailsUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -42,7 +42,7 @@ class ShoppingGetDetailsUseCaseTest {
         assertTrue(result.isSuccess)
         val details = result.getOrNull()!!
         assertEquals("Weekly Groceries", details["title"])
-        assertEquals(10.0, details["totalSpent"])
+        assertEquals(EXPECTED_TOTAL_SPENT, details["totalSpent"])
     }
 
     @Test
@@ -71,3 +71,5 @@ class ShoppingGetDetailsUseCaseTest {
         assertTrue(result.isFailure)
     }
 }
+
+private const val EXPECTED_TOTAL_SPENT = 10.0

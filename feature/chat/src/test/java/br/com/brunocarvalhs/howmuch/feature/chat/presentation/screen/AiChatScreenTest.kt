@@ -4,9 +4,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.feature.chat.R
-import br.com.brunocarvalhs.howmuch.feature.chat.domain.entity.ChatMessage
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatIntent
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiChatUiState
 import org.junit.Rule

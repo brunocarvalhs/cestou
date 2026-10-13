@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel
 
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -9,6 +10,8 @@ import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
+import br.com.brunocarvalhs.howmuch.feature.products.R
+import br.com.brunocarvalhs.howmuch.feature.products.domain.exception.ImageUnreadableException
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductAnalyzeImageUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.ProductPhotoViewModel
@@ -97,5 +100,30 @@ class ProductPhotoViewModelTest {
         vm.intent.onAnalyzeImage()
 
         coVerify(exactly = 0) { analyzeImageUseCase(any()) }
+    }
+
+    @Test
+    fun `onAnalyzeImage shows the load error when the image can't be read`() = runTest {
+        coEvery { analyzeImageUseCase("content://photo") } returns Result.failure(ImageUnreadableException())
+        val vm = viewModel()
+        vm.intent.onImageCaptured(Uri.parse("content://photo"))
+
+        vm.intent.onAnalyzeImage()
+
+        assertEquals(context.getString(R.string.product_error_load_image), vm.uiState.value.errorMessage)
+        assertEquals(false, vm.uiState.value.isAnalyzing)
+        verify(exactly = 0) { analyticsTracker.trackEvent(AnalyticsEvents.PRODUCT_PHOTO_SCAN_FAILED, any()) }
+    }
+
+    @Test
+    fun `onAnalyzeImage shows the analysis error and tracks it when analysis fails`() = runTest {
+        coEvery { analyzeImageUseCase("content://photo") } returns Result.failure(IllegalStateException("boom"))
+        val vm = viewModel()
+        vm.intent.onImageCaptured(Uri.parse("content://photo"))
+
+        vm.intent.onAnalyzeImage()
+
+        assertEquals(context.getString(R.string.product_photo_error_analysis_failed), vm.uiState.value.errorMessage)
+        verify { analyticsTracker.trackEvent(AnalyticsEvents.PRODUCT_PHOTO_SCAN_FAILED, any()) }
     }
 }

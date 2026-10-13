@@ -17,6 +17,7 @@ import {
 } from '@firebase/rules-unit-testing';
 import {
   doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs,
+  arrayRemove, arrayUnion, deleteField,
 } from 'firebase/firestore';
 
 const RULES = readFileSync(
@@ -124,7 +125,7 @@ await t('editor cannot change the shortCode', () =>
   assertFails(updateDoc(doc(editor(), 'shopping', LIST_ID), { shortCode: 'ZZZZZZ' })));
 await t('owner can change roles', () =>
   assertSucceeds(updateDoc(doc(owner(), 'shopping', LIST_ID), { roles: { [OWNER]: 'OWNER', [EDITOR]: 'EDITOR' } })));
-await t('owner cannot write itself out of the list', () =>
+await t('owner cannot write itself out of the list while keeping its role', () =>
   assertFails(updateDoc(doc(owner(), 'shopping', LIST_ID), { users: [EDITOR] })));
 
 await seed();
@@ -141,6 +142,81 @@ await t('editor cannot delete the list', () =>
   assertFails(deleteDoc(doc(editor(), 'shopping', LIST_ID))));
 await t('owner deletes the list', () =>
   assertSucceeds(deleteDoc(doc(owner(), 'shopping', LIST_ID))));
+
+console.log('\n== shopping: leave list / account deletion ==');
+const leave = (uid) => ({ users: arrayRemove(uid), [`roles.${uid}`]: deleteField() });
+const listRef = (db) => doc(db, 'shopping', LIST_ID);
+await seed();
+await t('owner leaves a shared list (arrayRemove + deleteField)', () =>
+  assertSucceeds(updateDoc(listRef(owner()), leave(OWNER))));
+await seed();
+await t('editor leaves a shared list', () =>
+  assertSucceeds(updateDoc(listRef(editor()), leave(EDITOR))));
+await seed();
+await t('editor cannot remove a third party (the owner)', () =>
+  assertFails(updateDoc(listRef(editor()), leave(OWNER))));
+await t('editor cannot leave and remove the owner in one write', () =>
+  assertFails(updateDoc(listRef(editor()), { users: arrayRemove(EDITOR, OWNER), [`roles.${EDITOR}`]: deleteField() })));
+await t('cannot leave while changing another field', () =>
+  assertFails(updateDoc(listRef(editor()), { ...leave(EDITOR), title: 'hack' })));
+await t('cannot leave while adding a role', () =>
+  assertFails(updateDoc(listRef(editor()), { ...leave(EDITOR), [`roles.${OUTSIDER}`]: 'OWNER' })));
+await t('cannot leave while dropping someone else role', () =>
+  assertFails(updateDoc(listRef(editor()), { ...leave(EDITOR), [`roles.${OWNER}`]: deleteField() })));
+await t('outsider cannot "leave" (not a member)', () =>
+  assertFails(updateDoc(listRef(outsider()), leave(OUTSIDER))));
+await seed();
+await testEnv.withSecurityRulesDisabled((ctx) =>
+  updateDoc(doc(ctx.firestore(), 'shopping', LIST_ID), { users: [EDITOR] }));
+await t('sole member deletes products first (still a member)', () =>
+  assertSucceeds(deleteDoc(doc(editor(), 'shopping', LIST_ID, 'products', 'p1'))));
+await t('non-member cannot delete the list', () =>
+  assertFails(deleteDoc(listRef(outsider()))));
+await t('sole non-owner member deletes the list', () =>
+  assertSucceeds(deleteDoc(listRef(editor()))));
+await seed();
+await t('non-sole non-owner member still cannot delete', () =>
+  assertFails(deleteDoc(listRef(editor()))));
+await t('account deletion: common-products then profile', async () => {
+  await assertSucceeds(deleteDoc(doc(owner(), 'users', OWNER, 'common-products', 'c1')));
+  await assertSucceeds(deleteDoc(doc(owner(), 'users', OWNER)));
+});
+
+console.log('\n== shortCodes (join by code) ==');
+const codeRef = (db, code = 'ABC123') => doc(db, 'shortCodes', code);
+const index = (shoppingId = LIST_ID, code = 'ABC123') => ({ id: code, shoppingId });
+await seed();
+await t('member writes the index for the list code', () =>
+  assertSucceeds(setDoc(codeRef(editor()), index())));
+await t('outsider resolves a code it knows', () =>
+  assertSucceeds(getDoc(codeRef(outsider()))));
+await t('unauthenticated cannot resolve a code', () =>
+  assertFails(getDoc(codeRef(anon()))));
+await t('codes cannot be enumerated', () =>
+  assertFails(getDocs(collection(outsider(), 'shortCodes'))));
+await t('index cannot be overwritten (re-pointed)', () =>
+  assertFails(setDoc(codeRef(owner()), index())));
+await t('outsider self-joins blind, then reads the list as member', async () => {
+  await assertSucceeds(updateDoc(listRef(outsider()), { users: arrayUnion(OUTSIDER) }));
+  await assertSucceeds(getDoc(listRef(outsider())));
+});
+await seed();
+await t('outsider cannot write an index for a list it is not in', () =>
+  assertFails(setDoc(codeRef(outsider()), index())));
+await t('member cannot index a code that is not the list code', () =>
+  assertFails(setDoc(codeRef(editor(), 'ZZZZZZ'), index(LIST_ID, 'ZZZZZZ'))));
+await t('index may not carry extra fields', () =>
+  assertFails(setDoc(codeRef(editor()), { ...index(), title: 'Mercado' })));
+await testEnv.withSecurityRulesDisabled((ctx) => setDoc(codeRef(ctx.firestore()), index()));
+await t('editor (not sole member) cannot delete the index', () =>
+  assertFails(deleteDoc(codeRef(editor()))));
+await t('owner deletes the index, then the list', async () => {
+  await assertSucceeds(deleteDoc(codeRef(owner())));
+  await assertSucceeds(deleteDoc(listRef(owner())));
+});
+await testEnv.withSecurityRulesDisabled((ctx) => setDoc(codeRef(ctx.firestore()), index()));
+await t('anyone may clean up an orphan index (list gone)', () =>
+  assertSucceeds(deleteDoc(codeRef(outsider()))));
 
 console.log('\n== shopping/{id}/products ==');
 await seed();

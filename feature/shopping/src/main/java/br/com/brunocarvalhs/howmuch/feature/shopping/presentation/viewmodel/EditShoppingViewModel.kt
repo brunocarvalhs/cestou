@@ -12,7 +12,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingUpdateUseCase
-import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.mobile.EditShopping
+import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.EditShopping
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.EditShoppingIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.EditShoppingUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -85,6 +85,7 @@ internal class EditShoppingViewModel @Inject constructor(
     private fun shareToken(shoppingId: String) {
         viewModelScope.launch {
             val shopping = repository.getById(shoppingId)
+            shopping?.let { runCatching { repository.ensureShortCodeIndex(it) } }
             val token = shopping?.shortCode ?: shoppingId
             _navigator?.navigate(QrCode(token))
         }

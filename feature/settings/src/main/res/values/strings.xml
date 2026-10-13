@@ -87,12 +87,16 @@
     <string name="settings_data_delete_all_success">All data deleted</string>
     <string name="settings_data_delete_all_error">Couldn\'t delete your data. Please try again.</string>
     <string name="settings_data_delete_account">Delete Account</string>
-    <string name="settings_data_delete_account_hint">Permanently deletes your account and all your data</string>
+    <string name="settings_data_delete_account_hint">Permanently deletes your account, profile and your own lists</string>
     <string name="settings_data_delete_account_confirmation_title">Delete account?</string>
-    <string name="settings_data_delete_account_confirmation_message">This action cannot be undone. Your account, profile and shopping lists will be permanently deleted.</string>
+    <string name="settings_data_delete_account_confirmation_message">This action cannot be undone. Your account, profile, frequent products and the lists only you use will be permanently deleted. You will be removed from shared lists; they stay with the other members, along with the items you added.</string>
     <string name="settings_data_delete_account_button">Yes, delete my account</string>
     <string name="settings_data_delete_account_success">Account deleted</string>
     <string name="settings_data_delete_account_error">Couldn\'t delete your account. Please try again.</string>
+    <string name="settings_data_delete_account_reauth_title">Confirm it\'s you</string>
+    <string name="settings_data_delete_account_reauth_message">For your security, sign in again to confirm the deletion. Nothing has been deleted yet.</string>
+    <string name="settings_data_delete_account_reauth_button">Sign in again</string>
+    <string name="settings_data_delete_account_reauth_toast">Signed out. Sign in again, then go to Settings > Data > Delete account to confirm.</string>
 
     <string name="settings_terms_content">
         By using Cestou, you agree to the following terms: \n\n
@@ -105,14 +109,16 @@
 
     <string name="settings_privacy_content">
         Your privacy is our priority:\n\n
-        1. Data Collection: We only collect your anonymous user ID and your shopping lists for synchronization.\n
+        1. Data Collection: We collect your email address and name to create and access your account, and your shopping lists for synchronization. Your password is handled by Firebase Authentication (Google) and is never stored by us. We also collect technical crash and usage data (Firebase Crashlytics and Analytics) to improve the app.\n
         2. Sharing: We do not share your personal data with third parties for advertising purposes.\n
         3. Cookies: We do not use tracking cookies.\n
         4. Security: We use AES encryption to protect sensitive data on the device.\n\n
-        Questions? Contact us at suporte@cestou.com.br
+        Questions? Contact us at brunocarvalhs@outlook.com.br
     </string>
 
     <string name="action_confirm">Confirm</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_select_time">Select Time</string>
+    <string name="settings_release_notes_title">Release notes</string>
+    <string name="settings_open_source_licenses_title">Licenses</string>
 </resources>

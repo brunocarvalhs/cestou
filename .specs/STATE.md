@@ -87,7 +87,7 @@
   (PR #84); not deployed** — the console still runs the default placeholder
   (`allow read, write: if request.time < <date>`), which grants anyone with the project config
   full read/write/delete over every collection. Deploying is bruno's call:
-  `firebase deploy --only firestore:rules --project cestou-86785`.
+  `firebase deploy --only firestore:rules --project how-much-2a72e`.
 - **Reason**: G5. There is no server tier (Spark plan, no Cloud Functions — see AD-001 context in
   `MVP-ROADMAP.md`), so *every* write is a client write and rules are the only place authorization
   can exist at all. Keeping them in the repo makes them reviewable, diffable, and testable instead
@@ -114,14 +114,19 @@
     `data["id"]`, so a mismatch means tampering). It deliberately does *not* require the creator to
     be `OWNER`, because `ShoppingDuplicateUseCase` copies `users`/`roles` verbatim (see open
     questions).
-  - **`/shopping` update** — three shapes: (a) owner may change anything but must stay a member,
+  - **`/shopping` update** — four shapes: (a) owner may change anything but must stay a member,
     since a self-lockout is unrecoverable without a server tier; (b) a non-owner member may edit
     content but not `users`, `roles` or `shortCode` — normal edits rewrite the whole document with
     those fields unchanged, so only escalation attempts trip it; (c) a non-member may append
     *itself* to `users` and nothing else, which is exactly `ShoppingRepositoryImpl.join()`
     (`{"users": [uid]}`, resolved to an `arrayUnion`). The joiner therefore cannot add third
-    parties, drop members, grant itself a role or edit content in the same write.
-  - **`/shopping` delete** — owner only, making the existing client check authoritative.
+    parties, drop members, grant itself a role or edit content in the same write; (d) any member,
+    owner included, may remove *itself*: result is exactly `users - uid`, `roles` only loses the
+    `uid` key, nothing else changes — the `{users: arrayRemove(uid), roles.<uid>: deleteField()}`
+    write of "leave list" / account deletion (app and web page). An owner leaving leaves the list
+    ownerless; the rest keep editing it.
+  - **`/shopping` delete** — owner, or the sole remaining member even if not `OWNER` (everyone
+    else left). Account deletion deletes `products/*` first, while still a member.
   - **`/shopping/{id}/products`** — everyone on a list is a peer editor of its items; that is the
     product. Access mirrors the parent document's membership via `get()` (one extra document read
     per evaluation, acceptable at this volume, and the only way to express it). The `FINISH` lock
@@ -145,14 +150,13 @@
   - **catch-all `if false`** — explicit so a collection added by a future feature fails loudly in
     development instead of silently inheriting a broader rule.
 - **Trade-off / known breakage on deploy**:
-  1. **Join by short code stops working.** `getByShortCode` queries
-     `whereEqualTo("shortCode", code)` as a non-member, and rules cannot inspect a query's
-     where-clauses — "read only the list whose code I know" is inexpressible without also allowing
-     "read every list". Fix (client work, not a rules change): a `shortCodes/{CODE}` index document
-     holding only `{ shoppingId }`, readable by any signed-in user, written by the owner at create
-     time; the joiner resolves code → id, performs the blind self-join (already allowed by rule
-     (c)), and only then reads the list as a member. Not added to `firestore.rules` here because
-     the collection does not exist yet.
+  1. ~~**Join by short code stops working.**~~ Fixed client-side: `shortCodes/{CODE}` holds only
+     `{ id, shoppingId }` (any signed-in `get`, no `list`, create-only by a member for the list's own
+     code, delete by whoever may delete the list or anyone once it is gone). `ShoppingJoinUseCase`
+     resolves code → id, self-joins blind (rule (c)), then reads the list as a member; join by full
+     id also joins before reading. The index is written on create and backfilled when a member
+     opens "share"; `resolveShortCode` keeps the old `shortCode` query as a fallback, which these
+     rules deny, so lists never shared after the app update lose their old code once rules ship.
   2. **Wear OS traffic stops working entirely.** The watch never signs in to Firebase — pairing
      just copies the phone's uid into DataStore (`WearAuthListenerService` → `updateUserId`), so
      `request.auth` is null on every watch request while `AuthService` still reports an id. Any
@@ -168,13 +172,10 @@
     well-formed notification. Closing it needs `senderId` + `shoppingId` on the model.
   - `users/{uid}` stores `email` alongside name/photo, and co-members need to read the document.
     Split public (name/photo) from private (email) fields?
-  - No "leave list" action exists: with owner-only delete, a guest's only exit is
-    `DeleteAccountUseCase`, whose `users - userId` write is itself a no-op because
-    `FirebaseFirestoreManager` maps `users` through `arrayUnion` (removals are impossible through
-    the current data layer).
-- **Verification**: `firestore-tests/rules.test.mjs` — 60 assertions against the local Firestore
+- **Verification**: `firestore-tests/rules.test.mjs` — 73 assertions against the local Firestore
   emulator (`firebase emulators:exec --only firestore --project demo-cestou`), all green, covering
-  every rule above including the join, escalation and notification-forgery attempts. Local only; it
+  every rule above including the join, self-leave, sole-member delete, escalation and
+  notification-forgery attempts. Local only; it
   never contacts the real project and is not wired into Gradle/CI.
 - **Scope**: All Firestore access from `:app`, `:wear` and every `feature/*` data layer.
 - **Date**: 2026-09-10

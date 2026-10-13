@@ -1,37 +1,17 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.compose)
+    id("howmuch.android.library")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
     namespace = "br.com.brunocarvalhs.howmuch.core.ui"
-    compileSdk = libs.versions.compileSdk.get().toInt()
 
-    defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
     buildFeatures {
         compose = true
     }
 }
 
 dependencies {
-    implementation(project(":core:common"))
     implementation(project(":core:domain"))
     implementation(project(":core:navigation"))
     api(project(":core:theme"))
@@ -57,9 +37,8 @@ dependencies {
     api(libs.androidx.camera.view)
     implementation(libs.google.mlkit.barcode.scanning)
 
-    testImplementation(libs.junit)
-    testImplementation(libs.konsist)
-    testImplementation(libs.mockk)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.androidx.compose.ui.test.manifest)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.runner)

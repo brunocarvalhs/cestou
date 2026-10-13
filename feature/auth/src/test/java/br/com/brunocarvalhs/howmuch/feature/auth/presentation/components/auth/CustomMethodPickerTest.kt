@@ -6,7 +6,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
-import br.com.brunocarvalhs.howmuch.feature.auth.domain.usecase.GoogleProviderUseCase
+import br.com.brunocarvalhs.howmuch.feature.auth.presentation.firebaseui.AuthMethod
+import br.com.brunocarvalhs.howmuch.feature.auth.presentation.firebaseui.GoogleAuthProviderFactory
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -77,7 +78,8 @@ class CustomMethodPickerTest {
         composeTestRule.setContent {
             CestouTheme {
                 CustomMethodPickerLayout(
-                    providers = listOf(GoogleProviderUseCase()()),
+                    methods = listOf(AuthMethod.GOOGLE, AuthMethod.EMAIL),
+                    providers = listOf(GoogleAuthProviderFactory()()),
                     onProviderSelected = {},
                     onEmailSelected = { emailSelected = true }
                 )
@@ -91,5 +93,23 @@ class CustomMethodPickerTest {
 
         composeTestRule.onNodeWithTag("welcome_email_button").performClick()
         assert(emailSelected)
+    }
+
+    @Test
+    fun `a method left out of the enabled list gets no button, and a hidden Google stays hidden`() {
+        composeTestRule.setContent {
+            CestouTheme {
+                CustomMethodPickerLayout(
+                    methods = listOf(AuthMethod.EMAIL, AuthMethod.PHONE),
+                    // Google is registered with FirebaseUI but not enabled; phone is enabled but has no provider.
+                    providers = listOf(GoogleAuthProviderFactory()()),
+                    onProviderSelected = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag("welcome_google_button").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("welcome_phone_button").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("welcome_email_button").assertExists()
     }
 }

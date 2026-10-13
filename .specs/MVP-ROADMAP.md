@@ -67,7 +67,7 @@ regression suite (#16), this doc (#17), account & data deletion (#18), dead soci
   every collection the app uses now lives in `firestore.rules` (PR #84), reasoned through in AD-009
   (`.specs/STATE.md`) and checked by 60 emulator assertions. Production still runs the console
   placeholder, so what's left is yours: review, then
-  `firebase deploy --only firestore:rules --project cestou-86785`. Read AD-009's "known breakage on
+  `firebase deploy --only firestore:rules --project how-much-2a72e`. Read AD-009's "known breakage on
   deploy" first — as written the rules stop join-by-short-code and all Wear OS traffic until the
   client catches up.
 - **G9** needs your review/merge of PR #67 — don't duplicate the fix. T7's Detekt fix and the
@@ -188,8 +188,10 @@ Não inventar causa raiz. Próximos passos, em ordem:
 
 - ~~**F1.1 — Account & data deletion (G2).**~~ Done — PR #18. `DeleteAccountUseCase` leaves/deletes
   the user's shopping lists, deletes their profile, clears local settings, then deletes the
-  Firebase account, in that order. No re-auth flow for `FirebaseAuthRecentLoginRequiredException`
-  — surfaces as a generic error if Firebase demands a recent login.
+  Firebase account, in that order. A recent login is checked first (`AuthService.hasRecentLogin()`);
+  if stale, nothing is touched and the user is asked to sign in again (sign-out fallback for every
+  provider, Google and e-mail alike; a late `FirebaseAuthRecentLoginRequiredException` takes the
+  same path). Success ends on Welcome with a confirmation toast.
 - ~~**F1.2 — Hosted Privacy Policy + Terms (G3).**~~ Pages drafted — PR #21
   (`docs/legal/privacy.html`, `terms.html`). Not linked from the app yet: needs a hosting decision
   (`cestou.app` vs. GitHub Pages) before wiring the URL into `CustomMethodPickerTerms`, Settings,
@@ -238,7 +240,7 @@ specifically:
 3. Pick a host for the legal pages (G3) and wire the URL in.
 4. Review the proposed `firestore.rules` (G5 / AD-009 / PR #84), decide on the two client follow-ups it
    depends on, then deploy it yourself:
-   `firebase deploy --only firestore:rules --project cestou-86785`. Nobody else touches production
+   `firebase deploy --only firestore:rules --project how-much-2a72e`. Nobody else touches production
    rules.
 5. When ready, decide on `develop` → `master` for the actual store release — that merge is yours to
    make, same as G1 was.
