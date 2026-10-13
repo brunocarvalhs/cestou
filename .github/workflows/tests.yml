@@ -496,7 +496,10 @@ jobs:
               // occasionally runs a little over that without being unreasonable
               // - 120 gives headroom without disabling the check outright.
               'header-max-length': [2, 'always', 120]
-            }
+            },
+            // 9c2bd08 (123 chars) is already in protected develop history and
+            // can't be reworded without a force-push - exempt only that commit.
+            ignores: [(msg) => msg.startsWith('style: replace MagicNumber with named constants in core/ui, core/data,')]
           };
           CONFIG_EOF
 
