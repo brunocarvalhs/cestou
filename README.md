@@ -63,6 +63,11 @@ O projeto segue uma arquitetura **Domain-Centric** distribuída em múltiplos m�
 3.  Sincronize as dependências do Gradle.
 4.  Compile e execute o aplicativo em um emulador ou dispositivo Android.
 
+## ⚙️ CI/CD
+
+A pipeline (PR validation, build, release) é configurada em `.github/pipeline-config.yaml` e
+documentada em [`.github/PIPELINE.md`](.github/PIPELINE.md).
+
 ## 🤝 Contribuições
 
 Contribuições são bem-vindas! Sinta-se à vontade para abrir uma issue ou enviar um pull request.
