@@ -319,15 +319,32 @@ jobs:
           fi
 
           NEW_BYTES=$(stat -c%s "$APK_FILE")
-          CURRENT_BYTES=$(yq '.size_check.baseline_bytes' .github/pipeline-config.yaml)
-          if [ "$NEW_BYTES" == "$CURRENT_BYTES" ]; then
-            echo "Baseline já está em $NEW_BYTES bytes, nada para commitar."
-            exit 0
-          fi
-
-          yq -i ".size_check.baseline_bytes = $NEW_BYTES" .github/pipeline-config.yaml
+          DEV_BRANCH="${{ needs.prepare.outputs.dev_branch }}"
           git config user.name "${{ needs.prepare.outputs.bot_name }}"
           git config user.email "${{ needs.prepare.outputs.bot_email }}"
-          git add .github/pipeline-config.yaml
-          git commit -m "chore(ci): update APK size baseline to $NEW_BYTES bytes"
-          git push origin "HEAD:${{ needs.prepare.outputs.dev_branch }}"
+
+          # The checkout is the commit that triggered this run; if another merge
+          # landed on develop meanwhile, a plain push is rejected as non-fast-forward
+          # (happened when #189 and #190 merged minutes apart). Re-apply on top of
+          # the latest develop and retry. Runs on the same ref are queued (see
+          # `concurrency`), so the last merge still writes the final baseline.
+          for attempt in 1 2 3; do
+            git fetch --quiet origin "$DEV_BRANCH"
+            git reset --quiet --hard "origin/$DEV_BRANCH"
+            CURRENT_BYTES=$(yq '.size_check.baseline_bytes' .github/pipeline-config.yaml)
+            if [ "$NEW_BYTES" == "$CURRENT_BYTES" ]; then
+              echo "Baseline já está em $NEW_BYTES bytes, nada para commitar."
+              exit 0
+            fi
+
+            yq -i ".size_check.baseline_bytes = $NEW_BYTES" .github/pipeline-config.yaml
+            git add .github/pipeline-config.yaml
+            git commit --quiet -m "chore(ci): update APK size baseline to $NEW_BYTES bytes"
+            if git push origin "HEAD:$DEV_BRANCH"; then
+              exit 0
+            fi
+            echo "::warning::Push do baseline recusado ($DEV_BRANCH avançou), tentativa $attempt de 3."
+            sleep $((attempt * 5))
+          done
+          echo "::error::Não foi possível atualizar o baseline após 3 tentativas."
+          exit 1

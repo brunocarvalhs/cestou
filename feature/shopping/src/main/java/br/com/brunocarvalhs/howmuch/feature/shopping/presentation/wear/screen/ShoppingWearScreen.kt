@@ -42,6 +42,8 @@ private fun ShoppingWearContent(
 ) {
     val listState = rememberTransformingLazyColumnState()
     val transformationSpec = rememberTransformationSpec()
+    // Finished lists are history; the watch is for the shopping trip in progress.
+    val lists = state.list.items.filter { it.status != Shopping.Status.FINISH }
 
     ScreenScaffold(scrollState = listState) { contentPadding ->
         TransformingLazyColumn(
@@ -59,8 +61,8 @@ private fun ShoppingWearContent(
                 }
             }
 
-            items(state.list.items.size) { index ->
-                val shopping = state.list.items[index]
+            items(lists.size) { index ->
+                val shopping = lists[index]
                 Button(
                     onClick = { onNavigateToDetail(shopping.id) },
                     modifier = Modifier
@@ -68,11 +70,11 @@ private fun ShoppingWearContent(
                         .transformedHeight(this, transformationSpec),
                     transformation = SurfaceTransformation(transformationSpec)
                 ) {
-                    Text(shopping.title)
+                    Text("${shopping.emoji} ${shopping.title}".trim())
                 }
             }
 
-            if (state.list.items.isEmpty() && !state.isLoading) {
+            if (lists.isEmpty() && !state.isLoading) {
                 item {
                     Text(
                         text = stringResource(R.string.shopping_wear_no_lists),

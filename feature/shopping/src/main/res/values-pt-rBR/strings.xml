@@ -108,8 +108,20 @@
     <string name="shopping_qr_code_content_description">QR Code</string>
     <string name="shopping_wear_my_lists">Minhas Listas</string>
     <string name="shopping_wear_no_lists">Nenhuma lista encontrada</string>
-    <string name="shopping_wear_balance">Saldo</string>
     <string name="shopping_wear_budget">Orçamento: %1$s</string>
     <string name="shopping_wear_products">Produtos</string>
     <string name="shopping_wear_no_products">Nenhum produto</string>
+    <string name="shopping_wear_total">Total</string>
+    <string name="shopping_wear_remaining">Sobram %1$s</string>
+    <string name="shopping_wear_over_budget">Passou %1$s do orçamento</string>
+    <plurals name="shopping_wear_pending">
+        <item quantity="one">Falta %d item</item>
+        <item quantity="other">Faltam %d itens</item>
+    </plurals>
+    <string name="shopping_wear_all_done">Tudo no carrinho</string>
+    <string name="shopping_wear_add_item">Adicionar item</string>
+    <string name="shopping_wear_add_item_hint">Nome do item</string>
+    <string name="shopping_wear_tile_label">Lista atual</string>
+    <string name="shopping_wear_tile_empty">Abra uma lista no relógio</string>
+    <string name="shopping_wear_tile_signed_out">Vincule com o celular</string>
 </resources>

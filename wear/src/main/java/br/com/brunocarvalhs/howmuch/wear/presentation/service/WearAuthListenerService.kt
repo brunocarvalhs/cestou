@@ -3,6 +3,7 @@ package br.com.brunocarvalhs.howmuch.wear.presentation.service
 import br.com.brunocarvalhs.howmuch.core.common.wearable.PairingCodeHolder
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearablePaths
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.feature.shopping.data.local.WearListStore
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
@@ -23,6 +24,9 @@ class WearAuthListenerService : WearableListenerService() {
     @Inject
     lateinit var pairingCodeHolder: PairingCodeHolder
 
+    @Inject
+    lateinit var wearListStore: WearListStore
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun onMessageReceived(messageEvent: MessageEvent) {
@@ -39,7 +43,10 @@ class WearAuthListenerService : WearableListenerService() {
                 }
             }
 
-            WearablePaths.AUTH_SIGN_OUT -> scope.launch { authService.signOut() }
+            WearablePaths.AUTH_SIGN_OUT -> scope.launch {
+                authService.signOut()
+                wearListStore.clear()
+            }
 
             WearablePaths.PAIRING_VERIFY -> {
                 val receivedCode = String(messageEvent.data)

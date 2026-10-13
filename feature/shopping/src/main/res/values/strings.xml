@@ -108,8 +108,20 @@
     <string name="shopping_qr_code_content_description">QR Code</string>
     <string name="shopping_wear_my_lists">My Lists</string>
     <string name="shopping_wear_no_lists">No lists found</string>
-    <string name="shopping_wear_balance">Balance</string>
     <string name="shopping_wear_budget">Budget: %1$s</string>
     <string name="shopping_wear_products">Products</string>
     <string name="shopping_wear_no_products">No products</string>
+    <string name="shopping_wear_total">Total</string>
+    <string name="shopping_wear_remaining">%1$s left</string>
+    <string name="shopping_wear_over_budget">%1$s over budget</string>
+    <plurals name="shopping_wear_pending">
+        <item quantity="one">%d item left</item>
+        <item quantity="other">%d items left</item>
+    </plurals>
+    <string name="shopping_wear_all_done">All items in the cart</string>
+    <string name="shopping_wear_add_item">Add item</string>
+    <string name="shopping_wear_add_item_hint">Item name</string>
+    <string name="shopping_wear_tile_label">Current list</string>
+    <string name="shopping_wear_tile_empty">Open a list on your watch</string>
+    <string name="shopping_wear_tile_signed_out">Pair with your phone</string>
 </resources>

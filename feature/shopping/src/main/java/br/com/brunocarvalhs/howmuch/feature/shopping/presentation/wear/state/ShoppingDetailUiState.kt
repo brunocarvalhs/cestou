@@ -7,10 +7,15 @@ import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 @Stable
 internal data class ShoppingDetailUiState(
     val title: String = "",
-    val budget: Double = 0.0,
-    val totalSpent: Double = 0.0,
-    val balance: Double = 0.0,
+    val emoji: String = "",
+    /** Sum of every item's price × quantity; items without a price count as zero. */
+    val total: Double = 0.0,
+    val budget: Double? = null,
+    val pending: Int = 0,
+    /** Pending items first, then purchased ones. */
     val items: StableList<Product> = StableList(),
     val isLoading: Boolean = false,
     val error: String? = null
-)
+) {
+    val remaining: Double? get() = budget?.let { it - total }
+}
