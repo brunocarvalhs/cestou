@@ -35,6 +35,7 @@ jobs:
       codeql_enabled: ${{ steps.config.outputs.codeql_enabled }}
       codeql_languages: ${{ steps.config.outputs.codeql_languages }}
       codeql_build_command: ${{ steps.config.outputs.codeql_build_command }}
+      codeql_timeout: ${{ steps.config.outputs.codeql_timeout }}
       danger_enabled: ${{ steps.config.outputs.danger_enabled }}
       danger_node_version: ${{ steps.config.outputs.danger_node_version }}
       commitlint_enabled: ${{ steps.config.outputs.commitlint_enabled }}
@@ -108,6 +109,7 @@ jobs:
           echo "codeql_enabled=$(yq '.security.codeql.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "codeql_languages=$(yq '.security.codeql.languages' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "codeql_build_command=$(yq '.security.codeql.build_command' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "codeql_timeout=$(yq '.security.codeql.timeout_minutes' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "danger_enabled=$(yq '.danger.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "danger_node_version=$(yq '.danger.node_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "commitlint_enabled=$(yq '.security.commitlint.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
@@ -380,7 +382,7 @@ jobs:
     needs: [prepare]
     if: needs.prepare.outputs.codeql_enabled == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.codeql_timeout) }}
     name: 🔒 Security Analysis (CodeQL)
     permissions:
       security-events: write

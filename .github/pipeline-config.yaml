@@ -323,6 +323,10 @@ security:
     enabled: true
     languages: "java-kotlin"
     build_command: "./gradlew assembleDebug -x lint -x test -x detekt"
+    # Overrides build.default_timeout_minutes: a full assembleDebug under the
+    # CodeQL tracer takes 9-12 min on a warm cache and hit the 15 min default
+    # (cancelled at 15:04) once new dependencies had to be downloaded (#191).
+    timeout_minutes: 25
     # No standalone schedule: master and develop are both PR-only now (branch
     # protection blocks direct pushes to master, and the whole promotion/
     # hotfix/rollback flow goes through PRs into develop too), so every
