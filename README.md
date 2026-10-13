@@ -1,8 +1,11 @@
-# How Much
+# Cestou
 
-![GitHub repo size](https://img.shields.io/github/repo-size/brunocarvalhs/How-Much?style=for-the-badge)
-![GitHub language count](https://img.shields.io/github/languages/count/brunocarvalhs/How-Much?style=for-the-badge)
-![GitHub top language](https://img.shields.io/github/languages/top/brunocarvalhs/How-Much?style=for-the-badge)
+![GitHub repo size](https://img.shields.io/github/repo-size/brunocarvalhs/Cestou?style=for-the-badge)
+![GitHub language count](https://img.shields.io/github/languages/count/brunocarvalhs/Cestou?style=for-the-badge)
+![GitHub top language](https://img.shields.io/github/languages/top/brunocarvalhs/Cestou?style=for-the-badge)
+
+O repositório se chamava `How-Much`; o código interno (`applicationId` `br.com.brunocarvalhs.howmuch`,
+pacotes e módulos) mantém o nome antigo de propósito.
 
 Um aplicativo de carrinho de compras simples, mas poderoso, para Android, projetado para ajudá-lo a gerenciar suas listas de compras, rastrear suas despesas e ficar dentro do seu orçamento.
 
@@ -54,11 +57,16 @@ O projeto segue uma arquitetura **Domain-Centric** distribuída em múltiplos m�
 
 1.  Clone este repositório:
     ```bash
-    git clone https://github.com/brunocarvalhs/How-Much.git
+    git clone https://github.com/brunocarvalhs/Cestou.git
     ```
 2.  Abra o projeto no Android Studio.
 3.  Sincronize as dependências do Gradle.
 4.  Compile e execute o aplicativo em um emulador ou dispositivo Android.
+
+## ⚙️ CI/CD
+
+A pipeline (PR validation, build, release) é configurada em `.github/pipeline-config.yaml` e
+documentada em [`.github/PIPELINE.md`](.github/PIPELINE.md).
 
 ## 🤝 Contribuições
 
