@@ -4,7 +4,7 @@ This directory contains the agnostic CI/CD infrastructure for the project. It is
 
 ## ⚙️ Centralized Configuration (`pipeline-config.yaml`)
 
-The source of truth for all pipeline settings is the [.github/pipeline-config.yaml](file:///Users/bruno/Developers/How-Much/.github/pipeline-config.yaml) file. 
+The source of truth for all pipeline settings is the [.github/pipeline-config.yaml](pipeline-config.yaml) file. 
 
 ### Key Sections:
 - **`project`**: Metadata like name, display name, and package.
