@@ -5,10 +5,13 @@ Site estático, sem build: `index.html` (landing em pt-BR), `changelog.html` (ge
 
 ## Publicar
 
-1. GitHub → **Settings → Pages → Build and deployment → Deploy from a branch**.
-2. Branch: a padrão do repositório; pasta: **`/docs`**. Salvar.
-3. `docs/.nojekyll` desliga o Jekyll, para que arquivos como `legal/.well-known/` e os `.md` sejam
-   servidos como estão.
+O GitHub Pages já está ativo: **Settings → Pages → Deploy from a branch**, branch **`master`**,
+pasta **`/docs`**. O site entra no ar quando `develop` é promovido para `master`. Endereço:
+`https://bruno-carvalho.dev.br/Cestou/` (o repositório foi renomeado de `How-Much` para `Cestou`; o
+Pages não redireciona o caminho antigo `/How-Much/`).
+
+`docs/.nojekyll` desliga o Jekyll, para que arquivos como `legal/.well-known/` e os `.md` sejam
+servidos como estão.
 
 Atenção: as páginas desta conta do GitHub usam por padrão o domínio próprio `bruno-carvalho.dev.br`,
 que hoje não resolve (ver `legal/README.md`). Antes de divulgar o site, aponte o DNS desse domínio
