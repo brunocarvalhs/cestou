@@ -53,7 +53,7 @@ hilt = "2.60.1"
 hiltNavigationCompose = "1.4.0"
 firebaseBom = "34.19.0"
 # Pinned to what FirebaseUI Auth already resolves at runtime, so declaring them changes nothing in the APK.
-androidxCredentials = "1.6.0-beta01"
+androidxCredentials = "1.7.0-alpha03"
 googleId = "1.2.0"
 googleServices = "4.5.0"
 firebaseCrashlytics = "3.0.8"
