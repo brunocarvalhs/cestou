@@ -282,7 +282,7 @@ release:
     # don't send it for review - that's done by hand in the Console UI.
     # Required while the app has pending changes Play won't let the API send
     # for review ("Changes cannot be sent for review automatically").
-    changes_not_sent_for_review: true
+    changes_not_sent_for_review: false
     # Job in release.yml targets this GitHub Environment before uploading to
     # the Play Store, so the actual gate (require a reviewer, yes/no) is
     # whatever protection rules that environment has under repo Settings >
