@@ -19,6 +19,7 @@ import br.com.brunocarvalhs.howmuch.feature.products.domain.exception.ImageUnrea
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.ProductRepository
 import com.google.ai.client.generativeai.GenerativeModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -106,6 +107,9 @@ class ProductRepositoryImpl @Inject constructor(
             )
         ).map { models ->
             models?.map { it.toDomain() } ?: emptyList()
+        }.catch { e ->
+            Timber.e(e, "Error observing products for shoppingId: %s", shoppingId)
+            emit(emptyList())
         }
     }
 
