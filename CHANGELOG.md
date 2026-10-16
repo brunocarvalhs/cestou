@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.2.1] - 2026-10-16
+
+* Merge pull request #206 from brunocarvalhs/develop
+* Merge pull request #205 from brunocarvalhs/fix/Status.asException
+* fix: detekt apontamentos
+* fix(data): handle exceptions and log errors in flow observations
+* build(deps): Bump kotlin from 2.4.20 to 2.4.21 (#200)
+* build(deps): Bump gradle-wrapper from 9.8.0 to 9.8.1 (#201)
+* build(deps): Bump org.jetbrains.kotlin:kotlin-reflect (#199)
+* build(deps): Bump com.google.android.libraries.identity.googleid:googleid (#203)
+* build(deps): Bump com.lemonappdev:konsist from 0.17.3 to 0.18.1 (#202)
+* build(deps): Bump androidxCredentials from 1.6.0-beta01 to 1.7.0-alpha03 (#197)
+* Merge pull request #204 from brunocarvalhs/ci/commitlint-ignore-dependabot
+* ci: skip commitlint for dependabot bump commits
+* Merge pull request #196 from brunocarvalhs/docs/rename-cestou
+* chore: switch to proprietary license (all rights reserved)
+* chore: add LICENSE
+* chore(ci): update APK size baseline to 188627531 bytes
+
+
 ## [2.2.0] - 2026-10-13
 
 * Merge pull request #194 from brunocarvalhs/develop
