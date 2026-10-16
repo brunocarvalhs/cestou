@@ -9,7 +9,9 @@ import br.com.brunocarvalhs.howmuch.core.domain.services.deleteDocumentWithSubCo
 import br.com.brunocarvalhs.howmuch.core.domain.services.make
 import br.com.brunocarvalhs.howmuch.core.domain.services.observe
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,6 +27,10 @@ class UserRepositoryImpl @Inject constructor(
                 method = NetworkService.Method.GET
             )
         ).map { it?.toDomain() }
+            .catch { e ->
+                Timber.e(e, "Error observing user profile for id: %s", id)
+                emit(null)
+            }
     }
 
     // POST with an id maps to set() (create-or-replace); PUT maps to update(), which fails on a

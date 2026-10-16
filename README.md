@@ -74,4 +74,4 @@ Contribuições são bem-vindas! Sinta-se à vontade para abrir uma issue ou env
 
 ## 📄 Licença
 
-Distribuído sob a licença Apache 2.0. Veja `LICENSE` para mais informações.
+Copyright (c) Bruno Carvalho. Todos os direitos reservados. O código é público apenas para consulta; não é permitido copiar, modificar ou redistribuir sem autorização. Veja [LICENSE](LICENSE).

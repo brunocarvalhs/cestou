@@ -3,6 +3,7 @@ package br.com.brunocarvalhs.howmuch.core.data.network
 import br.com.brunocarvalhs.howmuch.core.data.security.Encryptor
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -89,6 +90,13 @@ class NetworkServiceImpl @Inject constructor(
             query = request.query
         ).map { result ->
             getResponse(result, response, responseType)
+        }.catch { e ->
+            networkLogger.failure(
+                endpoint = finalEndpoint,
+                elapsed = 0,
+                throwable = e
+            )
+            emit(null)
         }
     }
 
