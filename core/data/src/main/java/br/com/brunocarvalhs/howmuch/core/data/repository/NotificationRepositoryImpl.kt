@@ -28,10 +28,11 @@ class NotificationRepositoryImpl @Inject constructor(
                 method = NetworkService.Method.GET,
                 query = mapOf("userId" to userId)
             )
-        ).map { models -> models?.map { it.toDomain() } ?: emptyList() }
-        .catch { e ->
+        ).catch { e ->
             Timber.e(e, "Error observing notifications for userId: %s", userId)
             emit(emptyList())
+        }.map { models ->
+            models?.map { it.toDomain() } ?: emptyList()
         }
     }
 
@@ -41,8 +42,7 @@ class NotificationRepositoryImpl @Inject constructor(
                 endpoint = "$ENDPOINT/$notificationId",
                 method = NetworkService.Method.PUT,
                 payload = mapOf("isRead" to true)
-            ),
-            response = Boolean::class
+            ), response = Boolean::class
         )
         Unit
     }
@@ -64,11 +64,8 @@ class NotificationRepositoryImpl @Inject constructor(
         )
         networkService.make(
             request = NetworkService.NetworkRequest(
-                endpoint = ENDPOINT,
-                method = NetworkService.Method.POST,
-                payload = model.toMap()
-            ),
-            response = String::class
+                endpoint = ENDPOINT, method = NetworkService.Method.POST, payload = model.toMap()
+            ), response = String::class
         )
         Unit
     }

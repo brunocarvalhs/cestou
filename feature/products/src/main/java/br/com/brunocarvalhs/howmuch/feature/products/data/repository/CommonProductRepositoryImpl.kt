@@ -35,10 +35,10 @@ class CommonProductRepositoryImpl @Inject constructor(
                 method = NetworkService.Method.GET
             )
         ).map { models -> models?.map { it.toDomain() } ?: emptyList() }
-        .catch { e ->
-            Timber.e(e, "Error observing common products")
-            emit(emptyList())
-        }
+            .catch { e ->
+                Timber.e(e, "Error observing common products")
+                emit(emptyList())
+            }
     }
 
     override suspend fun seedDefaultsIfEmpty(): Result<Unit> = runCatching {

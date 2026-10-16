@@ -27,10 +27,10 @@ class UserRepositoryImpl @Inject constructor(
                 method = NetworkService.Method.GET
             )
         ).map { it?.toDomain() }
-        .catch { e ->
-            Timber.e(e, "Error observing user profile for id: %s", id)
-            emit(null)
-        }
+            .catch { e ->
+                Timber.e(e, "Error observing user profile for id: %s", id)
+                emit(null)
+            }
     }
 
     // POST with an id maps to set() (create-or-replace); PUT maps to update(), which fails on a
