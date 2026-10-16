@@ -1,5 +1,174 @@
 # Changelog
 
+## [2.2.0] - 2026-10-13
+
+* Merge pull request #194 from brunocarvalhs/develop
+* Merge pull request #195 from brunocarvalhs/ci/commitlint-legacy-header
+* ci(commitlint): exempt legacy 123-char header already in develop history
+* chore(ci): update APK size baseline to 188627527 bytes
+* Merge pull request #191 from brunocarvalhs/feat/wear-last-list
+* Merge branch 'develop' into feat/wear-last-list
+* Merge pull request #192 from brunocarvalhs/docs/github-pages-site
+* Merge branch 'develop' into docs/github-pages-site
+* Merge branch 'develop' into feat/wear-last-list
+* Merge pull request #193 from brunocarvalhs/docs/rename-cestou
+* docs: move the pipeline README out of .github so the repo shows the app README
+* docs: rename the repository references to Cestou
+* docs(site): point the site at the renamed Cestou repo
+* docs(site): add landing page and changelog for GitHub Pages
+* ci(build): rebase the APK size baseline commit onto the latest develop
+* ci(codeql): give the CodeQL job its own 25 min timeout
+* chore(ci): update APK size baseline to 188546091 bytes
+* feat(wear): open the last list, mark and add items, and a tile for it
+* Merge pull request #190 from brunocarvalhs/feat/wear-google-login
+* feat(wear): sign the watch in to Firebase with a Google ID token from the phone
+* Merge pull request #189 from brunocarvalhs/feat/auth-providers-flags
+* Merge branch 'develop' into feat/auth-providers-flags
+* Merge pull request #188 from brunocarvalhs/feat/shortcode-index
+* Merge branch 'develop' into feat/shortcode-index
+* Merge pull request #186 from brunocarvalhs/feat/web-account-deletion
+* feat(shopping): resolve share codes through a shortCodes index
+* build(auth): leave the Facebook SDK out until Facebook login is turned on
+* Merge branch 'develop' into feat/web-account-deletion
+* Merge pull request #187 from brunocarvalhs/fix/account-deletion-cleanup
+* feat(auth): offer phone, Apple, Microsoft, Facebook and GitHub sign-in behind remote flags
+* feat(remote-config): add per-provider login feature flag keys
+* fix(settings): say what account deletion really deletes and keeps
+* fix(firestore): allow self-leave and sole-member delete in proposed rules
+* fix(data): delete list items and common products with their parent
+* fix(settings): actually leave shared lists when deleting the account
+* docs(legal): align web deletion page with what is actually deleted
+* Merge branch 'develop' into feat/web-account-deletion
+* Merge pull request #185 from brunocarvalhs/docs/lgpd-privacy-terms
+* Merge branch 'develop' into docs/lgpd-privacy-terms
+* Merge pull request #176 from brunocarvalhs/refactor/rename-classes
+* test(products): fix import order after ProductForm rename
+* Merge branch 'develop' into refactor/rename-classes
+* Merge pull request #175 from brunocarvalhs/refactor/standardize-packages
+* Merge branch 'develop' into refactor/standardize-packages
+* Merge pull request #173 from brunocarvalhs/refactor/update-language-contract
+* Merge remote-tracking branch 'origin/develop' into refactor/update-language-contract
+* Merge pull request #172 from brunocarvalhs/refactor/chat-message-to-domain
+* Merge branch 'develop' into refactor/chat-message-to-domain
+* chore(ci): update APK size baseline to 188479475 bytes
+* Merge pull request #171 from brunocarvalhs/refactor/firebase-wear-to-core-data
+* Merge branch 'develop' into refactor/firebase-wear-to-core-data
+* chore(ci): update APK size baseline to 188479467 bytes
+* chore(ci): update APK size baseline to 188479471 bytes
+* chore(ci): update APK size baseline to 188479467 bytes
+* chore(ci): update APK size baseline to 188479471 bytes
+* Merge branch 'develop' into feat/web-account-deletion
+* Merge branch 'develop' into docs/lgpd-privacy-terms
+* chore(ci): update APK size baseline to 188479467 bytes
+* feat(legal): self-service account deletion on the web page
+* docs(legal): rewrite privacy policy and terms for LGPD and CDC, add Spanish
+* Merge pull request #174 from brunocarvalhs/chore/domain-drop-camera
+* Merge branch 'develop' into chore/domain-drop-camera
+* Merge pull request #178 from brunocarvalhs/chore/audit-batch-integration
+* chore(ci): update APK size baseline to 188472080 bytes
+* Merge branch 'develop' into chore/audit-batch-integration
+* Merge pull request #184 from brunocarvalhs/fix/a11y-icon-descriptions
+* Merge pull request #183 from brunocarvalhs/fix/auth-copy-neutral-mfa
+* Merge pull request #182 from brunocarvalhs/chore/dedupe-share-strings
+* Merge pull request #181 from brunocarvalhs/fix/currency-formatting
+* Merge pull request #179 from brunocarvalhs/fix/account-deletion-reauth
+* fix(a11y): add real content descriptions to cart and products icons
+* fix(auth): neutral copy for MFA and shopping pt-BR strings
+* chore(shopping): drop share strings duplicated in core:ui
+* fix(shopping): format list budget with the selected currency
+* fix(settings): require a recent login before deleting the account
+* fix(integration): align layout tests with moved components and localized strings
+* Merge branch 'test/layout-coverage-80-v2' into chore/audit-batch-integration
+* style(test): satisfy detekt in new layout tests
+* fix(cart): move remaining hardcoded UI literals to cart string resources
+* test(wear): layout tests for Wear pairing, profile and shopping screens
+* Merge branch 'refactor/product-usecase-contracts' into chore/audit-batch-integration
+* Merge branch 'refactor/cart-ui-decouple-products' into chore/audit-batch-integration
+* Merge branch 'style/magic-number-core-misc' into chore/audit-batch-integration
+* Merge branch 'style/magic-number-cart-products-shopping' into chore/audit-batch-integration
+* Merge branch 'fix/hardcoded-ui-strings' into chore/audit-batch-integration
+* Merge branch 'test/core-billing-coverage' into chore/audit-batch-integration
+* refactor(arch): move product use-case contracts to core/domain (AD-011)
+* test(ui): layout tests for shared components and drag-and-drop
+* refactor(ui): move Suggestions and ShareOptionsBottomSheet to core:ui
+* refactor(cart): own its strings instead of importing feature.products.R
+* test(settings): layout tests for sub-screens
+* style: replace MagicNumber with named constants in core/ui, core/data, core/common, core/ai, feature/settings, feature/auth
+* style: replace MagicNumber with named constants in cart, products, shopping
+* test(products): layout tests for form, photo and scanner components
+* fix: move hardcoded UI literals to string resources
+* test(shopping): layout tests for forms, items, QR sheet and notifications
+* test(cart): layout tests for cart and AI assistant components
+* build(kover): add layout variant and koverVerifyLayout gate
+* test(billing): cover PlayBillingSubscriptionRepository with JVM unit tests
+* refactor: rename Manager classes and FormProduct by role
+* refactor: standardize feature packages (data/mapper, navigation)
+* build(domain): drop unused androidx.camera.core dependency
+* refactor(settings): move UpdateLanguageUseCase to core:domain, drop auth -> settings
+* refactor(chat): move ChatMessage to core:domain, drop cart -> chat
+* refactor(core): move Firebase, App Check, Crashlytics and Wear impls to core:data
+* Merge pull request #170 from brunocarvalhs/refactor/ai-agent-java-sources
+* Merge branch 'develop' into refactor/ai-agent-java-sources
+* Merge pull request #169 from brunocarvalhs/style/detekt-formatting
+* Merge branch 'develop' into style/detekt-formatting
+* Merge pull request #168 from brunocarvalhs/refactor/slim-core-common
+* refactor(ai-agent): move sources from src/*/kotlin to src/*/java
+* style: fix detekt formatting debt and prune stale baseline entries
+* refactor(core): move AppException to core:domain, drop domain -> common
+* Merge pull request #165 from brunocarvalhs/refactor/feature-nav-graph
+* Merge branch 'develop' into refactor/feature-nav-graph
+* Merge pull request #166 from brunocarvalhs/build/convention-plugins
+* Merge branch 'develop' into build/convention-plugins
+* Merge pull request #164 from brunocarvalhs/refactor/domain-without-android
+* Merge branch 'develop' into refactor/domain-without-android
+* Merge pull request #167 from brunocarvalhs/ci/comment-without-docker
+* Merge branch 'develop' into refactor/feature-nav-graph
+* Merge branch 'develop' into build/convention-plugins
+* Merge branch 'develop' into ci/comment-without-docker
+* chore(ci): update APK size baseline to 188454488 bytes
+* ci: drop Docker-based actions that hit Docker Hub rate limits
+* Merge branch 'develop' into refactor/domain-without-android
+* Merge pull request #162 from brunocarvalhs/docs/architecture-audit
+* Merge branch 'develop' into docs/architecture-audit
+* Merge pull request #161 from brunocarvalhs/chore/untrack-ide-files
+* Merge branch 'develop' into refactor/domain-without-android
+* Merge remote-tracking branch 'origin/develop' into refactor/feature-nav-graph
+* Merge remote-tracking branch 'origin/develop' into build/convention-plugins
+* Merge branch 'develop' into chore/untrack-ide-files
+* Merge pull request #163 from brunocarvalhs/test/architecture-rules
+* Merge branch 'develop' into test/architecture-rules
+* Merge pull request #160 from brunocarvalhs/chore/kover-billing-subscription
+* build: convention plugins for Android library, Hilt and feature modules
+* Merge remote-tracking branch 'origin/test/architecture-rules' into build/convention-plugins
+* Merge branch 'develop' into chore/kover-billing-subscription
+* Merge pull request #159 from brunocarvalhs/chore/remove-dead-product-code
+* Merge branch 'develop' into chore/remove-dead-product-code
+* Merge pull request #158 from brunocarvalhs/chore/remove-unused-module-deps
+* refactor(navigation): rename FeatureInitializer to FeatureNavGraph, one class per feature
+* refactor(products): analyze images by URI so the domain has no Bitmap
+* refactor(domain): remove Android and FirebaseUI from domain layers
+* docs(specs): count GoogleProviderUseCase in audit item 4
+* test(architecture): one Konsist test with layer and coupling rules
+* docs(specs): note core:billing coverage in the audit
+* chore: stop tracking IDE-generated .idea files
+* build(kover): measure core:billing and feature:subscription
+* chore(products): remove dead UI, use cases and resources
+* build: remove 26 unused module dependencies
+* docs(specs): architecture audit with phased refactor plan
+* Merge pull request #157 from brunocarvalhs/test/settings-ui-instrumented
+* Merge branch 'develop' into test/settings-ui-instrumented
+* chore(ci): update APK size baseline to 189117810 bytes
+* ci(tests): don't let bash -e abort the zero-test guard on success
+* ci(tests): run settings and core/ui UI tests, fail on zero tests
+* test(settings): add instrumented UI tests for account deletion and contact
+* Merge pull request #156 from brunocarvalhs/fix/play-account-deletion-page
+* style(settings): fix import ordering in SettingsViewModelTest
+* test(settings): cover support email and privacy copy disclosure
+* docs(legal): disclose email sign-in in the privacy policy
+* fix(settings): use the real support email address
+* docs(legal): add public account deletion page for Play Data safety
+
+
 ## [2.1.2] - 2026-10-09
 
 * Merge pull request #155 from brunocarvalhs/develop
