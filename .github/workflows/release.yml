@@ -359,7 +359,7 @@ jobs:
           path: output/
 
       - name: ${{ needs.prepare.outputs.step_deploy_upload_play }}
-        uses: r0adkll/upload-google-play@v1
+        uses: r0adkll/upload-google-play@v1.1.5
         with:
           serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ needs.prepare.outputs.package_name }}
