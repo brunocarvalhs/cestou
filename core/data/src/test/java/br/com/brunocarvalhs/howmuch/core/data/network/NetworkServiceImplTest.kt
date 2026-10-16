@@ -5,6 +5,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -144,5 +145,16 @@ class NetworkServiceImplTest {
             listOf(TestModel("1", "A"), TestModel("2", "B"), null),
             results
         )
+    }
+
+    @Test
+    fun `observe catches exceptions and emits null without throwing`() = runTest {
+        every {
+            firestoreClient.observe(any(), any())
+        } returns flow { throw IllegalStateException("PERMISSION_DENIED") }
+
+        val results = manager.observe(request, TestModel::class, null).toList()
+
+        assertEquals(listOf(null), results)
     }
 }

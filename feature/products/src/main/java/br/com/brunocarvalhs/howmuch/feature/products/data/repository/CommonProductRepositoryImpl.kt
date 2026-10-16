@@ -10,9 +10,11 @@ import br.com.brunocarvalhs.howmuch.feature.products.data.model.CommonProductMod
 import br.com.brunocarvalhs.howmuch.feature.products.domain.model.CommonProduct
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.CommonProductRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,6 +35,10 @@ class CommonProductRepositoryImpl @Inject constructor(
                 method = NetworkService.Method.GET
             )
         ).map { models -> models?.map { it.toDomain() } ?: emptyList() }
+            .catch { e ->
+                Timber.e(e, "Error observing common products")
+                emit(emptyList())
+            }
     }
 
     override suspend fun seedDefaultsIfEmpty(): Result<Unit> = runCatching {

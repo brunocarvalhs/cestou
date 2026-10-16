@@ -17,8 +17,10 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,7 +46,10 @@ class ShoppingRepositoryImpl @Inject constructor(
                 method = NetworkService.Method.GET,
                 query = mapOf("users" to userId)
             )
-        ).collect { models ->
+        ).catch { e ->
+            Timber.e(e, "Error observing all shopping lists")
+            emit(null)
+        }.collect { models ->
             emit(models?.map { it.toDomain() } ?: emptyList())
         }
     }
@@ -55,7 +60,10 @@ class ShoppingRepositoryImpl @Inject constructor(
                 endpoint = "$ENDPOINT/$id",
                 method = NetworkService.Method.GET,
             )
-        ).collect { model ->
+        ).catch { e ->
+            Timber.e(e, "Error observing shopping list by id: %s", id)
+            emit(null)
+        }.collect { model ->
             emit(model?.toDomain())
         }
     }

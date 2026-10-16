@@ -9,7 +9,9 @@ import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import br.com.brunocarvalhs.howmuch.core.domain.services.make
 import br.com.brunocarvalhs.howmuch.core.domain.services.observe
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,7 +28,12 @@ class NotificationRepositoryImpl @Inject constructor(
                 method = NetworkService.Method.GET,
                 query = mapOf("userId" to userId)
             )
-        ).map { models -> models?.map { it.toDomain() } ?: emptyList() }
+        ).catch { e ->
+            Timber.e(e, "Error observing notifications for userId: %s", userId)
+            emit(emptyList())
+        }.map { models ->
+            models?.map { it.toDomain() } ?: emptyList()
+        }
     }
 
     override suspend fun markAsRead(notificationId: String): Result<Unit> = runCatching {
@@ -35,8 +42,7 @@ class NotificationRepositoryImpl @Inject constructor(
                 endpoint = "$ENDPOINT/$notificationId",
                 method = NetworkService.Method.PUT,
                 payload = mapOf("isRead" to true)
-            ),
-            response = Boolean::class
+            ), response = Boolean::class
         )
         Unit
     }
@@ -58,11 +64,8 @@ class NotificationRepositoryImpl @Inject constructor(
         )
         networkService.make(
             request = NetworkService.NetworkRequest(
-                endpoint = ENDPOINT,
-                method = NetworkService.Method.POST,
-                payload = model.toMap()
-            ),
-            response = String::class
+                endpoint = ENDPOINT, method = NetworkService.Method.POST, payload = model.toMap()
+            ), response = String::class
         )
         Unit
     }

@@ -10,6 +10,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import timber.log.Timber
 import javax.inject.Inject
 
 class FirestoreClient @Inject constructor(
@@ -217,6 +218,7 @@ class FirestoreClient @Inject constructor(
         val registration = if (isDocumentPath(endpoint)) {
             documentRef(endpoint).addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    Timber.e(error, "Firestore snapshot listener error for endpoint: %s", endpoint)
                     close(error)
                     return@addSnapshotListener
                 }
@@ -234,6 +236,7 @@ class FirestoreClient @Inject constructor(
             }
             ref.addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    Timber.e(error, "Firestore snapshot listener error for endpoint: %s", endpoint)
                     close(error)
                     return@addSnapshotListener
                 }
