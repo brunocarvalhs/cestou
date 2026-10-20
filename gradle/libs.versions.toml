@@ -51,7 +51,7 @@ textRecognition = "16.0.1"
 timber = "5.0.1"
 hilt = "2.60.1"
 hiltNavigationCompose = "1.4.0"
-firebaseBom = "34.19.0"
+firebaseBom = "35.0.2"
 # Pinned to what FirebaseUI Auth already resolves at runtime, so declaring them changes nothing in the APK.
 androidxCredentials = "1.7.0-alpha03"
 googleId = "1.2.1"
