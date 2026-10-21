@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,11 +20,20 @@ import javax.inject.Inject
  */
 @HiltViewModel
 internal class ProfileSubscriptionViewModel @Inject constructor(
-    subscriptionRepository: SubscriptionRepository
+    subscriptionRepository: SubscriptionRepository,
+    featureFlagService: FeatureFlagService
 ) : ViewModel() {
 
     val status: StateFlow<SubscriptionStatus> = subscriptionRepository.observeStatus()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS), SubscriptionStatus.FREE)
+
+    /** Hides the plan card entirely while the paid business rules aren't finalized. */
+    val showPlanSection: Boolean =
+        featureFlagService.isEnabled(FeatureFlagKeys.BILLING_ENABLED, default = false)
+
+    /** Hides the "pair your watch" entry point while the Wear OS companion app isn't published. */
+    val showWearLink: Boolean =
+        featureFlagService.isEnabled(FeatureFlagKeys.WEAR_LOGIN_ENABLED, default = false)
 
     private companion object {
         const val SUBSCRIPTION_TIMEOUT_MS = 5_000L

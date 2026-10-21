@@ -26,6 +26,8 @@ fun NavGraphBuilder.profileGraph(navigator: Navigator) {
         ProfileScreen(
             state = uiState,
             subscriptionStatus = subscriptionStatus,
+            showPlanSection = subscriptionViewModel.showPlanSection,
+            showWearLink = subscriptionViewModel.showWearLink,
             intent = viewModel.intent.copy(
                 onManageSubscription = { navigator.navigate(Paywall(source = PAYWALL_SOURCE)) }
             )
