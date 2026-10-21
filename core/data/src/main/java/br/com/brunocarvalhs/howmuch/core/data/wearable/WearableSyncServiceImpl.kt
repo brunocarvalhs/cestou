@@ -65,7 +65,10 @@ internal class WearableSyncServiceImpl @Inject constructor(
         if (isWearableApiUnavailable(e)) {
             wearableApiUnavailable = true
             Timber.tag("WearableSync")
-                .d("$operation skipped: Wearable API is not available on this device (no Wear OS companion or outdated Play Services)")
+                .d(
+                    "$operation skipped: Wearable API is not available on this device " +
+                        "(no Wear OS companion or outdated Play Services)"
+                )
             return true
         }
         Timber.tag("WearableSync").e(e, "Error during: $operation")
