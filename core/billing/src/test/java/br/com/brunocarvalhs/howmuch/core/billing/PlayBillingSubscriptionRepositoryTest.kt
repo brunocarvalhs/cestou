@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Context
 import android.text.TextUtils
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
@@ -91,7 +93,16 @@ class PlayBillingSubscriptionRepositoryTest {
             every { purchaseToken } returns token
         }
 
-    private fun repo() = PlayBillingSubscriptionRepository(mockk<Context>(relaxed = true))
+    /**
+     * [billingEnabled] defaults to `true` here so existing tests keep exercising the real
+     * Free/Pro transitions; the BILLING_ENABLED=false override itself is covered separately.
+     */
+    private fun repo(billingEnabled: Boolean = true): PlayBillingSubscriptionRepository {
+        val featureFlagService = mockk<FeatureFlagService> {
+            every { isEnabled(FeatureFlagKeys.BILLING_ENABLED, default = false) } returns billingEnabled
+        }
+        return PlayBillingSubscriptionRepository(mockk<Context>(relaxed = true), featureFlagService)
+    }
 
     private fun details(price: String = "R$ 9,90", offerToken: String? = "offer"): ProductDetails {
         val phase = mockk<ProductDetails.PricingPhase> { every { formattedPrice } returns price }

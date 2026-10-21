@@ -9,6 +9,7 @@ android {
 
 dependencies {
     implementation(project(":core:domain"))
+    implementation(project(":core:remote-config"))
 
     // api, not implementation: PlayBillingSubscriptionRepository's public purchase()/refresh()
     // return billing-ktx types (BillingResult), which feature:subscription needs on its own
