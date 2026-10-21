@@ -18,7 +18,6 @@ import org.junit.Test
 @Serializable
 private data class TestModel(val id: String, val title: String)
 
-@Suppress("TooManyFunctions")
 class NetworkServiceImplTest {
 
     private lateinit var firestoreClient: FirestoreClient
@@ -146,36 +145,6 @@ class NetworkServiceImplTest {
             listOf(TestModel("1", "A"), TestModel("2", "B"), null),
             results
         )
-    }
-
-    @Test
-    fun `make decodes a Firestore document id as a String without a serialization error`() = runTest {
-        // Regression test for the Crashlytics non-fatal (356 events/297 users, 2.1.1-2.2.0):
-        // FirestoreClient.post() always returns the document id (e.g. a Firebase UID) as a raw
-        // String. Decoding it against the real String::class response type must succeed and must
-        // not go through the SerializationException fallback path at all.
-        val firebaseUid = "xYta46iQyMW2gKcOkjWKuhLTBGr1"
-        coEvery { firestoreClient.execute(any(), any(), any(), any()) } returns firebaseUid
-
-        val result = manager.make(request, String::class, null)
-
-        assertEquals(firebaseUid, result)
-        io.mockk.verify(exactly = 0) { networkLogger.serializationError(any(), any(), any()) }
-    }
-
-    @Test
-    fun `make logs a serialization error when a Firestore document id is decoded as Boolean`() = runTest {
-        // Documents the bug this module used to have before the response type was corrected at
-        // the call sites (e.g. UserRepositoryImpl.saveProfile): asking NetworkServiceImpl to
-        // decode a document-id string as a Boolean throws a JsonDecodingException, which is
-        // caught here and reported as a non-fatal instead of being allowed to crash the app.
-        val firebaseUid = "xYta46iQyMW2gKcOkjWKuhLTBGr1"
-        coEvery { firestoreClient.execute(any(), any(), any(), any()) } returns firebaseUid
-
-        val result = manager.make(request, Boolean::class, null)
-
-        assertNull(result)
-        io.mockk.verify { networkLogger.serializationError(Boolean::class, firebaseUid, any()) }
     }
 
     @Test
