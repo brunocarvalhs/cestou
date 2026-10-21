@@ -18,6 +18,7 @@ import org.junit.Test
 @Serializable
 private data class TestModel(val id: String, val title: String)
 
+@Suppress("TooManyFunctions")
 class NetworkServiceImplTest {
 
     private lateinit var firestoreClient: FirestoreClient
