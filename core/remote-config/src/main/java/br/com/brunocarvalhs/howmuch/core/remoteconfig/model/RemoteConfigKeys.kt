@@ -8,6 +8,15 @@ object FeatureFlagKeys {
     const val AI_OPENROUTER_ENABLED = "ai_openrouter_enabled"
     const val AI_GEMINI_ENABLED = "ai_gemini_enabled"
 
+    /**
+     * Master switch for the AI chat entry point (the FAB on the cart screen) — separate from
+     * [AI_OPENROUTER_ENABLED]/[AI_GEMINI_ENABLED], which only choose a provider once chat is
+     * already reachable. New, unproven feature: default OFF for a gradual rollout (by % or app
+     * version via the Firebase console's Remote Config conditions, no app update needed) rather
+     * than shipping it to every current user at once.
+     */
+    const val AI_CHAT_ENABLED = "ai_chat_enabled"
+
     // Login providers. Google and e-mail default to true at the call site (the Play reviewer must
     // always be able to sign in); every other provider defaults to false until it is switched on.
     const val AUTH_GOOGLE_ENABLED = "auth_google_enabled"
