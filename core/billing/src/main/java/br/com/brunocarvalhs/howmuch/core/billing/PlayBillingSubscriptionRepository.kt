@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
@@ -24,6 +26,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import timber.log.Timber
@@ -44,10 +47,17 @@ import kotlin.coroutines.resume
  * There is no explicit "restore purchases" action: [refresh], called from [purchase]'s caller
  * on every app resume, re-runs `queryPurchasesAsync` against Play's local cache, which *is*
  * restore on Android.
+ *
+ * [observeStatus] is additionally gated by [FeatureFlagKeys.BILLING_ENABLED]: while the paid
+ * business rules aren't finalized, that flag defaults to off and every caller sees
+ * [SubscriptionStatus.PRO] regardless of the real Play Billing state tracked in [_status] — so
+ * the app is fully free, and flipping the flag on later (no app update needed) makes real
+ * entitlement apply again, using whatever [_status] already settled to in the background.
  */
 @Singleton
 class PlayBillingSubscriptionRepository @Inject constructor(
-    @ApplicationContext context: Context
+    @ApplicationContext context: Context,
+    private val featureFlagService: FeatureFlagService
 ) : SubscriptionRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -86,7 +96,13 @@ class PlayBillingSubscriptionRepository @Inject constructor(
         }
     }
 
-    override fun observeStatus(): Flow<SubscriptionStatus> = _status.asStateFlow()
+    override fun observeStatus(): Flow<SubscriptionStatus> = _status.asStateFlow().map { status ->
+        if (featureFlagService.isEnabled(FeatureFlagKeys.BILLING_ENABLED, default = false)) {
+            status
+        } else {
+            SubscriptionStatus.PRO
+        }
+    }
 
     /**
      * Re-reads Play's local purchase cache and updates [observeStatus] accordingly. Call this

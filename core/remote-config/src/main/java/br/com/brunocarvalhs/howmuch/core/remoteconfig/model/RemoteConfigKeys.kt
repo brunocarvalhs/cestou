@@ -20,6 +20,14 @@ object FeatureFlagKeys {
 
     /** Pairing (and so signing in) a watch from the phone. Default on. */
     const val WEAR_LOGIN_ENABLED = "wear_login_enabled"
+
+    /**
+     * Master switch for paid entitlement (AD-010). Default OFF: the paid business rules aren't
+     * finalized yet, so every user is treated as Pro and the app is fully free while this stays
+     * off. Flip to `true` in the Firebase console (no app update needed) once ready — real Play
+     * Billing status then applies again for everyone.
+     */
+    const val BILLING_ENABLED = "billing_enabled"
 }
 
 /**
