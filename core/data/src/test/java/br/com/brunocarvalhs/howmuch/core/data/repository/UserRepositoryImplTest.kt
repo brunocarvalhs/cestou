@@ -15,6 +15,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.reflect.KClass
 
 class UserRepositoryImplTest {
 
@@ -51,7 +52,7 @@ class UserRepositoryImplTest {
     @Test
     fun `saveProfile creates or replaces the user document without the e-mail`() = runTest {
         val request = slot<NetworkService.NetworkRequest>()
-        coEvery { networkService.make<Boolean>(capture(request), any(), any()) } returns true
+        coEvery { networkService.make(capture(request), any<KClass<String>>(), any()) } returns "u1"
 
         val result = repository.saveProfile(
             UserProfile(id = "u1", name = "Ana Silva", email = "ana@test.com", photoUrl = "http://x/y.png")
@@ -70,9 +71,28 @@ class UserRepositoryImplTest {
     }
 
     @Test
+    fun `saveProfile declares the real String return type of a Firestore POST`() = runTest {
+        // Regression test for the Crashlytics non-fatal (356 events/297 users, 2.1.1-2.2.0):
+        // FirestoreClient.post() always returns the new/reused document id as a String, never a
+        // Boolean. Declaring `response = Boolean::class` here made NetworkServiceImpl try to
+        // decode a Firebase UID string (e.g. "xYta46iQyMW2gKcOkjWKuhLTBGr1") as a boolean on
+        // every saveProfile() call, throwing a JsonDecodingException that was logged on every
+        // single save even though the result is discarded by this method anyway.
+        val responseClass = slot<KClass<*>>()
+        coEvery {
+            networkService.make(any(), capture(responseClass), any())
+        } returns "xYta46iQyMW2gKcOkjWKuhLTBGr1"
+
+        val result = repository.saveProfile(UserProfile(id = "u1", name = "Ana Silva"))
+
+        assertTrue(result.isSuccess)
+        assertEquals(String::class, responseClass.captured)
+    }
+
+    @Test
     fun `saveProfile fails when network call throws`() = runTest {
         coEvery {
-            networkService.make<Boolean>(any(), any(), any())
+            networkService.make<String>(any(), any(), any())
         } throws NetworkService.NetworkException(code = 400)
 
         val result = repository.saveProfile(UserProfile(id = "u1", name = "Ana Silva"))
