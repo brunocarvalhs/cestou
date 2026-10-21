@@ -6,6 +6,7 @@ import androidx.wear.remote.interactions.RemoteActivityHelper
 import br.com.brunocarvalhs.howmuch.core.common.wearable.PairingCodeHolder
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearablePaths
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
+import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.wearable.CapabilityClient
@@ -34,7 +35,49 @@ internal class WearableSyncServiceImpl @Inject constructor(
     private val pairingCodeHolder: PairingCodeHolder
 ) : WearableSyncService {
 
+    /**
+     * Once we've seen the Wearable Data Layer API report itself as unavailable
+     * on this device (no Wear OS companion installed, or Play Services too old
+     * to support it), there's no point retrying on every call for the rest of
+     * the process lifetime - it's a device capability, not a transient error.
+     * This also keeps us from spamming Crashlytics with an expected condition.
+     */
+    @Volatile
+    private var wearableApiUnavailable = false
+
+    /**
+     * True when [e] represents the Wearable API simply not being present on
+     * this device, as opposed to a real (and reportable) failure.
+     */
+    private fun isWearableApiUnavailable(e: ApiException): Boolean =
+        e.statusCode == CommonStatusCodes.API_NOT_CONNECTED ||
+            e.statusCode == ConnectionResult.API_UNAVAILABLE
+
+    /**
+     * Handles an [ApiException] caught around a `Wearable.*` call. If it
+     * signals that the API is unavailable on this device, remembers that
+     * (to skip future attempts) and logs at a low level without the
+     * throwable, so it's never forwarded to Crashlytics as a non-fatal.
+     * Otherwise logs it as an actual error. Returns true if it was the
+     * "expected, no companion app" case.
+     */
+    private fun handleApiException(e: ApiException, operation: String): Boolean {
+        if (isWearableApiUnavailable(e)) {
+            wearableApiUnavailable = true
+            Timber.tag("WearableSync")
+                .d("$operation skipped: Wearable API is not available on this device (no Wear OS companion or outdated Play Services)")
+            return true
+        }
+        Timber.tag("WearableSync").e(e, "Error during: $operation")
+        return false
+    }
+
     override suspend fun syncAuthStatus(isAuthenticated: Boolean, userId: String?) {
+        if (wearableApiUnavailable) {
+            Timber.tag("WearableSync").d("Skipping auth status sync: Wearable API previously found unavailable")
+            return
+        }
+
         val request = PutDataMapRequest.create("/auth").apply {
             dataMap.putBoolean("authenticated", isAuthenticated)
             dataMap.putString("userId", userId.orEmpty())
@@ -45,17 +88,18 @@ internal class WearableSyncServiceImpl @Inject constructor(
             Wearable.getDataClient(context).putDataItem(request).await()
             Timber.tag("WearableSync").d("Auth status synced: $isAuthenticated")
         } catch (e: ApiException) {
-            if (e.statusCode == CommonStatusCodes.API_NOT_CONNECTED) {
-                Timber.tag("WearableSync").w("Error syncing auth status: Wearable API not connected (Code 17)")
-            } else {
-                Timber.tag("WearableSync").e(e, "Error syncing auth status")
-            }
+            handleApiException(e, "syncing auth status")
         } catch (e: Exception) {
             Timber.tag("WearableSync").e(e, "Error syncing auth status")
         }
     }
 
     override suspend fun syncShoppingLists(shoppingListsJson: String) {
+        if (wearableApiUnavailable) {
+            Timber.tag("WearableSync").d("Skipping shopping lists sync: Wearable API previously found unavailable")
+            return
+        }
+
         val request = PutDataMapRequest.create("/shopping_lists").apply {
             dataMap.putString("json", shoppingListsJson)
             dataMap.putLong("timestamp", System.currentTimeMillis())
@@ -65,11 +109,7 @@ internal class WearableSyncServiceImpl @Inject constructor(
             Wearable.getDataClient(context).putDataItem(request).await()
             Timber.tag("WearableSync").d("Shopping lists synced")
         } catch (e: ApiException) {
-            if (e.statusCode == CommonStatusCodes.API_NOT_CONNECTED) {
-                Timber.tag("WearableSync").w("Error syncing shopping lists: Wearable API not connected (Code 17)")
-            } else {
-                Timber.tag("WearableSync").e(e, "Error syncing shopping lists")
-            }
+            handleApiException(e, "syncing shopping lists")
         } catch (e: Exception) {
             Timber.tag("WearableSync").e(e, "Error syncing shopping lists")
         }
@@ -86,6 +126,11 @@ internal class WearableSyncServiceImpl @Inject constructor(
     }
 
     override suspend fun findNodeByPairingCode(code: String): String? {
+        if (wearableApiUnavailable) {
+            Timber.tag("WearableSync").d("Skipping node search: Wearable API previously found unavailable")
+            return null
+        }
+
         Timber.tag("WearableSync").d("Searching for a wear node with pairing code: $code")
 
         val candidateNodes = try {
@@ -94,11 +139,7 @@ internal class WearableSyncServiceImpl @Inject constructor(
                 .await()
                 .nodes
         } catch (e: ApiException) {
-            if (e.statusCode == CommonStatusCodes.API_NOT_CONNECTED) {
-                Timber.tag("WearableSync").w("Wearable API not connected (Code 17). Is Wear OS app installed?")
-            } else {
-                Timber.tag("WearableSync").e(e, "Error querying the wear capability")
-            }
+            handleApiException(e, "querying the wear capability")
             return null
         } catch (e: Exception) {
             Timber.tag("WearableSync").e(e, "Unexpected error querying the wear capability")
@@ -148,7 +189,7 @@ internal class WearableSyncServiceImpl @Inject constructor(
             Timber.tag("WearableSync").d("Node $nodeId did not confirm pairing code $code in time")
             false
         } catch (e: ApiException) {
-            Timber.tag("WearableSync").e(e, "Error verifying pairing code with node $nodeId")
+            handleApiException(e, "verifying pairing code with node $nodeId")
             false
         } catch (e: Exception) {
             Timber.tag("WearableSync").e(e, "Unexpected error verifying pairing code with node $nodeId")
@@ -157,6 +198,11 @@ internal class WearableSyncServiceImpl @Inject constructor(
     }
 
     override suspend fun sendAuthPairToNode(nodeId: String, userId: String, googleIdToken: String) {
+        if (wearableApiUnavailable) {
+            Timber.tag("WearableSync").d("Skipping auth pair send: Wearable API previously found unavailable")
+            return
+        }
+
         try {
             Timber.tag("WearableSync").d("Sending auth pair to node: $nodeId")
             Wearable.getMessageClient(context)
@@ -164,17 +210,18 @@ internal class WearableSyncServiceImpl @Inject constructor(
                 .await()
             Timber.tag("WearableSync").d("Auth pair sent successfully")
         } catch (e: ApiException) {
-            if (e.statusCode == CommonStatusCodes.API_NOT_CONNECTED) {
-                Timber.tag("WearableSync").w("Error sending auth pair: Wearable API not connected (Code 17)")
-            } else {
-                Timber.tag("WearableSync").e(e, "Error sending auth pair")
-            }
+            handleApiException(e, "sending auth pair")
         } catch (e: Exception) {
             Timber.tag("WearableSync").e(e, "Error sending auth pair")
         }
     }
 
     override suspend fun notifySignOut() {
+        if (wearableApiUnavailable) {
+            Timber.tag("WearableSync").d("Skipping sign-out notification: Wearable API previously found unavailable")
+            return
+        }
+
         try {
             Wearable.getCapabilityClient(context)
                 .getCapability(WearablePaths.WEAR_CAPABILITY, CapabilityClient.FILTER_REACHABLE)
@@ -185,6 +232,9 @@ internal class WearableSyncServiceImpl @Inject constructor(
                         .sendMessage(node.id, WearablePaths.AUTH_SIGN_OUT, ByteArray(0))
                         .await()
                 }
+        } catch (e: ApiException) {
+            // ponytail: an unreachable watch keeps its session until it next pairs; queue it if that matters.
+            handleApiException(e, "notifying the watch of the sign-out")
         } catch (e: Exception) {
             // ponytail: an unreachable watch keeps its session until it next pairs; queue it if that matters.
             Timber.tag("WearableSync").w(e, "Could not notify the watch of the sign-out")
@@ -192,6 +242,11 @@ internal class WearableSyncServiceImpl @Inject constructor(
     }
 
     override suspend fun openPhoneApp() {
+        if (wearableApiUnavailable) {
+            Timber.tag("WearableSync").d("Skipping phone app open: Wearable API previously found unavailable")
+            return
+        }
+
         try {
             val nodes = Wearable.getNodeClient(context).connectedNodes.await()
             val phoneNode = nodes.firstOrNull { it.isNearby } ?: nodes.firstOrNull()
@@ -213,11 +268,7 @@ internal class WearableSyncServiceImpl @Inject constructor(
                 Timber.tag("WearableSync").w("No connected nodes found to open phone app")
             }
         } catch (e: ApiException) {
-            if (e.statusCode == CommonStatusCodes.API_NOT_CONNECTED) {
-                Timber.tag("WearableSync").w("Error opening phone app: Wearable API not connected (Code 17)")
-            } else {
-                Timber.tag("WearableSync").e(e, "Error opening phone app")
-            }
+            handleApiException(e, "opening phone app")
         } catch (e: Exception) {
             Timber.tag("WearableSync").e(e, "Error opening phone app")
         }
