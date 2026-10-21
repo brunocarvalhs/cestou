@@ -15,6 +15,7 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -89,8 +90,22 @@ class MainActivity : AppCompatActivity() {
         CestouTheme(darkTheme = darkTheme) {
             val navController = rememberNavController()
 
-            LaunchedEffect(navController) {
-                navigator.bind(navController)
+            // Bind síncrono, direto no corpo da composição: precisa estar concluído ANTES do
+            // NavHost (mais abaixo, na mesma composição) compor seus destinos - inclusive os
+            // restaurados do back stack no primeiro frame. Um LaunchedEffect aqui rodaria depois
+            // desse primeiro frame, deixando `navigator.navController` desvinculado exatamente
+            // quando um destino restaurado (ex.: CartGraph) tenta lê-lo, causando o crash fatal
+            // "Navigator not bound to a NavController" visto no Crashlytics. bind() é apenas uma
+            // atribuição de var, então chamá-lo a cada (re)composição é seguro e barato.
+            navigator.bind(navController)
+
+            // Navigator é singleton do Hilt (sobrevive à recriação da Activity). Ao destruir esta
+            // composição (rotação, dark mode, troca de idioma, "não manter atividades" etc.) é
+            // preciso desvincular o NavController desta Activity - senão o singleton prende a
+            // referência antiga (vazamento) e, se uma nova Activity já tiver feito bind antes
+            // deste onDispose rodar, unbind() (condicional por identidade) não apaga o bind novo.
+            DisposableEffect(navController) {
+                onDispose { navigator.unbind(navController) }
             }
 
             val navBackStackEntry by navController.currentBackStackEntryAsState()
