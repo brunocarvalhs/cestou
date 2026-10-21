@@ -40,17 +40,22 @@ class ShoppingUpdateUseCase @Inject constructor(
         metadata: Map<String, Any?>
     ): Result<Unit> {
         val id = arguments.getString("shopping_id") ?: throw Exception("Shopping ID is required")
-        val shopping = Shopping(
-            id = id,
-            title = arguments.getString("title") ?: throw Exception("Shopping title is required"),
-            description = arguments.getString("description")
-                ?: throw Exception("Shopping description is required"),
-            price = arguments.getDouble("price") ?: throw Exception("Shopping price is required"),
-            status = Shopping.Status.valueOf(
-                arguments.getString("status") ?: throw Exception("Shopping status is required")
-            ),
-            users = arguments.getList("users"),
-            roles = arguments.getMap("roles"),
+        // This is a partial update: the AI agent may be asked to change a single
+        // field (e.g. "change the price to 50"), so it should not be forced to
+        // resend every field of the list on every call. Only the fields present
+        // in `arguments` are overridden; everything else keeps the value already
+        // stored for this list (see Crashlytics non-fatal "Shopping title is
+        // required" — the LLM wasn't wrong, the tool contract was).
+        val current = repository.getById(id) ?: throw Exception("Shopping list not found")
+        val shopping = current.copy(
+            title = arguments.getString("title") ?: current.title,
+            description = arguments.getString("description") ?: current.description,
+            price = arguments.getDouble("price") ?: current.price,
+            status = arguments.getString("status")
+                ?.let { Shopping.Status.valueOf(it) }
+                ?: current.status,
+            users = if (arguments.containsKey("users")) arguments.getList("users") else current.users,
+            roles = if (arguments.containsKey("roles")) arguments.getMap("roles") else current.roles,
         )
         return invoke(id, shopping)
     }

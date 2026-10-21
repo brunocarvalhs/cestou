@@ -38,6 +38,7 @@ class ShoppingUpdateUseCaseTest {
 
     @Test
     fun `execute builds a Shopping from AI agent arguments and updates it`() = runTest {
+        coEvery { repository.getById("list1") } returns shopping
         coEvery { repository.update(any()) } returns Unit
 
         val result = useCase.execute(
@@ -59,15 +60,58 @@ class ShoppingUpdateUseCaseTest {
     }
 
     @Test
-    fun `execute throws when a required argument is missing`() {
+    fun `execute throws when shopping_id argument is missing`() {
         assertThrows(Exception::class.java) {
             runTest {
                 useCase.execute(
-                    arguments = mapOf("shopping_id" to "list1"),
+                    arguments = emptyMap(),
                     session = mockk(relaxed = true),
                     metadata = emptyMap()
                 )
             }
+        }
+    }
+
+    @Test
+    fun `execute throws when the shopping list does not exist`() {
+        coEvery { repository.getById("missing") } returns null
+
+        assertThrows(Exception::class.java) {
+            runTest {
+                useCase.execute(
+                    arguments = mapOf("shopping_id" to "missing"),
+                    session = mockk(relaxed = true),
+                    metadata = emptyMap()
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `execute applies a partial update keeping existing fields when only price is provided`() = runTest {
+        coEvery { repository.getById("list1") } returns shopping
+        coEvery { repository.update(any()) } returns Unit
+
+        val result = useCase.execute(
+            arguments = mapOf(
+                "shopping_id" to "list1",
+                "price" to UPDATED_PRICE
+            ),
+            session = mockk(relaxed = true),
+            metadata = emptyMap()
+        )
+
+        assertTrue(result.isSuccess)
+        coVerify {
+            repository.update(
+                match {
+                    it.id == shopping.id &&
+                        it.title == shopping.title &&
+                        it.description == shopping.description &&
+                        it.status == shopping.status &&
+                        it.price == UPDATED_PRICE
+                }
+            )
         }
     }
 }
