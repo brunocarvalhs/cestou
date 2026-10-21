@@ -18,7 +18,12 @@ object FeatureFlagKeys {
     const val AUTH_FACEBOOK_ENABLED = "auth_facebook_enabled"
     const val AUTH_GITHUB_ENABLED = "auth_github_enabled"
 
-    /** Pairing (and so signing in) a watch from the phone. Default on. */
+    /**
+     * Pairing (and so signing in) a watch from the phone, including whether the entry point even
+     * shows up on the Profile screen. Default OFF: the Wear OS companion app isn't published yet,
+     * so there's nothing for a phone user to pair with. Flip to `true` in the Firebase console
+     * once it ships — no app update needed.
+     */
     const val WEAR_LOGIN_ENABLED = "wear_login_enabled"
 
     /**

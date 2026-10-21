@@ -51,7 +51,9 @@ import br.com.brunocarvalhs.howmuch.feature.profile.presentation.state.ProfileUi
 internal fun ProfileScreen(
     state: ProfileUiState,
     intent: ProfileIntent,
-    subscriptionStatus: SubscriptionStatus = SubscriptionStatus.FREE
+    subscriptionStatus: SubscriptionStatus = SubscriptionStatus.FREE,
+    showPlanSection: Boolean = true,
+    showWearLink: Boolean = true
 ) {
     Scaffold(
         topBar = {
@@ -98,28 +100,32 @@ internal fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            SubscriptionStatusCard(
-                status = subscriptionStatus,
-                onManageSubscription = intent.onManageSubscription
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            ProfileMenuGroup {
-                ProfileMenuOption(
-                    title = stringResource(R.string.profile_link_wear_device),
-                    icon = Icons.Default.Watch,
-                    onClick = {
-                        if (subscriptionStatus == SubscriptionStatus.PRO) {
-                            intent.onLinkWearDevice()
-                        } else {
-                            intent.onManageSubscription()
-                        }
-                    }
+            if (showPlanSection) {
+                SubscriptionStatusCard(
+                    status = subscriptionStatus,
+                    onManageSubscription = intent.onManageSubscription
                 )
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            if (showWearLink) {
+                ProfileMenuGroup {
+                    ProfileMenuOption(
+                        title = stringResource(R.string.profile_link_wear_device),
+                        icon = Icons.Default.Watch,
+                        onClick = {
+                            if (subscriptionStatus == SubscriptionStatus.PRO) {
+                                intent.onLinkWearDevice()
+                            } else {
+                                intent.onManageSubscription()
+                            }
+                        }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
 
             ProfileMenuGroup {
                 ProfileMenuOption(
