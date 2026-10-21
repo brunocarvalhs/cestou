@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
@@ -58,9 +58,14 @@ fun WearApp(
     CestouTheme {
         AppScaffold {
             val navController = rememberSwipeDismissableNavController()
-            
-            LaunchedEffect(navController) {
-                navigator.bind(navController)
+
+            // Bind síncrono (ver justificativa em app/.../MainActivity.kt): precisa acontecer
+            // antes do SwipeDismissableNavHost, na mesma composição, para que destinos
+            // restaurados no primeiro frame nunca leiam um Navigator ainda desvinculado.
+            navigator.bind(navController)
+
+            DisposableEffect(navController) {
+                onDispose { navigator.unbind(navController) }
             }
 
             SwipeDismissableNavHost(
