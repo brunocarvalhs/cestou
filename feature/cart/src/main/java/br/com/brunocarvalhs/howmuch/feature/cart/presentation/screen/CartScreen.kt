@@ -89,7 +89,8 @@ internal fun CartScreen(
     intent: CartIntent = CartIntent(),
     onBack: () -> Unit = {},
     onOpenAiChat: () -> Unit = {},
-    onEditShopping: () -> Unit = {}
+    onEditShopping: () -> Unit = {},
+    showAiChatFab: Boolean = true
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -305,18 +306,20 @@ internal fun CartScreen(
                     }
                 }
 
-                FloatingActionButton(
-                    onClick = onOpenAiChat,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.AutoAwesome,
-                        contentDescription = stringResource(
-                            br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_ai_icon
+                if (showAiChatFab) {
+                    FloatingActionButton(
+                        onClick = onOpenAiChat,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = stringResource(
+                                br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_ai_icon
+                            )
                         )
-                    )
+                    }
                 }
             }
         }

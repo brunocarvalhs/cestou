@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
     implementation(project(":core:ai"))
+    implementation(project(":core:remote-config"))
     implementation(project(":feature:products"))
     implementation(project(":feature:shopping"))
 
