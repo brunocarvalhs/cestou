@@ -39,7 +39,7 @@ internal class LinkWearViewModel @Inject constructor(
 
     private fun linkDevice(context: Context) {
         val code = _uiState.value.code
-        if (!featureFlagService.isEnabled(FeatureFlagKeys.WEAR_LOGIN_ENABLED, default = true)) {
+        if (!featureFlagService.isEnabled(FeatureFlagKeys.WEAR_LOGIN_ENABLED, default = false)) {
             _uiState.update { it.copy(error = "Relógio indisponível no momento") }
             return
         }

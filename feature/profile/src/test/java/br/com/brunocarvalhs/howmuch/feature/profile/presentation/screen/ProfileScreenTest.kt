@@ -96,4 +96,40 @@ class ProfileScreenTest {
 
         composeTestRule.onNodeWithText(context.getString(R.string.profile_subscription_pro_subtitle)).assertExists()
     }
+
+    @Test
+    fun `plan card and wear link hide when their flags are off`() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+
+        composeTestRule.setContent {
+            CestouTheme {
+                ProfileScreen(
+                    state = ProfileUiState(),
+                    intent = ProfileIntent(),
+                    showPlanSection = false,
+                    showWearLink = false
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(context.getString(R.string.profile_subscription_free_title))
+            .assertDoesNotExist()
+        composeTestRule.onNodeWithText(context.getString(R.string.profile_link_wear_device))
+            .assertDoesNotExist()
+        composeTestRule.onNodeWithText(context.getString(R.string.profile_menu_sign_out)).assertExists()
+    }
+
+    @Test
+    fun `plan card and wear link show by default`() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+
+        composeTestRule.setContent {
+            CestouTheme {
+                ProfileScreen(state = ProfileUiState(), intent = ProfileIntent())
+            }
+        }
+
+        composeTestRule.onNodeWithText(context.getString(R.string.profile_subscription_free_title)).assertExists()
+        composeTestRule.onNodeWithText(context.getString(R.string.profile_link_wear_device)).assertExists()
+    }
 }

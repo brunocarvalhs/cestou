@@ -166,4 +166,36 @@ class CartScreenTest {
 
         composeTestRule.onNodeWithText(categoryHeaderText("Mercearia")).assertExists()
     }
+
+    @Test
+    fun `AI chat FAB shows by default`() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+
+        composeTestRule.setContent {
+            CestouTheme {
+                CartScreen(uiState = CartUiState(shopping = shopping), intent = CartIntent())
+            }
+        }
+
+        composeTestRule.onNodeWithContentDescription(context.getString(CoreUiR.string.content_description_ai_icon))
+            .assertExists()
+    }
+
+    @Test
+    fun `AI chat FAB hides when its flag is off`() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+
+        composeTestRule.setContent {
+            CestouTheme {
+                CartScreen(
+                    uiState = CartUiState(shopping = shopping),
+                    intent = CartIntent(),
+                    showAiChatFab = false
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithContentDescription(context.getString(CoreUiR.string.content_description_ai_icon))
+            .assertDoesNotExist()
+    }
 }

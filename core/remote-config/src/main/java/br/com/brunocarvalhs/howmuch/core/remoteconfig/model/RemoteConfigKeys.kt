@@ -8,6 +8,15 @@ object FeatureFlagKeys {
     const val AI_OPENROUTER_ENABLED = "ai_openrouter_enabled"
     const val AI_GEMINI_ENABLED = "ai_gemini_enabled"
 
+    /**
+     * Master switch for the AI chat entry point (the FAB on the cart screen) — separate from
+     * [AI_OPENROUTER_ENABLED]/[AI_GEMINI_ENABLED], which only choose a provider once chat is
+     * already reachable. New, unproven feature: default OFF for a gradual rollout (by % or app
+     * version via the Firebase console's Remote Config conditions, no app update needed) rather
+     * than shipping it to every current user at once.
+     */
+    const val AI_CHAT_ENABLED = "ai_chat_enabled"
+
     // Login providers. Google and e-mail default to true at the call site (the Play reviewer must
     // always be able to sign in); every other provider defaults to false until it is switched on.
     const val AUTH_GOOGLE_ENABLED = "auth_google_enabled"
@@ -18,8 +27,21 @@ object FeatureFlagKeys {
     const val AUTH_FACEBOOK_ENABLED = "auth_facebook_enabled"
     const val AUTH_GITHUB_ENABLED = "auth_github_enabled"
 
-    /** Pairing (and so signing in) a watch from the phone. Default on. */
+    /**
+     * Pairing (and so signing in) a watch from the phone, including whether the entry point even
+     * shows up on the Profile screen. Default OFF: the Wear OS companion app isn't published yet,
+     * so there's nothing for a phone user to pair with. Flip to `true` in the Firebase console
+     * once it ships — no app update needed.
+     */
     const val WEAR_LOGIN_ENABLED = "wear_login_enabled"
+
+    /**
+     * Master switch for paid entitlement (AD-010). Default OFF: the paid business rules aren't
+     * finalized yet, so every user is treated as Pro and the app is fully free while this stays
+     * off. Flip to `true` in the Firebase console (no app update needed) once ready — real Play
+     * Billing status then applies again for everyone.
+     */
+    const val BILLING_ENABLED = "billing_enabled"
 }
 
 /**

@@ -23,6 +23,7 @@ import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.EditIte
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.FinishPurchaseContent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.ProductHistoryContent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.screen.CartScreen
+import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.CartAiChatGateViewModel
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.CartSubscriptionGateViewModel
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.CartViewModel
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel.ConfirmItemViewModel
@@ -66,9 +67,12 @@ private fun NavGraphBuilder.cartDestination(
         val gateViewModel: CartSubscriptionGateViewModel = hiltViewModel()
         val isPro by gateViewModel.isPro.collectAsStateWithLifecycle()
 
+        val aiChatGateViewModel: CartAiChatGateViewModel = hiltViewModel()
+
         CartScreen(
             uiState = uiState,
             windowSizeClass = windowSizeClass,
+            showAiChatFab = aiChatGateViewModel.showAiChatFab,
             intent = viewModel.intent.copy(
                 onShareShopping = {
                     if (isPro) {
