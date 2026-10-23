@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.products.presentation.components.pr
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,37 +13,49 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
+import br.com.brunocarvalhs.howmuch.core.ui.entity.ProductCategory
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatQuantity
 import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
 private const val QUANTITY_STEP = 1.0
 private const val MIN_QUANTITY = 1.0
+
+// RoundedCornerShape percent (0-100): 50 yields a fully rounded "pill" shape.
+private const val STEPPER_PILL_CORNER_PERCENT = 50
 
 @Composable
 internal fun ProductAnalysisConfirmation(
@@ -114,17 +127,62 @@ private fun AnalysisResultItem(
     onUpdate: (Product) -> Unit,
     onRemove: () -> Unit
 ) {
+    val category = remember(product.category) { ProductCategory.fromString(product.category) }
+
     CestouCard(modifier = Modifier.fillMaxWidth()) {
         Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    value = product.name,
-                    onValueChange = { onUpdate(product.copy(name = it)) },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
-                )
-                Spacer(Modifier.width(8.dp))
+            Row(verticalAlignment = Alignment.Top) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(
+                            color = category.color.copy(alpha = 0.18f),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = category.icon,
+                        // Decorativo: a categoria já é lida como texto no subtítulo abaixo.
+                        contentDescription = null,
+                        tint = category.color,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        BasicTextField(
+                            value = product.name,
+                            onValueChange = { onUpdate(product.copy(name = it)) },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            textStyle = MaterialTheme.typography.titleMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurface
+                            ),
+                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            // Decorativo: só reforça que o nome ao lado é editável.
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = stringResource(category.displayNameRes),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = category.color
+                    )
+                }
+
+                Spacer(Modifier.width(4.dp))
+
                 IconButton(onClick = onRemove) {
                     Icon(
                         Icons.Default.Close,
@@ -133,58 +191,64 @@ private fun AnalysisResultItem(
                     )
                 }
             }
-            Spacer(Modifier.height(8.dp))
+
+            Spacer(Modifier.height(12.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.End
             ) {
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.secondaryContainer
-                ) {
-                    Text(
-                        text = product.category,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                }
+                QuantityStepper(
+                    quantity = product.quantity,
+                    onDecrease = {
+                        val newQuantity = (product.quantity - QUANTITY_STEP).coerceAtLeast(MIN_QUANTITY)
+                        onUpdate(product.copy(quantity = newQuantity))
+                    },
+                    onIncrease = { onUpdate(product.copy(quantity = product.quantity + QUANTITY_STEP)) },
+                    decreaseEnabled = product.quantity > MIN_QUANTITY
+                )
+            }
+        }
+    }
+}
 
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = stringResource(R.string.product_photo_quantity_label),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(
-                            modifier = Modifier.size(32.dp),
-                            onClick = {
-                                val newQuantity = (product.quantity - QUANTITY_STEP).coerceAtLeast(MIN_QUANTITY)
-                                onUpdate(product.copy(quantity = newQuantity))
-                            }
-                        ) {
-                            Icon(
-                                Icons.Default.Remove,
-                                contentDescription = stringResource(CoreR.string.content_description_remove_unit)
-                            )
-                        }
-                        Text(
-                            text = product.quantity.formatQuantity(),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        IconButton(
-                            modifier = Modifier.size(32.dp),
-                            onClick = { onUpdate(product.copy(quantity = product.quantity + QUANTITY_STEP)) }
-                        ) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = stringResource(CoreR.string.content_description_add_unit)
-                            )
-                        }
-                    }
-                }
+@Composable
+private fun QuantityStepper(
+    quantity: Double,
+    onDecrease: () -> Unit,
+    onIncrease: () -> Unit,
+    decreaseEnabled: Boolean
+) {
+    val quantityLabel = stringResource(R.string.product_photo_quantity_label)
+    val formattedQuantity = quantity.formatQuantity()
+
+    Surface(
+        modifier = Modifier.semantics {
+            contentDescription = "$quantityLabel $formattedQuantity"
+        },
+        shape = RoundedCornerShape(STEPPER_PILL_CORNER_PERCENT),
+        color = MaterialTheme.colorScheme.surfaceVariant
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onDecrease, enabled = decreaseEnabled) {
+                Icon(
+                    Icons.Default.Remove,
+                    contentDescription = stringResource(CoreR.string.content_description_remove_unit),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+            Text(
+                text = formattedQuantity,
+                style = MaterialTheme.typography.titleSmall,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.widthIn(min = 28.dp)
+            )
+            IconButton(onClick = onIncrease) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = stringResource(CoreR.string.content_description_add_unit),
+                    modifier = Modifier.size(18.dp)
+                )
             }
         }
     }
@@ -203,6 +267,13 @@ private val previewProducts = listOf(
         quantity = 1.0,
         price = 0.0,
         category = "Laticínios",
+    ),
+    Product(
+        id = "3",
+        name = "Detergente Neutro Concentrado 500ml",
+        quantity = 2.0,
+        price = 0.0,
+        category = "Limpeza",
     )
 )
 
@@ -215,5 +286,25 @@ private fun ProductAnalysisConfirmationPreview() {
         onRemoveItem = {},
         onConfirmAll = {},
         onRetake = {}
+    )
+}
+
+@Preview(showBackground = true, name = "Item único")
+@Composable
+private fun AnalysisResultItemPreview() {
+    AnalysisResultItem(
+        product = previewProducts.first(),
+        onUpdate = {},
+        onRemove = {}
+    )
+}
+
+@Preview(showBackground = true, name = "Quantidade mínima (botão - desabilitado)")
+@Composable
+private fun AnalysisResultItemMinQuantityPreview() {
+    AnalysisResultItem(
+        product = previewProducts[1],
+        onUpdate = {},
+        onRemove = {}
     )
 }
