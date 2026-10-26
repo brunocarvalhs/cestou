@@ -352,3 +352,10 @@ Each item above ships as its own branch off `develop`, with its own PR into `dev
 committed or merged directly. That keeps every change independently reviewable and revertable.
 `develop` → `master` is a separate, deliberate step the repo owner takes. PR numbers are noted next
 to each completed item as they land.
+
+**Session notes convention**: `.claude/SESSION-NOTES.md` is a local, gitignored file (never
+committed, never shared) where in-progress work gets a short "what / why / status" entry — branch
+name, what it is, why it exists, current state. It exists for the messier in-between state that
+isn't ready for `STATE.md` or this doc yet: a half-finished branch, uncommitted changes, a decision
+made mid-session. If you find uncommitted work with no entry explaining it, that's a process miss —
+reconstruct the intent, then add the entry.
