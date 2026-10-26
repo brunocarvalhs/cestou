@@ -51,7 +51,7 @@
 
     <!-- Empty / Locked States -->
     <string name="shopping_list_empty_title">Sua lista está vazia</string>
-    <string name="shopping_list_empty_description">Adicione produtos ou peça ajuda à IA!</string>
+    <string name="shopping_list_empty_description">Toque no botão abaixo pra adicionar o primeiro item.</string>
     <string name="shopping_list_locked_title">Lista Finalizada</string>
     <string name="shopping_list_locked_description">Esta lista está bloqueada para alterações.</string>
 

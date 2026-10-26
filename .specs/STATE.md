@@ -419,6 +419,33 @@
   and looks correct, but either `firebase deploy --only hosting` was never run or the SHA-256 in it
   is the upload-key fingerprint instead of the Play App Signing certificate's. Worth checking, not
   urgent, not the rejection cause.
+- **Completed (session of 2026-10-23, `pm`)**: Formalized bruno's monetization direction into
+  `.specs/features/pro-entitlement/spec.md`. Confirmed by reading the actual code (not the paywall
+  copy) that 3 of the 4 Paywall-advertised Pro benefits — unlimited AI chat, share list, QR invite —
+  are **fully implemented and already wired to `SubscriptionRepository.observeStatus()`**
+  (`ChatAiGateViewModel`+`AiTrialRepository`, `CartSubscriptionGateViewModel`,
+  `ShoppingSubscriptionGateViewModel`), idle only because `FeatureFlagKeys.BILLING_ENABLED`
+  defaults off (AD-010). Found a real new gap, **G19** in `MVP-ROADMAP.md`: the 4th benefit (Wear
+  OS) is NOT gated by entitlement at all — `ProfileSubscriptionViewModel.showWearLink` checks only
+  `WEAR_LOGIN_ENABLED`, unrelated to `SubscriptionStatus`, so it will become free-for-everyone the
+  moment that flag flips, contradicting the Paywall's copy. Recommended fix: drop that benefit line
+  from the Paywall now (cheap, zero risk) rather than wire a second gate for a feature not live for
+  anyone yet. Validated the existing 1-free-message chat limit against 28-day GA4 data (mean 1.16
+  msgs/user among senders, itself uncapped data since the flag has always been off) — recommended
+  **keeping it at 1**, it only binds the already most-engaged tail. Evaluated "no ads for Free"
+  (bruno's example idea, not a decision) against repo state (zero ad SDK anywhere) and the tiny real
+  user base — **recommended deferring**, not building now. Wrote an ordered rollout plan for turning
+  `BILLING_ENABLED` on: fix G19's copy → device QA of the three real gates with
+  `android-engineer-quality` (never exercised with the flag actually on) → close an analytics gap
+  with `data-engineer` (today only `paywall_subscribe_clicked`/`paywall_purchase_failed` exist — no
+  `paywall_viewed`, no purchase-success event, no gate-blocked event) → notify the 2 known real
+  paying users before the behavior change → flip the flag → watch the new events for one cycle
+  before calling it closed. **Not decided here** (bruno's calls, flagged in the spec's "Open risk"
+  section): whether gating share/QR behind Pro risks the two collaboration-first personas
+  (Lucas, Bianca-e-Diego) whose only reason to use the app is a live shared cart; and the actual
+  timing of flipping `BILLING_ENABLED`, which is a real production change touching real paying
+  users. Did not touch AD-010 itself (tech-lead's decision record) — this session only filled in
+  the business-rule gap AD-010 explicitly left open.
 - **Next step**: bruno decides whether/when to merge PR #110 (production deploy trigger) and whether
   to deploy the AD-009 Firestore rules first. T7/PR #67 and the other 09-10-session items above need
   a fresh status check before anyone acts on them as current. **New**: bruno fixes the Detalhes de

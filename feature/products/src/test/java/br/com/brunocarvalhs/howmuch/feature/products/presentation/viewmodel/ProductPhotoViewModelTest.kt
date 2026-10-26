@@ -13,6 +13,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.navJson
 import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.domain.exception.ImageUnreadableException
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductAnalyzeImageUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductDuplicateCheckUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.ProductPhotoViewModel
 import io.mockk.coEvery
@@ -42,6 +43,7 @@ class ProductPhotoViewModelTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private val analyzeImageUseCase = mockk<ProductAnalyzeImageUseCase>()
     private val saveUseCase = mockk<ProductSaveUseCase>(relaxed = true)
+    private val duplicateCheckUseCase = mockk<ProductDuplicateCheckUseCase>(relaxed = true)
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
 
     private val shopping = Shopping(
@@ -56,7 +58,9 @@ class ProductPhotoViewModelTest {
 
     private fun viewModel(): ProductPhotoViewModel {
         val savedStateHandle = SavedStateHandle(mapOf("shopping" to navJson.encodeToString(shopping)))
-        return ProductPhotoViewModel(context, savedStateHandle, analyzeImageUseCase, saveUseCase, analyticsTracker)
+        return ProductPhotoViewModel(
+            context, savedStateHandle, analyzeImageUseCase, saveUseCase, duplicateCheckUseCase, analyticsTracker
+        )
     }
 
     @Before
@@ -91,6 +95,50 @@ class ProductPhotoViewModelTest {
         verify {
             analyticsTracker.trackEvent(AnalyticsEvents.PRODUCT_ADDED, any())
         }
+    }
+
+    @Test
+    fun `onProductConfirmed shows the duplicate warning when the item is already on the list`() = runTest {
+        val product = Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0)
+        coEvery { saveUseCase(product, "list1") } returns Result.success(Unit)
+        coEvery { duplicateCheckUseCase("Milk", "list1") } returns product
+        val vm = viewModel()
+
+        vm.intent.onProductConfirmed(product)
+
+        assertEquals(
+            context.getString(R.string.quick_add_duplicate_warning, "Milk"),
+            vm.uiState.value.confirmationMessage
+        )
+    }
+
+    @Test
+    fun `onCameraError shows the camera error and tracks the failure`() {
+        val vm = viewModel()
+
+        vm.intent.onCameraError()
+
+        assertEquals(context.getString(R.string.product_photo_error_camera_failed), vm.uiState.value.errorMessage)
+        verify {
+            analyticsTracker.trackEvent(AnalyticsEvents.PRODUCT_PHOTO_SCAN_FAILED, any())
+        }
+    }
+
+    @Test
+    fun `onConfirmAllAnalysisItems notes how many items were already on the list`() = runTest {
+        val product = Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0)
+        coEvery { analyzeImageUseCase("content://photo") } returns Result.success(listOf(product))
+        coEvery { duplicateCheckUseCase("Milk", "list1") } returns product
+        coEvery { saveUseCase(product, "list1") } returns Result.success(Unit)
+        val vm = viewModel()
+        vm.intent.onImageCaptured(Uri.parse("content://photo"))
+        vm.intent.onAnalyzeImage()
+
+        vm.intent.onConfirmAllAnalysisItems()
+
+        val expected = context.resources.getQuantityString(R.plurals.product_photo_items_added, 1, 1) +
+            " " + context.resources.getQuantityString(R.plurals.product_photo_duplicate_items_warning, 1, 1)
+        assertEquals(expected, vm.uiState.value.confirmationMessage)
     }
 
     @Test

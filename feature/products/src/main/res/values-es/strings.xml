@@ -29,9 +29,14 @@
         <item quantity="one">1 artículo añadido a la lista</item>
         <item quantity="other">%d artículos añadidos a la lista</item>
     </plurals>
+    <plurals name="product_photo_duplicate_items_warning">
+        <item quantity="one">1 de ellos ya estaba en la lista</item>
+        <item quantity="other">%d de ellos ya estaban en la lista</item>
+    </plurals>
     <string name="product_photo_quantity_label">Cantidad</string>
     <string name="product_photo_error_no_products_found">No se identificó ningún producto. Intenta con una foto más nítida y bien iluminada.</string>
     <string name="product_photo_error_analysis_failed">No se pudo analizar la foto. Inténtalo de nuevo.</string>
+    <string name="product_photo_error_camera_failed">No se pudo acceder a la cámara. Inténtalo de nuevo.</string>
 
     <!-- Feature: Common Products (Canasta Básica) -->
 

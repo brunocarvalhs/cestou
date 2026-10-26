@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
@@ -23,7 +24,10 @@ class ProductSaveUseCaseTest {
     private val authService = mockk<AuthService>()
     private val duplicateCheckUseCase = mockk<ProductDuplicateCheckUseCase>()
     private val userRepository = mockk<UserRepository>()
-    private val useCase = ProductSaveUseCase(repository, authService, duplicateCheckUseCase, userRepository)
+    private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
+    private val useCase = ProductSaveUseCase(
+        repository, authService, duplicateCheckUseCase, userRepository, analyticsTracker
+    )
 
     @Test
     fun `invoke by name and quantity builds and saves a new product with an ADDED entry for the current user`() =
