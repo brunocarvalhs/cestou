@@ -178,6 +178,9 @@
   notification-forgery attempts. Local only; it
   never contacts the real project and is not wired into Gradle/CI.
 - **Scope**: All Firestore access from `:app`, `:wear` and every `feature/*` data layer.
+- **Amended by AD-017 (2026-10-26)**: two new paths, `users/{uid}/recipes/{id}` (private) and
+  `shopping/{id}/recipe-origins/{id}` (members). The "recipes come from TheMealDB" note above
+  no longer holds once AD-015 ships.
 - **Date**: 2026-09-10
 - **Status**: proposed — awaiting bruno's review and manual deploy
 
@@ -473,6 +476,134 @@
 - **Status**: active (decided by `tech-lead`). Not implemented yet. Splits into PRs as listed in
   `purchase-history-export/spec.md` § "Architecture addendum".
 
+### AD-015
+- **Decision** (`recipe-to-list` Q3): **retire the TheMealDB pipeline completely**, with no
+  fallback kept. Unbind `search_recipes`/`add_recipe_ingredients` (`ProductAgentModule`), delete
+  `RecipeSearchUseCase`, `RecipeAddToListUseCase`, `RecipeRepository(+Impl)` and their tests, and
+  remove the `searchRecipes`/`addRecipeIngredientsToList` App Functions (+ `RecipeSummary`) and
+  their `app_metadata.xml` capability text. TheMealDB and "tradução de receitas" come out of
+  `privacy.html`/`terms.html` (pt/en/es) in the same PR. Full file list:
+  `recipe-to-list/design.md` § "Q3 cleanup". The AI chat keeps building lists from recipes
+  through `add_multiple_products_to_cart`, which after G27 runs through the shared
+  `ProductBatchAddUseCase`.
+  **Standing rule for App Functions (closes G26 by policy)**: `BaseCestouAppFunctionService` may
+  only expose capabilities that are **not** a `ProFeature`. It calls use cases directly and
+  bypasses the AD-010 chokepoint, so any App Function that wraps a gated capability must check
+  `ProFeatureAccess.observeAccess(f).first()` itself before running. The PR that implements
+  AD-013 point 8 (first `proFeature` on an `AgentAction`) must re-check this service. The paste
+  extraction (P2) is **not** exposed as an App Function.
+- **Reason**: Q1 (bruno) already retired TheMealDB as the user-facing source. Keeping it
+  agent-only would keep a second, worse add pipeline alive: English name search, one Gemini
+  call per result through a key verified broken on device, test key `1`, measures baked into
+  names (G24), swallowed failures (G23). It would also keep its disclosure in the legal pages and
+  its G26 exposure. The LLM already knows recipes, so the dedicated tool adds nothing the batch
+  add can't do. Deleting first also means G23/G24 get no throwaway fixes in code about to be removed.
+- **Trade-off**: chat loses an exact-recipe lookup (it relies on model knowledge, which is fine
+  for everyday dishes). Assistants using App Functions (API 36, near-zero reach) lose two
+  functions. Owed by bruno before merge: confirm the published `ai_system_prompt` doesn't name the
+  removed tools.
+- **Scope**: `feature/products`, `:app` (App Functions + metadata), `docs/legal`, the
+  `firestore.rules` header comment, and the Maestro product flow. Also updates AD-008's scope
+  note, which listed `RecipeRepositoryImpl` as one of its `by lazy` call sites. That call site goes away.
+- **Date**: 2026-10-26
+- **Status**: active (decided by `tech-lead`). Not implemented. Ships as the first
+  `recipe-to-list` PR.
+
+### AD-016
+- **Decision** (`recipe-to-list` Q5 + "Custom recipe module ownership"): **every recipe surface
+  lives in `feature/products`**: catalog, picker/checklist (`Options.RECIPE` in `ProductScreen`'s
+  sheet), paste extraction, custom recipes (repository, editor, list screen), and the list-origin
+  repository and viewer. No new Gradle module. Other features reach it only through:
+  1. **Two public routes** in `core/navigation/mobile/MobileRoutes.kt`, registered by
+     `feature/products` (mobile graph only): `MyRecipes` (data object, PROTECTED; Profile's
+     "Minhas receitas" row navigates to it via an intent override in `profileGraph`, same shape
+     as `onManageSubscription → Paywall`) and `ShoppingRecipeOrigins(shoppingId: String)`
+     (PROTECTED; the cart's "Receitas desta lista" row). Precedent: `Paywall` (registered by
+     `feature:subscription`), `LinkWearDevice` (registered by `feature:auth`, opened from
+     Profile), AD-014's `FinishPurchase`.
+  2. **One read contract** in `core/domain`: `RecipeOriginReader.observe(shoppingId)` +
+     `RecipeOrigin` model. `feature/products`' `internal RecipeOriginRepository : RecipeOriginReader`
+     adds `record`/`remove`. One impl bound to both (AD-011 pattern).
+  The editor is **one composable + one ViewModel hosted by two destinations inside
+  `feature/products`** (an in-sheet inner route and an `internal` top-level `RecipeEditorRoute`).
+  It is not a public route, so `core/navigation` grows by two routes, not three.
+- **Reason**: the add path (`ProductSaveUseCase`, the IAA-02 matching rule, the new
+  `ProductBatchAddUseCase`) already lives in `feature/products`. A `feature/recipes` module would
+  need it through a new cross-feature contract for every write, which is G10's shape, while
+  buying no isolation the package layout doesn't already give. `feature/profile` has no Gradle
+  dependency on `:feature:products` today, and that stays true. The architecture test would allow
+  importing `feature.products.navigation.*`, but `core/navigation` is the stricter, documented
+  boundary, so `KNOWN_FEATURE_TO_FEATURE` stays empty. The `ProductScreen` KDoc line "recipe/AI
+  surfaces are moving to their own modules" is superseded by this decision. Remove it in P1.
+- **Trade-off**: `feature/products` grows by roughly a dozen classes (still within its existing
+  layers, and suffix→package rules apply). `:wear` compiles them and the bundled catalog asset
+  (tens of KB). Recipe entitlement stays in a separate gate VM, never in a VM `:wear` might resolve.
+- **Scope**: `feature/products`, `core/navigation` (+2 routes), `core/domain` (+`RecipeOrigin`,
+  `RecipeOriginReader`), `feature/profile` (one row + intent), `feature/cart` (one row).
+- **Date**: 2026-10-26
+- **Status**: active (decided by `tech-lead`). Not implemented.
+
+### AD-017
+- **Decision** (amends AD-009's data model; two new Firestore paths):
+  1. `users/{uid}/recipes/{recipeId}`: private custom recipes (`id, name, ingredients[≤60]
+     {name, quantity, note?}, note?, createdAt, updatedAt`). Owner-only rules with a `hasOnly`
+     allowlist and size caps on **create and update**, plus an immutable `createdAt`. No
+     per-ingredient `category` (it's a localized display string in `Product`).
+  2. `shopping/{id}/recipe-origins/{originId}`: list-level recipe **snapshots** as a
+     **subcollection**, *not* a `recipes` field on `Shopping` (revises the spec's default).
+     Member read/write/delete like `products`, plus `hasOnly`, caps, `source in [catalog, custom,
+     paste]`, and `addedBy == request.auth.uid`. Deterministic ids `catalog-<id>`/`custom-<id>`
+     dedupe re-applies.
+  3. **Writes are always POST with `id`** (`set`, full overwrite). Never PUT, because
+     `FirestoreClient.put` drops null values and would keep a cleared note or link alive.
+  4. **Deletion in three places, children before parent**: `UserRepositoryImpl.deleteProfile`
+     (`recipes`), `ShoppingRepositoryImpl.delete` (`recipe-origins`), and the hand-written web
+     page `docs/legal/delete-account.js` (both). The spec only named the first.
+  5. Rule text: `recipe-to-list/design.md` § "Firestore rules". Each block lands in the PR that
+     first writes the path, with `rules.test.mjs` assertions, never ahead of it (the
+     `firestore.rules` header invariant). The P3 PR hoists `parentList()` to the `/shopping`
+     match scope so both subcollections share it.
+- **Reason**: (1) follows the only per-user private-collection precedent (`common-products`),
+  tightened, because the editor overwrites whole documents. (2) `Shopping` is a navigation
+  argument (`ProductPickerRoute`, `CartFlow`), home streams every list document, and list edits
+  rewrite the whole document from a possibly stale copy (`ShoppingModel.toMap()` via PUT, G22).
+  Snapshot text on the document would bloat all three, and a concurrent title edit would silently
+  drop a just-added origin. A subcollection has none of these problems and leaves `Shopping`,
+  its mappers and `:wear` untouched.
+- **Trade-off**: rules can't validate list elements (no loops), so ingredient-entry shape is
+  client-enforced and only counts are capped. The ~200-recipe cap is client-side (no counter
+  document). Lists deleted by builds older than P3 leave orphaned `recipe-origins` docs, which are
+  unreadable because `parentList()` fails closed. Accepted as storage-only. Rules are still
+  AD-009-undeployed, so none of this is enforced in production until bruno deploys.
+- **Scope**: `firestore.rules`, `firestore-tests/rules.test.mjs`, `feature/products` (data),
+  `feature/shopping` (list delete), `core/data` (profile delete), `docs/legal/delete-account.js`.
+- **Date**: 2026-10-26
+- **Status**: active (decided by `tech-lead`). Not implemented.
+
+### AD-018
+- **Decision**: **untrusted text never reaches the tool-calling agent.** Any feature that needs
+  a one-shot model answer over user-supplied or third-party text (first user: `recipe-to-list`
+  P2 paste extraction) goes through a new plain-completion contract,
+  `core/ai/contract/AiTextCompletion` (`suspend fun complete(prompt: String): Result<String>`,
+  no tools, no registry, no assistant system prompt). The impl lives in `feature/ai-agent` and
+  reuses `AiAgentFactoryImpl`'s provider selection and AD-008 key/model resolution, extracted into
+  a shared `internal` helper, so a key rotation or a provider kill-switch
+  (`AI_GEMINI_ENABLED`/`AI_OPENROUTER_ENABLED`) applies to both. It reads `SettingsRepository`
+  itself, so callers don't pass `AppSettings`. Not a new hard-coded `GenerativeModel`
+  (the pattern AD-015 deletes).
+- **Reason**: `AiAgentFactory.create()` is the only AI entry point today, and every agent it
+  returns carries the full action registry (`save_product_to_cart`,
+  `clear_purchased_products`, …). Pasted text sent through it could trigger real writes (spec
+  "Pasted text handling", P2 AC5). A separate, tool-less contract makes that structurally
+  impossible instead of relying on prompt wording.
+- **Trade-off**: a second, small AI surface to maintain (two provider HTTP shapes without tool
+  declarations). Gating stays with callers (AD-013): the contract has no entitlement logic, like
+  `AiAgent` itself.
+- **Scope**: `core/ai` (contract), `feature/ai-agent` (impl + shared resolution helper),
+  callers (today only `feature/products`).
+- **Date**: 2026-10-26
+- **Status**: active (decided by `tech-lead`). Not implemented. Its own PR, before P2.
+
 ## Handoff
 
 - **Feature**: beta-launch (see `.specs/BETA-LAUNCH-PLAN.md` — the ordered task queue T1–T6 — and
@@ -655,6 +786,20 @@
   **Rollout caveat bruno must know before flipping `BILLING_ENABLED`**: builds released before
   AD-013 enforce all their gates on that one flag. Publish it version-scoped (`minVersion`), see
   AD-013 trade-off 1.
+- **Completed (session of 2026-10-26, `tech-lead`, `recipe-to-list` architecture pass)**:
+  Resolved spec Q3 (**AD-015**: retire TheMealDB end to end, App Functions may only expose
+  non-`ProFeature` capabilities, which closes G26 by policy) and Q5 + module ownership
+  (**AD-016**: everything in `feature/products`, with the `MyRecipes` and
+  `ShoppingRecipeOrigins` routes in `core/navigation` and `RecipeOriginReader` in `core/domain`).
+  Recorded the data model and rules (**AD-017**: `users/{uid}/recipes`, and origins as the
+  `shopping/{id}/recipe-origins` subcollection rather than a field on `Shopping`) and the
+  untrusted-text seam (**AD-018**: `AiTextCompletion`, no tools). Wrote
+  `.specs/features/recipe-to-list/design.md` (rules text, deletion surface, components, revised PR
+  order). Logged **G29** (agent dispatch turns `Result.failure` into "Sucesso"). Resolved
+  G23-G28 in `MVP-ROADMAP.md`. Docs only, uncommitted, on `feature/billing-disabled-toggle`.
+  **Next**: `sdd-coordinator` writes `recipe-to-list/tasks.md` from design.md's PR order. bruno
+  checks the published `ai_system_prompt` for the two removed tool names before the AD-015 PR
+  merges.
 - **Next step**: bruno decides whether/when to merge PR #110 (production deploy trigger) and whether
   to deploy the AD-009 Firestore rules first. T7/PR #67 and the other 09-10-session items above need
   a fresh status check before anyone acts on them as current. **New**: bruno fixes the Detalhes de

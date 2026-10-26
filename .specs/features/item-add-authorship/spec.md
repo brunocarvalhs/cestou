@@ -219,7 +219,7 @@ without opening AI chat or switching tabs, and the running total stays visible t
 | --------------- | ------------------------------ | ----- | -------- |
 | IAA-01          | P1: Item History & Authorship   | Tasks | In Tasks |
 | IAA-02          | P2: Duplicate-Item Warning       | Tasks | In Tasks |
-| IAA-03          | P3: Simplified Add Entry Point   | Tasks | In Tasks |
+| IAA-03          | P3: Simplified Add Entry Point   | Tasks | **Superseded 2026-10-26 (tech-lead, G28)**: the shipped add sheet is `FORM` (default) + camera shortcut, and `recipe-to-list` P1 adds a recipe shortcut. That is the design of record. Quick Add / option selector won't be built |
 
 **ID format:** `IAA-[NUMBER]`
 
