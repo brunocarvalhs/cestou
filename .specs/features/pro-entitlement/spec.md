@@ -122,7 +122,11 @@ ship, cross-checked against the persona skill and the scope boundary above.
    convenience on top of the free "see your list and total" promise, not a removal of something
    they already consider free. Best next candidate once FR-01–04 are live and there's room to
    build something new.
-2. **Recurring/reusable list templates** — fits Rodrigo (prints the same checklist monthly).
+2. **Superseded 2026-10-26 (bruno confirmed `recipe-to-list` Q6):** the data/reuse half ships
+   **Free** as `.specs/features/recipe-to-list/spec.md` P5 (custom recipes, RTL-06). Rodrigo's
+   "save this list as…" and "new list from…" affordances stay deferred behind P5's usage signal.
+   Original text kept for history:
+   **Recurring/reusable list templates** — fits Rodrigo (prints the same checklist monthly).
    Speculative: no usage data yet validates demand (no reusable-list feature exists today to
    measure against), so this is a "validate with a cheap signal before building" item, not a
    build-now item.

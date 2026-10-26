@@ -6,10 +6,11 @@ Slug note: `recipe-to-list` (kebab-case, outcome-named like `item-add-authorship
 list path is the thing that produces a list's recipe origin, so splitting them would mean two specs
 touching `Shopping` and the same add flow.
 
-Status: **Spec, planning phase done — bruno confirmed Q1, Q2, Q4, Q6 (all four defaults accepted
-as written).** Still open: Q3 and Q5, tech-lead's calls. See "Assumptions & Open Questions". P1's
-checklist/batch-add core, P5 (custom recipes, added 2026-10-26 at bruno's request) and the G23/G24
-fixes don't depend on Q1/Q2 and can start now. P2 and P4 still need Q3.
+Status: **Spec + design done. bruno confirmed Q1, Q2, Q4, Q6, and tech-lead resolved Q3/Q5 on
+2026-10-26 (AD-015..AD-018, `design.md`).** Next: `tasks.md`. design.md revises three defaults
+below: origins are a **subcollection** (not a `Shopping` field), custom-recipe ingredients
+persist **no category**, and the PR order starts with the TheMealDB removal (G23/G24 aren't
+patched in code that's being deleted). P2 also waits for AD-013 PR (1).
 
 Scope: **all the ways a recipe becomes a shopping list**, in one spec, sharing one checklist and one
 add path:
@@ -283,9 +284,9 @@ camera shortcut. So:
 
 ## Custom recipes vs. reusable list templates (`pro-entitlement` FR-05 #2)
 
-Caveat: `pro-entitlement/spec.md` isn't present in this checkout, so FR-05 #2 is taken as the
-coordinator described it: "Recurring/reusable list templates", for Rodrigo, explicitly deferred
-pending a cheap validation signal.
+FR-05 #2 in `pro-entitlement/spec.md` reads: "Recurring/reusable list templates", for Rodrigo,
+explicitly deferred pending a cheap validation signal. (An earlier draft of this section said the
+file was missing. It's present, and FR-05 #2 now points here.)
 
 **Are they the same feature?** Structurally, yes. A saved custom recipe is a named, user-owned,
 private, reusable set of items with quantities that gets turned into list items on demand. A
@@ -325,20 +326,20 @@ gets built.
 | --- | --- | --- | --- |
 | **Q1** Data source | Curated PT-BR catalog (Free) + paste-text AI extraction (Pro). TheMealDB retired from user-facing paths. | See Data source decision. TheMealDB is English-only, name-searched, culturally foreign, AI-translated with a probably-broken key, and possibly license-restricted on key `1`. | [x] **bruno confirmed the default** |
 | **Q2** Free/Pro cut | "Pro pays for AI work". Catalog + checklist + add + origin Free; paste extraction Pro with 1 free try. | Rejects the placeholder's gated add as bait-and-switch. See Free/Pro cut. | [x] **bruno confirmed the default** |
-| **Q3** Fate of TheMealDB agent actions + App Functions | Unbind `search_recipes`/`add_recipe_ingredients` and the two App Functions, delete the TheMealDB/translation code, update privacy/terms | The LLM can already draft ingredients and call `add_multiple_products_to_cart`. Keeping a second, worse recipe pipeline is maintenance and disclosure cost for nothing. | [ ] **tech-lead** (product side agrees) |
+| **Q3** Fate of TheMealDB agent actions + App Functions | Unbind `search_recipes`/`add_recipe_ingredients` and the two App Functions, delete the TheMealDB/translation code, update privacy/terms | The LLM can already draft ingredients and call `add_multiple_products_to_cart`. Keeping a second, worse recipe pipeline is maintenance and disclosure cost for nothing. | [x] **tech-lead confirmed the default (AD-015)**, plus a standing rule: App Functions only expose non-`ProFeature` capabilities (closes G26 by policy). Deletion list in design.md § "Q3 cleanup" |
 | **Q4** Catalog size, ownership, locale | ~30–50 everyday Brazilian dishes, PT-BR only in v1, shown to all locales; `pm` drafts, bruno approves | Brazil is the market. EN/ES translation of the catalog is a cheap follow-up if analytics show non-PT usage. Content written in-house (no copying site prose). | [x] **bruno confirmed the default** |
-| **Q5** Module placement | `feature/products`, new `Options.RECIPE` route | Avoids a new module plus cross-feature coupling (G10) for one sheet. Contradicts the `ProductScreen` KDoc's "moving to their own modules". | [ ] **tech-lead** |
+| **Q5** Module placement | `feature/products`, new `Options.RECIPE` route | Avoids a new module plus cross-feature coupling (G10) for one sheet. Contradicts the `ProductScreen` KDoc's "moving to their own modules". | [x] **tech-lead confirmed (AD-016)**. The KDoc line is superseded, remove it in P1 |
 | Ingredient → list item mapping | Item `name` = clean ingredient name; `quantity = 1`; measure ("2 xícaras") shown in the checklist only, never stored in the name; category via `ProductCategory.suggestFromProductName` | Shopping quantity ≠ cooking quantity. A clean name keeps IAA-02 duplicates, categories, and future price history working. `Product` gets no new field. | [y] product call |
 | Review step | Always a checklist. Nothing is added without the user tapping "Adicionar N itens". | Dona Marlene ("não comprar duplicado ou em excesso") and everyone with salt at home. Also the defence against AI-extraction errors. | [y] product call |
-| Origin storage | List-level `recipes: List<RecipeOrigin>` on `Shopping` (name, optional source text/link, optional catalog id), not per-item | Yasmin's question is "which recipe was this *list* for". Supports several recipes per monthly list. Same additive, nullable/empty-default pattern as `budget`. Exact shape and `firestore.rules` impact in `design.md`. | [ ] design.md |
+| Origin storage | List-level `recipes: List<RecipeOrigin>` on `Shopping` (name, optional source text/link, optional catalog id), not per-item | Yasmin's question is "which recipe was this *list* for". Supports several recipes per monthly list. Same additive, nullable/empty-default pattern as `budget`. Exact shape and `firestore.rules` impact in `design.md`. | [x] **revised in design.md (AD-017)**: list-level, but as the `shopping/{id}/recipe-origins/{id}` subcollection, not a field. `Shopping` is a nav argument, home streams every list doc, and whole-document list edits would drop concurrent origin appends |
 | Pasted text handling | Max ~5,000 chars; sent to a **plain completion** (no tool calling), output parsed as a list of ingredient strings only | Pasted text is untrusted. It must never reach the tool-calling agent, where it could trigger `save_product_to_cart` / `clear_purchased_products`. | [y] product call (security) |
 | Shared lists | Any member can add from a recipe or attach an origin. Origins are visible to all members. | Same permissions as adding an item. | [y] |
 | **Q6** Custom recipes vs. FR-05 #2 templates | One entity (P5). FR-05 #2's data/reuse half is delivered by P5. Rodrigo-specific UI ("save list as recipe", "new list from recipe") stays deferred behind P5 usage signals. | Avoids two overlapping features. See "Custom recipes vs. reusable list templates". If `pro-entitlement` pencilled FR-05 #2 in as a **Pro** candidate, this merge makes it **Free**, on the same principle. That's an explicit change bruno must accept. | [x] **bruno confirmed the merge (MVP-ROADMAP.md row 3/3b marked superseded)** |
-| Custom recipe storage | Firestore `users/{uid}/recipes/{id}`, strictly private, following the `users/{uid}/common-products` precedent (AD-009 data model). Doc = `id`, `name`, `ingredients[]` (`name`, `quantity`, optional `note`, optional `category`), `createdAt`, `updatedAt`. | Must survive reinstall and work across the user's devices, so not DataStore (`AiTrialRepository`-style local flags don't fit). `core/billing` isn't a model here: it holds no user data and mirrors Play's local purchase cache. `common-products` is the only per-user private-collection precedent, and it's the right one. Rules mirror it: owner-only read/write, `hasOnly` field allowlist, size caps. | [ ] design.md (shape) / [y] location |
-| Custom recipe module ownership | Repository, editor and picker section in `feature/products` (next to `CommonProductRepositoryImpl`). Profile reaches the editor/list through a `core/navigation` route only. | Keeps the add path (`ProductSaveUseCase`) and the editor in one module. Profile → products import would widen G10. | [ ] **tech-lead** (with Q5) |
-| Account deletion | `UserRepositoryImpl.deleteProfile` must delete the new `recipes` subcollection too. It currently lists subcollections explicitly (`deleteDocumentWithSubCollections("users/$id", "common-products")`). | Firestore doesn't cascade subcollections. Forgetting this leaves private user data behind after "delete my account", which breaks G2/F1.1's promise and the Play data-deletion requirement. | [y] hard requirement |
+| Custom recipe storage | Firestore `users/{uid}/recipes/{id}`, strictly private, following the `users/{uid}/common-products` precedent (AD-009 data model). Doc = `id`, `name`, `ingredients[]` (`name`, `quantity`, optional `note`, optional `category`), `createdAt`, `updatedAt`. | Must survive reinstall and work across the user's devices, so not DataStore (`AiTrialRepository`-style local flags don't fit). `core/billing` isn't a model here: it holds no user data and mirrors Play's local purchase cache. `common-products` is the only per-user private-collection precedent, and it's the right one. Rules mirror it: owner-only read/write, `hasOnly` field allowlist, size caps. | [x] **design.md (AD-017)**: shape confirmed **minus per-ingredient `category`** (`Product.category` is a localized display string, so it's suggested at add time instead). Rule text in design.md |
+| Custom recipe module ownership | Repository, editor and picker section in `feature/products` (next to `CommonProductRepositoryImpl`). Profile reaches the editor/list through a `core/navigation` route only. | Keeps the add path (`ProductSaveUseCase`) and the editor in one module. Profile → products import would widen G10. | [x] **tech-lead confirmed (AD-016)**: public route `MyRecipes` (Profile) + `ShoppingRecipeOrigins` (cart), editor = one composable/VM in two `feature/products` hosts, `RecipeOriginReader` in `core/domain` |
+| Account deletion | `UserRepositoryImpl.deleteProfile` must delete the new `recipes` subcollection too. It currently lists subcollections explicitly (`deleteDocumentWithSubCollections("users/$id", "common-products")`). | Firestore doesn't cascade subcollections. Forgetting this leaves private user data behind after "delete my account", which breaks G2/F1.1's promise and the Play data-deletion requirement. | [y] hard requirement. **design.md adds two more call sites**: the web page `docs/legal/delete-account.js` (deletes by hand, mirroring the app) and `ShoppingRepositoryImpl.delete` (`recipe-origins`) |
 | Custom recipe quantities | The user enters **shopping** quantities (e.g. "Leite, 2"), which are carried into the list as `quantity`. The optional note holds cooking detail ("2 xícaras"). | Unlike catalog/paste (where cooking measure ≠ what you buy, so qty = 1), here the user authored the numbers for shopping. | [y] product call |
-| Gemini key | P2b doesn't ship while the AD-008 key resolves to an invalid key (photo-scan fallback verified failing on device) | Otherwise the Pro feature fails on first use, which is worse than not having it. | [y] dependency |
+| Gemini key | P2b doesn't ship while the AD-008 key resolves to an invalid key (photo-scan fallback verified failing on device) | Otherwise the Pro feature fails on first use, which is worse than not having it. | [y] dependency, **reframed in design.md**: P2 goes through the user's selected provider, and the default is OpenRouter (`AppSettings.aiProvider`), so the real precondition is "the selected provider works". P2 merges dark behind `recipe_paste_enabled` and is enabled after one on-device extraction |
 
 ---
 
@@ -571,12 +572,12 @@ B's origin shows the edited version.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| RTL-01 | P1: Recipe → reviewed checklist → list (catalog) | Spec | Pending (catalog part blocked on Q1/Q4) |
-| RTL-02 | P2: Paste recipe → AI extraction (Pro, 1 free) | Spec | Pending (blocked on Q1, Q2, Gemini key) |
-| RTL-03 | P3: List remembers its recipe(s) | Spec | Pending |
-| RTL-04 | P4: One pipeline, consistent gating | Spec | Pending (blocked on Q3) |
-| RTL-05 | Prerequisite fixes G23 (silent partial failure) + G24 (clean names / duplicate check) + G27 (AI batch-add authorship) | Spec | Pending, can start before Q1–Q6 resolve |
-| RTL-06 | P5: My own recipes (save, manage, reuse; Free). Delivers FR-05 #2's data/reuse half | Spec | Pending (not blocked on Q1/Q2. Q6 confirms the FR-05 #2 merge, not the build) |
+| RTL-01 | P1: Recipe → reviewed checklist → list (catalog) | Design | Design done, awaiting tasks.md (catalog content: pm drafts, bruno approves, Q4) |
+| RTL-02 | P2: Paste recipe → AI extraction (Pro, 1 free) | Design | Design done. Implementation waits for AD-013 PR (1) + AD-018 PR, ships dark behind `recipe_paste_enabled` |
+| RTL-03 | P3: List remembers its recipe(s) | Design | Design done (subcollection, AD-017) |
+| RTL-04 | P4: One pipeline, consistent gating | Design | Design done: AD-015 retire PR + G27 (`ProductBatchAddUseCase`) + G29 |
+| RTL-05 | Prerequisite fixes G23 (silent partial failure) + G24 (clean names / duplicate check) + G27 (AI batch-add authorship) | Design | G23/G24 resolved by deletion (AD-015) + the new add core. G27 is its own PR. G29 (new) added |
+| RTL-06 | P5: My own recipes (save, manage, reuse; Free). Delivers FR-05 #2's data/reuse half | Design | Design done (rules text in design.md, AD-017) |
 
 **ID format:** `RTL-[NUMBER]`
 
