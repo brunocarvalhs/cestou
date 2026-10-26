@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="action_confirm">Confirm</string>
+    <string name="cart_add_product_button">Add product</string>
     <string name="cart_ai_input_placeholder">Message Cestou…</string>
     <string name="cart_ai_voice_input">Voice input</string>
     <string name="cart_assistant_status">Online • AI active</string>
     <string name="cart_assistant_title">Cestou Assistant</string>
     <string name="cart_checkout">Checkout</string>
+    <string name="cart_empty_state_add_product_action">Add your first item</string>
     <string name="cart_item_delete_description">Delete item</string>
     <string name="cart_item_quantity_price">%1$d un • %2$s each</string>
     <string name="shopping_list_confirm_item_title">Confirm Item</string>

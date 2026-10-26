@@ -27,9 +27,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -39,10 +36,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -85,7 +81,6 @@ private data class CartSummary(
 @Composable
 internal fun CartScreen(
     uiState: CartUiState,
-    windowSizeClass: WindowSizeClass? = null,
     intent: CartIntent = CartIntent(),
     onBack: () -> Unit = {},
     onOpenAiChat: () -> Unit = {},
@@ -99,8 +94,6 @@ internal fun CartScreen(
 
     var isUiVisible by remember { mutableStateOf(false) }
     var collapsedCategories by remember { mutableStateOf(emptySet<String>()) }
-
-    val isExpanded = windowSizeClass?.widthSizeClass == WindowWidthSizeClass.Expanded
 
     val currencyFormatter: CurrencyFormatter = rememberCurrencyFormatter()
 
@@ -213,12 +206,13 @@ internal fun CartScreen(
             },
             bottomBar = {
                 Column {
-                    AnimatedVisibility(visible = !isLocked && !isExpanded) {
+                    AnimatedVisibility(visible = !isLocked) {
                         CartBottomBar(
                             currencyFormatter = currencyFormatter,
                             totalAmount = cartSummary.totalAmount,
+                            hasProducts = uiState.products.isNotEmpty(),
                             onFinished = { intent.onToggleFinishPurchaseSheet() },
-                            onAdd = { intent.onToggleProductPicker() }
+                            onAdd = { intent.onToggleProductPicker("bottom_bar") }
                         )
                     }
                 }
@@ -235,9 +229,9 @@ internal fun CartScreen(
             contentWindowInsets = WindowInsets(0, 0, 0, 0)
         ) { paddingValues ->
             // CartBottomBar (when visible) already applies its own navigationBarsPadding; only
-            // add it here when that bar is absent (locked/expanded layout), otherwise the list
+            // add it here when that bar is absent (locked layout), otherwise the list
             // and FAB would get double bottom clearance.
-            val contentModifier = if (isLocked || isExpanded) {
+            val contentModifier = if (isLocked) {
                 Modifier
                     .padding(paddingValues)
                     .navigationBarsPadding()
@@ -254,7 +248,11 @@ internal fun CartScreen(
 
                     if (uiState.products.isEmpty()) {
                         item {
-                            CestouEmptyState()
+                            CestouEmptyState(
+                                actionLabel = stringResource(R.string.cart_empty_state_add_product_action),
+                                actionModifier = Modifier.testTag("cart_empty_add_button"),
+                                onAction = { intent.onToggleProductPicker("empty_state") }
+                            )
                         }
                     }
 
@@ -351,19 +349,14 @@ private val previewProducts = listOf(
     Product(id = "4", name = "Sabão em pó", quantity = 1.0, price = 18.9, category = "Limpeza")
 )
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @PreviewCestouScreens
 @Composable
 private fun CartEmptyPreview() {
     CestouTheme {
-        CartScreen(
-            uiState = CartUiState(shopping = previewShopping),
-            windowSizeClass = rememberPreviewWindowSizeClass()
-        )
+        CartScreen(uiState = CartUiState(shopping = previewShopping))
     }
 }
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @PreviewCestouScreens
 @Composable
 private fun CartWithProductsPreview() {
@@ -372,13 +365,11 @@ private fun CartWithProductsPreview() {
             uiState = CartUiState(
                 shopping = previewShopping,
                 products = StableList(previewProducts)
-            ),
-            windowSizeClass = rememberPreviewWindowSizeClass()
+            )
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @PreviewCestouScreens
 @Composable
 private fun CartLockedPreview() {
@@ -387,17 +378,7 @@ private fun CartLockedPreview() {
             uiState = CartUiState(
                 shopping = previewShopping.copy(status = Shopping.Status.FINISH),
                 products = StableList(previewProducts)
-            ),
-            windowSizeClass = rememberPreviewWindowSizeClass()
+            )
         )
     }
-}
-
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
-@Composable
-private fun rememberPreviewWindowSizeClass(): WindowSizeClass {
-    val configuration = LocalConfiguration.current
-    return WindowSizeClass.calculateFromSize(
-        DpSize(configuration.screenWidthDp.dp, configuration.screenHeightDp.dp)
-    )
 }

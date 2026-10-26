@@ -1,10 +1,12 @@
 package br.com.brunocarvalhs.howmuch.feature.chat.presentation.screen
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,6 +33,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.WorkspacePremium
@@ -43,6 +46,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -60,13 +64,13 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 import br.com.brunocarvalhs.howmuch.core.theme.CestouBrightGreen
-import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
-import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatIntent
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiChatUiState
@@ -100,6 +104,23 @@ private val QUICK_EMOJIS = listOf(
     "🙏", "💪", "🎉", "❤️", "🔥", "✨", "⭐", "💡",
     "✅", "❌", "🛒", "🥦", "🍎", "🥕", "🍞", "🧃",
     "🍕", "🍔", "🍩", "☕", "💰", "📅", "⏰", "😅"
+)
+
+private data class ChatSuggestion(val id: String, @StringRes val textRes: Int)
+
+// Shown on the empty-state so the first screen isn't a blank input box — picking one of
+// these prefills and sends in one tap, no typing required.
+private val EMPTY_STATE_SUGGESTIONS = listOf(
+    ChatSuggestion("recipe", R.string.ai_chat_suggestion_recipe),
+    ChatSuggestion("bbq", R.string.ai_chat_suggestion_bbq),
+    ChatSuggestion("repeat_purchase", R.string.ai_chat_suggestion_repeat_purchase),
+    ChatSuggestion("budget_tip", R.string.ai_chat_suggestion_budget_tip)
+)
+
+// Shown under the latest assistant reply to invite a second message.
+private val FOLLOW_UP_SUGGESTIONS = listOf(
+    ChatSuggestion("add_all", R.string.ai_chat_followup_add_all),
+    ChatSuggestion("more_ideas", R.string.ai_chat_followup_more_ideas)
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -167,6 +188,9 @@ fun AiChatScreen(
                 if (!isSendEnabled) {
                     AiChatUpgradeBanner(onClick = onUpgradeClick)
                 }
+                state.error?.let { error ->
+                    AiChatErrorBanner(message = error.asString())
+                }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -207,6 +231,7 @@ fun AiChatScreen(
                         },
                         modifier = Modifier
                             .weight(1f)
+                            .testTag("ai_chat_input")
                             .focusRequester(focusRequester)
                             .onFocusEvent { if (it.isFocused) showEmojiPicker = false },
                         shape = RoundedCornerShape(28.dp),
@@ -216,7 +241,11 @@ fun AiChatScreen(
                         )
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    FilledIconButton(onClick = { intent.onSendMessage() }, enabled = isSendEnabled) {
+                    FilledIconButton(
+                        onClick = { intent.onSendMessage() },
+                        enabled = isSendEnabled,
+                        modifier = Modifier.testTag("ai_chat_send_button")
+                    ) {
                         Icon(
                             Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(
                                 br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_send_message
@@ -257,6 +286,18 @@ fun AiChatScreen(
         ) {
             item { Spacer(modifier = Modifier.height(4.dp)) }
 
+            // Extra items beyond LEADING_AND_TRAILING_SPACERS (empty state, follow-up chips)
+            // aren't accounted for in the scroll-target formula above; animateScrollToItem
+            // clamps to the last item when the index overshoots, so this is harmless.
+            if (state.messages.isEmpty() && !state.isLoading) {
+                item {
+                    AiChatEmptyState(
+                        onSuggestionSelected = intent.onSuggestionSelected,
+                        enabled = isSendEnabled
+                    )
+                }
+            }
+
             items(state.messages) { message ->
                 ChatBubble(message = message)
             }
@@ -264,6 +305,15 @@ fun AiChatScreen(
             if (state.isLoading) {
                 item {
                     TypingBubble()
+                }
+            }
+
+            if (!state.isLoading && state.messages.lastOrNull()?.sender == ChatMessage.Sender.ASSISTANT) {
+                item {
+                    AiChatFollowUpSuggestions(
+                        onSuggestionSelected = intent.onSuggestionSelected,
+                        enabled = isSendEnabled
+                    )
                 }
             }
 
@@ -377,6 +427,89 @@ private fun TypingBubble() {
     }
 }
 
+@Composable
+private fun AiChatEmptyState(
+    onSuggestionSelected: (id: String, text: String) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(AVATAR_SIZE_DP.dp)
+                .clip(CircleShape)
+                .background(CestouBrightGreen),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.AutoAwesome,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(R.string.ai_chat_empty_title),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = stringResource(R.string.ai_chat_empty_subtitle),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            EMPTY_STATE_SUGGESTIONS.forEach { suggestion ->
+                val text = stringResource(suggestion.textRes)
+                SuggestionChip(
+                    onClick = { onSuggestionSelected(suggestion.id, text) },
+                    label = { Text(text) },
+                    enabled = enabled,
+                    modifier = Modifier.testTag("ai_chat_suggestion_${suggestion.id}")
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AiChatFollowUpSuggestions(
+    onSuggestionSelected: (id: String, text: String) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    FlowRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        FOLLOW_UP_SUGGESTIONS.forEach { suggestion ->
+            val text = stringResource(suggestion.textRes)
+            SuggestionChip(
+                onClick = { onSuggestionSelected(suggestion.id, text) },
+                label = { Text(text) },
+                enabled = enabled,
+                modifier = Modifier.testTag("ai_chat_followup_${suggestion.id}")
+            )
+        }
+    }
+}
+
 // Matches CestouLockedBanner's errorContainer treatment (core:ui) — this is a hit-a-limit
 // alert, not a positive/brand-colored message, so it must not read as primaryContainer green.
 private const val UPGRADE_BANNER_BG_ALPHA = 0.7f
@@ -417,60 +550,30 @@ private fun AiChatUpgradeBanner(onClick: () -> Unit) {
     }
 }
 
-private val previewMessages = listOf(
-    ChatMessage(id = 1, text = "Quanto vou gastar nessa lista?", sender = ChatMessage.Sender.USER),
-    ChatMessage(
-        id = 2,
-        text = "Com base nos itens adicionados, o total estimado é de R$ 87,40.",
-        sender = ChatMessage.Sender.ASSISTANT
-    ),
-    ChatMessage(
-        id = 3, text = "Consegue sugerir algo mais barato?", sender = ChatMessage.Sender.USER
-    )
-)
-
-@PreviewCestouScreens
 @Composable
-private fun AiChatScreenEmptyPreview() {
-    CestouTheme {
-        AiChatScreen(
-            state = AiChatUiState(), intent = AiChatIntent()
-        )
-    }
-}
-
-@PreviewCestouScreens
-@Composable
-private fun AiChatScreenConversationPreview() {
-    CestouTheme {
-        AiChatScreen(
-            state = AiChatUiState(
-                messages = previewMessages, input = "Consegue sugerir algo mais barato?"
-            ), intent = AiChatIntent()
-        )
-    }
-}
-
-@PreviewCestouScreens
-@Composable
-private fun AiChatScreenLoadingPreview() {
-    CestouTheme {
-        AiChatScreen(
-            state = AiChatUiState(
-                messages = previewMessages, isLoading = true
-            ), intent = AiChatIntent()
-        )
-    }
-}
-
-@PreviewCestouScreens
-@Composable
-private fun AiChatScreenTrialUsedPreview() {
-    CestouTheme {
-        AiChatScreen(
-            state = AiChatUiState(messages = previewMessages),
-            intent = AiChatIntent(),
-            isSendEnabled = false
-        )
+private fun AiChatErrorBanner(message: String) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .clip(RoundedCornerShape(16.dp)),
+        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = UPGRADE_BANNER_BG_ALPHA)
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.ErrorOutline,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onErrorContainer
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = UPGRADE_BANNER_TEXT_ALPHA)
+            )
+        }
     }
 }

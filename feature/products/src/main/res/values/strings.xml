@@ -29,9 +29,14 @@
         <item quantity="one">1 item added to the list</item>
         <item quantity="other">%d items added to the list</item>
     </plurals>
+    <plurals name="product_photo_duplicate_items_warning">
+        <item quantity="one">1 of them was already on the list</item>
+        <item quantity="other">%d of them were already on the list</item>
+    </plurals>
     <string name="product_photo_quantity_label">Quantity</string>
     <string name="product_photo_error_no_products_found">No products identified. Try a clearer, well-lit photo.</string>
     <string name="product_photo_error_analysis_failed">Couldn\'t analyze the photo. Please try again.</string>
+    <string name="product_photo_error_camera_failed">Couldn\'t access the camera. Please try again.</string>
 
     <!-- Feature: Common Products (Basic Basket) -->
 
