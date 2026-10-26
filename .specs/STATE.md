@@ -203,6 +203,9 @@
   `SubscriptionRepository`).
 - **Date**: 2026-09-27 (commit `ad3c4c1e`, "feat(billing): entitlement contract + Play Billing repo
   + Paywall route")
+- **Amended by AD-013 (2026-10-26)**: gates no longer ask `observeStatus()` directly; they ask
+  `ProFeatureAccess.observeAccess(ProFeature)`, which composes `BILLING_ENABLED`, a per-capability
+  gate flag and this contract. `observeStatus()` itself is unchanged.
 - **Status**: active — **backfilled here 2026-09-29**. This decision was referenced as "AD-010" in
   15 source files (`SubscriptionRepository.kt`, `SubscriptionStatus.kt`, `BillingModule.kt`,
   `AgentAction.kt`, `MobileRoutes.kt`, gate ViewModels, etc.) from the moment it shipped, but was
@@ -278,6 +281,197 @@
      which also backfills existing Google accounts.
 - **Not done here**: phone sign-in (phase 2), `firestore.rules` name check (waits for the AD-009
   deploy), Maestro flows (no device in this session), re-auth before deleting an e-mail account.
+
+### AD-013
+- **Decision** (amends AD-010, does not replace it): every Pro-gated capability gets its **own
+  Remote Config gate flag** on top of the global `BILLING_ENABLED` kill switch, and all gate
+  composition goes through **one** contract, so no call site writes its own boolean logic.
+  1. **Capability enum** — `core/domain/model/ProFeature.kt`:
+     `enum class ProFeature { AI_CHAT, SHARE_LIST, LIST_INVITE, HISTORY_EXPORT }`. One entry per
+     *capability*, not per screen or button. A capability reachable from two entry points (e.g.
+     share-as-text from home *and* from the cart) is one entry and one flag.
+  2. **Access contract** — `core/domain/repository/ProFeatureAccess.kt` (pure Kotlin):
+     ```kotlin
+     interface ProFeatureAccess {
+         /** true = this user may use [feature] right now. */
+         fun observeAccess(feature: ProFeature): Flow<Boolean>
+         /** true = [feature] is currently being sold as Pro (global switch AND its gate on). */
+         fun isEnforced(feature: ProFeature): Boolean
+     }
+     ```
+     Impl `RemoteConfigProFeatureAccess` lives in `core:billing` (already depends on
+     `core:domain` + `core:remote-config`), bound in `BillingModule`. It depends only on
+     `SubscriptionRepository` + `FeatureFlagService`, never on `PlayBillingSubscriptionRepository`
+     internals. `:wear` binds a stub in `WearSubscriptionModule` (`observeAccess = flowOf(false)`,
+     `isEnforced = true`), consistent with its always-`FREE` `SubscriptionRepository`; nothing on the
+     watch calls a gate.
+  3. **Flag naming** — Kotlin constant `PRO_GATE_<CAPABILITY>_ENABLED`, Remote Config key
+     `pro_gate_<capability>_enabled`, in `FeatureFlagKeys` (`RemoteConfigKeys.kt`) next to
+     `BILLING_ENABLED`. `true` means **the gate is active** (Free users are blocked), *not* "the
+     feature is visible". Visibility/rollout flags (`AI_CHAT_ENABLED`, `WEAR_LOGIN_ENABLED`) are a
+     different axis and keep their own names. The four keys:
+
+     | `ProFeature` | Constant | Key | Entry points it gates |
+     |---|---|---|---|
+     | `AI_CHAT` | `PRO_GATE_AI_CHAT_ENABLED` | `pro_gate_ai_chat_enabled` | `ChatAiGateViewModel` (Free = 1 trial message, then Paywall) |
+     | `SHARE_LIST` | `PRO_GATE_SHARE_LIST_ENABLED` | `pro_gate_share_list_enabled` | home long-press "Compartilhar" (G20), cart share sheet "share as text" |
+     | `LIST_INVITE` | `PRO_GATE_LIST_INVITE_ENABLED` | `pro_gate_list_invite_enabled` | `EditShopping` QR token, cart share sheet "invite member" |
+     | `HISTORY_EXPORT` | `PRO_GATE_HISTORY_EXPORT_ENABLED` | `pro_gate_history_export_enabled` | spend-history export action (`purchase-history-export` PHE-02) |
+
+     The `ProFeature` → key mapping is an exhaustive `when` inside the `core:billing` impl, so a new
+     `ProFeature` entry without a flag does not compile.
+  4. **Default = `false` (gate not enforced), for every gate, including the three already shipped.**
+     Same philosophy as `BILLING_ENABLED`: nothing changes for anyone until a flag is deliberately
+     turned on in the console. The call-site default is always `default = false`.
+  5. **Exact composition** (the only place it is written is the `core:billing` impl):
+     ```
+     enforced(f) = BILLING_ENABLED && PRO_GATE_<f>_ENABLED
+     allowed(f)  = !enforced(f) || realStatus == PRO
+     ```
+     `SubscriptionRepository.observeStatus()` already folds the global switch in (returns `PRO` while
+     `BILLING_ENABLED` is off), so the impl computes it as
+     `observeStatus().map { !flag(gateKey(f)) || it == PRO }`, and `isEnforced(f)` as
+     `flag(BILLING_ENABLED) && flag(gateKey(f))`. Truth table:
+
+     | `BILLING_ENABLED` | gate flag | real status | allowed |
+     |---|---|---|---|
+     | off | any | any | yes |
+     | on | off | any | yes |
+     | on | on | PRO | yes |
+     | on | on | FREE | **no -> Paywall** |
+
+     `observeStatus()` keeps its exact AD-010 semantics. It is not changed, so `PaywallViewModel`,
+     `ProfileSubscriptionViewModel` and the AI dispatch chokepoint are untouched.
+  6. **Call-site rule**: gate ViewModels stay thin, mobile-only and per feature (existing pattern:
+     kept out of the screen VMs compiled into `:wear`). Each one exposes one
+     `StateFlow<Boolean>` per capability it gates, built *only* as
+     `proFeatureAccess.observeAccess(ProFeature.X).stateIn(viewModelScope, WhileSubscribed(5_000), false)`.
+     No `SubscriptionStatus` comparison and no `FeatureFlagService` read in a gate VM. The nav-graph
+     call site keeps the established shape:
+     `if (canX) intent.onX() else navigator.navigate(Paywall(source = ...))`.
+     Concretely: `ChatAiGateViewModel.isSendEnabled = combine(access(AI_CHAT), trial.hasUsedFreeMessage()) { allowed, used -> allowed || !used }`;
+     `CartSubscriptionGateViewModel.isPro` becomes `canShareList` + `canInvite`, gating **each
+     option inside** the cart share sheet instead of the sheet entry (otherwise `LIST_INVITE` could
+     be bypassed through the cart sheet while `SHARE_LIST` is off);
+     `ShoppingSubscriptionGateViewModel.isPro` becomes `canInvite` + `canShareList` (G20) +
+     `canExportHistory` (PHE-02).
+  7. **Paywall truthfulness** (G19 lesson, both directions): a Paywall benefit row for a capability
+     is shown only when `isEnforced(feature)` is true. Benefits with no `ProFeature` (today the Wear
+     OS line) cannot be shown under this rule. Its own PR in `feature:subscription`, required before
+     `BILLING_ENABLED` is flipped. If implemented, it also removes G19's Wear copy as a side effect.
+  8. `AgentAction.requiresPro` has no `true` implementor today. The first agent action that needs
+     Pro must declare a `ProFeature` (change `requiresPro: Boolean` to `proFeature: ProFeature?`)
+     and the dispatch chokepoint asks `ProFeatureAccess`, not `observeStatus()`.
+- **Reason**: bruno (2026-10-26): "ter controle do que é pago ou não via feature flags... além de
+  uma flag global, uma flag micro para controle de pequenas features". One global switch forces
+  all-or-nothing, and the monetization section of `MVP-ROADMAP.md` already has an open decision that
+  needs exactly this granularity (the share/invite viral loop may need to stay free while chat or
+  export is sold). Centralizing composition in one impl means there's one truth table to test, and a
+  new gate costs one enum entry + one key + one `observeAccess` call.
+- **Trade-off / rollout caveat (read before flipping anything)**:
+  1. **Builds released before AD-013 don't read gate flags.** On those builds, `BILLING_ENABLED=true`
+     enforces *all* of their gates (chat, cart share, QR) at once. Before the first flip, publish
+     `billing_enabled` as version-scoped JSON (`{"enabled":true,"minVersion":"<first AD-013 versionName>"}`,
+     already supported by `FirebaseRemoteConfigService` / `FeatureFlagConfig`), so older builds stay
+     fully free. `versionName` is bumped by `.github/scripts/version.sh` (2.2.1 at time of writing),
+     so `minVersion` scoping is viable.
+  2. `FeatureFlagService.isEnabled` is synchronous and read when the status flow emits. A console
+     change applies on the next `WhileSubscribed` resubscription (next time the screen opens) after
+     Remote Config activates, not live on an open screen. That's acceptable for a gate.
+  3. With `BILLING_ENABLED` on and every gate flag off, real paying users get no differentiation.
+     That's the same situation as today, made explicit.
+- **Scope**: `core/domain` (`ProFeature`, `ProFeatureAccess`), `core:billing` (impl + binding),
+  `core:remote-config` (4 keys), `:wear` (stub binding), the gate VMs in `feature:chat`,
+  `feature:cart`, `feature:shopping`, and `feature:subscription` (Paywall rows, point 7).
+- **Implementation order** (one branch + PR each, off `develop`): **(1)** contract + impl + keys +
+  migrate the 3 existing gates + split the cart sheet gate per option. Zero production behavior
+  change, since every flag is off. Owner `android-engineer-features`, tests by
+  `android-engineer-quality` (truth table above as a parameterized test, plus each gate VM).
+  **(2)** G20 (home share) on top of (1). **(3)** Paywall rows (point 7). **(4)** PHE-02 uses
+  `HISTORY_EXPORT` when it ships.
+- **Date**: 2026-10-26
+- **Status**: active (decided by `tech-lead` on bruno's stated requirement). Not implemented yet.
+
+### AD-014
+- **Decision** (unblocks `.specs/features/purchase-history-export/` and G21; three parts):
+  1. **`Shopping.finishedAt: Long? = null`** (epoch millis, same unit as `createdAt`), added as the
+     **last** constructor parameter of `core/domain/model/Shopping.kt` so no positional caller
+     breaks. Mirrored in `ShoppingModel` (+ `"finishedAt"` in `toMap()`) and both mappers. Status
+     transitions are written once, as pure functions on the model (no clock inside, `at` is passed
+     in): `fun Shopping.finished(price: Double, description: String, at: Long): Shopping`
+     (`status = FINISH`, `finishedAt = at`) and `fun Shopping.reopened(): Shopping`
+     (`status = IN_PROGRESS`, `finishedAt = null`). Every finish/reopen path must use them:
+     `FinishPurchaseViewModel` (via the use case below) and `ShoppingReopenUseCase`.
+     `ShoppingDuplicateUseCase` must set `finishedAt = null` explicitly (it copies everything else).
+     **Read invariant**: readers treat `finishedAt` as meaningful **only when
+     `status == FINISH`**, and fall back to the spec's chain otherwise
+     (`finishedAt` -> latest `PURCHASED` -> `createdAt`). Older builds (and the AI
+     `update_shopping_list` path, see G22) can leave a stale value behind on reopen.
+     Compatibility checked: every `Json` in the repo has `ignoreUnknownKeys = true`, older builds'
+     full-document `PUT` (`update()`) leaves an unknown field in place, and `firestore.rules` has
+     no field allowlist on `/shopping`, so no rules change is needed. No backfill.
+  2. **One finish flow for every entry point, shared through `core/navigation`** (not a
+     feature->feature import). `FinishPurchaseRoute` (today `internal`, nested in `CartFlow`, and
+     reading `CartViewModel` from the parent back-stack entry) becomes a public route in
+     `core/navigation/mobile/MobileRoutes.kt`:
+     `data class FinishPurchase(val shoppingId: String, val source: String) : NavKey`. It is
+     registered by `feature:cart` as a **top-level** dialog (outside `navigation<CartFlow>`).
+     `FinishPurchaseViewModel` loads the list (`ShoppingRepository.getById`) and its products
+     (`ProductReader.getAllProducts`, AD-011) from the route args itself, so it no longer depends on
+     the cart's back stack. The finish logic (apply `finished(...)`, `update`,
+     `cart_finish_purchase_completed` with a new `source` param, notify other members) moves out of
+     the ViewModel into `feature/cart/domain/usecase/FinishShoppingUseCase`. The cart navigates
+     with `source = "cart"`. Home long-press "Finalizar" navigates with
+     `source = "shopping_list_long_press"`: `ShoppingScreen`'s `onFinishClick` calls a new
+     `intent.onFinish(shopping)` instead of `intent.onUpdate(shopping.copy(status = FINISH))`, and
+     `ShoppingListViewModel` navigates to the route. Reopen stays as is (now via `reopened()`).
+     **G10 assessment**: this adds one public route to `core/navigation`, the same sanctioned
+     surface as `Paywall`, `CartFlow` and `QrCode`. It adds **no** feature->feature import, and
+     `ArchitectureTest.KNOWN_FEATURE_TO_FEATURE` must stay empty. It is *not* new G10 debt. It is
+     recorded here because it widens `core/navigation`'s public API on purpose.
+  3. **File-share plumbing for the CSV export stays inside `feature/shopping`, with the
+     `FileProvider` declared in `:app`. No new module.** The CSV builder is pure Kotlin in
+     `feature/shopping/domain/`. The port is a generic, `internal` interface in
+     `feature/shopping/domain/services/FileShareService.kt`
+     (`suspend fun share(files: List<ShareableFile>, subject: String, text: String): Result<Unit>`,
+     `ShareableFile(name, mimeType, content: String)`, no `Context`/`Uri`/`Intent`). Its impl is
+     `feature/shopping/data/services/AndroidFileShareService.kt`: write to `cacheDir/exports/`
+     (overwrite), `FileProvider.getUriForFile`, `ACTION_SEND_MULTIPLE` with a `ClipData` holding
+     every URI and `FLAG_GRANT_READ_URI_PERMISSION` on both the inner and the chooser intent, plus
+     `FLAG_ACTIVITY_NEW_TASK` (same as `ShareShoppingUseCaseImpl`). Any exception becomes
+     `Result.failure` (PHE-02 AC10: no partial share). The `<provider>`
+     (`androidx.core.content.FileProvider`, `android:authorities="${applicationId}.fileprovider"`,
+     `exported=false`, `grantUriPermissions=true`) and `res/xml/file_provider_paths.xml`
+     (`<cache-path name="exports" path="exports/"/>`) go in **`:app`**, because any library
+     manifest reachable from `feature:shopping` would merge into the `:wear` APK as well. The
+     authority suffix lives once as a constant in `core/common` (`FileShareAuthority.SUFFIX =
+     ".fileprovider"`), and the impl builds it from `context.packageName`.
+     **Binding rule**: the CSV builder, port, impl and export gate VM live in **the same feature
+     module as the history screen**. That's `feature/shopping` per the spec. Uncommitted
+     `SpendHistory*` UI from a parallel session appeared in `feature/cart` on 2026-10-26. If
+     `design.md` keeps the screen there, everything above moves to `feature/cart` (gate:
+     `CartSubscriptionGateViewModel.canExportHistory`), and home reaches it through a public route
+     in `core/navigation`. Splitting the screen and its export across two features is not allowed.
+- **Reason**: (1) a nullable trailing field with pure transition helpers is the smallest
+  model change that gives one tested place for "finish sets, reopen clears", and it needs no
+  migration. (2) bruno confirmed (2026-10-26) that long-press finish must open the same confirm-total
+  sheet. Routing through `core/navigation` is the existing AD-005-compliant way for one feature to
+  reach another's screen, and making the sheet self-loading removes its hidden coupling to the cart
+  back stack. (3) AD-011's YAGNI reasoning: the export has one consumer, so the port stays in that
+  feature. If a second feature needs to share files, promote `FileShareService` to `core/domain`
+  then.
+- **Trade-off**: the finish sheet now does its own product read (one subcollection read) even when
+  opened from the cart, which already had the products in memory. That's accepted for decoupling.
+  The `:app` <-> `feature/shopping` authority contract is a string suffix, not a type. A wrong value
+  fails at runtime (`IllegalArgumentException` from `getUriForFile`) and surfaces as the AC10
+  snackbar, not a crash.
+- **Scope**: `core/domain` (`Shopping`), `core/navigation` (`FinishPurchase` route), `core/common`
+  (authority suffix), `feature/shopping` (model/mapper, reopen/duplicate, long-press, export port +
+  impl), `feature/cart` (finish route, VM, new use case), `:app` (manifest + paths XML). `:wear`
+  compiles the model change and the finish VM; neither changes any watch behavior.
+- **Date**: 2026-10-26
+- **Status**: active (decided by `tech-lead`). Not implemented yet. Splits into PRs as listed in
+  `purchase-history-export/spec.md` § "Architecture addendum".
 
 ## Handoff
 
@@ -446,6 +640,21 @@
   timing of flipping `BILLING_ENABLED`, which is a real production change touching real paying
   users. Did not touch AD-010 itself (tech-lead's decision record) — this session only filled in
   the business-rule gap AD-010 explicitly left open.
+- **Completed (session of 2026-10-26, `tech-lead`)**: Recorded **AD-013** (per-capability Pro
+  gate flags `PRO_GATE_<CAPABILITY>_ENABLED`, default off, composed in one `ProFeatureAccess`
+  impl in `core:billing`, amending AD-010) and **AD-014** (`Shopping.finishedAt`, one shared
+  finish sheet via a public `FinishPurchase` route in `core/navigation`, CSV file-share port in
+  `feature/shopping` with the `FileProvider` in `:app`). Resolved G20 (gate home share with
+  `ProFeature.SHARE_LIST` at the `shoppingGraph` call site) and G21 (AD-014 parts 1-2) in
+  `MVP-ROADMAP.md`, logged new **G22** (AI `update_shopping_list` rebuilds the whole document and
+  overwrites `createdAt`/`budget`/`shortCode`/`emoji`/`finishedAt`), and appended an architecture
+  addendum to `purchase-history-export/spec.md`. That spec is now unblocked for `design.md` +
+  `tasks.md`. Docs only: no code, no branch, no commit. Edits are uncommitted on top of `pm`'s
+  uncommitted spec/roadmap changes (branch `feature/billing-disabled-toggle`, which has no commits
+  ahead of `develop`). They need their own `docs/` branch off `develop` before a PR.
+  **Rollout caveat bruno must know before flipping `BILLING_ENABLED`**: builds released before
+  AD-013 enforce all their gates on that one flag. Publish it version-scoped (`minVersion`), see
+  AD-013 trade-off 1.
 - **Next step**: bruno decides whether/when to merge PR #110 (production deploy trigger) and whether
   to deploy the AD-009 Firestore rules first. T7/PR #67 and the other 09-10-session items above need
   a fresh status check before anyone acts on them as current. **New**: bruno fixes the Detalhes de
