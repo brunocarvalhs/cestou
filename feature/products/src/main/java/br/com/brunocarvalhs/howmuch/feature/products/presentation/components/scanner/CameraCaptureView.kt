@@ -33,7 +33,8 @@ import java.util.Locale
 @Composable
 internal fun CameraCaptureView(
     onImageCaptured: (Uri) -> Unit,
-    onGalleryClick: () -> Unit
+    onGalleryClick: () -> Unit,
+    onError: () -> Unit = {}
 ) {
     if (LocalInspectionMode.current) {
         Box(modifier = Modifier.fillMaxSize().background(Color.Black))
@@ -66,6 +67,7 @@ internal fun CameraCaptureView(
                         )
                     } catch (exc: Exception) {
                         exc.printStackTrace()
+                        onError()
                     }
                 }, ContextCompat.getMainExecutor(ctx))
                 previewView
@@ -102,6 +104,7 @@ internal fun CameraCaptureView(
                         }
                         override fun onError(exc: ImageCaptureException) {
                             exc.printStackTrace()
+                            onError()
                         }
                     }
                 )

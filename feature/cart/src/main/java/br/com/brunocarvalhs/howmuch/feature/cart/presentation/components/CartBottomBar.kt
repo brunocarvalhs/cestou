@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,6 +42,7 @@ internal fun CartBottomBar(
     modifier: Modifier = Modifier,
     currencyFormatter: CurrencyFormatter,
     totalAmount: Double,
+    hasProducts: Boolean,
     onFinished: () -> Unit,
     onAdd: () -> Unit
 ) {
@@ -50,35 +52,50 @@ internal fun CartBottomBar(
             .navigationBarsPadding()
             .padding(16.dp)
     ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            FilledTonalButton(
-                onClick = onFinished,
-                modifier = Modifier.height(56.dp).weight(PRIMARY_BUTTON_WEIGHT),
-                shape = RoundedCornerShape(16.dp),
+        if (hasProducts) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                FilledTonalButton(
+                    onClick = onFinished,
+                    modifier = Modifier.height(56.dp).weight(PRIMARY_BUTTON_WEIGHT),
+                    shape = RoundedCornerShape(16.dp),
                 ) {
-                    Text(stringResource(R.string.cart_checkout), fontWeight = FontWeight.Bold)
-                    Text(
-                        text = currencyFormatter.format(totalAmount),
-                        fontWeight = FontWeight.Black
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(stringResource(R.string.cart_checkout), fontWeight = FontWeight.Bold)
+                        Text(
+                            text = currencyFormatter.format(totalAmount),
+                            fontWeight = FontWeight.Black
+                        )
+                    }
+                }
+
+                Spacer(Modifier.width(16.dp))
+
+                Button(
+                    onClick = onAdd,
+                    modifier = Modifier.height(56.dp).weight(1f).testTag("cart_bottom_bar_add_button"),
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Icon(Icons.Default.Add, null)
                 }
             }
-
-            Spacer(Modifier.width(16.dp))
-
+        } else {
             Button(
                 onClick = onAdd,
-                modifier = Modifier.height(56.dp).weight(1f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .testTag("cart_bottom_bar_add_button"),
                 shape = RoundedCornerShape(16.dp),
             ) {
                 Icon(Icons.Default.Add, null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.cart_add_product_button), fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -89,7 +106,20 @@ internal fun CartBottomBar(
 private fun CartBottomBarPreview() {
     CartBottomBar(
         currencyFormatter = rememberCurrencyFormatter(),
+        totalAmount = 42.0,
+        hasProducts = true,
+        onFinished = {},
+        onAdd = {}
+    )
+}
+
+@Preview
+@Composable
+private fun CartBottomBarEmptyPreview() {
+    CartBottomBar(
+        currencyFormatter = rememberCurrencyFormatter(),
         totalAmount = 0.0,
+        hasProducts = false,
         onFinished = {},
         onAdd = {}
     )

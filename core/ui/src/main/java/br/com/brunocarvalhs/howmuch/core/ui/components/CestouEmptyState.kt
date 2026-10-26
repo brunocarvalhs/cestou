@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,9 +24,14 @@ private const val ICON_ALPHA = 0.3f
 private const val TEXT_ALPHA = 0.7f
 
 @Composable
-fun CestouEmptyState() {
+fun CestouEmptyState(
+    modifier: Modifier = Modifier,
+    actionLabel: String? = null,
+    actionModifier: Modifier = Modifier,
+    onAction: (() -> Unit)? = null
+) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(top = 64.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -47,6 +53,12 @@ fun CestouEmptyState() {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.outline.copy(alpha = TEXT_ALPHA)
         )
+        if (actionLabel != null && onAction != null) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(onClick = onAction, modifier = actionModifier) {
+                Text(actionLabel)
+            }
+        }
     }
 }
 
@@ -55,5 +67,13 @@ fun CestouEmptyState() {
 private fun CestouEmptyStatePreview() {
     MaterialTheme {
         CestouEmptyState()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun CestouEmptyStateWithActionPreview() {
+    MaterialTheme {
+        CestouEmptyState(actionLabel = "Adicionar item", onAction = {})
     }
 }

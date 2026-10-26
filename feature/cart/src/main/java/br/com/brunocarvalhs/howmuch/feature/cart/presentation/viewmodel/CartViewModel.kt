@@ -67,8 +67,12 @@ internal class CartViewModel @Inject constructor(
 
     val intent = CartIntent(
         onRefresh = { /* Handled by observe */ },
-        onToggleProductPicker = {
+        onToggleProductPicker = { source ->
             _uiState.value.shopping?.let {
+                analyticsTracker.trackEvent(
+                    AnalyticsEvents.CART_ADD_PRODUCT_CLICKED,
+                    mapOf(AnalyticsParams.SHOPPING_ID to it.id, AnalyticsParams.SOURCE to source)
+                )
                 _navigator?.navigate(ProductPickerRoute(it))
             }
         },

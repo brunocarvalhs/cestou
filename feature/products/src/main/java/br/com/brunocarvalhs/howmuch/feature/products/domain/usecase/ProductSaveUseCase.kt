@@ -5,6 +5,9 @@ import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentParameter
 import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getString
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
 import br.com.brunocarvalhs.howmuch.core.domain.model.withActivity
@@ -15,6 +18,8 @@ import kotlinx.coroutines.flow.first
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+
+private const val SOURCE_AI_CHAT = "ai_chat"
 
 @AiAgentAction(
     id = "save_product_to_cart",
@@ -29,7 +34,8 @@ class ProductSaveUseCase @Inject constructor(
     private val repository: ProductRepository,
     private val authService: AuthService,
     private val duplicateCheckUseCase: ProductDuplicateCheckUseCase,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val analyticsTracker: AnalyticsTracker
 ) : AgentActionUseCase<String>() {
 
     suspend operator fun invoke(
@@ -83,6 +89,14 @@ class ProductSaveUseCase @Inject constructor(
 
         val saveResult = save(product, shoppingId, userId)
         if (saveResult.isFailure) return saveResult.map { "" }
+
+        analyticsTracker.trackEvent(
+            AnalyticsEvents.PRODUCT_ADDED,
+            mapOf(
+                AnalyticsParams.SHOPPING_ID to shoppingId,
+                AnalyticsParams.SOURCE to SOURCE_AI_CHAT
+            )
+        )
 
         // The AI chat is the only surface this PR wires the warning into: this
         // message is what feeds back into the model's function-call response

@@ -4,4 +4,13 @@
     <string name="ai_chat_settings_content_description">Settings</string>
     <string name="ai_chat_keyboard_content_description">Show keyboard</string>
     <string name="ai_chat_upgrade_banner">You\'ve used your free message. Subscribe to Cestou Pro to keep chatting.</string>
+    <string name="ai_chat_empty_title">What do you need?</string>
+    <string name="ai_chat_empty_subtitle">I can build your list from a recipe, repeat a past purchase, or suggest items.</string>
+    <string name="ai_chat_suggestion_recipe">Ingredients for a recipe</string>
+    <string name="ai_chat_suggestion_bbq">BBQ for 6 people</string>
+    <string name="ai_chat_suggestion_repeat_purchase">Repeat my last purchase</string>
+    <string name="ai_chat_suggestion_budget_tip">Cheaper alternatives for my list</string>
+    <string name="ai_chat_followup_add_all">Add it to my list</string>
+    <string name="ai_chat_followup_more_ideas">Give me another idea</string>
+    <string name="ai_chat_error_message">I couldn\'t reply right now. Please try again in a moment.</string>
 </resources>

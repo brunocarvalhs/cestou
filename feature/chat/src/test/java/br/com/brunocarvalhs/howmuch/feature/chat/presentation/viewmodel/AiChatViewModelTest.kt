@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel
 
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
@@ -85,6 +86,22 @@ class AiChatViewModelTest {
         viewModel.intent.onSendMessage()
 
         coVerify { aiTrialRepository.markFreeMessageUsed() }
+    }
+
+    @Test
+    fun `onSuggestionSelected fills the input, sends it and tracks the suggestion id`() = runTest {
+        coEvery { assistantUseCase("ingredients for lasagna", any()) } returns flowOf("here's your list")
+
+        viewModel.intent.onSuggestionSelected("recipe", "ingredients for lasagna")
+
+        assertEquals(2, viewModel.uiState.value.messages.size)
+        assertEquals("ingredients for lasagna", viewModel.uiState.value.messages.first().text)
+        verify {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.AI_CHAT_SUGGESTION_TAPPED,
+                mapOf(AnalyticsParams.SUGGESTION_ID to "recipe")
+            )
+        }
     }
 
     @Test

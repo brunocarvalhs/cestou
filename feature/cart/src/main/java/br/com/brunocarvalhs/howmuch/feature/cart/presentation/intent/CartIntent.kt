@@ -4,7 +4,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 
 internal data class CartIntent(
     val onRefresh: () -> Unit = {},
-    val onToggleProductPicker: () -> Unit = {},
+    val onToggleProductPicker: (source: String) -> Unit = {},
     val onShareShopping: () -> Unit = {},
     val onDeleteProduct: (Product) -> Unit = {}, //
     val onEditProduct: (Product) -> Unit = {}, //

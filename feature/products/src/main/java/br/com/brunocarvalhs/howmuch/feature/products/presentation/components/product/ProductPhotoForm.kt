@@ -89,7 +89,8 @@ internal fun ProductPhotoForm(
                     galleryLauncher.launch(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
-                }
+                },
+                onError = { intent.onCameraError() }
             )
 
             !uiState.isAnalyzing && uiState.analysisResult.isNotEmpty() -> ProductAnalysisConfirmation(

@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="action_confirm">Confirmar</string>
+    <string name="cart_add_product_button">Agregar producto</string>
     <string name="cart_ai_input_placeholder">Mensaje para Cestou…</string>
     <string name="cart_ai_voice_input">Entrada de voz</string>
     <string name="cart_assistant_status">En línea • IA activa</string>
     <string name="cart_assistant_title">Asistente Cestou</string>
     <string name="cart_checkout">Finalizar</string>
+    <string name="cart_empty_state_add_product_action">Agregar tu primer producto</string>
     <string name="cart_item_delete_description">Eliminar artículo</string>
     <string name="cart_item_quantity_price">%1$d ud. • %2$s c/u</string>
     <string name="shopping_list_confirm_item_title">Confirmar Artículo</string>

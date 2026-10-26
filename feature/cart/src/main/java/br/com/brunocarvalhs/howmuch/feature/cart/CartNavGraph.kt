@@ -13,6 +13,6 @@ internal class CartNavGraph @Inject constructor() : FeatureNavGraph {
         navigator: Navigator,
         windowSizeClass: WindowSizeClass
     ) {
-        navGraphBuilder.cartGraph(navigator, windowSizeClass)
+        navGraphBuilder.cartGraph(navigator)
     }
 }
