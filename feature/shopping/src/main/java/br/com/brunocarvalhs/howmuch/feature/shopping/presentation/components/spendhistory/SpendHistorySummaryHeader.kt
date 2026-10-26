@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.spendhistory
+package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.spendhistory
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,17 +19,16 @@ import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
-import br.com.brunocarvalhs.howmuch.feature.cart.R
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.InProgressSpend
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.MonthBudget
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.MonthSpendSummary
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.InProgressSpend
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.MonthBudget
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.MonthSpendSummary
 
 /**
- * Header for the selected month: name + total (bold, prominent), plus up to three detail rows.
- * Deliberately skips the reference credit-card screen's "due date" concept (no equivalent in a
- * grocery app) in favor of rows the spec grounded in this domain: purchase count, budget vs.
- * spend (only when at least one list in the month had a budget), and — current month only —
- * purchased items still sitting in open lists, kept visually separate from the closed total.
+ * Header for the selected month: name + total (bold, prominent), plus up to three detail rows —
+ * purchase count, budget vs. spend (only when at least one list in the month had a budget), and
+ * — current month only — purchased items still sitting in open lists, kept visually separate
+ * from the closed total.
  */
 @Composable
 internal fun SpendHistorySummaryHeader(

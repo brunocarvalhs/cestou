@@ -14,6 +14,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.ShareShoppingUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
+import br.com.brunocarvalhs.howmuch.core.navigation.SpendHistory
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
@@ -112,6 +113,7 @@ internal class ShoppingListViewModel @Inject constructor(
             handleShoppingAction(ShoppingAction.Reopen(shopping))
         },
         onShowJoinDialog = { _navigator?.navigate(JoinList()) },
+        onShowSpendHistory = { _navigator?.navigate(SpendHistory) },
         onMove = { from, to -> moveShopping(from, to) },
         onShowCreateSheet = { visible -> _uiState.update { it.copy(isCreateSheetVisible = visible) } },
         onCreateConfirmed = { title, description, emoji ->

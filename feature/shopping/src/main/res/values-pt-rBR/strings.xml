@@ -124,4 +124,20 @@
     <string name="shopping_wear_tile_label">Lista atual</string>
     <string name="shopping_wear_tile_empty">Abra uma lista no relógio</string>
     <string name="shopping_wear_tile_signed_out">Vincule com o celular</string>
+
+    <!-- Spend history -->
+    <string name="spend_history_title">Histórico de gastos</string>
+    <string name="spend_history_export_action">Exportar histórico de compras</string>
+    <string name="spend_history_current_month_badge">Parcial</string>
+    <string name="spend_history_purchase_count">%1$d compras</string>
+    <string name="spend_history_budget_line">Orçamento: %1$s · Gasto: %2$s</string>
+    <string name="spend_history_in_progress_line">Em andamento: %1$s em %2$d listas abertas</string>
+    <string name="spend_history_purchases_section_title">Compras</string>
+    <string name="spend_history_shared_badge">Compartilhada</string>
+    <string name="spend_history_estimated_amount_format">≈ %1$s</string>
+    <string name="spend_history_estimated_badge">estimado</string>
+    <string name="spend_history_month_empty_title">Nenhuma compra finalizada em %1$s</string>
+    <string name="spend_history_month_empty_description">As compras finalizadas aparecem aqui.</string>
+    <string name="spend_history_no_data_title">Nenhum histórico de gastos ainda</string>
+    <string name="spend_history_error_message">Não foi possível carregar seu histórico de gastos.</string>
 </resources>

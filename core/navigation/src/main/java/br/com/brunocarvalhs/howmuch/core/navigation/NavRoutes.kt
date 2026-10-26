@@ -7,3 +7,8 @@ import kotlinx.serialization.Serializable
 data object ShoppingList : NavKey, RouteProtocol {
     override val routeType: RouteType = RouteType.PROTECTED
 }
+
+@Serializable
+data object SpendHistory : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}

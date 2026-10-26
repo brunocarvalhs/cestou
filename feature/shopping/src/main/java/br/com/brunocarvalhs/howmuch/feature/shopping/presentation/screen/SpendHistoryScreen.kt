@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.cart.presentation.screen
+package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,19 +33,19 @@ import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouTopBar
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
-import br.com.brunocarvalhs.howmuch.feature.cart.R
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.spendhistory.SpendHistoryDateHeader
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.spendhistory.SpendHistoryEmptyMonthState
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.spendhistory.SpendHistoryErrorState
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.spendhistory.SpendHistoryLoadingState
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.spendhistory.SpendHistoryMonthCardRow
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.spendhistory.SpendHistoryPurchaseListItem
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.spendhistory.SpendHistorySummaryHeader
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.InProgressSpend
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.MonthBudget
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.MonthSpendSummary
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.SpendHistoryPurchase
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.SpendHistoryUiState
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.spendhistory.SpendHistoryDateHeader
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.spendhistory.SpendHistoryEmptyMonthState
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.spendhistory.SpendHistoryErrorState
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.spendhistory.SpendHistoryLoadingState
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.spendhistory.SpendHistoryMonthCardRow
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.spendhistory.SpendHistoryPurchaseListItem
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.spendhistory.SpendHistorySummaryHeader
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.InProgressSpend
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.MonthBudget
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.MonthSpendSummary
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.SpendHistoryPurchase
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.SpendHistoryUiState
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -53,25 +53,13 @@ import java.util.Locale
 import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
 /**
- * "Histórico de gastos" (spend history) screen — presentation-only, driven entirely by
- * [SpendHistoryUiState]. No ViewModel/repository wiring yet: `.specs/features/
- * purchase-history-export/spec.md` is still draft, so this previews against fake data. See the
- * KDoc on [SpendHistoryUiState] for the provisional-module-placement note.
+ * "Histórico de gastos" (spend history) screen, driven entirely by [SpendHistoryUiState].
+ * Month selection is local UI state: tapping a card updates [selectedMonthId] directly, and
+ * [onMonthSelected] is only a side-effect hook for the caller.
  *
- * Deviations from bruno's literal reference layout (flagged for `pm`/bruno to reconcile):
- * - No help ("?") icon in the top bar — the same-day data spec explicitly cut it ("no equivalent
- *   need in this domain"), and a non-functional help icon would be worse than none.
- * - No "Filtros" affordance next to the purchases list — the data spec defers filters past v1
- *   ("typically a handful of entries"), and a visible-but-inert filter button would be a dead
- *   end for anyone who taps it. Both can be added back the moment there's real behavior behind
- *   them.
- * - The reference's generic "transactions" list is labeled "Compras" (purchases), not
- *   "Lançamentos" — each row is one finished shopping list, not a generic ledger entry, and
- *   "Compras" is what the spec's own acceptance criteria settled on.
- *
- * [onExportClick] is a plain hook — this screen never reads `SubscriptionStatus` itself. Per the
- * spec's scope boundary, every row here (cards, trend line, purchases list) is free; only the
- * export action it wires to is Pro-gated, and that gating happens at the call site, not here.
+ * [onExportClick] is a plain hook — this screen never reads subscription status itself. Every
+ * row here (cards, trend line, purchases list) is free to view; only the export action it wires
+ * to is gated, and that gating happens at the call site, not here.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

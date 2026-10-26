@@ -124,4 +124,20 @@
     <string name="shopping_wear_tile_label">Current list</string>
     <string name="shopping_wear_tile_empty">Open a list on your watch</string>
     <string name="shopping_wear_tile_signed_out">Pair with your phone</string>
+
+    <!-- Spend history -->
+    <string name="spend_history_title">Spending history</string>
+    <string name="spend_history_export_action">Export spending history</string>
+    <string name="spend_history_current_month_badge">Partial</string>
+    <string name="spend_history_purchase_count">%1$d purchases</string>
+    <string name="spend_history_budget_line">Budget: %1$s · Spent: %2$s</string>
+    <string name="spend_history_in_progress_line">In progress: %1$s in %2$d open lists</string>
+    <string name="spend_history_purchases_section_title">Purchases</string>
+    <string name="spend_history_shared_badge">Shared</string>
+    <string name="spend_history_estimated_amount_format">≈ %1$s</string>
+    <string name="spend_history_estimated_badge">estimated</string>
+    <string name="spend_history_month_empty_title">No finished purchases in %1$s</string>
+    <string name="spend_history_month_empty_description">Finished purchases will show up here.</string>
+    <string name="spend_history_no_data_title">No spending history yet</string>
+    <string name="spend_history_error_message">We couldn\'t load your spending history.</string>
 </resources>

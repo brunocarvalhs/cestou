@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.spendhistory
+package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.spendhistory
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,7 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
-import br.com.brunocarvalhs.howmuch.feature.cart.R
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
 private const val EMPTY_ICON_ALPHA = 0.3f
@@ -72,10 +72,10 @@ internal fun SpendHistoryErrorState(
 }
 
 /**
- * Doubles as the "no purchases this month yet" state (AC9, [monthLabel] set) and the
- * degenerate "no months at all" fallback ([monthLabel] null) — same visual language as
+ * Doubles as the "no purchases this month yet" state ([monthLabel] set) and the degenerate
+ * "no months at all" fallback ([monthLabel] null) — same visual language as
  * [br.com.brunocarvalhs.howmuch.core.ui.components.CestouEmptyState] (muted icon, title,
- * description) but with on-topic copy instead of that component's cart-specific strings.
+ * description) but with its own on-topic copy.
  */
 @Composable
 internal fun SpendHistoryEmptyMonthState(monthLabel: String?, modifier: Modifier = Modifier) {
