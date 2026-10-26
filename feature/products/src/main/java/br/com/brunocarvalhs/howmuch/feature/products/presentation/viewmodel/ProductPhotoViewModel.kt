@@ -131,9 +131,9 @@ internal class ProductPhotoViewModel @Inject constructor(
 
     private fun onProductConfirmed(product: Product) {
         viewModelScope.launch {
-            // Informational only (spec item-add-authorship P2, IAA-02) — the item is saved
-            // either way, same as ProductFormViewModel/ProductSaveUseCase's AI path. Checked
-            // before the save so it only flags an item that was already there.
+            // Informational only — the item is saved either way, same as
+            // ProductFormViewModel/ProductSaveUseCase's AI path. Checked before the save so
+            // it only flags an item that was already there.
             val duplicate = duplicateCheckUseCase(product.name, shopping.id)
 
             saveUseCase(product = product, shoppingId = shopping.id)
@@ -182,7 +182,7 @@ internal class ProductPhotoViewModel @Inject constructor(
 
         viewModelScope.launch {
             // Checked before each item's own save, same informational-only semantics as the
-            // single-item path above (spec item-add-authorship P2, IAA-02).
+            // single-item path above.
             var duplicateCount = 0
             items.forEach { product ->
                 if (duplicateCheckUseCase(product.name, shopping.id) != null) duplicateCount++
