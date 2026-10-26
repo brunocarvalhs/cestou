@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -100,6 +101,14 @@ internal fun ShoppingScreen(
             topBar = {
                 CenterAlignedTopAppBar(
                     actions = {
+                        IconButton(onClick = intent.onShowSpendHistory) {
+                            Icon(
+                                imageVector = Icons.Default.History,
+                                contentDescription = stringResource(
+                                    R.string.spend_history_title
+                                )
+                            )
+                        }
                         IconButton(onClick = intent.onShowJoinDialog) {
                             Icon(
                                 imageVector = Icons.Default.QrCodeScanner,

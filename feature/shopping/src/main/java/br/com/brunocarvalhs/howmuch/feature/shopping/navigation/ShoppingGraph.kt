@@ -29,6 +29,7 @@ import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
+import br.com.brunocarvalhs.howmuch.core.navigation.SpendHistory
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
@@ -41,12 +42,14 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.sca
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.scanner.QrCodeScanner
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.NotificationsScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.ShoppingScreen
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.SpendHistoryScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.EditShoppingViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.JoinListViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.NotificationsViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ScannerViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingListViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingSubscriptionGateViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.SpendHistoryViewModel
 
 private const val SCANNER_MAX_HEIGHT_FRACTION = 0.8f
 private const val PAYWALL_SOURCE_QR_CODE = "shopping_qr_code"
@@ -65,6 +68,18 @@ fun NavGraphBuilder.shoppingGraph(
             windowSizeClass = windowSizeClass,
             intent = viewModel.intent,
             onSettings = { navigator.navigate(route = Settings) },
+        )
+    }
+
+    composable<SpendHistory> {
+        val viewModel: SpendHistoryViewModel = hiltViewModel()
+        viewModel.setNavigator(navigator)
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        SpendHistoryScreen(
+            uiState = uiState,
+            onBack = { navigator.goBack() },
+            onPurchaseClick = { purchase -> viewModel.onPurchaseClicked(purchase) },
+            onRetry = { viewModel.onRetry() }
         )
     }
 

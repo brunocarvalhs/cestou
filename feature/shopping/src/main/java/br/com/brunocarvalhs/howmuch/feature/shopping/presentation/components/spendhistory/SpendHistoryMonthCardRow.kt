@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.spendhistory
+package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.spendhistory
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,8 +32,8 @@ import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
-import br.com.brunocarvalhs.howmuch.feature.cart.R
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.MonthSpendSummary
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.MonthSpendSummary
 
 private val CARD_MIN_WIDTH = 88.dp
 private val MARKER_ZONE_HEIGHT = 20.dp
@@ -43,15 +43,13 @@ private val LINE_THICKNESS = 2.dp
 private val CARD_SHAPE = RoundedCornerShape(20.dp)
 
 /**
- * Month-card row with a trend line connecting each card's marker — the Magalu Cashback /
- * Nubank-style statement bruno referenced. Horizontally scrollable so it also works once the
- * real data spec's "6 months, 4 visible" range lands; with fewer months (a brand-new account)
- * it simply renders fewer cards and fewer line segments instead of padding with empty ones.
+ * Month-card row with a trend line connecting each card's marker, in a credit-card-statement
+ * style. Horizontally scrollable; with fewer months (a brand-new account) it simply renders
+ * fewer cards and fewer line segments instead of padding with empty ones.
  *
- * The current month is distinguishable by more than color alone (per the accessibility note on
- * not repeating the `item-add-authorship` selected-chip contrast finding): it gets an outlined
- * border, an open/unfilled ring marker instead of a filled dot, bold text, *and* a visible
- * "Parcial" label — so the distinction survives grayscale and screen readers, not just color.
+ * The current month is distinguishable by more than color alone: it gets an outlined border, an
+ * open/unfilled ring marker instead of a filled dot, bold text, *and* a visible "Parcial" label
+ * — so the distinction survives grayscale and screen readers, not just color.
  */
 @Composable
 internal fun SpendHistoryMonthCardRow(

@@ -20,6 +20,7 @@
     <string name="nav_lists">Lists</string>
     <string name="nav_ai_chat">IA Chat</string>
     <string name="nav_profile">Profile</string>
+    <string name="nav_spend_history">History</string>
 
     <!-- Accessibility / Content Descriptions -->
     <string name="content_description_back">Back</string>

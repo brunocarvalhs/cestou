@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.spendhistory
+package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.spendhistory
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,8 +28,8 @@ import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
-import br.com.brunocarvalhs.howmuch.feature.cart.R
-import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.SpendHistoryPurchase
+import br.com.brunocarvalhs.howmuch.feature.shopping.R
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.SpendHistoryPurchase
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -49,7 +49,7 @@ internal fun SpendHistoryDateHeader(timestamp: Long, modifier: Modifier = Modifi
  * One finished purchase row: emoji, list title, establishment (if any), total, and a
  * "compartilhada" indicator for shared lists. Estimated totals (calculated from purchased items
  * rather than a user-confirmed value) are marked with both a "≈" prefix *and* an "estimado"
- * caption — two non-color signals, per AC7 — so a calculated number never reads as confirmed.
+ * caption — two non-color signals — so a calculated number never reads as confirmed.
  */
 @Composable
 internal fun SpendHistoryPurchaseListItem(
