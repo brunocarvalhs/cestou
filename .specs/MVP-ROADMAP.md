@@ -49,6 +49,7 @@ shipped independently.
 | G10 | Cross-feature module coupling: `cart`/`shopping`/`chat`/`ai-agent`/`profile` import `feature.settings` directly, `cart` imports `feature.chat`/`feature.products`, `products` imports `feature.chat`, `shopping` imports `feature.products` | Violates AD-005 (feature modules should only expose a `navigation` entry point); makes each feature module's real dependency graph wider than documented, raising the risk of accidental coupling as the app grows | M — needs a design pass (extract shared contracts to `core/*`), not a quick fix |
 | G17 | Beta tester feedback (Felipe Morais, 1★, 07/09/2026, Play Console beta feedback channel): comment is just "difícil", no further detail — possible onboarding/first-use UX friction, root cause unconfirmed | Real signal from an external beta tester rather than an internal audit, but not actionable yet: no repro steps, no flow identified, no persona confidently mapped. See "Beta feedback triage" below for the follow-up plan and process | S (diagnostic) — escalates to a usability session or heuristic review only if he doesn't reply |
 | G18 | **Play Store rejection 2026-10-06 ("Falta de credenciais de login", Open testing)**: app only accepts Google Sign-In, so reviewers cannot log in and there is no credential the app accepts. Resolution: phase 1 = e-mail/password login + required first/last name + initials avatar + review credential in Play Console; phase 2 (after Play approval) = phone/SMS. Spec: `.specs/features/email-phone-auth/spec.md` | Blocks publishing the update; second rejection for this reason (first: 2026-09-25, see STATE.md). Phase 1 is P0, above all Phase 3 and "Desirable" items. Phone/SMS (phase 2) may need the Firebase Blaze plan, deferred by bruno | M–L |
+| G19 | **Paywall promises a benefit the entitlement system can't enforce.** `PaywallScreen.kt`'s 4th benefit ("Use o Cestou no seu relógio Wear OS") implies Wear access is part of the Pro unlock, but `ProfileSubscriptionViewModel.showWearLink` gates it purely on `WEAR_LOGIN_ENABLED` (a rollout flag, defaults OFF for everyone, Pro or Free, because the Wear companion app isn't published) — it has zero reference to `SubscriptionStatus`. When that flag eventually flips, Wear pairing becomes free for everyone, contradicting what the Paywall sold. Found while formalizing `.specs/features/pro-entitlement/spec.md` (FR-04); the other 3 promised benefits (unlimited chat, share list, QR invite) **are** correctly wired to `SubscriptionRepository` and just idle behind `BILLING_ENABLED`. | Not a launch blocker by itself, but must be fixed *before* `BILLING_ENABLED` is flipped on (see pro-entitlement spec's Rollout Plan) — flipping the flag while this copy is live means real paying users are sold a feature the code structurally cannot gate for them. | S — remove the one string/benefit-list entry now; revisit "Wear as a Pro perk" as its own decision once the companion app ships |
 
 Every item marked done above shipped as its own branch + PR (none merged without review): shared
 `StorageService` for `core/auth` (#14), shopping-reminder push notifications (#15), Maestro
@@ -143,6 +144,70 @@ beta — not deciding it here, since `BETA-LAUNCH-PLAN.md` is the tech-lead's do
 None found in this pass. The dead-end legal links, the QR-join notification spam, and the compiled-in
 API key — the three items with the clearest persona-facing "this feels broken/unsafe" angle — are
 already tracked as G3, G13, and G15 respectively.
+
+## Monetization (owned by `pm`, 2026-10-23)
+
+Separate from beta-launch gating — this is about `BILLING_ENABLED` (AD-010's kill switch, see
+`core/billing/.../PlayBillingSubscriptionRepository.kt`), which has defaulted OFF since it shipped,
+so every user reads as `PRO` today regardless of real purchase state. Full decision record, chat
+free-message-limit analysis, Pro-feature priority list, and rollout plan: **`.specs/features/
+pro-entitlement/spec.md`**. Headline points for anyone scanning this roadmap instead of that spec:
+
+- Three of the four benefits already advertised on the Paywall (unlimited AI chat, share list, QR
+  invite) are **fully implemented and wired to `SubscriptionRepository`** — they're idle only
+  because of the flag, not missing code. The fourth (Wear OS) is a real mismatch — see **G19**
+  above.
+- There are real paying users today getting zero differentiation from Free users. Flipping the
+  flag is treated as urgent (this sprint), gated on: fixing G19's copy, a device QA pass
+  (`android-engineer-quality`) since these gates have never run with the flag actually on, and
+  closing a real analytics gap (`data-engineer`) — today only `paywall_subscribe_clicked` and
+  `paywall_purchase_failed` exist, with no `paywall_viewed`, no purchase-success event, and no
+  gate-blocked event, so the flip would otherwise be unmeasurable.
+- The free-chat limit of 1 message (already implemented in `ChatAiGateViewModel`/
+  `AiTrialRepository`) is kept as-is — the spec's analysis of the 1.16 messages/user organic
+  average concludes it binds only the already most-engaged tail, not the typical user.
+- "No ads for Free" (raised as an idea to explore, not a decision) is recommended **deferred**:
+  no ad SDK exists in the repo today, the real user base is too small for the revenue to matter
+  yet, and introducing ads now would add a second simultaneous variable on top of the already
+  undiagnosed post-week-1 retention cliff.
+
+## Monetization feature roadmap — competitive gap action plan (owned by `pm`, 2026-10-26)
+
+Source: a competitive pass against Bring! (5M+ installs, BR market leader), Listonic, AnyList,
+OurGroceries, Out of Milk, Samsung Food+, and the Brazilian state nota-fiscal price-comparison
+apps (Menor Preço RS/PR/PE, Nota Paraná). None of these are `Gxx` bugs — they're new feature
+candidates, sequenced here so each one can be picked up independently. This extends the
+Pro-feature priority list already in `.specs/features/pro-entitlement/spec.md` (FR-05); it does
+not reopen FR-01–04, which are already implemented and just idle behind `BILLING_ENABLED`.
+
+**Open decision gate, not resolved here:** FR-02 (share list) and FR-03 (QR invite) being Pro is a
+deliberate call already made, but it cuts against the dominant market pattern — Bring! and
+OurGroceries keep sharing 100% free on purpose, because it's their viral growth loop. With the
+real user base at 2 paying accounts and retention collapsing toward zero after week 1
+(`project_auth_user_base_small.md`), paywalling the one action that creates network effects
+(inviting someone else in) deserves a second look before any more Pro features are built on top of
+that boundary. Doesn't block the table below — flagged so it isn't silently load-bearing forever.
+
+**Workflow convention for every row below:** planning and implementation are split into separate
+Claude Code sessions by model — `/model opus` for planning (spec/design only, no code), `/model
+sonnet-5` for implementation (code + tests, one PR per feature, never bundling two rows into one
+PR). Same "own branch, own PR into `develop`" discipline as the rest of this doc (see "Process"
+at the end).
+
+| Order | Feature | Free/Pro | Planning deliverable (`/model opus`) | Implementation (`/model sonnet-5`) | PR |
+|---|---|---|---|---|---|
+| 1 | Purchase-history export / month-end summary (pro-entitlement spec FR-05 #1) | Pro | `.specs/features/purchase-history-export/spec.md`: export format, summary contents, Pro gate placement | Use case + screen + ViewModel/use-case tests | `feat(export): purchase history export behind Pro gate` |
+| 2 | Recipe search → add to list (code already exists, unmerged, in agent worktree branches under `feature/products/.../Recipe*.kt`) | Browse free / auto-add-to-list Pro | Review the existing branch code, decide the exact free/Pro cut, formalize the spec | Bring the code into `develop` cleanly, wire the gate, cover `RecipeSearchUseCase`/`RecipeAddToListUseCase` | `feat(recipes): recipe search free, auto-add-to-list behind Pro` |
+| 3 | Recurring list templates — demand validation only (pro-entitlement spec FR-05 #2, explicitly speculative) | N/A yet | Plan only the cheap signal: which analytics event tells us whether users already duplicate lists manually today | Implement just the analytics event (`data-engineer` support) — no feature build yet | `feat(analytics): track list-duplicate usage to validate templates demand` |
+| 3b | Recurring list templates — full build, only if 3 validates demand | Pro | Full spec once the signal is in | Implement + tests | `feat(shopping): recurring list templates (Pro)` |
+| 4 | Cross-store / unit-price comparison | **Free** — already decided in the pro-entitlement spec's scope boundary, do not reopen | Spike: is any real price-data source viable on the Spark plan (no Cloud Functions)? Brazilian nota-fiscal price APIs are state-scoped, not national — decide feasibility before committing to a build | Only after the spike approves it: implement + tests | `feat(products): cross-store price comparison (free)` — conditional on the spike |
+| 5 | Home pantry/stock tracking + expiry alerts (precedent: Samsung Food+) | Pro | `.specs/features/pantry/spec.md` | Implement + tests | `feat(pantry): home stock tracking with expiry alerts (Pro)` |
+
+Fixed rules across every row: tests are mandatory before a PR is considered done
+(`android-engineer-quality` covers ViewModel/use-case/Compose per the existing pattern —
+`CartBottomBarTest.kt`, `CartScreenAddProductTest.kt`); no `@Suppress` to silence lint/Detekt
+findings; and nothing here ever paywalls budget, running total, purchase history, or price
+comparison — that boundary from the pro-entitlement spec holds for every future candidate too.
 
 ## Beta feedback triage (owned by `pm`)
 
