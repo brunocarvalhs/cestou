@@ -33,4 +33,18 @@
     <string name="shopping_list_placeholder_establishment">Ej: Supermercado X</string>
     <string name="shopping_list_save_changes">Guardar Cambios</string>
     <string name="shopping_list_updated">¡Lista actualizada!</string>
+    <string name="spend_history_title">Historial de gastos</string>
+    <string name="spend_history_export_action">Exportar historial de compras</string>
+    <string name="spend_history_current_month_badge">Parcial</string>
+    <string name="spend_history_purchase_count">%1$d compras</string>
+    <string name="spend_history_budget_line">Presupuesto: %1$s · Gastado: %2$s</string>
+    <string name="spend_history_in_progress_line">En curso: %1$s en %2$d listas abiertas</string>
+    <string name="spend_history_purchases_section_title">Compras</string>
+    <string name="spend_history_shared_badge">Compartida</string>
+    <string name="spend_history_estimated_amount_format">≈ %1$s</string>
+    <string name="spend_history_estimated_badge">estimado</string>
+    <string name="spend_history_month_empty_title">Ninguna compra finalizada en %1$s</string>
+    <string name="spend_history_month_empty_description">Las compras finalizadas aparecerán aquí.</string>
+    <string name="spend_history_no_data_title">Aún no hay historial de gastos</string>
+    <string name="spend_history_error_message">No pudimos cargar tu historial de gastos.</string>
 </resources>
