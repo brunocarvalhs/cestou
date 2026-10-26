@@ -5,6 +5,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 
 internal data class ProductPhotoIntent(
     val onImageCaptured: (Uri) -> Unit = {},
+    val onCameraError: () -> Unit = {},
     val onRetake: () -> Unit = {},
     val onAnalyzeImage: () -> Unit = {},
     val onProductConfirmed: (Product) -> Unit = {},

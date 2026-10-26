@@ -13,6 +13,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.domain.exception.ImageUnreadableException
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductAnalyzeImageUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductDuplicateCheckUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.intent.ProductPhotoIntent
@@ -33,6 +34,7 @@ internal class ProductPhotoViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val analyzeImageUseCase: ProductAnalyzeImageUseCase,
     private val saveUseCase: ProductSaveUseCase,
+    private val duplicateCheckUseCase: ProductDuplicateCheckUseCase,
     private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
     private val shopping = savedStateHandle.toRoute<ProductPickerRoute>(ProductPickerRoute.typeMap).shopping
@@ -46,6 +48,7 @@ internal class ProductPhotoViewModel @Inject constructor(
 
     val intent = ProductPhotoIntent(
         onImageCaptured = { uri -> onImageCaptured(uri) },
+        onCameraError = { onCameraError() },
         onRetake = { retake() },
         onAnalyzeImage = { analyzeImage() },
         onProductConfirmed = { product -> onProductConfirmed(product) },
@@ -58,6 +61,14 @@ internal class ProductPhotoViewModel @Inject constructor(
 
     private fun onImageCaptured(uri: Uri) {
         _uiState.update { it.copy(capturedImageUri = uri) }
+    }
+
+    private fun onCameraError() {
+        analyticsTracker.trackEvent(
+            AnalyticsEvents.PRODUCT_PHOTO_SCAN_FAILED,
+            mapOf(AnalyticsParams.REASON to "camera_error")
+        )
+        _uiState.update { it.copy(errorMessage = context.getString(R.string.product_photo_error_camera_failed)) }
     }
 
     private fun retake() {
@@ -120,6 +131,11 @@ internal class ProductPhotoViewModel @Inject constructor(
 
     private fun onProductConfirmed(product: Product) {
         viewModelScope.launch {
+            // Informational only (spec item-add-authorship P2, IAA-02) — the item is saved
+            // either way, same as ProductFormViewModel/ProductSaveUseCase's AI path. Checked
+            // before the save so it only flags an item that was already there.
+            val duplicate = duplicateCheckUseCase(product.name, shopping.id)
+
             saveUseCase(product = product, shoppingId = shopping.id)
                 .onSuccess {
                     analyticsTracker.trackEvent(
@@ -134,7 +150,11 @@ internal class ProductPhotoViewModel @Inject constructor(
             _uiState.update { state ->
                 state.copy(
                     analysisResult = state.analysisResult.filterNot { it.id == product.id },
-                    confirmationMessage = context.getString(R.string.product_photo_item_added, product.name)
+                    confirmationMessage = if (duplicate != null) {
+                        context.getString(R.string.quick_add_duplicate_warning, product.name)
+                    } else {
+                        context.getString(R.string.product_photo_item_added, product.name)
+                    }
                 )
             }
         }
@@ -161,7 +181,13 @@ internal class ProductPhotoViewModel @Inject constructor(
         if (items.isEmpty()) return
 
         viewModelScope.launch {
-            items.forEach { product -> saveUseCase(product = product, shoppingId = shopping.id) }
+            // Checked before each item's own save, same informational-only semantics as the
+            // single-item path above (spec item-add-authorship P2, IAA-02).
+            var duplicateCount = 0
+            items.forEach { product ->
+                if (duplicateCheckUseCase(product.name, shopping.id) != null) duplicateCount++
+                saveUseCase(product = product, shoppingId = shopping.id)
+            }
             analyticsTracker.trackEvent(
                 AnalyticsEvents.PRODUCT_ADDED,
                 mapOf(
@@ -174,14 +200,25 @@ internal class ProductPhotoViewModel @Inject constructor(
                 it.copy(
                     analysisResult = emptyList(),
                     capturedImageUri = null,
-                    confirmationMessage = context.resources.getQuantityString(
-                        R.plurals.product_photo_items_added,
-                        items.size,
-                        items.size
-                    )
+                    confirmationMessage = confirmAllMessage(items.size, duplicateCount)
                 )
             }
         }
+    }
+
+    private fun confirmAllMessage(itemsCount: Int, duplicateCount: Int): String {
+        val addedMessage = context.resources.getQuantityString(
+            R.plurals.product_photo_items_added,
+            itemsCount,
+            itemsCount
+        )
+        if (duplicateCount == 0) return addedMessage
+        val duplicateMessage = context.resources.getQuantityString(
+            R.plurals.product_photo_duplicate_items_warning,
+            duplicateCount,
+            duplicateCount
+        )
+        return "$addedMessage $duplicateMessage"
     }
 
     private fun onConfirmationMessageShown() {

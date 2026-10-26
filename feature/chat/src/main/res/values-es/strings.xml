@@ -4,4 +4,13 @@
     <string name="ai_chat_settings_content_description">Configuración</string>
     <string name="ai_chat_keyboard_content_description">Mostrar teclado</string>
     <string name="ai_chat_upgrade_banner">Ya usaste tu mensaje gratis. Suscríbete a Cestou Pro para seguir chateando.</string>
+    <string name="ai_chat_empty_title">¿Qué necesitas?</string>
+    <string name="ai_chat_empty_subtitle">Puedo armar tu lista a partir de una receta, repetir una compra o sugerir productos.</string>
+    <string name="ai_chat_suggestion_recipe">Ingredientes de una receta</string>
+    <string name="ai_chat_suggestion_bbq">Asado para 6 personas</string>
+    <string name="ai_chat_suggestion_repeat_purchase">Repetir mi última compra</string>
+    <string name="ai_chat_suggestion_budget_tip">Alternativas más baratas para mi lista</string>
+    <string name="ai_chat_followup_add_all">Agregar a mi lista</string>
+    <string name="ai_chat_followup_more_ideas">Dame otra sugerencia</string>
+    <string name="ai_chat_error_message">No pude responder ahora. Inténtalo de nuevo en un momento.</string>
 </resources>

@@ -16,6 +16,7 @@ object AnalyticsEvents {
     const val SHOPPING_BUDGET_SET = "shopping_budget_set"
 
     const val CART_PRODUCT_DELETED = "cart_product_deleted"
+    const val CART_ADD_PRODUCT_CLICKED = "cart_add_product_clicked"
     const val CART_FINISH_PURCHASE_STARTED = "cart_finish_purchase_started"
     const val CART_FINISH_PURCHASE_COMPLETED = "cart_finish_purchase_completed"
 
@@ -29,6 +30,8 @@ object AnalyticsEvents {
     const val PRODUCT_PHOTO_SCAN_FAILED = "product_photo_scan_failed"
 
     const val AI_CHAT_MESSAGE_SENT = "ai_chat_message_sent"
+    const val AI_CHAT_SUGGESTION_TAPPED = "ai_chat_suggestion_tapped"
+    const val AI_CHAT_RESPONSE_FAILED = "ai_chat_response_failed"
 
     const val SETTINGS_LANGUAGE_CHANGED = "settings_language_changed"
     const val SETTINGS_CURRENCY_CHANGED = "settings_currency_changed"
@@ -63,4 +66,5 @@ object AnalyticsParams {
     const val AMOUNT = "amount"
     const val ITEMS_COUNT = "items_count"
     const val SOURCE = "source"
+    const val SUGGESTION_ID = "suggestion_id"
 }

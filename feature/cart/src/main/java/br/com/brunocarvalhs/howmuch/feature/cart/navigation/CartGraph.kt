@@ -3,7 +3,6 @@ package br.com.brunocarvalhs.howmuch.feature.cart.navigation
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -35,15 +34,12 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.navigation.EditShopping
 private const val PAYWALL_SOURCE_SHARE = "cart_share"
 
 @OptIn(ExperimentalMaterial3Api::class)
-internal fun NavGraphBuilder.cartGraph(
-    navigator: Navigator,
-    windowSizeClass: WindowSizeClass
-) {
+internal fun NavGraphBuilder.cartGraph(navigator: Navigator) {
     navigation<CartFlow>(
         startDestination = CartDestination::class,
         typeMap = CartFlow.typeMap
     ) {
-        cartDestination(navigator, windowSizeClass)
+        cartDestination(navigator)
         finishPurchaseDestination(navigator)
         confirmItemDestination(navigator)
         editItemDestination(navigator)
@@ -52,10 +48,7 @@ internal fun NavGraphBuilder.cartGraph(
     }
 }
 
-private fun NavGraphBuilder.cartDestination(
-    navigator: Navigator,
-    windowSizeClass: WindowSizeClass
-) {
+private fun NavGraphBuilder.cartDestination(navigator: Navigator) {
     composable<CartDestination> { backStackEntry ->
         val parentEntry = remember(backStackEntry) {
             navigator.navController.getBackStackEntry<CartFlow>()
@@ -71,7 +64,6 @@ private fun NavGraphBuilder.cartDestination(
 
         CartScreen(
             uiState = uiState,
-            windowSizeClass = windowSizeClass,
             showAiChatFab = aiChatGateViewModel.showAiChatFab,
             intent = viewModel.intent.copy(
                 onShareShopping = {

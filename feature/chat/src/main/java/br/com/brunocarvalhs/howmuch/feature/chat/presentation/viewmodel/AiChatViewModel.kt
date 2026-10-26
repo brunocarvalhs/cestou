@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
+import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
+import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatIntent
@@ -34,8 +37,18 @@ class AiChatViewModel @Inject constructor(
 
     val intent = AiChatIntent(
         onInputChange = { text -> _uiState.update { it.copy(input = text) } },
-        onSendMessage = { sendMessage() }
+        onSendMessage = { sendMessage() },
+        onSuggestionSelected = { id, text -> selectSuggestion(id, text) }
     )
+
+    private fun selectSuggestion(id: String, text: String) {
+        analyticsTracker.trackEvent(
+            AnalyticsEvents.AI_CHAT_SUGGESTION_TAPPED,
+            mapOf(AnalyticsParams.SUGGESTION_ID to id)
+        )
+        _uiState.update { it.copy(input = text) }
+        sendMessage()
+    }
 
     fun setShoppingContext(shoppingId: String) {
         if (_uiState.value.shoppingId == shoppingId) return
@@ -59,7 +72,8 @@ class AiChatViewModel @Inject constructor(
             it.copy(
                 messages = it.messages + userMessage,
                 input = "",
-                isLoading = true
+                isLoading = true,
+                error = null
             )
         }
         persistHistory()
@@ -78,7 +92,16 @@ class AiChatViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
-                _uiState.update { it.copy(isLoading = false) }
+                analyticsTracker.trackEvent(
+                    AnalyticsEvents.AI_CHAT_RESPONSE_FAILED,
+                    mapOf(AnalyticsParams.REASON to (e::class.simpleName ?: "unknown"))
+                )
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = UiText.StringResource(R.string.ai_chat_error_message)
+                    )
+                }
             }
         }
     }
