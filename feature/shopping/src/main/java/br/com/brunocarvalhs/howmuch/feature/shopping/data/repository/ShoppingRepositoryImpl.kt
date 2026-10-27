@@ -34,10 +34,15 @@ class ShoppingRepositoryImpl @Inject constructor(
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
-    // observeAll and observeById have different null semantics by design:
-    // observeAll returns Flow<List<Shopping>> - always emits a list (may be empty), never null
-    // observeById returns Flow<Shopping?> - can emit null if item doesn't exist
-    // This matches their respective interface contracts and UI expectations
+    /**
+     * Observes all shopping lists for the authenticated user.
+     *
+     * Always emits a [List] (never null), even if empty. If the user cannot be authenticated or
+     * the network request fails, emits an empty list without propagating the error, allowing the UI
+     * to display "no lists" rather than an error state.
+     *
+     * @return A Flow that emits lists of shopping items. May emit multiple times as data changes.
+     */
     override fun observeAll(): Flow<List<Shopping>> = flow {
         val userId = runCatching { authService.getOrCreateUserId().id }.getOrNull()
         if (userId == null) {
@@ -58,6 +63,17 @@ class ShoppingRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Observes a specific shopping list by ID.
+     *
+     * Emits the shopping list whenever it changes, or null if the list doesn't exist or the user
+     * lacks access. Unlike [observeAll], errors are converted to null emissions rather than thrown,
+     * allowing the UI to display "list not found" gracefully. The flow emits null once on error
+     * and does not retry automatically.
+     *
+     * @param id The shopping list ID to observe
+     * @return A Flow that emits the shopping list or null. May emit multiple times as data changes.
+     */
     override fun observeById(id: String): Flow<Shopping?> = flow {
         networkService.observe<ShoppingModel>(
             request = NetworkService.NetworkRequest(
