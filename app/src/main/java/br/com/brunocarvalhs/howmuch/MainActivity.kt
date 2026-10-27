@@ -31,7 +31,6 @@ import androidx.navigation.compose.DialogNavigator
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
@@ -65,9 +64,35 @@ class MainActivity : AppCompatActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        consumeDeepLinkIntent()
         setContent {
             CestouApp(windowSizeClass = calculateWindowSizeClass(this))
         }
+    }
+
+    /**
+     * With `launchMode="singleTask"` (AndroidManifest.xml), an invite link opened while the app
+     * is already running reuses this Activity instead of creating a second instance - which used
+     * to leave the resumed, original instance's [Navigator] unbound once the second instance's
+     * composition disposed (crash fixed by this change, see Navigator.navigate/goBack). This is
+     * where that reused instance receives the new intent.
+     */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        consumeDeepLinkIntent()
+    }
+
+    /**
+     * Reads a pending invite token out of [getIntent] into the ViewModel, then replaces this
+     * Activity's intent with a blank one. Without this, [getIntent] keeps returning the SAME
+     * invite intent across every future recreation (rotation, dark mode, locale change - the
+     * Activity isn't destroyed by the OS for those, just recomposed), so `onCreate` would read it
+     * again on every recreation and resurrect an already-consumed token (B-14).
+     */
+    private fun consumeDeepLinkIntent() {
+        viewModel.onDeepLink(intent)
+        setIntent(Intent())
     }
 
     @Composable
@@ -152,6 +177,23 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            /**
+             * An invite token read by onDeepLink/onNewIntent is held in the ViewModel (not
+             * navigated to immediately) because JoinList isn't a protected route (MobileRoutes.kt)
+             * and would otherwise open over Welcome and fail to join while signed out (B-30). Also
+             * waits for `!requiresName` so it never races the required-name gate below: both would
+             * otherwise navigate on the same isAuthenticated flip, and whichever runs last wins -
+             * dropping the invite silently since the token is already consumed by then.
+             */
+            val pendingJoinToken by viewModel.pendingJoinToken.collectAsStateWithLifecycle()
+            LaunchedEffect(pendingJoinToken, isAuthenticated, requiresName) {
+                val token = pendingJoinToken
+                if (token != null && isAuthenticated && !requiresName) {
+                    navigator.navigate(JoinList(token = token))
+                    viewModel.consumePendingJoinToken()
+                }
+            }
+
             // Required-name gate (spec EPA-06): a signed-in account without a name never reaches the
             // app. Skipped inside the auth flow, where a just-created account has no name for a
             // moment; the decision re-reads the auth state so a name saved a moment ago is honored.
@@ -183,15 +225,6 @@ class MainActivity : AppCompatActivity() {
                 },
             ) { padding ->
                 Surface(modifier = Modifier.padding(padding)) {
-                    LaunchedEffect(intent) {
-                        if (intent?.action == Intent.ACTION_VIEW) {
-                            val data = intent.data
-                            if (data != null && InviteLink.matches(data)) {
-                                navigator.navigate(JoinList(token = InviteLink.tokenFrom(data)))
-                            }
-                        }
-                    }
-
                     val startDestination = remember {
                         when {
                             !initialAuthenticated -> Welcome

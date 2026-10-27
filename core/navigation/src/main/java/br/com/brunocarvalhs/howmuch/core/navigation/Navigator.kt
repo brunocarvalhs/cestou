@@ -6,6 +6,7 @@ import androidx.compose.runtime.remember
 import androidx.navigation.NavController
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.rememberNavController
+import timber.log.Timber
 
 @Stable
 class Navigator {
@@ -42,7 +43,21 @@ class Navigator {
         }
     }
 
+    /**
+     * Tolerates calls that land in the window where this [Navigator] isn't bound yet (e.g. a
+     * recreated Activity's first frame) or no longer bound (the unbind race described on
+     * [unbind]): logging and returning beats crashing on `Navigator not bound to a
+     * NavController`, a fatal seen on Crashlytics for exactly this kind of timing gap.
+     */
     fun navigate(route: Any, builder: NavOptionsBuilder.() -> Unit = {}) {
+        val navController = navControllerOrNull ?: run {
+            /**
+             * Logs the route's type, never route.toString(): some routes (e.g. JoinList) carry an
+             * invite token in a field, and AGENTS.md §5 forbids logging tokens/personal data.
+             */
+            Timber.w("Navigator.navigate(%s) ignored: not bound to a NavController", route::class.simpleName)
+            return
+        }
         if (route is String) {
             navController.navigate(route, builder)
         } else {
@@ -51,6 +66,10 @@ class Navigator {
     }
 
     fun goBack() {
+        val navController = navControllerOrNull ?: run {
+            Timber.w("Navigator.goBack() ignored: not bound to a NavController")
+            return
+        }
         navController.popBackStack()
     }
 }
