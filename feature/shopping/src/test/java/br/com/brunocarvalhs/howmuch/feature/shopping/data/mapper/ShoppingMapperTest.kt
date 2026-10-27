@@ -26,7 +26,8 @@ class ShoppingMapperTest {
         isCategorized = false,
         shortCode = "ABC",
         budget = BUDGET,
-        position = 1
+        position = 1,
+        establishment = "Mercado Central"
     )
 
     private val model = ShoppingModel(
@@ -42,7 +43,8 @@ class ShoppingMapperTest {
         isCategorized = false,
         shortCode = "ABC",
         budget = BUDGET,
-        position = 1
+        position = 1,
+        establishment = "Mercado Central"
     )
 
     @Test
@@ -62,6 +64,7 @@ class ShoppingMapperTest {
         assertEquals(domain.shortCode, result.shortCode)
         assertEquals(domain.budget, result.budget)
         assertEquals(domain.position, result.position)
+        assertEquals(domain.establishment, result.establishment)
     }
 
     @Test
@@ -81,5 +84,6 @@ class ShoppingMapperTest {
         assertEquals(model.shortCode, result.shortCode)
         assertEquals(model.budget, result.budget)
         assertEquals(model.position, result.position)
+        assertEquals(model.establishment, result.establishment)
     }
 }

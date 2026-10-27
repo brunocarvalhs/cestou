@@ -17,7 +17,8 @@ data class Shopping(
     val shortCode: String? = null,
     val budget: Double? = null,
     val position: Int = 0,
-    val emoji: String = DEFAULT_EMOJI
+    val emoji: String = DEFAULT_EMOJI,
+    val establishment: String? = null
 ) {
     @Serializable
     enum class Status {

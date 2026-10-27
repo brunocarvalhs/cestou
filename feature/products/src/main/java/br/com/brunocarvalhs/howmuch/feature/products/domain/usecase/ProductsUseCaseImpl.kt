@@ -23,8 +23,10 @@ class ProductsUseCaseImpl @Inject constructor(
 
     override suspend fun move(product: Product, currentShoppingId: String, targetShoppingId: String): Result<Unit> {
         return runCatching {
-            delete(product.id, currentShoppingId).getOrThrow()
+            // Save at the destination first: if it fails (e.g. the target list is finished and
+            // checkIsLocked rejects it), the product must still exist at the origin afterwards.
             save(product, targetShoppingId).getOrThrow()
+            delete(product.id, currentShoppingId).getOrThrow()
         }
     }
 }

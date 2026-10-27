@@ -16,7 +16,7 @@ internal class LastListViewModel @Inject constructor(
 
     suspend fun lastListId(): String? =
         wearListStore.lastList()?.shoppingId
-            ?: shoppingRepository.getAll()
+            ?: runCatching { shoppingRepository.getAll() }.getOrDefault(emptyList())
                 .filter { it.status != Shopping.Status.FINISH }
                 .maxByOrNull { it.createdAt }
                 ?.id
