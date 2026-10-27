@@ -1,0 +1,12 @@
+Estruturar o fluxo de Spec-Driven Development (SDD) e a governança de agentes de IA neste repositório, conforme o template em template-sdd-prompt.md.
+
+O que entra:
+- AGENTS.md como fonte de verdade para agentes.
+- Skills em .agents/skills/: code-planner, code-implementer, code-reviewer, android-architecture, open-pull-request.
+- specs/ versionado, com tasks.txt (entrada) e sdd-<NNN>-<slug>/tasks.md (plano).
+- Seção "Documentação e SDD" no README.md.
+- .github/copilot-instructions.md.
+
+Contexto: o SDD anterior (.specs/ e .agents/skills/spec-driven) está sendo removido neste branch (chore/sdd). Não usar caminhos legados.
+
+Nenhum código de produção é alterado nesta tarefa.
