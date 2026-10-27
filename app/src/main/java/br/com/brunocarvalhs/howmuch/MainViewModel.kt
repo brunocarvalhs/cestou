@@ -1,9 +1,12 @@
 package br.com.brunocarvalhs.howmuch
 
+import android.content.Intent
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
@@ -25,8 +28,11 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
+private const val KEY_PENDING_JOIN_TOKEN = "pending_join_token"
+
 @HiltViewModel
 internal class MainViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
     settingsRepository: SettingsRepository,
     private val authService: AuthService,
     private val userRepository: UserRepository,
@@ -123,4 +129,32 @@ internal class MainViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = authService.currentUser?.photoUrl
         )
+
+    /**
+     * An invite token read from a deep link, kept here (not navigated to immediately) until the
+     * user is authenticated - see [onDeepLink]. Backed by [SavedStateHandle] so it survives
+     * process death/recreation (config change, backgrounding during login) without being lost.
+     */
+    val pendingJoinToken: StateFlow<String?> = savedStateHandle.getStateFlow(KEY_PENDING_JOIN_TOKEN, null)
+
+    /** Reads an invite token out of [intent], if it is one, and holds it for [consumePendingJoinToken]. */
+    fun onDeepLink(intent: Intent) {
+        if (intent.action != Intent.ACTION_VIEW) return
+        val data = intent.data ?: return
+        if (!InviteLink.matches(data)) return
+        val token = InviteLink.tokenFrom(data) ?: return
+        savedStateHandle[KEY_PENDING_JOIN_TOKEN] = token
+    }
+
+    /**
+     * Reads and clears [pendingJoinToken], so a pending invite is only ever processed once.
+     * Deliberately `get` + `set(null)`, not `remove()`: [pendingJoinToken] is a [StateFlow]
+     * obtained once from [SavedStateHandle.getStateFlow] - `set` updates that same flow's value,
+     * while `remove` was verified (by this change's own tests) to leave it stale.
+     */
+    fun consumePendingJoinToken(): String? {
+        val token = savedStateHandle.get<String>(KEY_PENDING_JOIN_TOKEN)
+        savedStateHandle[KEY_PENDING_JOIN_TOKEN] = null
+        return token
+    }
 }
