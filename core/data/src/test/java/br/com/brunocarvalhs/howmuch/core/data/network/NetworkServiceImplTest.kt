@@ -80,14 +80,17 @@ class NetworkServiceImplTest {
     }
 
     @Test
-    fun `make returns null and logs failure when execute throws`() = runTest {
+    fun `make throws NetworkException when execute throws`() = runTest {
         coEvery {
             firestoreClient.execute(any(), any(), any(), any())
         } throws IllegalStateException("boom")
 
-        val result = manager.make(request, TestModel::class, null)
-
-        assertNull(result)
+        try {
+            manager.make(request, TestModel::class, null)
+            throw AssertionError("Expected NetworkException to be thrown")
+        } catch (e: NetworkService.NetworkException) {
+            assertEquals("boom", e.cause?.message)
+        }
     }
 
     @Test(expected = kotlinx.coroutines.CancellationException::class)
@@ -148,13 +151,16 @@ class NetworkServiceImplTest {
     }
 
     @Test
-    fun `observe catches exceptions and emits null without throwing`() = runTest {
+    fun `observe throws NetworkException on upstream failure`() = runTest {
         every {
             firestoreClient.observe(any(), any())
         } returns flow { throw IllegalStateException("PERMISSION_DENIED") }
 
-        val results = manager.observe(request, TestModel::class, null).toList()
-
-        assertEquals(listOf(null), results)
+        try {
+            manager.observe(request, TestModel::class, null).toList()
+            throw AssertionError("Expected NetworkException to be thrown")
+        } catch (e: NetworkService.NetworkException) {
+            assertEquals("PERMISSION_DENIED", e.cause?.message)
+        }
     }
 }

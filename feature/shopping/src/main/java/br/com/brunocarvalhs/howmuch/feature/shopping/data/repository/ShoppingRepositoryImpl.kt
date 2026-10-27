@@ -48,7 +48,7 @@ class ShoppingRepositoryImpl @Inject constructor(
             )
         ).catch { e ->
             Timber.e(e, "Error observing all shopping lists")
-            emit(null)
+            emit(emptyList())
         }.collect { models ->
             emit(models?.map { it.toDomain() } ?: emptyList())
         }
@@ -71,24 +71,34 @@ class ShoppingRepositoryImpl @Inject constructor(
     override suspend fun getAll(): List<Shopping> = withContext(ioDispatcher) {
         val userId = runCatching { authService.getOrCreateUserId().id }.getOrNull()
             ?: return@withContext emptyList()
-        val response = networkService.make<List<ShoppingModel>>(
-            request = NetworkService.NetworkRequest(
-                endpoint = ENDPOINT,
-                method = NetworkService.Method.GET,
-                query = mapOf("users" to userId)
+        return@withContext try {
+            val response = networkService.make<List<ShoppingModel>>(
+                request = NetworkService.NetworkRequest(
+                    endpoint = ENDPOINT,
+                    method = NetworkService.Method.GET,
+                    query = mapOf("users" to userId)
+                )
             )
-        )
-        return@withContext response?.map { it.toDomain() } ?: emptyList()
+            response?.map { it.toDomain() } ?: emptyList()
+        } catch (e: Exception) {
+            Timber.e(e, "Error fetching all shopping lists")
+            emptyList()
+        }
     }
 
     override suspend fun getById(id: String): Shopping? = withContext(ioDispatcher) {
-        val response = networkService.make<ShoppingModel>(
-            request = NetworkService.NetworkRequest(
-                endpoint = "$ENDPOINT/$id",
-                method = NetworkService.Method.GET,
+        return@withContext try {
+            val response = networkService.make<ShoppingModel>(
+                request = NetworkService.NetworkRequest(
+                    endpoint = "$ENDPOINT/$id",
+                    method = NetworkService.Method.GET,
+                )
             )
-        )
-        return@withContext response?.toDomain()
+            response?.toDomain()
+        } catch (e: Exception) {
+            Timber.e(e, "Error fetching shopping list: %s", id)
+            null
+        }
     }
 
     override suspend fun create(shopping: Shopping): Unit = withContext(ioDispatcher) {
