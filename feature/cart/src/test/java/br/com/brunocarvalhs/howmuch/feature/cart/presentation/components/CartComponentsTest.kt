@@ -6,9 +6,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
@@ -64,6 +66,26 @@ class CartComponentsTest {
             CestouTheme { FinishPurchaseContent(totalEstimate = 150.5, onFinish = { _, _ -> }) }
         }
         composeTestRule.onRoot().assertExists()
+    }
+
+    @Test
+    fun `finish purchase content reports only the typed establishment, never a description`() {
+        // Regression for B-03: the screen has no access to Shopping.description at all, so it
+        // can never pass it through as "establishment" the way FinishPurchaseViewModel used to.
+        var reportedEstablishment: String? = null
+        composeTestRule.setContent {
+            CestouTheme {
+                FinishPurchaseContent(
+                    totalEstimate = 150.5,
+                    onFinish = { _, establishment -> reportedEstablishment = establishment }
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag("finish_purchase_establishment_field").performTextInput("Mercado X")
+        composeTestRule.onNodeWithTag("finish_purchase_confirm_button").performClick()
+
+        assertEquals("Mercado X", reportedEstablishment)
     }
 
     @Test

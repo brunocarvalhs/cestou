@@ -23,16 +23,14 @@ import javax.inject.Singleton
     isRequired = true
 )
 @Singleton
-class ShoppingUpdateUseCase @Inject constructor(
+internal class ShoppingUpdateUseCase @Inject constructor(
     private val repository: ShoppingRepository
 ) : AgentActionUseCase<Unit>() {
 
     suspend operator fun invoke(
         id: String,
-        updatedShopping: Shopping
-    ): Result<Unit> = runCatching {
-        repository.update(updatedShopping)
-    }
+        fields: Map<String, Any?>
+    ): Result<Unit> = repository.updateFields(id, fields)
 
     override suspend fun execute(
         arguments: Map<String, Any?>,
@@ -40,23 +38,23 @@ class ShoppingUpdateUseCase @Inject constructor(
         metadata: Map<String, Any?>
     ): Result<Unit> {
         val id = arguments.getString("shopping_id") ?: throw Exception("Shopping ID is required")
+        repository.getById(id) ?: throw Exception("Shopping list not found")
         // This is a partial update: the AI agent may be asked to change a single
         // field (e.g. "change the price to 50"), so it should not be forced to
-        // resend every field of the list on every call. Only the fields present
-        // in `arguments` are overridden; everything else keeps the value already
-        // stored for this list (see Crashlytics non-fatal "Shopping title is
-        // required" — the LLM wasn't wrong, the tool contract was).
-        val current = repository.getById(id) ?: throw Exception("Shopping list not found")
-        val shopping = current.copy(
-            title = arguments.getString("title") ?: current.title,
-            description = arguments.getString("description") ?: current.description,
-            price = arguments.getDouble("price") ?: current.price,
-            status = arguments.getString("status")
+        // resend every field of the list on every call, and the write itself only
+        // touches the keys below in Firestore — it can no longer clobber a field
+        // another member changed concurrently (see Crashlytics non-fatal "Shopping
+        // title is required" — the LLM wasn't wrong, the tool contract was).
+        val fields = buildMap<String, Any?> {
+            arguments.getString("title")?.let { put("title", it) }
+            arguments.getString("description")?.let { put("description", it) }
+            arguments.getDouble("price")?.let { put("price", it) }
+            arguments.getString("status")
                 ?.let { Shopping.Status.valueOf(it) }
-                ?: current.status,
-            users = if (arguments.containsKey("users")) arguments.getList("users") else current.users,
-            roles = if (arguments.containsKey("roles")) arguments.getMap("roles") else current.roles,
-        )
-        return invoke(id, shopping)
+                ?.let { put("status", it.name) }
+            if (arguments.containsKey("users")) put("users", arguments.getList("users"))
+            if (arguments.containsKey("roles")) put("roles", arguments.getMap("roles"))
+        }
+        return invoke(id, fields)
     }
 }

@@ -122,6 +122,18 @@ class ShoppingRepositoryImplTest {
     }
 
     @Test
+    fun `getAll propagates the exception when the network call fails`() = runTest {
+        coEvery { authService.getOrCreateUserId() } returns AuthenticatedUser(id = "user-1")
+        coEvery {
+            networkService.make<List<ShoppingModel>>(any(), any(), any())
+        } throws NetworkService.NetworkException(message = "offline")
+
+        val result = runCatching { repository.getAll() }
+
+        assertTrue(result.isFailure)
+    }
+
+    @Test
     fun `getById returns mapped shopping`() = runTest {
         coEvery { networkService.make<ShoppingModel>(any(), any(), any()) } returns model
 
@@ -344,6 +356,30 @@ class ShoppingRepositoryImplTest {
         } throws NetworkService.NetworkException(message = "offline")
 
         val result = repository.updatePositions(listOf(model.toDomainForTest()))
+
+        assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `updateFields sends only the given fields`() = runTest {
+        val slot = slot<NetworkService.NetworkRequest>()
+        coEvery { networkService.make<Boolean>(capture(slot), any(), any()) } returns true
+
+        val result = repository.updateFields("s1", mapOf("title" to "New title"))
+
+        assertTrue(result.isSuccess)
+        assertEquals("shopping/s1", slot.captured.endpoint)
+        assertEquals(NetworkService.Method.PUT, slot.captured.method)
+        assertEquals(mapOf("title" to "New title"), slot.captured.payload)
+    }
+
+    @Test
+    fun `updateFields fails when network throws`() = runTest {
+        coEvery {
+            networkService.make<Boolean>(any(), any(), any())
+        } throws NetworkService.NetworkException(message = "offline")
+
+        val result = repository.updateFields("s1", mapOf("title" to "New title"))
 
         assertTrue(result.isFailure)
     }

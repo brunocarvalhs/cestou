@@ -7,6 +7,7 @@ import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
+import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
@@ -77,7 +78,14 @@ class EditShoppingViewModelTest {
     @Test
     fun `onUpdate updates the shopping list then goes back`() = runTest {
         val updated = shopping.copy(title = "New Title")
-        coEvery { shoppingUpdateUseCase("list1", updated) } returns Result.success(Unit)
+        val fields = mapOf(
+            "title" to "New Title",
+            "description" to "",
+            "isCategorized" to true,
+            "price" to 0.0,
+            "budget" to NetworkService.FieldOp.Delete
+        )
+        coEvery { shoppingUpdateUseCase("list1", fields) } returns Result.success(Unit)
         val vm = viewModel()
 
         vm.intent.onUpdate(updated)
@@ -87,8 +95,55 @@ class EditShoppingViewModelTest {
     }
 
     @Test
+    fun `onUpdate sends only the fields this screen edits, never users roles or status`() = runTest {
+        val fields = mapOf(
+            "title" to shopping.title,
+            "description" to shopping.description,
+            "isCategorized" to true,
+            "price" to 0.0,
+            "budget" to NetworkService.FieldOp.Delete
+        )
+        coEvery { shoppingUpdateUseCase("list1", fields) } returns Result.success(Unit)
+        val vm = viewModel()
+
+        vm.intent.onUpdate(shopping)
+
+        coVerify {
+            shoppingUpdateUseCase(
+                "list1",
+                match { it.keys == setOf("title", "description", "isCategorized", "price", "budget") }
+            )
+        }
+    }
+
+    @Test
+    fun `onUpdate clears a budget by sending FieldOp Delete, not null`() = runTest {
+        val updated = shopping.copy(budget = null)
+        val fields = mapOf(
+            "title" to shopping.title,
+            "description" to shopping.description,
+            "isCategorized" to true,
+            "price" to 0.0,
+            "budget" to NetworkService.FieldOp.Delete
+        )
+        coEvery { shoppingUpdateUseCase("list1", fields) } returns Result.success(Unit)
+        val vm = viewModel()
+
+        vm.intent.onUpdate(updated)
+
+        coVerify { shoppingUpdateUseCase("list1", match { it["budget"] == NetworkService.FieldOp.Delete }) }
+    }
+
+    @Test
     fun `onUpdate sets an error message when the update fails`() = runTest {
-        coEvery { shoppingUpdateUseCase("list1", shopping) } returns Result.failure(IllegalStateException("boom"))
+        val fields = mapOf(
+            "title" to shopping.title,
+            "description" to shopping.description,
+            "isCategorized" to true,
+            "price" to 0.0,
+            "budget" to NetworkService.FieldOp.Delete
+        )
+        coEvery { shoppingUpdateUseCase("list1", fields) } returns Result.failure(IllegalStateException("boom"))
         val vm = viewModel()
 
         vm.intent.onUpdate(shopping)
@@ -109,7 +164,7 @@ class EditShoppingViewModelTest {
     @Test
     fun `onUpdate tracks shopping_budget_set when the budget value changed`() = runTest {
         val updated = shopping.copy(budget = 250.0)
-        coEvery { shoppingUpdateUseCase("list1", updated) } returns Result.success(Unit)
+        coEvery { shoppingUpdateUseCase("list1", any()) } returns Result.success(Unit)
         val vm = viewModel()
 
         vm.intent.onUpdate(updated)
@@ -125,7 +180,7 @@ class EditShoppingViewModelTest {
     @Test
     fun `onUpdate does not track shopping_budget_set when the budget is unchanged`() = runTest {
         val updated = shopping.copy(title = "New Title")
-        coEvery { shoppingUpdateUseCase("list1", updated) } returns Result.success(Unit)
+        coEvery { shoppingUpdateUseCase("list1", any()) } returns Result.success(Unit)
         val vm = viewModel()
 
         vm.intent.onUpdate(updated)

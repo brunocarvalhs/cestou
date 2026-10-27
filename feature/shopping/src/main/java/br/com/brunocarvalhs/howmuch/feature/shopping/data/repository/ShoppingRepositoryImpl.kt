@@ -88,22 +88,20 @@ class ShoppingRepositoryImpl @Inject constructor(
         }
     }
 
+    // No local catch here: a failed read must propagate (e.g. DeleteAccountUseCase needs to
+    // know it could not confirm the list is empty before deleting the account), unlike
+    // observeAll()/observeById(), which degrade to empty/null for a live screen.
     override suspend fun getAll(): List<Shopping> = withContext(ioDispatcher) {
         val userId = runCatching { authService.getOrCreateUserId().id }.getOrNull()
             ?: return@withContext emptyList()
-        return@withContext try {
-            val response = networkService.make<List<ShoppingModel>>(
-                request = NetworkService.NetworkRequest(
-                    endpoint = ENDPOINT,
-                    method = NetworkService.Method.GET,
-                    query = mapOf("users" to userId)
-                )
+        val response = networkService.make<List<ShoppingModel>>(
+            request = NetworkService.NetworkRequest(
+                endpoint = ENDPOINT,
+                method = NetworkService.Method.GET,
+                query = mapOf("users" to userId)
             )
-            response?.map { it.toDomain() } ?: emptyList()
-        } catch (e: Exception) {
-            Timber.e(e, "Error fetching all shopping lists")
-            emptyList()
-        }
+        )
+        response?.map { it.toDomain() } ?: emptyList()
     }
 
     override suspend fun getById(id: String): Shopping? = withContext(ioDispatcher) {
@@ -242,6 +240,20 @@ class ShoppingRepositoryImpl @Inject constructor(
             Unit
         }
     }
+
+    override suspend fun updateFields(id: String, fields: Map<String, Any?>): Result<Unit> =
+        withContext(ioDispatcher) {
+            runCatching {
+                networkService.make<Boolean>(
+                    request = NetworkService.NetworkRequest(
+                        endpoint = "$ENDPOINT/$id",
+                        method = NetworkService.Method.PUT,
+                        payload = fields
+                    )
+                )
+                Unit
+            }
+        }
 
     companion object {
         private const val ENDPOINT = "shopping"

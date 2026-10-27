@@ -56,26 +56,26 @@ class ProductsUseCaseImplTest {
     }
 
     @Test
-    fun `move deletes from the current list then saves into the target list`() = runTest {
-        coEvery { repository.deleteProduct("p1", "list1") } returns Result.success(Unit)
+    fun `move saves into the target list before deleting from the current list`() = runTest {
         coEvery { repository.saveProduct(product, "list2") } returns Result.success(Unit)
+        coEvery { repository.deleteProduct("p1", "list1") } returns Result.success(Unit)
 
         val result = useCase.move(product, "list1", "list2")
 
         assertTrue(result.isSuccess)
         coVerifyOrder {
-            repository.deleteProduct("p1", "list1")
             repository.saveProduct(product, "list2")
+            repository.deleteProduct("p1", "list1")
         }
     }
 
     @Test
-    fun `move fails and skips saving when delete fails`() = runTest {
-        coEvery { repository.deleteProduct("p1", "list1") } returns Result.failure(IllegalStateException("boom"))
+    fun `move fails and keeps the product at the origin when the destination save fails`() = runTest {
+        coEvery { repository.saveProduct(product, "list2") } returns Result.failure(IllegalStateException("locked"))
 
         val result = useCase.move(product, "list1", "list2")
 
         assertTrue(result.isFailure)
-        coVerify(exactly = 0) { repository.saveProduct(any(), any()) }
+        coVerify(exactly = 0) { repository.deleteProduct(any(), any()) }
     }
 }

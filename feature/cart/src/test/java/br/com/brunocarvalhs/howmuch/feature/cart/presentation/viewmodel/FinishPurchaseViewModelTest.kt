@@ -8,6 +8,8 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepositor
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
+import br.com.brunocarvalhs.howmuch.feature.cart.R
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -20,6 +22,8 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -39,7 +43,7 @@ class FinishPurchaseViewModelTest {
     private val shopping = Shopping(
         id = "list1",
         title = "Weekly Groceries",
-        description = "",
+        description = "Original description",
         price = 0.0,
         status = Shopping.Status.IN_PROGRESS,
         users = listOf("u1", "u2"),
@@ -58,29 +62,45 @@ class FinishPurchaseViewModelTest {
     }
 
     @Test
-    fun `onFinishPurchase updates price, establishment and FINISH status, then goes back`() = runTest {
+    fun `onFinishPurchase writes only status, price and establishment, then goes back`() = runTest {
         every { authService.currentUser } returns AuthenticatedUser(id = "u1", displayName = "Ana")
-        coEvery { repository.update(any()) } returns Unit
+        coEvery { repository.updateFields(any(), any()) } returns Result.success(Unit)
 
         viewModel.onFinishPurchase(shopping, price = PRICE, establishment = "Mercado X")
 
         coVerify {
-            repository.update(
-                match { it.price == PRICE && it.description == "Mercado X" && it.status == Shopping.Status.FINISH }
+            repository.updateFields(
+                "list1",
+                mapOf("status" to "FINISH", "price" to PRICE, "establishment" to "Mercado X")
             )
         }
         verify { navigator.goBack() }
+        assertEquals(false, viewModel.uiState.value.isLoading)
     }
 
     @Test
     fun `onFinishPurchase notifies the other members but not the actor`() = runTest {
         every { authService.currentUser } returns AuthenticatedUser(id = "u1", displayName = "Ana")
-        coEvery { repository.update(any()) } returns Unit
+        coEvery { repository.updateFields(any(), any()) } returns Result.success(Unit)
 
         viewModel.onFinishPurchase(shopping, price = PRICE, establishment = "Mercado X")
 
         coVerify { notificationRepository.notify("u2", any(), any(), "list_finished") }
         coVerify(exactly = 0) { notificationRepository.notify("u1", any(), any(), any()) }
+    }
+
+    @Test
+    fun `onFinishPurchase does not navigate or notify when the write fails`() = runTest {
+        coEvery { repository.updateFields(any(), any()) } returns Result.failure(IllegalStateException("offline"))
+
+        viewModel.onFinishPurchase(shopping, price = PRICE, establishment = "Mercado X")
+
+        verify(exactly = 0) { navigator.goBack() }
+        coVerify(exactly = 0) { notificationRepository.notify(any(), any(), any(), any()) }
+        assertEquals(false, viewModel.uiState.value.isLoading)
+        val error = viewModel.uiState.value.error
+        assertTrue(error is UiText.StringResource)
+        assertEquals(R.string.cart_error_finish_purchase, (error as UiText.StringResource).resId)
     }
 }
 

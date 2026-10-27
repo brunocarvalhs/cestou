@@ -25,7 +25,7 @@ abstract class ShoppingAgentModule {
 
     @Binds
     @IntoSet
-    abstract fun bindShoppingUpdate(useCase: ShoppingUpdateUseCase): AgentActionUseCase<*>
+    internal abstract fun bindShoppingUpdate(useCase: ShoppingUpdateUseCase): AgentActionUseCase<*>
 
     @Binds
     @IntoSet
