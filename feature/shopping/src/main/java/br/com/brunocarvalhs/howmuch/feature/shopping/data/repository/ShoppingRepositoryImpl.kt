@@ -34,6 +34,15 @@ class ShoppingRepositoryImpl @Inject constructor(
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
+    /**
+     * Observes all shopping lists for the authenticated user.
+     *
+     * Always emits a [List] (never null), even if empty. If the user cannot be authenticated or
+     * the network request fails, emits an empty list without propagating the error, allowing the UI
+     * to display "no lists" rather than an error state.
+     *
+     * @return A Flow that emits lists of shopping items. May emit multiple times as data changes.
+     */
     override fun observeAll(): Flow<List<Shopping>> = flow {
         val userId = runCatching { authService.getOrCreateUserId().id }.getOrNull()
         if (userId == null) {
@@ -48,12 +57,23 @@ class ShoppingRepositoryImpl @Inject constructor(
             )
         ).catch { e ->
             Timber.e(e, "Error observing all shopping lists")
-            emit(null)
+            emit(emptyList())
         }.collect { models ->
             emit(models?.map { it.toDomain() } ?: emptyList())
         }
     }
 
+    /**
+     * Observes a specific shopping list by ID.
+     *
+     * Emits the shopping list whenever it changes, or null if the list doesn't exist or the user
+     * lacks access. Unlike [observeAll], errors are converted to null emissions rather than thrown,
+     * allowing the UI to display "list not found" gracefully. The flow emits null once on error
+     * and does not retry automatically.
+     *
+     * @param id The shopping list ID to observe
+     * @return A Flow that emits the shopping list or null. May emit multiple times as data changes.
+     */
     override fun observeById(id: String): Flow<Shopping?> = flow {
         networkService.observe<ShoppingModel>(
             request = NetworkService.NetworkRequest(
@@ -71,24 +91,34 @@ class ShoppingRepositoryImpl @Inject constructor(
     override suspend fun getAll(): List<Shopping> = withContext(ioDispatcher) {
         val userId = runCatching { authService.getOrCreateUserId().id }.getOrNull()
             ?: return@withContext emptyList()
-        val response = networkService.make<List<ShoppingModel>>(
-            request = NetworkService.NetworkRequest(
-                endpoint = ENDPOINT,
-                method = NetworkService.Method.GET,
-                query = mapOf("users" to userId)
+        return@withContext try {
+            val response = networkService.make<List<ShoppingModel>>(
+                request = NetworkService.NetworkRequest(
+                    endpoint = ENDPOINT,
+                    method = NetworkService.Method.GET,
+                    query = mapOf("users" to userId)
+                )
             )
-        )
-        return@withContext response?.map { it.toDomain() } ?: emptyList()
+            response?.map { it.toDomain() } ?: emptyList()
+        } catch (e: Exception) {
+            Timber.e(e, "Error fetching all shopping lists")
+            emptyList()
+        }
     }
 
     override suspend fun getById(id: String): Shopping? = withContext(ioDispatcher) {
-        val response = networkService.make<ShoppingModel>(
-            request = NetworkService.NetworkRequest(
-                endpoint = "$ENDPOINT/$id",
-                method = NetworkService.Method.GET,
+        return@withContext try {
+            val response = networkService.make<ShoppingModel>(
+                request = NetworkService.NetworkRequest(
+                    endpoint = "$ENDPOINT/$id",
+                    method = NetworkService.Method.GET,
+                )
             )
-        )
-        return@withContext response?.toDomain()
+            response?.toDomain()
+        } catch (e: Exception) {
+            Timber.e(e, "Error fetching shopping list: %s", id)
+            null
+        }
     }
 
     override suspend fun create(shopping: Shopping): Unit = withContext(ioDispatcher) {

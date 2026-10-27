@@ -13,7 +13,7 @@ rules_version = '2';
 //   firebase deploy --only firestore:rules --project how-much-2a72e
 // Test first with the emulator or the Rules Playground in the console.
 //
-// READ THIS BEFORE DEPLOYING: `.specs/STATE.md` § AD-009 documents the reasoning
+// READ THIS BEFORE DEPLOYING: `architecture/05-decisoes-arquiteturais.md` § AD-009 documents the reasoning
 // behind every rule below, the two behaviours these rules intentionally break
 // (join-by-shortCode and all Wear OS traffic) and the open questions that must be
 // answered first. Deploying blind will break list sharing.

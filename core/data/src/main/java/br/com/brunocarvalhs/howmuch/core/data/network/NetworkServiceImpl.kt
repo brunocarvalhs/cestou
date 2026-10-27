@@ -74,7 +74,10 @@ class NetworkServiceImpl @Inject constructor(
                 elapsed = System.currentTimeMillis() - startTime,
                 throwable = e
             )
-            null
+            throw NetworkService.NetworkException(
+                message = e.message ?: "Network request failed",
+                cause = e
+            )
         }
     }
 
@@ -96,7 +99,10 @@ class NetworkServiceImpl @Inject constructor(
                 elapsed = 0,
                 throwable = e
             )
-            emit(null)
+            throw NetworkService.NetworkException(
+                message = e.message ?: "Network request failed",
+                cause = e
+            )
         }
     }
 
