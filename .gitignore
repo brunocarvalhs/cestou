@@ -49,9 +49,6 @@ firebase-debug.log
 # Local session notes (never committed, never shared)
 .claude/SESSION-NOTES.md
 
-# Claude Code auto-discovery
-.agents/skills.json
-
 # Misc
 .DS_Store
 .artifacts
