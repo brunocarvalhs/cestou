@@ -52,7 +52,7 @@ Chave de configuração do pipeline: `.github/pipeline-config.yaml` (ordem: lint
 | Mudança de comportamento visível | `CHANGELOG.md` (via processo de release) e `fastlane/metadata` se afetar loja |
 | Novo módulo ou mudança de camada | `AGENTS.md` §2 e `.agents/skills/android-architecture/SKILL.md` |
 | Novo fluxo de pipeline/CI | `.github/PIPELINE.md` e `.github/pipeline-config.yaml` |
-| Novo fluxo de trabalho SDD | `README.md` (seção SDD) e este arquivo §3.8 |
+| Novo fluxo de trabalho SDD | `README.md` (seção SDD) e este arquivo §8 |
 
 ## 4. Estrutura de Pastas
 
@@ -71,7 +71,7 @@ gradle/libs.versions.toml versões centrais
 .github/                  pipelines, PR template, danger
 .agents/skills/           skills de automação (SDD + Android)
 specs/                    artefatos SDD versionados
-architecture/             documentação de arquitetura (01-04) — fonte para o SDD
+architecture/             documentação de arquitetura (01-05) — fonte para o SDD
 docs/                     site estático (GitHub Pages) e textos legais — NÃO é documentação de arquitetura
 ```
 
@@ -79,7 +79,7 @@ docs/                     site estático (GitHub Pages) e textos legais — NÃO
 
 - **Linguagem:** 100% Kotlin. Compose para UI. `compileSdk` e `targetSdk` = 37, `minSdk` = 28 (`gradle/libs.versions.toml`).
 - **Nomenclatura:** classes/Composables em `PascalCase`; funções, propriedades e variáveis em `camelCase`; pacotes em minúsculas; nomes de módulo Gradle em `kebab-case`.
-- **Visibilidade:** `internal` por padrão dentro do módulo; `public` apenas para contratos entre módulos (ver §3.6).
+- **Visibilidade:** `internal` por padrão dentro do módulo; `public` apenas para contratos entre módulos (ver §6).
 - **DI:** Hilt. Não instanciar repositórios ou use cases manualmente em Composables/ViewModels.
 - **Estado de UI:** imutável; coleções imutáveis em estados expostos.
 - **Strings:** toda string visível ao usuário em `strings.xml` com traduções pt-BR e en-US (app é usado em PT e EN). Não use texto literal em Composables.
@@ -173,4 +173,4 @@ Versões centrais em `gradle/libs.versions.toml`. Principais:
 - **Versão atual:** `2.2.1` (`app/build.gradle.kts`), `versionCode` 14.
 - **Build e release:** Gradle + GitHub Actions; pipeline em `.github/PIPELINE.md`; distribuição via Play Console e Firebase App Distribution (testers internos).
 - **Licença:** proprietária, todos os direitos reservados (`LICENSE`).
-- **Documentação de arquitetura:** `architecture/01-04` (visão geral, regras de negócio, modelos de domínio, integrações externas) está em `architecture/`. Ela é uma leitura parcial do código: cada regra cita o arquivo de origem, e o que não foi verificado está marcado no próprio documento. Quando algo não estiver documentado, cite o código diretamente e registre a lacuna em "Perguntas em Aberto". `docs/` não é usado para isso, pois é o site publicado no GitHub Pages.
+- **Documentação de arquitetura:** `architecture/01-05` (visão geral, regras de negócio, modelos de domínio, integrações externas, decisões de arquitetura AD-0xx) está em `architecture/`. Ela é uma leitura parcial do código: cada regra cita o arquivo de origem, e o que não foi verificado está marcado no próprio documento. Quando algo não estiver documentado, cite o código diretamente e registre a lacuna em "Perguntas em Aberto". `docs/` não é usado para isso, pois é o site publicado no GitHub Pages.

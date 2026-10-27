@@ -21,9 +21,9 @@ Regras de acesso: `firestore.rules`. Coleções identificadas nas regras:
 | `/shortCodes/{code}` | Índice de código curto para entrar em listas | Leitura para qualquer usuário autenticado (`isSignedIn`); `list` negado para impedir enumeração. |
 | `/notifications/{notificationId}` | Notificações entre membros | Ver regra no arquivo. |
 
-Ponto de atenção: o comentário de `firestore.rules` (bloco `shopping`) registra que a consulta por `shortCode` como não-membro não pode ser liberada sem abrir a leitura de todas as listas (decisão G5). O fluxo de entrada depende de índice `shortCode → shoppingId` (AD-009). Antes de mexer, confirme o estado atual.
+Estado atual: a entrada por código usa o índice `shortCodes/{code}` (`ShoppingRepositoryImpl.kt`, `resolveShortCode` e `ensureShortCodeIndex`). Como o índice não existe para listas antigas, há um fallback por consulta em `shopping` que as regras versionadas em `firestore.rules` negam a não-membros. Essas regras ainda não foram publicadas, então o fallback funciona em produção até o deploy da decisão AD-009 (`05-decisoes-arquiteturais.md`), que o interrompe. O comentário em `firestore.rules` (bloco `shopping`) registra o motivo: não é possível liberar a consulta de um único código sem liberar a leitura de todas as listas (decisão G5).
 
-Implementação da consulta por código: `feature/shopping/domain/usecase/ShoppingJoinUseCase.kt` chama `repository.resolveShortCode`.
+Implementação da entrada por código: `feature/shopping/domain/usecase/ShoppingJoinUseCase.kt` chama `repository.resolveShortCode`.
 
 ## 3. Firebase Remote Config
 

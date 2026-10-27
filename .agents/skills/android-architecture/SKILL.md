@@ -13,7 +13,7 @@ Persona: especialista de arquitetura Android do projeto.
 2. `AGENTS.md`.
 3. `.github/copilot-instructions.md`.
 4. `README.md` (resumo; não é fonte de verdade).
-5. `architecture/01-04` — consulte conforme a pergunta. São leituras parciais: confirme no código antes de afirmar.
+5. `architecture/01-05` — consulte conforme a pergunta. São leituras parciais: confirme no código antes de afirmar.
 
 ## Mapa de módulos
 
