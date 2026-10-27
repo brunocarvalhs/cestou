@@ -9,6 +9,7 @@ import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
+import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingUpdateUseCase
@@ -55,7 +56,16 @@ internal class EditShoppingViewModel @Inject constructor(
     private fun update(shopping: Shopping) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            shoppingUpdateUseCase(shopping.id, shopping)
+            // Only the fields this screen actually edits (see EditShoppingContent): never
+            // users/roles/status/position/shortCode/createdAt, which other flows own.
+            val fields = mapOf(
+                "title" to shopping.title,
+                "description" to shopping.description,
+                "isCategorized" to shopping.isCategorized,
+                "price" to shopping.price,
+                "budget" to (shopping.budget ?: NetworkService.FieldOp.Delete)
+            )
+            shoppingUpdateUseCase(shopping.id, fields)
                 .onSuccess {
                     trackBudgetChangeIfNeeded(shopping)
                     _uiState.update { it.copy(isLoading = false) }

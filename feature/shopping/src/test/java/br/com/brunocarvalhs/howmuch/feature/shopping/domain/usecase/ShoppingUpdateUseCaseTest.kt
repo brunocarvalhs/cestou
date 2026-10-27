@@ -2,7 +2,6 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
-import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingUpdateUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -27,19 +26,19 @@ class ShoppingUpdateUseCaseTest {
     )
 
     @Test
-    fun `invoke updates the shopping list`() = runTest {
-        coEvery { repository.update(shopping) } returns Unit
+    fun `invoke writes only the given fields`() = runTest {
+        coEvery { repository.updateFields("list1", mapOf("title" to "New title")) } returns Result.success(Unit)
 
-        val result = useCase(shopping.id, shopping)
+        val result = useCase("list1", mapOf("title" to "New title"))
 
         assertTrue(result.isSuccess)
-        coVerify { repository.update(shopping) }
+        coVerify { repository.updateFields("list1", mapOf("title" to "New title")) }
     }
 
     @Test
-    fun `execute builds a Shopping from AI agent arguments and updates it`() = runTest {
+    fun `execute builds a fields map from AI agent arguments and writes it`() = runTest {
         coEvery { repository.getById("list1") } returns shopping
-        coEvery { repository.update(any()) } returns Unit
+        coEvery { repository.updateFields(any(), any()) } returns Result.success(Unit)
 
         val result = useCase.execute(
             arguments = mapOf(
@@ -55,7 +54,15 @@ class ShoppingUpdateUseCaseTest {
 
         assertTrue(result.isSuccess)
         coVerify {
-            repository.update(match { it.id == "list1" && it.title == "Weekly Groceries" && it.price == UPDATED_PRICE })
+            repository.updateFields(
+                "list1",
+                mapOf(
+                    "title" to "Weekly Groceries",
+                    "description" to "desc",
+                    "price" to UPDATED_PRICE,
+                    "status" to "NEW"
+                )
+            )
         }
     }
 
@@ -88,9 +95,9 @@ class ShoppingUpdateUseCaseTest {
     }
 
     @Test
-    fun `execute applies a partial update keeping existing fields when only price is provided`() = runTest {
+    fun `execute only sends the field that was actually provided`() = runTest {
         coEvery { repository.getById("list1") } returns shopping
-        coEvery { repository.update(any()) } returns Unit
+        coEvery { repository.updateFields(any(), any()) } returns Result.success(Unit)
 
         val result = useCase.execute(
             arguments = mapOf(
@@ -102,17 +109,7 @@ class ShoppingUpdateUseCaseTest {
         )
 
         assertTrue(result.isSuccess)
-        coVerify {
-            repository.update(
-                match {
-                    it.id == shopping.id &&
-                        it.title == shopping.title &&
-                        it.description == shopping.description &&
-                        it.status == shopping.status &&
-                        it.price == UPDATED_PRICE
-                }
-            )
-        }
+        coVerify { repository.updateFields("list1", mapOf("price" to UPDATED_PRICE)) }
     }
 }
 
