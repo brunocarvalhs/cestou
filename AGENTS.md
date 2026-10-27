@@ -173,4 +173,4 @@ Versões centrais em `gradle/libs.versions.toml`. Principais:
 - **Versão atual:** `2.2.1` (`app/build.gradle.kts`), `versionCode` 14.
 - **Build e release:** Gradle + GitHub Actions; pipeline em `.github/PIPELINE.md`; distribuição via Play Console e Firebase App Distribution (testers internos).
 - **Licença:** proprietária, todos os direitos reservados (`LICENSE`).
-- **Documentação de arquitetura:** `architecture/01-04` ainda **não existem** neste repositório. Até que sejam criados (ver `specs/sdd-000-setup-sdd/tasks.md`, item de follow-up), cite o código diretamente e registre a lacuna em "Perguntas em Aberto". `docs/` não é usado para isso, pois é o site publicado no GitHub Pages.
+- **Documentação de arquitetura:** `architecture/01-04` (visão geral, regras de negócio, modelos de domínio, integrações externas) está em `architecture/`. Ela é uma leitura parcial do código: cada regra cita o arquivo de origem, e o que não foi verificado está marcado no próprio documento. Quando algo não estiver documentado, cite o código diretamente e registre a lacuna em "Perguntas em Aberto". `docs/` não é usado para isso, pois é o site publicado no GitHub Pages.

@@ -30,7 +30,7 @@ Persona: tech lead sênior Android (Kotlin, Compose, Hilt, Clean Architecture + 
 
 1. `specs/tasks.txt`, `AGENTS.md`, `.github/copilot-instructions.md`.
 2. Código dos módulos afetados (features: `domain/`, `data/`, `presentation/`, `navigation/`, `di/`).
-3. `architecture/01-04` — **ainda não existem neste repositório**. Enquanto não existirem, cite o código e registre a lacuna em "Perguntas em Aberto" como não bloqueante, salvo se a lacuna afetar a decisão.
+3. `architecture/01-04` — leitura parcial do código. Cada regra cita o arquivo de origem; se a área não estiver documentada, cite o código e registre a lacuna em "Perguntas em Aberto" como não bloqueante, salvo se a lacuna afetar a decisão.
 
 ## Template obrigatório de `specs/<feature-id>/tasks.md`
 
