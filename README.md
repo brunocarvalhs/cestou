@@ -68,6 +68,31 @@ O projeto segue uma arquitetura **Domain-Centric** distribuída em múltiplos m�
 A pipeline (PR validation, build, release) é configurada em `.github/pipeline-config.yaml` e
 documentada em [`.github/PIPELINE.md`](.github/PIPELINE.md).
 
+## 📚 Documentação e Spec-Driven Development (SDD)
+
+O guia para agentes de IA e colaboradores está em [`AGENTS.md`](AGENTS.md). Ele é a fonte de verdade para comandos, arquitetura e convenções. Em caso de divergência, o código prevalece.
+
+### Como trabalhar com SDD
+
+Este projeto adota **Spec-Driven Development (SDD)**: antes de implementar uma tarefa não trivial, escreve-se um **plano técnico** com referência ao código existente.
+
+**Fluxo recomendado:**
+
+1. **Escreva a tarefa** em `specs/tasks.txt` (texto livre: o que fazer e por quê).
+2. **Gere o plano técnico** com a skill [`code-planner`](.agents/skills/code-planner/SKILL.md).
+   - Produz `specs/<feature-id>/tasks.md` seguindo o template SDD.
+   - Se houver ambiguidade bloqueante, o plano sai com `status: blocked` e uma seção **Perguntas em Aberto**. Resolva-as antes de implementar.
+3. **Revise o plano** com um maintainer.
+4. **Implemente** com a skill [`code-implementer`](.agents/skills/code-implementer/SKILL.md), somente com `status: ready`.
+5. **Revise** com a skill [`code-reviewer`](.agents/skills/code-reviewer/SKILL.md) antes de commit ou PR.
+6. **(Opcional) Abra o PR** com a skill [`open-pull-request`](.agents/skills/open-pull-request/SKILL.md), somente quando solicitado.
+
+**Convenções:**
+
+- `specs/` é **versionada**: `specs/tasks.txt` (tarefa atual) e `specs/<feature-id>/tasks.md` (plano).
+- Mudanças em símbolos públicos entre módulos são marcadas no plano e exigem registro no processo de release.
+- Para dúvidas de arquitetura, use a skill [`android-architecture`](.agents/skills/android-architecture/SKILL.md).
+
 ## 🤝 Contribuições
 
 Contribuições são bem-vindas! Sinta-se à vontade para abrir uma issue ou enviar um pull request.

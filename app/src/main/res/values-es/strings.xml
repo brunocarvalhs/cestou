@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Cestou</string>
+
+    <!-- Network Error Messages -->
+    <string name="error_network">Error de red. Verifique su conexión.</string>
+    <string name="error_network_timeout">La solicitud se agotó. Inténtelo de nuevo.</string>
+    <string name="error_server">Error del servidor. Inténtelo de nuevo más tarde.</string>
+    <string name="error_not_found">Elemento no encontrado.</string>
+    <string name="error_permission_denied">No tiene permiso para acceder a esto.</string>
+    <string name="error_unknown">Algo salió mal. Inténtelo de nuevo.</string>
 </resources>
