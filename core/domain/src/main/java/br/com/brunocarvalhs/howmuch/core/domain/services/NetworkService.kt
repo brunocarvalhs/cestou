@@ -8,12 +8,24 @@ import kotlin.reflect.typeOf
 
 interface NetworkService {
 
+    /**
+     * Makes a network request and decodes the response.
+     *
+     * @return The decoded response, or null if the raw response body is null.
+     * @throws NetworkException if the request fails (network error, HTTP error, deserialization error, etc.)
+     */
     suspend fun <T : Any> make(
         request: NetworkRequest,
         response: KClass<T>,
         responseType: KType? = null
     ): T?
 
+    /**
+     * Observes a collection/document and emits updates as they arrive.
+     *
+     * @return A Flow that emits the decoded response, or null if the raw response body is null.
+     * @throws NetworkException if the request setup fails or upstream errors occur.
+     */
     fun <T : Any> observe(
         request: NetworkRequest,
         response: KClass<T>,

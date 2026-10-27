@@ -34,6 +34,10 @@ class ShoppingRepositoryImpl @Inject constructor(
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
+    // observeAll and observeById have different null semantics by design:
+    // observeAll returns Flow<List<Shopping>> - always emits a list (may be empty), never null
+    // observeById returns Flow<Shopping?> - can emit null if item doesn't exist
+    // This matches their respective interface contracts and UI expectations
     override fun observeAll(): Flow<List<Shopping>> = flow {
         val userId = runCatching { authService.getOrCreateUserId().id }.getOrNull()
         if (userId == null) {
