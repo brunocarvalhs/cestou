@@ -16,7 +16,7 @@
 | 1.8 | Papéis: `OWNER` e `EDITOR`. | `core/domain/.../model/User.kt` |
 | 1.9 | Somente membros (`users` contém o `uid`) leem a lista. | `firestore.rules`, bloco `match /shopping/{shoppingId}` |
 
-**Ponto de atenção (1.6 e 1.9):** o comentário em `firestore.rules` diz que a regra de leitura por `shortCode` não permite a consulta de não-membros, e que o fluxo de entrada depende de uma mudança cliente descrita na decisão AD-009 (índice `shortCode → shoppingId`). Confirme no código atual antes de planejar mudanças nessa área.
+**Estado atual (1.6 e 1.9):** a entrada por código resolve primeiro pelo índice `shortCodes/{code}` (`ShoppingRepositoryImpl.kt`, `resolveShortCode`). Só se o índice não existir, usa uma consulta legada por `shortCode` em `shopping`, que os comentários do código e de `firestore.rules` indicam que será negada quando as regras da decisão AD-009 (`05-decisoes-arquiteturais.md`) forem publicadas. Listas criadas antes do índice dependem desse fallback. Ao planejar mudanças nessa área, confirme se o fallback ainda é necessário.
 
 ## 2. Produtos
 

@@ -46,7 +46,7 @@ ui-debug.log
 firebase-debug.log
 .firebase/
 
-# Local session notes (see .specs/MVP-ROADMAP.md "Process" — never committed, never shared)
+# Local session notes (never committed, never shared)
 .claude/SESSION-NOTES.md
 
 # Misc
