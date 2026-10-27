@@ -23,4 +23,10 @@ interface ShoppingRepository {
     /** Writes the share-code index for [shopping] if it is missing (lists created before it existed). */
     suspend fun ensureShortCodeIndex(shopping: Shopping)
     suspend fun updatePositions(shoppings: List<Shopping>): Result<Unit>
+    /**
+     * Partial write: only the keys present in [fields] are changed in Firestore, everything
+     * else keeps its stored value. Pass [br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService.FieldOp.Delete]
+     * to clear a nullable field (a plain `null` value is dropped, not sent).
+     */
+    suspend fun updateFields(id: String, fields: Map<String, Any?>): Result<Unit>
 }

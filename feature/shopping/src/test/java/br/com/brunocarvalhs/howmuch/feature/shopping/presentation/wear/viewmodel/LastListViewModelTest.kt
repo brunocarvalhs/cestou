@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmode
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
+import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.local.WearListStore
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.local.WearListSummary
 import io.mockk.coEvery
@@ -47,6 +48,14 @@ class LastListViewModelTest {
     fun `nothing to open when every list is finished`() = runTest {
         coEvery { store.lastList() } returns null
         coEvery { repository.getAll() } returns listOf(list("done", createdAt = 1, status = Shopping.Status.FINISH))
+
+        assertNull(viewModel.lastListId())
+    }
+
+    @Test
+    fun `nothing to open when the network call fails, instead of crashing the Wear graph`() = runTest {
+        coEvery { store.lastList() } returns null
+        coEvery { repository.getAll() } throws NetworkService.NetworkException(message = "offline")
 
         assertNull(viewModel.lastListId())
     }

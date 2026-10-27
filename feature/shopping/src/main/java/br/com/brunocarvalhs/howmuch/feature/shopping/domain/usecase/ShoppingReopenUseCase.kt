@@ -25,9 +25,10 @@ class ShoppingReopenUseCase @Inject constructor(
     private val repository: ShoppingRepository
 ) : AgentActionUseCase<Unit>() {
 
-    suspend operator fun invoke(shopping: Shopping): Result<Unit> = runCatching {
-        repository.update(shopping.copy(status = Shopping.Status.IN_PROGRESS))
-    }
+    suspend operator fun invoke(shopping: Shopping): Result<Unit> = repository.updateFields(
+        shopping.id,
+        mapOf("status" to Shopping.Status.IN_PROGRESS.name)
+    )
 
     override suspend fun execute(
         arguments: Map<String, Any?>,

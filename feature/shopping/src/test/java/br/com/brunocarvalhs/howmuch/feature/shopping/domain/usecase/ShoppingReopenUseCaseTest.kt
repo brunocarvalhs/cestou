@@ -2,7 +2,6 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
-import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingReopenUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -27,24 +26,24 @@ class ShoppingReopenUseCaseTest {
     )
 
     @Test
-    fun `invoke updates the shopping list status to IN_PROGRESS`() = runTest {
-        coEvery { repository.update(any()) } returns Unit
+    fun `invoke writes only the status field as IN_PROGRESS`() = runTest {
+        coEvery { repository.updateFields(any(), any()) } returns Result.success(Unit)
 
         val result = useCase(finished)
 
         assertTrue(result.isSuccess)
-        coVerify { repository.update(finished.copy(status = Shopping.Status.IN_PROGRESS)) }
+        coVerify { repository.updateFields("list1", mapOf("status" to "IN_PROGRESS")) }
     }
 
     @Test
     fun `execute looks up the shopping list by id then reopens it`() = runTest {
         coEvery { repository.getById("list1") } returns finished
-        coEvery { repository.update(any()) } returns Unit
+        coEvery { repository.updateFields(any(), any()) } returns Result.success(Unit)
 
         val result = useCase.execute(mapOf("shopping_id" to "list1"), mockk(relaxed = true), emptyMap())
 
         assertTrue(result.isSuccess)
-        coVerify { repository.update(finished.copy(status = Shopping.Status.IN_PROGRESS)) }
+        coVerify { repository.updateFields("list1", mapOf("status" to "IN_PROGRESS")) }
     }
 
     @Test
