@@ -6,7 +6,9 @@ import kotlinx.coroutines.flow.Flow
 // One operation per use case; splitting the contract is out of scope here.
 @Suppress("TooManyFunctions")
 interface ShoppingRepository {
+    /** Observes all shopping lists. Always emits a List (never null), may be empty if no lists exist. */
     fun observeAll(): Flow<List<Shopping>>
+    /** Observes a specific shopping list. May emit null if the list doesn't exist or on access denied. */
     fun observeById(id: String): Flow<Shopping?>
     suspend fun getAll(): List<Shopping>
     suspend fun getById(id: String): Shopping?
