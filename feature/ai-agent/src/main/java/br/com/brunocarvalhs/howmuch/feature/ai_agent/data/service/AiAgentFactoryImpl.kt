@@ -81,15 +81,25 @@ internal class AiAgentFactoryImpl @Inject constructor(
     private fun resolveModel(settings: AppSettings, provider: String, default: String): String =
         settings.aiModel.takeIf { settings.aiProvider == provider && it.isNotBlank() } ?: default
 
-    private fun selectAgent(provider: String, gemini: AiAgent?, openRouter: AiAgent?): AiAgent =
-        when (provider) {
-            "gemini" -> gemini ?: openRouter ?: NoAiProviderAvailableAgent
-            "openrouter" -> openRouter ?: gemini ?: NoAiProviderAvailableAgent
-            else -> when {
-                openRouter != null && gemini != null -> FallbackAiAgent(openRouter, gemini)
-                openRouter != null -> openRouter
-                gemini != null -> gemini
-                else -> NoAiProviderAvailableAgent
-            }
+    /**
+     * [provider] só decide a ORDEM de preferência entre os dois SDKs, não se há retentativa: se
+     * os dois estiverem disponíveis, a escolha explícita do usuário continua indo primeiro, mas
+     * sempre envolta em [FallbackAiAgent] — sem isso, uma falha de transporte no provider
+     * explicitamente escolhido nunca tentaria o outro (sdd-006, B-08). Antes desta correção, só o
+     * branch `else` (hoje inalcançável depois do fix de B-07, que fazia quase todo modelo cair
+     * aqui por acidente) usava fallback; os branches explícitos só cobriam feature flag desligada.
+     */
+    private fun selectAgent(provider: String, gemini: AiAgent?, openRouter: AiAgent?): AiAgent {
+        val (primary, secondary) = when (provider) {
+            "gemini" -> gemini to openRouter
+            "openrouter" -> openRouter to gemini
+            else -> openRouter to gemini
         }
+        return when {
+            primary != null && secondary != null -> FallbackAiAgent(primary, secondary)
+            primary != null -> primary
+            secondary != null -> secondary
+            else -> NoAiProviderAvailableAgent
+        }
+    }
 }

@@ -70,4 +70,36 @@ class OpenRouterAiAgentGatingTest {
 
         assertTrue(action.executed)
     }
+
+    @Test
+    fun `reports a failed action as an explicit error, never as success`() = runTest {
+        val action = FakeAgentAction(result = Result.failure(Exception("not found")))
+        every { registry.find("fake_action") } returns action
+        val agent = agentWithStatus(SubscriptionStatus.FREE)
+
+        val result = agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+
+        assertEquals("Erro: not found", result)
+    }
+
+    @Test
+    fun `reports a Unit success as OK, not the literal kotlin-Unit`() = runTest {
+        val action = FakeAgentAction(result = Result.success(Unit))
+        every { registry.find("fake_action") } returns action
+        val agent = agentWithStatus(SubscriptionStatus.FREE)
+
+        val result = agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+
+        assertEquals("OK", result)
+    }
+
+    @Test(expected = kotlinx.coroutines.CancellationException::class)
+    fun `a cancelled coroutine during tool execution propagates, instead of being reported as a tool error`() =
+        runTest {
+            val action = FakeAgentAction(throwable = kotlinx.coroutines.CancellationException("cancelled"))
+            every { registry.find("fake_action") } returns action
+            val agent = agentWithStatus(SubscriptionStatus.FREE)
+
+            agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+        }
 }

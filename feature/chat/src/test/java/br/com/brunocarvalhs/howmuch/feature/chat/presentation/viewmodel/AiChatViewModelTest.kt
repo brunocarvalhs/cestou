@@ -1,12 +1,16 @@
 package br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel
 
+import android.content.Context
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
+import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
@@ -29,8 +33,14 @@ class AiChatViewModelTest {
     private val chatHistoryRepository = mockk<ChatHistoryRepository>(relaxed = true)
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val aiTrialRepository = mockk<AiTrialRepository>(relaxed = true)
-    private val viewModel =
-        AiChatViewModel(assistantUseCase, chatHistoryRepository, analyticsTracker, aiTrialRepository)
+    private val aiSession = mockk<AiSession>(relaxed = true)
+    private val context = mockk<Context> {
+        every { getString(R.string.ai_chat_error_network) } returns "network error"
+        every { getString(R.string.ai_chat_error_generic) } returns "generic error"
+    }
+    private val viewModel = AiChatViewModel(
+        assistantUseCase, chatHistoryRepository, analyticsTracker, aiTrialRepository, aiSession, context
+    )
 
     @Before
     fun setup() {

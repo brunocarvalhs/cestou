@@ -12,4 +12,9 @@ data class AiAgentSession(
     override val userId: String? = null,
     val locale: Locale = Locale.getDefault(),
     override val history: MutableList<Content> = mutableListOf()
-) : AiSession
+) : AiSession {
+
+    override fun clearHistory() {
+        history.clear()
+    }
+}
