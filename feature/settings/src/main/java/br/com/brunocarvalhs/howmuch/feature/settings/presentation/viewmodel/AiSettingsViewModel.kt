@@ -2,6 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.common.BuildConfig
+import br.com.brunocarvalhs.howmuch.core.domain.repository.AiModelRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateAiSettingsUseCase
@@ -20,6 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class AiSettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
+    private val aiModelRepository: AiModelRepository,
     private val updateAiSettingsUseCase: UpdateAiSettingsUseCase
 ) : ViewModel() {
 
@@ -35,18 +38,47 @@ internal class AiSettingsViewModel @Inject constructor(
 
     init {
         observeSettings()
+        loadModels()
     }
 
     private fun observeSettings() {
         settingsRepository.getSettings()
             .onEach { settings ->
-                _uiState.update { it.copy(
-                    aiModel = settings.aiModel,
-                    customPrompt = settings.customPrompt,
-                    creativityLevel = settings.creativityLevel
-                ) }
+                _uiState.update { state ->
+                    val modelToUse = if (settings.aiModel.isBlank() && state.availableModels.isNotEmpty()) {
+                        state.availableModels.firstOrNull()?.id ?: BuildConfig.OPEN_ROUTER_MODEL
+                    } else {
+                        settings.aiModel
+                    }
+                    state.copy(
+                        aiModel = modelToUse,
+                        customPrompt = settings.customPrompt,
+                        creativityLevel = settings.creativityLevel
+                    )
+                }
             }
             .launchIn(viewModelScope)
+    }
+
+    private fun loadModels() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingModels = true) }
+            val models = aiModelRepository.getAvailableModels()
+            val freeModels = models.filter { it.isFree }
+            _uiState.update { state ->
+                val currentModel = state.aiModel
+                val modelToUse = if (currentModel.isBlank() && freeModels.isNotEmpty()) {
+                    freeModels.first().id
+                } else {
+                    currentModel.ifBlank { BuildConfig.OPEN_ROUTER_MODEL }
+                }
+                state.copy(
+                    availableModels = freeModels,
+                    aiModel = modelToUse,
+                    isLoadingModels = false
+                )
+            }
+        }
     }
 
     private fun updateAiSettings(model: String, prompt: String?, creativity: Float) {

@@ -12,20 +12,4 @@ data class AiModel(
     val vendor: String,
     val provider: String = "openrouter",
     val isFree: Boolean = true
-) {
-    companion object {
-        val freeModels = listOf(
-            AiModel("openrouter/auto", "Free Models Router", vendor = "OpenRouter"),
-            AiModel("nvidia/nemotron-3-ultra", "Nemotron 3 Ultra", vendor = "NVIDIA"),
-            AiModel("inclusionai/ling-3.0-flash", "Ling-3.0-flash", vendor = "InclusionAI"),
-            AiModel("nvidia/nemotron-3-super", "Nemotron 3 Super", vendor = "NVIDIA"),
-            AiModel("cohere/north-mini-code", "North Mini Code", vendor = "Cohere"),
-            AiModel("poolside/laguna-s-2.1", "Laguna S 2.1", vendor = "Poolside"),
-            AiModel("poolside/laguna-xs-2.1", "Laguna XS 2.1", vendor = "Poolside"),
-            AiModel("google/gemma-4-26b-a4b", "Gemma 4 26B A4B", vendor = "Google"),
-            AiModel("google/gemma-4-31b", "Gemma 4 31B", vendor = "Google"),
-            AiModel("openai/gpt-oss-20b", "GPT OSS 20B", vendor = "OpenAI"),
-            AiModel("nvidia/nemotron-3-nano-omni", "Nemotron 3 Nano Omni", vendor = "NVIDIA")
-        )
-    }
-}
+)

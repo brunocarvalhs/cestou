@@ -1,10 +1,10 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
+import br.com.brunocarvalhs.howmuch.core.domain.repository.AiModelRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateAiSettingsUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.AiSettingsViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -29,6 +29,9 @@ class AiSettingsViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val settingsRepository = mockk<SettingsRepository>()
+    private val aiModelRepository = mockk<AiModelRepository>().apply {
+        coEvery { getAvailableModels() } returns emptyList()
+    }
     private val updateAiSettingsUseCase = mockk<UpdateAiSettingsUseCase>(relaxed = true)
     private val navigator = mockk<Navigator>(relaxed = true)
 
@@ -47,7 +50,7 @@ class AiSettingsViewModelTest {
         every { settingsRepository.getSettings() } returns
             flowOf(AppSettings(aiModel = "gpt", customPrompt = "concise"))
 
-        val vm = AiSettingsViewModel(settingsRepository, updateAiSettingsUseCase)
+        val vm = AiSettingsViewModel(settingsRepository, aiModelRepository, updateAiSettingsUseCase)
 
         assertEquals("gpt", vm.uiState.value.aiModel)
         assertEquals("concise", vm.uiState.value.customPrompt)
@@ -57,7 +60,7 @@ class AiSettingsViewModelTest {
     fun `onUpdateAiSettings forwards to the use case`() = runTest {
         every { settingsRepository.getSettings() } returns flowOf(AppSettings())
         coEvery { updateAiSettingsUseCase("gpt", "concise", TEST_TEMPERATURE) } returns Unit
-        val vm = AiSettingsViewModel(settingsRepository, updateAiSettingsUseCase)
+        val vm = AiSettingsViewModel(settingsRepository, aiModelRepository, updateAiSettingsUseCase)
 
         vm.intent.onUpdateAiSettings("gpt", "concise", TEST_TEMPERATURE)
 
@@ -67,7 +70,7 @@ class AiSettingsViewModelTest {
     @Test
     fun `onBack navigates back`() {
         every { settingsRepository.getSettings() } returns flowOf(AppSettings())
-        val vm = AiSettingsViewModel(settingsRepository, updateAiSettingsUseCase)
+        val vm = AiSettingsViewModel(settingsRepository, aiModelRepository, updateAiSettingsUseCase)
         vm.setNavigator(navigator)
 
         vm.intent.onBack()
