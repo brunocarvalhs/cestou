@@ -1,5 +1,90 @@
 # Changelog
 
+## [2.3.0] - 2026-10-28
+
+* Merge pull request #235 from brunocarvalhs/develop
+* chore(ci): update APK size baseline to 189091348 bytes
+* chore(ci): update APK size baseline to 189040052 bytes
+* Merge pull request #234 from brunocarvalhs/feat/sdd-014-ai-agent-three-tier-config
+* Merge branch 'develop' into feat/sdd-014-ai-agent-three-tier-config
+* Merge pull request #233 from brunocarvalhs/fix/sdd-006-ai-agent-reliability
+* Merge branch 'develop' into fix/sdd-006-ai-agent-reliability
+* fix(settings): filter built-in models list to free models only
+* fix(settings): remove custom prompt, return to chat on save, remove free mentions in model texts
+* feat(settings): implement 3-tier AI configuration with Pro gating (sdd-014)
+* feat(ai): load AI models dynamically from OpenRouter API without static fallback
+* chore(ci): update APK size baseline to 189023668 bytes
+* chore(ci): update APK size baseline to 189023664 bytes
+* chore(ci): update APK size baseline to 189023668 bytes
+* chore(ci): update APK size baseline to 189022864 bytes
+* Merge pull request #232 from brunocarvalhs/fix/sdd-006-ai-agent-reliability
+* Merge branch 'develop' into fix/sdd-006-ai-agent-reliability
+* chore(ci): update APK size baseline to 189022868 bytes
+* fix(ai-agent): never duplicate a tool's side effect when falling back to the secondary provider (sdd-012)
+* fix(ai-agent): correct model routing, fallback, tool feedback and history privacy (sdd-006)
+* Merge pull request #231 from brunocarvalhs/feat/sdd-011-perfil-configuracoes-unificado
+* feat(subscription): add plan management screen for Pro subscribers
+* feat(profile): merge settings into profile as a non-exclusive accordion
+* chore(ci): update APK size baseline to 188972776 bytes
+* chore(ci): update APK size baseline to 188972788 bytes
+* Merge pull request #229 from brunocarvalhs/fix/sdd-004-navigator-deeplink
+* Merge branch 'develop' into fix/sdd-004-navigator-deeplink
+* Merge pull request #230 from brunocarvalhs/fix/sdd-005-crash-hardening
+* fix: protect against crashes from invalid data or expired session (sdd-005)
+* fix(navigation): fix Navigator crash and lost invites from deep links
+* chore(ci): update APK size baseline to 188956400 bytes
+* chore(ci): update APK size baseline to 188939736 bytes
+* Merge pull request #228 from brunocarvalhs/fix/sdd-003-shopping-data-integrity
+* Merge branch 'develop' into fix/sdd-003-shopping-data-integrity
+* chore(ci): update APK size baseline to 188939740 bytes
+* fix(shopping): preserve data integrity across list and cart writes
+* chore(ci): update APK size baseline to 188939736 bytes
+* chore(ci): update APK size baseline to 188939740 bytes
+* revert: restore skills.json discovery index to local .claude config
+* chore: move .agents/skills.json to .gitignore (auto-discovered, not repository state)
+* chore: create .agents/skills.json index for automatic skill discovery
+* Merge pull request #227 from brunocarvalhs/chore/sdd
+* docs: add kdoc to observeAll and observeById in ShoppingRepositoryImpl
+* docs: clarify intentional design patterns in NetworkService and ShoppingRepository
+* feat: implement network error contract (sdd-002)
+* chore: implementação de sdd novo
+* docs(sdd): add architecture docs 01-04 from code
+* chore(sdd): add spec-driven development governance
+* chore: removendo sdd antigo
+* build(deps): Bump gradle-wrapper from 9.8.1 to 9.8.2 (#223)
+* build(deps): Bump com.squareup.okhttp3:okhttp from 5.5.0 to 5.5.1 (#226)
+* build(deps): Bump com.squareup.okhttp3:logging-interceptor (#225)
+* build(deps): Bump org.jetbrains.kotlinx:kotlinx-serialization-json (#220)
+* build(deps): Bump androidx.datastore:datastore-preferences (#222)
+* build(deps): Bump com.mikepenz:multiplatform-markdown-renderer-m3 (#207)
+* build(deps): Bump androidx.datastore:datastore-core from 1.2.1 to 1.3.0 (#221)
+* chore(ci): update APK size baseline to 188676687 bytes
+* chore(ci): update APK size baseline to 188676691 bytes
+* chore(ci): update APK size baseline to 188676687 bytes
+* chore(ci): update APK size baseline to 188676691 bytes
+* Merge pull request #215 from brunocarvalhs/docs/session-notes-convention
+* docs(process): add local session-notes convention
+* chore(ci): update APK size baseline to 188676687 bytes
+* Merge pull request #210 from brunocarvalhs/fix/shopping-update-partial-fields
+* Merge branch 'develop' into fix/shopping-update-partial-fields
+* chore(ci): update APK size baseline to 188676691 bytes
+* chore(ci): update APK size baseline to 188676687 bytes
+* Merge pull request #211 from brunocarvalhs/fix/user-save-profile-response-type-mismatch
+* Merge branch 'develop' into fix/user-save-profile-response-type-mismatch
+* Merge branch 'develop' into fix/shopping-update-partial-fields
+* Merge pull request #209 from brunocarvalhs/fix/navigator-bind-race-crash
+* refactor(test): split response-type regression tests into their own class
+* fix(lint): suppress TooManyFunctions on NetworkServiceImplTest
+* fix: correct UserRepositoryImpl.saveProfile response type mismatch
+* fix: support partial updates in ShoppingUpdateUseCase AI tool
+* fix: bind Navigator synchronously to avoid NavController race crash
+* chore(ci): update APK size baseline to 188676691 bytes
+* chore(ci): update APK size baseline to 188676687 bytes
+* ci: ajuste de pipeline para publicação na loja
+* chore(ci): update APK size baseline to 188676691 bytes
+* chore(ci): update APK size baseline to 188676687 bytes
+
+
 ## [2.2.1] - 2026-10-16
 
 * Merge pull request #206 from brunocarvalhs/develop
