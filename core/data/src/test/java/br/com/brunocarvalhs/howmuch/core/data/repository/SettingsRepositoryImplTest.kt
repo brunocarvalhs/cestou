@@ -139,6 +139,38 @@ class SettingsRepositoryImplTest {
 
     // endregion
 
+    // region aiModel migration — a stored model id no longer in the catalog resets to the default
+
+    @Test
+    fun `getSettings resets a stale ai_model to the default`() = runTest {
+        val stored = mutablePreferencesOf(
+            // "openrouter/auto" was the old default — it's OpenRouter's paid Auto Router, never
+            // actually free, and the root cause of every default install hitting 402.
+            stringPreferencesKey("ai_model") to "openrouter/auto"
+        )
+        every { dataStore.data } returns flowOf(stored)
+
+        repository.getSettings().test {
+            assertEquals("openrouter/free", awaitItem().aiModel)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `getSettings keeps a stored ai_model that is still in the catalog`() = runTest {
+        val stored = mutablePreferencesOf(
+            stringPreferencesKey("ai_model") to "cohere/north-mini-code:free"
+        )
+        every { dataStore.data } returns flowOf(stored)
+
+        repository.getSettings().test {
+            assertEquals("cohere/north-mini-code:free", awaitItem().aiModel)
+            awaitComplete()
+        }
+    }
+
+    // endregion
+
     @Test
     fun `getSettings falls back to SYSTEM theme when stored value is invalid`() = runTest {
         val stored = mutablePreferencesOf(stringPreferencesKey("theme_mode") to "NOT_A_THEME")

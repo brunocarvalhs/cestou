@@ -30,7 +30,6 @@ import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.common.contract.AppVersionProvider
 import br.com.brunocarvalhs.howmuch.core.common.extensions.openBrowser
 import br.com.brunocarvalhs.howmuch.core.common.extensions.openEmail
-import br.com.brunocarvalhs.howmuch.core.domain.model.AiModel
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
@@ -201,9 +200,7 @@ class SettingsViewModel @Inject internal constructor(
         icon = Icons.Outlined.SmartToy, items = listOf(
             SettingItem(
                 title = UiText.StringResource(R.string.settings_item_ai_model),
-                subtitle = UiText.DynamicString(
-                    AiModel.freeModels.find { it.id == settings.aiModel }?.name ?: settings.aiModel
-                ),
+                subtitle = UiText.DynamicString(settings.aiModel),
                 icon = Icons.Outlined.PsychologyAlt,
                 route = AiSettings
             ),

@@ -49,3 +49,10 @@ bloqueantes" e "Avisos" do code-reviewer). Nenhum código de produção é alter
 planejamento; o plano deve decidir, para o item 1, entre corrigir a lacuna (adicionar uma guarda
 de "tool já executada") ou rebaixar/documentar o critério de aceitação do sdd-006 como risco
 aceito, com justificativa.
+
+---
+
+# sdd-013-openrouter-dynamic-models
+
+Carregar dinamicamente a lista de modelos de IA da API do OpenRouter (`https://openrouter.ai/api/v1/models`) em vez da lista fixa (`AiModel.freeModels`), permitindo a seleção de modelos com fallback para a lista estática em caso de falha/offline e mantendo sempre um modelo gratuito (`free`) como padrão.
+
