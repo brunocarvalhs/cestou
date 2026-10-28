@@ -7,10 +7,6 @@ plugins {
 android {
     namespace = "br.com.brunocarvalhs.howmuch.core.common"
 
-    defaultConfig {
-        buildConfigField("String", "VERSION_NAME", "\"1.0\"")
-    }
-
     buildFeatures {
         buildConfig = true
     }
