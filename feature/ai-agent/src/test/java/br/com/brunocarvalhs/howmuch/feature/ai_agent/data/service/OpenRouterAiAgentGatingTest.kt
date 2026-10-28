@@ -8,6 +8,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepositor
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.FunctionCall
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -24,12 +25,13 @@ class OpenRouterAiAgentGatingTest {
 
     private val registry = mockk<AgentRegistry>()
     private val subscriptionRepository = mockk<SubscriptionRepository>()
+    private val session = mockk<AiSession>(relaxed = true)
 
     private fun agentWithStatus(status: SubscriptionStatus): OpenRouterAiAgent {
         every { subscriptionRepository.observeStatus() } returns flowOf(status)
         return OpenRouterAiAgent(
             dependencies = AiAgentDependencies(
-                session = mockk<AiSession>(relaxed = true),
+                session = session,
                 crashReporter = mockk<CrashReporter>(relaxed = true),
                 subscriptionRepository = subscriptionRepository,
                 registry = registry
@@ -102,4 +104,28 @@ class OpenRouterAiAgentGatingTest {
 
             agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
         }
+
+    @Test
+    fun `marks the session as having run a tool before dispatching it, even if it then fails`() = runTest {
+        // sdd-012: FallbackAiAgent relies on this flag being set *before* the call, not after,
+        // since a failed action can still have a partial side effect.
+        val action = FakeAgentAction(result = Result.failure(Exception("boom")))
+        every { registry.find("fake_action") } returns action
+        val agent = agentWithStatus(SubscriptionStatus.FREE)
+
+        agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+
+        verify { session.toolExecutedThisTurn = true }
+    }
+
+    @Test
+    fun `does not mark the session when the action is Pro-gated and denied`() = runTest {
+        val action = FakeAgentAction(requiresPro = true)
+        every { registry.find("fake_action") } returns action
+        val agent = agentWithStatus(SubscriptionStatus.FREE)
+
+        agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+
+        verify(exactly = 0) { session.toolExecutedThisTurn = true }
+    }
 }

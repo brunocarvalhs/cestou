@@ -17,5 +17,14 @@ interface AiSession {
      * classpath de compilação.
      */
     fun clearHistory()
+
+    /**
+     * `true` quando uma tool com efeito colateral real (ex. produto gravado no Firestore) já foi
+     * despachada na tentativa de `sendMessage` em curso. [FallbackAiAgent] lê este sinal antes de
+     * tentar o provider secundário: sem ele, uma falha de transporte *depois* da tool já ter
+     * rodado faria o fallback reexecutar o pedido inteiro no outro provider, duplicando a tool
+     * (sdd-012). Cada agente concreto zera este sinal no início do próprio `sendMessage`.
+     */
+    var toolExecutedThisTurn: Boolean
 }
 

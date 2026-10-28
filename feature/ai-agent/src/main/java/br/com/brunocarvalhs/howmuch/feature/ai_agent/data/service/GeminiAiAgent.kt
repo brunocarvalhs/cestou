@@ -81,6 +81,9 @@ internal class GeminiAiAgent(
     ): Flow<String> = flow {
         val chat = generativeModel.startChat(history = session.history)
         val meta = context.toMetadata()
+        // Zera no início da tentativa: FallbackAiAgent lê este sinal só depois que esta chamada
+        // falha, então precisa refletir só o que aconteceu *nesta* tentativa (sdd-012).
+        session.toolExecutedThisTurn = false
 
         try {
             // systemInstruction is bound once when generativeModel is built (see below), so a
@@ -150,6 +153,9 @@ internal class GeminiAiAgent(
             "Essa ação é exclusiva do plano Pro."
         } else if (action != null) {
             try {
+                // Marcado antes de executar, não depois: mesmo uma execução que termina em
+                // exceção pode ter mutação parcial (sdd-012) — conservador de propósito.
+                session.toolExecutedThisTurn = true
                 action.execute(
                     arguments = functionCall.args,
                     session = session,

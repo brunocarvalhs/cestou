@@ -96,7 +96,7 @@ internal class AiAgentFactoryImpl @Inject constructor(
             else -> openRouter to gemini
         }
         return when {
-            primary != null && secondary != null -> FallbackAiAgent(primary, secondary)
+            primary != null && secondary != null -> FallbackAiAgent(primary, secondary, session)
             primary != null -> primary
             secondary != null -> secondary
             else -> NoAiProviderAvailableAgent
