@@ -1,8 +1,11 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
+import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiModelRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateAiSettingsUseCase
 import io.mockk.coEvery
@@ -32,6 +35,9 @@ class AiSettingsViewModelTest {
     private val aiModelRepository = mockk<AiModelRepository>().apply {
         coEvery { getAvailableModels() } returns emptyList()
     }
+    private val subscriptionRepository = mockk<SubscriptionRepository>().apply {
+        every { observeStatus() } returns flowOf(SubscriptionStatus.FREE)
+    }
     private val updateAiSettingsUseCase = mockk<UpdateAiSettingsUseCase>(relaxed = true)
     private val navigator = mockk<Navigator>(relaxed = true)
 
@@ -45,32 +51,57 @@ class AiSettingsViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private fun createViewModel() = AiSettingsViewModel(
+        settingsRepository = settingsRepository,
+        aiModelRepository = aiModelRepository,
+        subscriptionRepository = subscriptionRepository,
+        updateAiSettingsUseCase = updateAiSettingsUseCase
+    )
+
     @Test
     fun `init loads ai settings from the repository`() {
         every { settingsRepository.getSettings() } returns
-            flowOf(AppSettings(aiModel = "gpt", customPrompt = "concise"))
+            flowOf(AppSettings(aiModel = "gpt"))
 
-        val vm = AiSettingsViewModel(settingsRepository, aiModelRepository, updateAiSettingsUseCase)
+        val vm = createViewModel()
 
         assertEquals("gpt", vm.uiState.value.aiModel)
-        assertEquals("concise", vm.uiState.value.customPrompt)
     }
 
     @Test
     fun `onUpdateAiSettings forwards to the use case`() = runTest {
         every { settingsRepository.getSettings() } returns flowOf(AppSettings())
-        coEvery { updateAiSettingsUseCase("gpt", "concise", TEST_TEMPERATURE) } returns Unit
-        val vm = AiSettingsViewModel(settingsRepository, aiModelRepository, updateAiSettingsUseCase)
+        coEvery {
+            updateAiSettingsUseCase(
+                AiConfigTier.DEFAULT,
+                "gpt",
+                TEST_TEMPERATURE,
+                null
+            )
+        } returns Unit
+        val vm = createViewModel()
 
-        vm.intent.onUpdateAiSettings("gpt", "concise", TEST_TEMPERATURE)
+        vm.intent.onUpdateAiSettings(
+            AiConfigTier.DEFAULT,
+            "gpt",
+            TEST_TEMPERATURE,
+            null
+        )
 
-        coVerify { updateAiSettingsUseCase("gpt", "concise", TEST_TEMPERATURE) }
+        coVerify {
+            updateAiSettingsUseCase(
+                AiConfigTier.DEFAULT,
+                "gpt",
+                TEST_TEMPERATURE,
+                null
+            )
+        }
     }
 
     @Test
     fun `onBack navigates back`() {
         every { settingsRepository.getSettings() } returns flowOf(AppSettings())
-        val vm = AiSettingsViewModel(settingsRepository, aiModelRepository, updateAiSettingsUseCase)
+        val vm = createViewModel()
         vm.setNavigator(navigator)
 
         vm.intent.onBack()
