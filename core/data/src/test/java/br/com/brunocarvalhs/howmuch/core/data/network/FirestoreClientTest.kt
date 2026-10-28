@@ -82,6 +82,78 @@ class FirestoreClientTest {
     }
 
     @Test
+    fun `execute GET with a list value uses whereIn`() = runTest {
+        val ref: Query = mockk()
+        every { collectionRef.whereIn("id", listOf("1", "2")) } returns ref
+        val snapshot = mockk<QuerySnapshot> { every { documents } returns emptyList() }
+        every { ref.get() } returns Tasks.forResult(snapshot)
+
+        val result = manager.execute(
+            "shopping",
+            NetworkService.Method.GET,
+            query = mapOf("id" to listOf("1", "2"))
+        )
+
+        assertEquals(emptyList<Any>(), result)
+    }
+
+    @Test
+    fun `execute GET with a null value for an array field throws instead of NPE-ing`() = runTest {
+        try {
+            manager.execute(
+                "shopping",
+                NetworkService.Method.GET,
+                query = mapOf("users" to null)
+            )
+            fail("expected an exception")
+        } catch (e: NetworkService.NetworkException) {
+            assertTrue(e.message.orEmpty().contains("users"))
+        }
+    }
+
+    @Test
+    fun `execute GET with a null value for a _contains field throws instead of NPE-ing`() = runTest {
+        try {
+            manager.execute(
+                "shopping",
+                NetworkService.Method.GET,
+                query = mapOf("name_contains" to null)
+            )
+            fail("expected an exception")
+        } catch (e: NetworkService.NetworkException) {
+            assertTrue(e.message.orEmpty().contains("name_contains"))
+        }
+    }
+
+    @Test
+    fun `execute GET with an empty list for whereIn throws a clear error`() = runTest {
+        try {
+            manager.execute(
+                "shopping",
+                NetworkService.Method.GET,
+                query = mapOf("id" to emptyList<String>())
+            )
+            fail("expected an exception")
+        } catch (e: NetworkService.NetworkException) {
+            assertTrue(e.message.orEmpty().contains("vazia"))
+        }
+    }
+
+    @Test
+    fun `execute GET with more than 30 items for whereIn throws a clear error`() = runTest {
+        try {
+            manager.execute(
+                "shopping",
+                NetworkService.Method.GET,
+                query = mapOf("id" to (1..OVER_WHERE_IN_LIMIT).map { "v$it" })
+            )
+            fail("expected an exception")
+        } catch (e: NetworkService.NetworkException) {
+            assertTrue(e.message.orEmpty().contains("30"))
+        }
+    }
+
+    @Test
     fun `execute GET on a collection path without a query hits the bare collection`() = runTest {
         val snapshot = mockk<QuerySnapshot> { every { documents } returns emptyList() }
         every { collectionRef.get() } returns Tasks.forResult(snapshot)
@@ -272,3 +344,5 @@ class FirestoreClientTest {
         assertTrue(threw)
     }
 }
+
+private const val OVER_WHERE_IN_LIMIT = 31

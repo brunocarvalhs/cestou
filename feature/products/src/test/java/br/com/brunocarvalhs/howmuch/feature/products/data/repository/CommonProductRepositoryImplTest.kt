@@ -52,6 +52,16 @@ class CommonProductRepositoryImplTest {
     }
 
     @Test
+    fun `getAll emits an empty list instead of throwing when there is no session`() = runTest {
+        coEvery { authService.getOrCreateUserId() } throws IllegalStateException("no session")
+
+        repository.getAll().test {
+            assertEquals(emptyList<CommonProduct>(), awaitItem())
+            awaitComplete()
+        }
+    }
+
+    @Test
     fun `seedDefaultsIfEmpty seeds the starter set when the user has nothing yet`() = runTest {
         // Both calls share the same erased make(request, KClass, KType) signature, so the mock
         // must discriminate by request.method (GET check vs POST seed), not by reified type.

@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.common.util.ReminderTimeParser
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.feature.settings.R
@@ -92,10 +93,10 @@ internal fun NotificationSettingsScreen(
     }
 
     if (showTimePicker) {
-        val timeParts = state.reminderTime.split(":")
+        val (initialHour, initialMinute) = ReminderTimeParser.parse(state.reminderTime)
         val timePickerState = rememberTimePickerState(
-            initialHour = timeParts[0].toInt(),
-            initialMinute = timeParts[1].toInt(),
+            initialHour = initialHour,
+            initialMinute = initialMinute,
             is24Hour = true
         )
         val sheetState = rememberModalBottomSheetState()

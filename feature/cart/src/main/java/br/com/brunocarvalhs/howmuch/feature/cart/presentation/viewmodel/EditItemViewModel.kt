@@ -45,7 +45,17 @@ internal class EditItemViewModel @Inject constructor(
     fun onSaveEdit(product: Product, price: Double?, quantity: Double) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            val userId = authService.getOrCreateUserId().id
+            val userId = runCatching { authService.getOrCreateUserId().id }.getOrElse { throwable ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = UiText.DynamicString(
+                            throwable.message ?: "Failed to save changes"
+                        )
+                    )
+                }
+                return@launch
+            }
             useCase.update(
                 shoppingId = shoppingId,
                 product = product.copy(price = price, quantity = quantity)
