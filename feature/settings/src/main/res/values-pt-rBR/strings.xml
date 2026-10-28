@@ -70,13 +70,11 @@
     <string name="settings_title_ai">IA</string>
     <string name="settings_title_data">Dados</string>
     <string name="settings_ai_header">Configurações de Inteligência Artificial</string>
-    <string name="settings_ai_label_model">Modelo de IA (Grátis)</string>
-    <string name="settings_ai_label_custom_prompt">Prompt Personalizado</string>
-    <string name="settings_ai_placeholder_custom_prompt">Utilizando o padrão do aplicativo</string>
+    <string name="settings_ai_label_model">Modelo de IA</string>
     <string name="settings_ai_label_creativity">Criatividade (Temperatura): %1$.1f</string>
     <string name="settings_ai_button_save">Salvar Preferências</string>
-    <string name="settings_ai_tier_1_title">Nível 1: Padrão (Grátis)</string>
-    <string name="settings_ai_tier_1_desc">Sempre o mesmo modelo padrão recomendado e gratuito.</string>
+    <string name="settings_ai_tier_1_title">Nível 1: Padrão</string>
+    <string name="settings_ai_tier_1_desc">Sempre o mesmo modelo padrão recomendado.</string>
     <string name="settings_ai_tier_2_title">Nível 2: Agente Específico</string>
     <string name="settings_ai_tier_2_desc">Escolha um modelo built-in específico. Exclusivo para assinantes Pro.</string>
     <string name="settings_ai_tier_3_title">Nível 3: Pago / Chave API Externa (BYOK)</string>

@@ -10,7 +10,6 @@ data class AppSettings(
     val aiConfigTier: AiConfigTier = AiConfigTier.DEFAULT,
     val aiProvider: String = "openrouter",
     val aiModel: String = "openrouter/free",
-    val customPrompt: String? = null,
     val customApiKey: String? = null,
     val creativityLevel: Float = 0.7f,
     val defaultListId: String? = null,

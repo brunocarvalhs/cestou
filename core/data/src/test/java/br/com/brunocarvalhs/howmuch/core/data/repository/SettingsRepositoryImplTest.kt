@@ -74,8 +74,6 @@ class SettingsRepositoryImplTest {
     @Test
     fun `getSettings migrates a legacy vendor-named provider to openrouter for a known model`() = runTest {
         val stored = mutablePreferencesOf(
-            // Legacy bug: AI_PROVIDER used to store the vendor (AiModel.provider before the
-            // vendor/provider split), not the technical routing value.
             stringPreferencesKey("ai_provider") to "nvidia",
             stringPreferencesKey("ai_model") to "nvidia/nemotron-3-ultra"
         )
@@ -145,8 +143,6 @@ class SettingsRepositoryImplTest {
     @Test
     fun `getSettings resets a stale ai_model to the default`() = runTest {
         val stored = mutablePreferencesOf(
-            // "openrouter/auto" was the old default — it's OpenRouter's paid Auto Router, never
-            // actually free, and the root cause of every default install hitting 402.
             stringPreferencesKey("ai_model") to "openrouter/auto"
         )
         every { dataStore.data } returns flowOf(stored)
@@ -183,12 +179,6 @@ class SettingsRepositoryImplTest {
         }
     }
 
-    /**
-     * `DataStore<Preferences>.edit { }` is a real extension that wraps the caller's transform
-     * and delegates to the interface's `updateData`, so the mock has to intercept `updateData`
-     * (not `edit`) and thread the resulting [Preferences] through calls to observe what each
-     * repository method actually wrote.
-     */
     private class FakeDataStore(initial: Preferences) {
         var current: Preferences = initial
         operator fun <T> get(key: Preferences.Key<T>): T? = current[key]
@@ -227,36 +217,18 @@ class SettingsRepositoryImplTest {
     }
 
     @Test
-    fun `updateAiSettings stores model, gemini provider and prompt`() = runTest {
+    fun `updateAiSettings stores model and provider`() = runTest {
         val fake = mockEdit()
 
         repository.updateAiSettings(
             tier = AiConfigTier.DEFAULT,
             model = "google/gemini-2.0-flash-001",
-            prompt = "be concise",
             creativity = 0.9f,
             customApiKey = null
         )
 
         assertEquals("google/gemini-2.0-flash-001", fake[stringPreferencesKey("ai_model")])
         assertEquals("gemini", fake[stringPreferencesKey("ai_provider")])
-        assertEquals("be concise", fake[stringPreferencesKey("custom_prompt")])
-    }
-
-    @Test
-    fun `updateAiSettings removes prompt when null`() = runTest {
-        val fake = mockEdit(initial = mutablePreferencesOf(stringPreferencesKey("custom_prompt") to "old prompt"))
-
-        repository.updateAiSettings(
-            tier = AiConfigTier.DEFAULT,
-            model = "some/model",
-            prompt = null,
-            creativity = 0.5f,
-            customApiKey = null
-        )
-
-        assertFalse(fake.contains(stringPreferencesKey("custom_prompt")))
-        assertEquals("openrouter", fake[stringPreferencesKey("ai_provider")])
     }
 
     @Test

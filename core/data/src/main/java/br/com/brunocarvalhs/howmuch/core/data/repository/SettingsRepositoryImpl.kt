@@ -33,7 +33,6 @@ private object PreferencesKeys {
     val AI_CONFIG_TIER = stringPreferencesKey("ai_config_tier")
     val AI_PROVIDER = stringPreferencesKey("ai_provider")
     val AI_MODEL = stringPreferencesKey("ai_model")
-    val CUSTOM_PROMPT = stringPreferencesKey("custom_prompt")
     val CUSTOM_API_KEY = stringPreferencesKey("custom_api_key")
     val CREATIVITY_LEVEL = floatPreferencesKey("creativity_level")
     val DEFAULT_LIST_ID = stringPreferencesKey("default_list_id")
@@ -72,7 +71,6 @@ private fun Preferences.toAppSettings(): AppSettings {
         aiConfigTier = aiConfigTier,
         aiProvider = resolveStoredAiProvider(this[PreferencesKeys.AI_PROVIDER], aiModel),
         aiModel = aiModel,
-        customPrompt = this[PreferencesKeys.CUSTOM_PROMPT],
         customApiKey = this[PreferencesKeys.CUSTOM_API_KEY],
         creativityLevel = this[PreferencesKeys.CREATIVITY_LEVEL] ?: 0.7f,
         defaultListId = this[PreferencesKeys.DEFAULT_LIST_ID],
@@ -135,7 +133,6 @@ internal class SettingsRepositoryImpl @Inject constructor(
     override suspend fun updateAiSettings(
         tier: AiConfigTier,
         model: String,
-        prompt: String?,
         creativity: Float,
         customApiKey: String?
     ) {
@@ -143,12 +140,6 @@ internal class SettingsRepositoryImpl @Inject constructor(
             preferences[PreferencesKeys.AI_CONFIG_TIER] = tier.name
             preferences[PreferencesKeys.AI_MODEL] = model
             preferences[PreferencesKeys.AI_PROVIDER] = providerFor(model)
-
-            if (prompt != null) {
-                preferences[PreferencesKeys.CUSTOM_PROMPT] = prompt
-            } else {
-                preferences.remove(PreferencesKeys.CUSTOM_PROMPT)
-            }
             preferences[PreferencesKeys.CREATIVITY_LEVEL] = creativity
 
             if (customApiKey != null && customApiKey.isNotBlank()) {

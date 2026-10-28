@@ -61,12 +61,11 @@ class AiSettingsViewModelTest {
     @Test
     fun `init loads ai settings from the repository`() {
         every { settingsRepository.getSettings() } returns
-            flowOf(AppSettings(aiModel = "gpt", customPrompt = "concise"))
+            flowOf(AppSettings(aiModel = "gpt"))
 
         val vm = createViewModel()
 
         assertEquals("gpt", vm.uiState.value.aiModel)
-        assertEquals("concise", vm.uiState.value.customPrompt)
     }
 
     @Test
@@ -76,7 +75,6 @@ class AiSettingsViewModelTest {
             updateAiSettingsUseCase(
                 AiConfigTier.DEFAULT,
                 "gpt",
-                "concise",
                 TEST_TEMPERATURE,
                 null
             )
@@ -86,7 +84,6 @@ class AiSettingsViewModelTest {
         vm.intent.onUpdateAiSettings(
             AiConfigTier.DEFAULT,
             "gpt",
-            "concise",
             TEST_TEMPERATURE,
             null
         )
@@ -95,7 +92,6 @@ class AiSettingsViewModelTest {
             updateAiSettingsUseCase(
                 AiConfigTier.DEFAULT,
                 "gpt",
-                "concise",
                 TEST_TEMPERATURE,
                 null
             )

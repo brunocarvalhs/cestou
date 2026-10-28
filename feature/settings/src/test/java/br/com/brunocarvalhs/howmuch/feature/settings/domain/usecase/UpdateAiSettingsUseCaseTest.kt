@@ -16,13 +16,12 @@ class UpdateAiSettingsUseCaseTest {
     private val useCase = UpdateAiSettingsUseCase(repository)
 
     @Test
-    fun `invoke forwards tier, model, prompt, creativity and customApiKey to the repository`() =
+    fun `invoke forwards tier, model, creativity and customApiKey to the repository`() =
         runTest {
             coEvery {
                 repository.updateAiSettings(
                     AiConfigTier.DEFAULT,
                     "gemini",
-                    "be concise",
                     TEST_TEMPERATURE,
                     null
                 )
@@ -31,7 +30,6 @@ class UpdateAiSettingsUseCaseTest {
             useCase(
                 tier = AiConfigTier.DEFAULT,
                 model = "gemini",
-                prompt = "be concise",
                 creativity = TEST_TEMPERATURE,
                 customApiKey = null
             )
@@ -40,7 +38,6 @@ class UpdateAiSettingsUseCaseTest {
                 repository.updateAiSettings(
                     AiConfigTier.DEFAULT,
                     "gemini",
-                    "be concise",
                     TEST_TEMPERATURE,
                     null
                 )

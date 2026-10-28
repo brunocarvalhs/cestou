@@ -12,7 +12,6 @@ interface SettingsRepository {
     suspend fun updateAiSettings(
         tier: AiConfigTier,
         model: String,
-        prompt: String?,
         creativity: Float,
         customApiKey: String?
     )
