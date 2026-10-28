@@ -1,6 +1,5 @@
 <resources>
     <string name="profile_title">Perfil</string>
-    <string name="profile_settings_content_description">Configurações</string>
     <string name="profile_menu_sign_out">Sair</string>
     <string name="profile_subscription_pro_title">Cestou Pro</string>
     <string name="profile_subscription_pro_subtitle">Assinatura ativa</string>

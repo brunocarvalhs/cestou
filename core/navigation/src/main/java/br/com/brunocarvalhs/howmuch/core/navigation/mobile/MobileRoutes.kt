@@ -60,3 +60,14 @@ data class CartFlow(val shopping: Shopping) : NavKey {
 data class Paywall(val source: String) : NavKey, RouteProtocol {
     override val routeType: RouteType = RouteType.PROTECTED
 }
+
+/**
+ * The entry point into `feature:subscription`'s subscription-management screen (AD-010) — where
+ * an already-PRO user sees their plan and is sent to Google Play to cancel or change it. [Paywall]
+ * stays the only entry point for FREE users; this route is unreachable without an active
+ * subscription (Play Billing is the single source of truth for that, never this app).
+ */
+@Serializable
+data object ManageSubscription : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}
