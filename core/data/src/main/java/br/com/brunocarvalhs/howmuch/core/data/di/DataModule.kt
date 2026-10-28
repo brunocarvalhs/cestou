@@ -10,11 +10,13 @@ import br.com.brunocarvalhs.howmuch.core.data.network.CompatibilityConverter
 import br.com.brunocarvalhs.howmuch.core.data.network.FirestoreClient
 import br.com.brunocarvalhs.howmuch.core.data.network.NetworkLogger
 import br.com.brunocarvalhs.howmuch.core.data.network.NetworkServiceImpl
+import br.com.brunocarvalhs.howmuch.core.data.repository.AiModelRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.data.repository.AiTrialRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.data.repository.NotificationRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.data.repository.UserRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.data.security.Encryptor
 import br.com.brunocarvalhs.howmuch.core.data.service.DataStoreStorageService
+import br.com.brunocarvalhs.howmuch.core.domain.repository.AiModelRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
@@ -65,6 +67,10 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindAiTrialRepository(impl: AiTrialRepositoryImpl): AiTrialRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAiModelRepository(impl: AiModelRepositoryImpl): AiModelRepository
 
     companion object {
         private const val REQUEST_TIMEOUT_MILLIS = 60_000L
