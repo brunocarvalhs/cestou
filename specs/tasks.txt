@@ -56,3 +56,13 @@ aceito, com justificativa.
 
 Carregar dinamicamente a lista de modelos de IA da API do OpenRouter (`https://openrouter.ai/api/v1/models`) em vez da lista fixa (`AiModel.freeModels`), permitindo a seleção de modelos com fallback para a lista estática em caso de falha/offline e mantendo sempre um modelo gratuito (`free`) como padrão.
 
+---
+
+# sdd-014-ai-agent-three-tier-config
+
+Implementar layout de configuração de agente de IA em 3 níveis no app:
+1. Nível 1: Valor default sempre o mesmo (`openrouter/free`, automático e gratuito).
+2. Nível 2: Seleção de agente específico (modelos built-in/gratuitos disponíveis).
+3. Nível 3: Agentes de IA pagos usando API key externa (Bring Your Own Key - BYOK), permitindo incluir chaves para Claude, GPT e outros com pagamento externo dentro do app.
+
+

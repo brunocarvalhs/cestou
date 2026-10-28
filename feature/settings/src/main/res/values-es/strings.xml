@@ -75,6 +75,17 @@
     <string name="settings_ai_placeholder_custom_prompt">Usando el predeterminado de la aplicación</string>
     <string name="settings_ai_label_creativity">Creatividad (Temperatura): %1$.1f</string>
     <string name="settings_ai_button_save">Guardar Preferencias</string>
+    <string name="settings_ai_tier_1_title">Nivel 1: Predeterminado (Gratis)</string>
+    <string name="settings_ai_tier_1_desc">Siempre el mismo modelo predeterminado recomendado y gratuito.</string>
+    <string name="settings_ai_tier_2_title">Nivel 2: Agente Específico</string>
+    <string name="settings_ai_tier_2_desc">Elige un modelo built-in específico. Exclusivo para suscriptores Pro.</string>
+    <string name="settings_ai_tier_3_title">Nivel 3: Pago / Clave API Externa (BYOK)</string>
+    <string name="settings_ai_tier_3_desc">Usa modelos pagos externos (Claude, GPT, etc.) con tu propia clave API. Exclusivo para Pro.</string>
+    <string name="settings_ai_label_custom_api_key">Clave API (BYOK)</string>
+    <string name="settings_ai_placeholder_custom_api_key">Ingresa tu clave API (sk-…)</string>
+    <string name="settings_ai_pro_badge">PRO</string>
+    <string name="settings_ai_upgrade_prompt">Suscríbete a Pro para desbloquear modelos específicos y claves API personalizadas.</string>
+    <string name="settings_ai_button_upgrade">Suscribirse a Pro</string>
     <string name="settings_data_clear_cache">Limpiar caché</string>
     <string name="settings_data_clear_cache_hint">Libera espacio ocupado</string>
     <string name="settings_data_delete_all">Eliminar todos los datos</string>

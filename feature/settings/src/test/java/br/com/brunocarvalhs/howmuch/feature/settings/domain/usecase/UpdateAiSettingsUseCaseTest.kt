@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase
 
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -15,11 +16,34 @@ class UpdateAiSettingsUseCaseTest {
     private val useCase = UpdateAiSettingsUseCase(repository)
 
     @Test
-    fun `invoke forwards model, prompt and creativity to the repository`() = runTest {
-        coEvery { repository.updateAiSettings("gemini", "be concise", TEST_TEMPERATURE) } returns Unit
+    fun `invoke forwards tier, model, prompt, creativity and customApiKey to the repository`() =
+        runTest {
+            coEvery {
+                repository.updateAiSettings(
+                    AiConfigTier.DEFAULT,
+                    "gemini",
+                    "be concise",
+                    TEST_TEMPERATURE,
+                    null
+                )
+            } returns Unit
 
-        useCase("gemini", "be concise", TEST_TEMPERATURE)
+            useCase(
+                tier = AiConfigTier.DEFAULT,
+                model = "gemini",
+                prompt = "be concise",
+                creativity = TEST_TEMPERATURE,
+                customApiKey = null
+            )
 
-        coVerify { repository.updateAiSettings("gemini", "be concise", TEST_TEMPERATURE) }
-    }
+            coVerify {
+                repository.updateAiSettings(
+                    AiConfigTier.DEFAULT,
+                    "gemini",
+                    "be concise",
+                    TEST_TEMPERATURE,
+                    null
+                )
+            }
+        }
 }
