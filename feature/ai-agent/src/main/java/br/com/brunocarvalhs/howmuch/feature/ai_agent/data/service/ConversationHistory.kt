@@ -11,9 +11,18 @@ import com.google.ai.client.generativeai.type.Content
  */
 internal const val MAX_HISTORY_ENTRIES = 20
 
+/**
+ * Corta pelo menos até [maxEntries], mas nunca no meio de um turno: avança do corte ingênuo até
+ * o primeiro `role == "user"`, que é sempre onde um turno de fato começa. Cortar por contagem
+ * pura (como antes) podia abrir a janela com `role == "model"`/`"tool"`, separando um
+ * `functionCall` da sua `functionResponse` — o Gemini rejeita isso com 400 (sdd-006, B-34).
+ */
 internal fun MutableList<Content>.trimToRecentHistory(maxEntries: Int = MAX_HISTORY_ENTRIES) {
-    val overflow = size - maxEntries
-    if (overflow > 0) {
-        repeat(overflow) { removeAt(0) }
-    }
+    if (size <= maxEntries) return
+
+    val naiveStart = size - maxEntries
+    val safeStart = (naiveStart until size).firstOrNull { index -> this[index].role == "user" } ?: naiveStart
+    val trimmed = subList(safeStart, size).toMutableList()
+    clear()
+    addAll(trimmed)
 }

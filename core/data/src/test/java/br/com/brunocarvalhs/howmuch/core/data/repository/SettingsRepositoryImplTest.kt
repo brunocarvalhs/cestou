@@ -68,6 +68,77 @@ class SettingsRepositoryImplTest {
         }
     }
 
+    // region sdd-006 (B-07): migrating a legacy vendor-named provider to the technical one
+
+    @Test
+    fun `getSettings migrates a legacy vendor-named provider to openrouter for a known model`() = runTest {
+        val stored = mutablePreferencesOf(
+            // Legacy bug: AI_PROVIDER used to store the vendor (AiModel.provider before the
+            // vendor/provider split), not the technical routing value.
+            stringPreferencesKey("ai_provider") to "nvidia",
+            stringPreferencesKey("ai_model") to "nvidia/nemotron-3-ultra"
+        )
+        every { dataStore.data } returns flowOf(stored)
+
+        repository.getSettings().test {
+            assertEquals("openrouter", awaitItem().aiProvider)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `getSettings migrates an unknown legacy provider to openrouter when the model is also unknown`() = runTest {
+        val stored = mutablePreferencesOf(
+            stringPreferencesKey("ai_provider") to "some-old-vendor",
+            stringPreferencesKey("ai_model") to "some/unknown-model"
+        )
+        every { dataStore.data } returns flowOf(stored)
+
+        repository.getSettings().test {
+            assertEquals("openrouter", awaitItem().aiProvider)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `getSettings leaves an already-technical gemini provider untouched`() = runTest {
+        val stored = mutablePreferencesOf(
+            stringPreferencesKey("ai_provider") to "gemini",
+            stringPreferencesKey("ai_model") to "gemini-1.5-pro"
+        )
+        every { dataStore.data } returns flowOf(stored)
+
+        repository.getSettings().test {
+            assertEquals("gemini", awaitItem().aiProvider)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `getSettings migration is idempotent`() = runTest {
+        val stored = mutablePreferencesOf(
+            stringPreferencesKey("ai_provider") to "nvidia",
+            stringPreferencesKey("ai_model") to "nvidia/nemotron-3-ultra"
+        )
+        every { dataStore.data } returns flowOf(stored)
+
+        var firstProvider: String? = null
+        var secondProvider: String? = null
+        repository.getSettings().test {
+            firstProvider = awaitItem().aiProvider
+            awaitComplete()
+        }
+        repository.getSettings().test {
+            secondProvider = awaitItem().aiProvider
+            awaitComplete()
+        }
+
+        assertEquals("openrouter", firstProvider)
+        assertEquals(firstProvider, secondProvider)
+    }
+
+    // endregion
+
     @Test
     fun `getSettings falls back to SYSTEM theme when stored value is invalid`() = runTest {
         val stored = mutablePreferencesOf(stringPreferencesKey("theme_mode") to "NOT_A_THEME")

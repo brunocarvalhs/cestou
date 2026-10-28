@@ -72,36 +72,29 @@ internal class OpenRouterAiAgent(
         context: AiAgentContext
     ): Flow<String> = flow {
         val meta = context.toMetadata()
+        // Zera no início da tentativa: FallbackAiAgent lê este sinal só depois que esta chamada
+        // falha, então precisa refletir só o que aconteceu *nesta* tentativa (sdd-012).
+        session.toolExecutedThisTurn = false
 
         try {
-            // Converte o histórico e o prompt atual para o formato de mensagens do OpenRouter
-            val messages = mutableListOf<Message>()
-            
-            // Adiciona instrução de sistema
-            messages.add(Message(role = "system", content = systemPrompt))
-
-            // Converte histórico do session (Gemini Content format) para Message format
-            session.history.forEach { content ->
-                val text = content.parts.filterIsInstance<TextPart>().joinToString(" ") { it.text }
-                if (text.isNotEmpty()) {
-                    messages.add(Message(role = openRouterRoleFor(content.role), content = text))
-                }
-            }
-
-            // Adiciona mensagem atual (+ contexto desta conversa, ex: shoppingId atual — colado
-            // junto da pergunta em vez de enterrado no fim do system prompt, já que modelos
-            // gratuitos/fracos tendem a seguir melhor uma instrução perto do que foi perguntado)
-            messages.add(Message(role = "user", content = prompt + SystemPrompts.contextSuffix(meta)))
-
+            val messages = buildInitialMessages(prompt, meta)
             val tools = buildOpenRouterTools(registry.getAll())
 
             var currentRequest = ChatRequest(
                 model = model, messages = messages, tools = tools, maxTokens = MAX_RESPONSE_TOKENS
             )
             var response: ChatResponse = executeRequest(currentRequest)
+            var rounds = 0
 
             // Loop para processar Function Calling
             while (response.choices.firstOrNull()?.message?.toolCalls?.isNotEmpty() == true) {
+                if (rounds >= MAX_TOOL_ROUNDS) {
+                    emit(TOOL_ROUNDS_EXCEEDED_MESSAGE)
+                    recordTurnInHistory(prompt, TOOL_ROUNDS_EXCEEDED_MESSAGE)
+                    return@flow
+                }
+                rounds++
+
                 val assistantMessage = response.choices.first().message
                 messages.add(assistantMessage)
 
@@ -123,13 +116,11 @@ internal class OpenRouterAiAgent(
 
             response.choices.firstOrNull()?.message?.content?.trim()?.let { text ->
                 emit(text)
-                // Atualiza o histórico (simplificado para demonstração)
-                session.history.add(Content(role = "user", parts = listOf(TextPart(prompt))))
-                session.history.add(Content(role = "model", parts = listOf(TextPart(text))))
-                session.history.trimToRecentHistory()
+                recordTurnInHistory(prompt, text)
             }
 
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
             Timber.tag(TAG).e(e, "Erro na comunicação com OpenRouter (model=%s)", model)
             crashReporter.recordException(
                 e,
@@ -138,8 +129,41 @@ internal class OpenRouterAiAgent(
                     "model" to model
                 )
             )
-            emit(aiErrorMessageFor(e))
+            // Relança em vez de emitir um texto amigável — ver o mesmo comentário em
+            // GeminiAiAgent.sendMessage (sdd-006, B-08).
+            throw e
         }
+    }
+
+    /**
+     * Converte o histórico e o prompt atual para o formato de mensagens do OpenRouter.
+     */
+    private fun buildInitialMessages(prompt: String, meta: Map<String, Any?>): MutableList<Message> {
+        val messages = mutableListOf<Message>()
+
+        // Adiciona instrução de sistema
+        messages.add(Message(role = "system", content = systemPrompt))
+
+        // Converte histórico do session (Gemini Content format) para Message format
+        session.history.forEach { content ->
+            val text = content.parts.filterIsInstance<TextPart>().joinToString(" ") { it.text }
+            if (text.isNotEmpty()) {
+                messages.add(Message(role = openRouterRoleFor(content.role), content = text))
+            }
+        }
+
+        // Adiciona mensagem atual (+ contexto desta conversa, ex: shoppingId atual — colado
+        // junto da pergunta em vez de enterrado no fim do system prompt, já que modelos
+        // gratuitos/fracos tendem a seguir melhor uma instrução perto do que foi perguntado)
+        messages.add(Message(role = "user", content = prompt + SystemPrompts.contextSuffix(meta)))
+        return messages
+    }
+
+    /** Atualiza o histórico (simplificado para demonstração) com o turno concluído. */
+    private fun recordTurnInHistory(prompt: String, responseText: String) {
+        session.history.add(Content(role = "user", parts = listOf(TextPart(prompt))))
+        session.history.add(Content(role = "model", parts = listOf(TextPart(responseText))))
+        session.history.trimToRecentHistory()
     }
 
     private suspend fun executeRequest(request: ChatRequest): ChatResponse {
@@ -177,9 +201,13 @@ internal class OpenRouterAiAgent(
             "Essa ação é exclusiva do plano Pro."
         } else if (action != null) {
             try {
+                // Marcado antes de executar, não depois: mesmo uma execução que termina em
+                // exceção pode ter mutação parcial (sdd-012) — conservador de propósito.
+                session.toolExecutedThisTurn = true
                 val args = parseFunctionCallArguments(json, functionCall.arguments)
-                action.execute(args, session, meta).getOrNull()?.toString() ?: "Sucesso"
+                action.execute(args, session, meta).toToolFeedback()
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
                 Timber.tag(TAG).e(
                     e,
                     "Erro executando a função '%s' com args=%s",

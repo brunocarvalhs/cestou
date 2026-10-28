@@ -21,26 +21,70 @@ import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
 
+private object PreferencesKeys {
+    val THEME_MODE = stringPreferencesKey("theme_mode")
+    val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
+    val REMINDER_TIME = stringPreferencesKey("reminder_time")
+    val AI_PROVIDER = stringPreferencesKey("ai_provider")
+    val AI_MODEL = stringPreferencesKey("ai_model")
+    val CUSTOM_PROMPT = stringPreferencesKey("custom_prompt")
+    val CREATIVITY_LEVEL = floatPreferencesKey("creativity_level")
+    val DEFAULT_LIST_ID = stringPreferencesKey("default_list_id")
+    val SORTING_MODE = stringPreferencesKey("sorting_mode")
+    val REMINDERS_ENABLED = booleanPreferencesKey("reminders_enabled")
+    val LANGUAGE = stringPreferencesKey("language")
+    val CURRENCY = stringPreferencesKey("currency")
+}
+
+private fun Preferences.toAppSettings(): AppSettings {
+    val themeMode = try {
+        ThemeMode.valueOf(this[PreferencesKeys.THEME_MODE] ?: ThemeMode.SYSTEM.name)
+    } catch (e: IllegalArgumentException) {
+        ThemeMode.SYSTEM
+    }
+    val aiModel = this[PreferencesKeys.AI_MODEL] ?: "openrouter/auto"
+
+    return AppSettings(
+        themeMode = themeMode,
+        notificationsEnabled = this[PreferencesKeys.NOTIFICATIONS_ENABLED] ?: true,
+        reminderTime = this[PreferencesKeys.REMINDER_TIME] ?: "18:00",
+        aiProvider = resolveStoredAiProvider(this[PreferencesKeys.AI_PROVIDER], aiModel),
+        aiModel = aiModel,
+        customPrompt = this[PreferencesKeys.CUSTOM_PROMPT],
+        creativityLevel = this[PreferencesKeys.CREATIVITY_LEVEL] ?: 0.7f,
+        defaultListId = this[PreferencesKeys.DEFAULT_LIST_ID],
+        sortingMode = this[PreferencesKeys.SORTING_MODE] ?: "CATEGORY",
+        remindersEnabled = this[PreferencesKeys.REMINDERS_ENABLED] ?: false,
+        language = this[PreferencesKeys.LANGUAGE] ?: "pt-BR",
+        currency = this[PreferencesKeys.CURRENCY] ?: "BRL"
+    )
+}
+
+/**
+ * [storedProvider] pode ser um valor legado (o fabricante, ex. "nvidia") de antes de
+ * [AiModel.vendor]/[AiModel.provider] existirem separados (sdd-006, B-07) — re-derivado do
+ * [aiModel] salvo a cada leitura, sem precisar reescrever o DataStore.
+ */
+private fun resolveStoredAiProvider(storedProvider: String?, aiModel: String): String =
+    when (storedProvider) {
+        null, "gemini", "openrouter" -> storedProvider ?: "openrouter"
+        else -> providerFor(aiModel)
+    }
+
+/**
+ * Resolve o provider técnico (`"openrouter"`/`"gemini"`) de [model]: usa o catálogo quando o
+ * modelo é conhecido; senão, cai no heurístico por nome (um modelo da família Gemini ainda pode
+ * ser escolhido fora do catálogo atual, ex. via `aiModel` definido em outra tela).
+ */
+private fun providerFor(model: String): String =
+    AiModel.freeModels.find { it.id == model }?.provider
+        ?: if (model.contains("gemini")) "gemini" else "openrouter"
+
 internal class SettingsRepositoryImpl @Inject constructor(
     private val dataStore: DataStore<Preferences>,
     @ApplicationContext private val context: Context,
     private val reminderScheduler: ReminderScheduler
 ) : SettingsRepository {
-
-    private object PreferencesKeys {
-        val THEME_MODE = stringPreferencesKey("theme_mode")
-        val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
-        val REMINDER_TIME = stringPreferencesKey("reminder_time")
-        val AI_PROVIDER = stringPreferencesKey("ai_provider")
-        val AI_MODEL = stringPreferencesKey("ai_model")
-        val CUSTOM_PROMPT = stringPreferencesKey("custom_prompt")
-        val CREATIVITY_LEVEL = floatPreferencesKey("creativity_level")
-        val DEFAULT_LIST_ID = stringPreferencesKey("default_list_id")
-        val SORTING_MODE = stringPreferencesKey("sorting_mode")
-        val REMINDERS_ENABLED = booleanPreferencesKey("reminders_enabled")
-        val LANGUAGE = stringPreferencesKey("language")
-        val CURRENCY = stringPreferencesKey("currency")
-    }
 
     override fun getSettings(): Flow<AppSettings> = dataStore.data
         .catch { exception ->
@@ -50,28 +94,7 @@ internal class SettingsRepositoryImpl @Inject constructor(
                 throw exception
             }
         }
-        .map { preferences ->
-            val themeMode = try {
-                ThemeMode.valueOf(preferences[PreferencesKeys.THEME_MODE] ?: ThemeMode.SYSTEM.name)
-            } catch (e: IllegalArgumentException) {
-                ThemeMode.SYSTEM
-            }
-
-            AppSettings(
-                themeMode = themeMode,
-                notificationsEnabled = preferences[PreferencesKeys.NOTIFICATIONS_ENABLED] ?: true,
-                reminderTime = preferences[PreferencesKeys.REMINDER_TIME] ?: "18:00",
-                aiProvider = preferences[PreferencesKeys.AI_PROVIDER] ?: "openrouter",
-                aiModel = preferences[PreferencesKeys.AI_MODEL] ?: "openrouter/auto",
-                customPrompt = preferences[PreferencesKeys.CUSTOM_PROMPT],
-                creativityLevel = preferences[PreferencesKeys.CREATIVITY_LEVEL] ?: 0.7f,
-                defaultListId = preferences[PreferencesKeys.DEFAULT_LIST_ID],
-                sortingMode = preferences[PreferencesKeys.SORTING_MODE] ?: "CATEGORY",
-                remindersEnabled = preferences[PreferencesKeys.REMINDERS_ENABLED] ?: false,
-                language = preferences[PreferencesKeys.LANGUAGE] ?: "pt-BR",
-                currency = preferences[PreferencesKeys.CURRENCY] ?: "BRL"
-            )
-        }
+        .map { preferences -> preferences.toAppSettings() }
 
     override suspend fun updateTheme(themeMode: ThemeMode) {
         dataStore.edit { preferences ->
@@ -90,10 +113,8 @@ internal class SettingsRepositoryImpl @Inject constructor(
     override suspend fun updateAiSettings(model: String, prompt: String?, creativity: Float) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.AI_MODEL] = model
-            // Determine provider based on model or list
-            val provider = AiModel.freeModels.find { it.id == model }?.provider?.lowercase() ?: "openrouter"
-            preferences[PreferencesKeys.AI_PROVIDER] = if (model.contains("gemini")) "gemini" else provider
-            
+            preferences[PreferencesKeys.AI_PROVIDER] = providerFor(model)
+
             if (prompt != null) {
                 preferences[PreferencesKeys.CUSTOM_PROMPT] = prompt
             } else {
