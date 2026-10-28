@@ -6,8 +6,10 @@ import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 /** Minimal [AgentAction] test double for exercising the Pro gate at the dispatch chokepoint. */
 internal class FakeAgentAction(
     override val id: String = "fake_action",
-    override val requiresPro: Boolean = false
-) : AgentAction<String> {
+    override val requiresPro: Boolean = false,
+    private val result: Result<Any?> = Result.success("ok"),
+    private val throwable: Throwable? = null
+) : AgentAction<Any?> {
 
     override val description: String = "fake action for tests"
     var executed: Boolean = false
@@ -16,8 +18,9 @@ internal class FakeAgentAction(
         arguments: Map<String, Any?>,
         session: AiSession,
         metadata: Map<String, Any?>
-    ): Result<String> {
+    ): Result<Any?> {
         executed = true
-        return Result.success("ok")
+        throwable?.let { throw it }
+        return result
     }
 }

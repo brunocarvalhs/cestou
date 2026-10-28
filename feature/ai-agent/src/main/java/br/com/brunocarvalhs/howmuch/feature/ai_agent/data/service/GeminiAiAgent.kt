@@ -87,9 +87,19 @@ internal class GeminiAiAgent(
             // per-request value like the current shoppingId can't go there — it rides along on
             // the turn's own prompt instead, which the model reads exactly the same way.
             var response = chat.sendMessage(prompt + SystemPrompts.contextSuffix(meta))
+            var rounds = 0
 
             // Loop para processar Function Calling
             while (response.functionCalls.isNotEmpty()) {
+                if (rounds >= MAX_TOOL_ROUNDS) {
+                    emit(TOOL_ROUNDS_EXCEEDED_MESSAGE)
+                    session.history.clear()
+                    session.history.addAll(chat.history)
+                    session.history.trimToRecentHistory()
+                    return@flow
+                }
+                rounds++
+
                 val toolResponses = response.functionCalls.map { functionCall ->
                     executeFunctionCall(functionCall, meta)
                 }
@@ -117,7 +127,12 @@ internal class GeminiAiAgent(
                     "model" to modelName
                 )
             )
-            emit(aiErrorMessageFor(e))
+            // Relança em vez de emitir um texto amigável: só o ponto mais externo da cadeia de
+            // agentes (FallbackAiAgent, se houver um secundário; senão AiChatViewModel) decide o
+            // que o usuário vê. Antes, emitir aqui escondia a falha de FallbackAiAgent.catch,
+            // que nunca disparava (sdd-006, B-08) — ver FallbackAiAgentTest, que já provava que
+            // o fallback em si funciona.
+            throw e
         }
     }
 
@@ -139,7 +154,7 @@ internal class GeminiAiAgent(
                     arguments = functionCall.args,
                     session = session,
                     metadata = meta
-                ).getOrNull()?.toString() ?: "Sucesso"
+                ).toToolFeedback()
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
                 Timber.tag(TAG).e(

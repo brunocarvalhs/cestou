@@ -106,7 +106,7 @@ internal fun AiSettingsScreen(
                                 text = {
                                     Column {
                                         Text(aiModel.name)
-                                        Text(aiModel.provider, style = MaterialTheme.typography.labelSmall)
+                                        Text(aiModel.vendor, style = MaterialTheme.typography.labelSmall)
                                     }
                                 },
                                 onClick = {

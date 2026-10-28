@@ -12,6 +12,8 @@ private const val HISTORY_LIMIT = 20
 private const val UNDER_LIMIT_HISTORY_SIZE = 5
 private const val OVER_LIMIT_HISTORY_SIZE = 25
 private const val DEFAULT_LIMIT_OVERFLOW = 3
+private const val TURN_BOUNDARY_WINDOW = 3
+private const val FULL_TURN_HISTORY_SIZE = 4
 
 class ConversationHistoryTest {
 
@@ -52,5 +54,39 @@ class ConversationHistoryTest {
         history.trimToRecentHistory()
 
         assertEquals(MAX_HISTORY_ENTRIES, history.size)
+    }
+
+    @Test
+    fun `trimToRecentHistory never opens on a model turn, even if that grows the window`() {
+        // The naive cutoff (index 2) would land on "model" (a functionCall reply mid-turn);
+        // the real cutoff must advance to the next "user" turn at index 3.
+        val history = mutableListOf(
+            turn("user 1", role = "user"),
+            turn("model 1", role = "model"),
+            turn("tool 1", role = "tool"),
+            turn("user 2", role = "user"),
+            turn("model 2", role = "model")
+        )
+
+        history.trimToRecentHistory(maxEntries = TURN_BOUNDARY_WINDOW)
+
+        assertEquals(2, history.size)
+        assertEquals("user", history.first().role)
+        assertEquals("user 2", (history.first().parts.first() as TextPart).text)
+    }
+
+    @Test
+    fun `trimToRecentHistory keeps a history that already starts on a user turn untouched in shape`() {
+        val history = mutableListOf(
+            turn("user 1", role = "user"),
+            turn("model 1", role = "model"),
+            turn("user 2", role = "user"),
+            turn("model 2", role = "model")
+        )
+
+        history.trimToRecentHistory(maxEntries = FULL_TURN_HISTORY_SIZE)
+
+        assertEquals(FULL_TURN_HISTORY_SIZE, history.size)
+        assertEquals("user", history.first().role)
     }
 }
