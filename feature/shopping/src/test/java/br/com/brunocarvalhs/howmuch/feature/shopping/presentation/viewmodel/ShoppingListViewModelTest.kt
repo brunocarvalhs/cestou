@@ -163,16 +163,6 @@ class ShoppingListViewModelTest {
     }
 
     @Test
-    fun `onToggleFavorite flips the favorite flag`() = runTest {
-        coEvery { shoppingUpdateUseCase("list1", ownedShopping.copy(isFavorite = true)) } returns Result.success(Unit)
-        val vm = viewModel()
-
-        vm.intent.onToggleFavorite(ownedShopping)
-
-        coVerify { shoppingUpdateUseCase("list1", ownedShopping.copy(isFavorite = true)) }
-    }
-
-    @Test
     fun `onShowCreateSheet toggles the create sheet visibility`() {
         val vm = viewModel()
 

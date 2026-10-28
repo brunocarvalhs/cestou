@@ -4,4 +4,6 @@
     <string name="ai_chat_settings_content_description">Configurações</string>
     <string name="ai_chat_keyboard_content_description">Mostrar teclado</string>
     <string name="ai_chat_upgrade_banner">Você já usou sua mensagem grátis. Assine o Cestou Pro para continuar conversando.</string>
+    <string name="ai_chat_error_network">Não consegui me conectar à internet agora. Verifique sua conexão e tente novamente em instantes.</string>
+    <string name="ai_chat_error_generic">Não consegui entender ou processar seu pedido agora. Pode tentar reformular a mensagem?</string>
 </resources>

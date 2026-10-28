@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.navigation
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -17,7 +18,6 @@ import br.com.brunocarvalhs.howmuch.feature.settings.presentation.screen.Notific
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.screen.OpenSourceLicensesScreen
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.screen.PlaceholderSettingsScreen
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.screen.ReleaseNotesScreen
-import br.com.brunocarvalhs.howmuch.feature.settings.presentation.screen.SettingsScreen
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.screen.ShoppingSettingsScreen
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.screen.ThemeSettingsScreen
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.AiSettingsViewModel
@@ -37,17 +37,6 @@ fun NavGraphBuilder.settingsGraph(
 }
 
 private fun NavGraphBuilder.generalSettings(navigator: Navigator) {
-    composable<Settings> {
-        val viewModel: SettingsViewModel = hiltViewModel()
-        viewModel.setNavigator(navigator)
-        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-        SettingsScreen(
-            state = uiState,
-            intent = viewModel.intent
-        )
-    }
-
     composable<ThemeSettings> {
         val viewModel: ThemeSettingsViewModel = hiltViewModel()
         viewModel.setNavigator(navigator)
@@ -133,26 +122,37 @@ private fun NavGraphBuilder.advancedSettings(navigator: Navigator) {
 private fun NavGraphBuilder.supportSettings(navigator: Navigator) {
     composable<SupportContact> {
         val viewModel: SettingsViewModel = hiltViewModel()
-        viewModel.intent.onSendEmail("Suporte ao Usuário")
-        navigator.goBack()
+        // The side effect + goBack() must run exactly once per visit, not on every
+        // recomposition - calling them directly in the composable body let goBack() fire more
+        // than once in a row, popping past the intended destination (bug reported in profile).
+        LaunchedEffect(Unit) {
+            viewModel.intent.onSendEmail("Suporte ao Usuário")
+            navigator.goBack()
+        }
     }
 
     composable<SupportBugReport> {
         val viewModel: SettingsViewModel = hiltViewModel()
-        viewModel.intent.onSendEmail("Reportar Bug")
-        navigator.goBack()
+        LaunchedEffect(Unit) {
+            viewModel.intent.onSendEmail("Reportar Bug")
+            navigator.goBack()
+        }
     }
 
     composable<SupportFeedback> {
         val viewModel: SettingsViewModel = hiltViewModel()
-        viewModel.intent.onSendEmail("Sugestão/Feedback")
-        navigator.goBack()
+        LaunchedEffect(Unit) {
+            viewModel.intent.onSendEmail("Sugestão/Feedback")
+            navigator.goBack()
+        }
     }
 
     composable<AppRate> {
         val viewModel: SettingsViewModel = hiltViewModel()
-        viewModel.intent.onOpenUrl("https://play.google.com/store/apps/details?id=br.com.brunocarvalhs.howmuch")
-        navigator.goBack()
+        LaunchedEffect(Unit) {
+            viewModel.intent.onOpenUrl("https://play.google.com/store/apps/details?id=br.com.brunocarvalhs.howmuch")
+            navigator.goBack()
+        }
     }
 }
 

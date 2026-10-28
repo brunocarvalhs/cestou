@@ -46,6 +46,9 @@ ui-debug.log
 firebase-debug.log
 .firebase/
 
+# Local session notes (never committed, never shared)
+.claude/SESSION-NOTES.md
+
 # Misc
 .DS_Store
 .artifacts

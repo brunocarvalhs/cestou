@@ -198,10 +198,14 @@ internal class ShoppingListViewModel @Inject constructor(
                 is ShoppingAction.Duplicate -> shoppingDuplicateUseCase(action.shopping)
                 is ShoppingAction.ToggleFavorite -> {
                     val shopping = action.shopping
-                    val updated = shopping.copy(isFavorite = !shopping.isFavorite)
-                    shoppingUpdateUseCase(shopping.id, updated)
+                    shoppingUpdateUseCase(shopping.id, mapOf("isFavorite" to !shopping.isFavorite))
                 }
-                is ShoppingAction.Update -> shoppingUpdateUseCase(action.shopping.id, action.shopping)
+                // Only ever dispatched with status = FINISH (quick-finish from the list row, see
+                // ShoppingScreen's onFinishClick), so only that field is written.
+                is ShoppingAction.Update -> shoppingUpdateUseCase(
+                    action.shopping.id,
+                    mapOf("status" to action.shopping.status.name)
+                )
                 is ShoppingAction.Reopen -> shoppingReopenUseCase(action.shopping)
             }
             result.onSuccess {

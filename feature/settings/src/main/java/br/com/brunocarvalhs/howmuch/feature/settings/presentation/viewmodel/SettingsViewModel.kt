@@ -17,16 +17,19 @@ import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material.icons.outlined.PsychologyAlt
 import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.outlined.SmartToy
 import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material.icons.outlined.SupportAgent
+import androidx.compose.material.icons.outlined.Tune
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
-import br.com.brunocarvalhs.howmuch.core.common.BuildConfig
+import br.com.brunocarvalhs.howmuch.core.common.contract.AppVersionProvider
 import br.com.brunocarvalhs.howmuch.core.common.extensions.openBrowser
 import br.com.brunocarvalhs.howmuch.core.common.extensions.openEmail
-import br.com.brunocarvalhs.howmuch.core.domain.model.AiModel
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
@@ -67,13 +70,22 @@ import javax.inject.Inject
 
 internal const val SUPPORT_EMAIL = "brunocarvalhs@outlook.com.br"
 
+internal const val SECTION_ID_GENERAL = "general"
+internal const val SECTION_ID_AI = "ai"
+internal const val SECTION_ID_SHOPPING = "shopping"
+internal const val SECTION_ID_DATA = "data"
+internal const val SECTION_ID_NOTIFICATIONS = "notifications"
+internal const val SECTION_ID_SUPPORT = "support"
+internal const val SECTION_ID_ABOUT = "about"
+
 @HiltViewModel
-internal class SettingsViewModel @Inject constructor(
+class SettingsViewModel @Inject internal constructor(
     @ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val updateLanguageUseCase: UpdateLanguageUseCase,
     private val updateCurrencyUseCase: UpdateCurrencyUseCase,
-    private val analyticsTracker: AnalyticsTracker
+    private val analyticsTracker: AnalyticsTracker,
+    private val appVersionProvider: AppVersionProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -103,7 +115,8 @@ internal class SettingsViewModel @Inject constructor(
                     mapOf(AnalyticsParams.CURRENCY to currency)
                 )
             }
-        })
+        },
+        onToggleSection = { sectionId -> toggleSection(sectionId) })
 
     init {
         analyticsTracker.trackScreenView(screenName = "settings", screenClass = "SettingsViewModel")
@@ -114,6 +127,22 @@ internal class SettingsViewModel @Inject constructor(
         settingsRepository.getSettings().onEach { settings ->
             _uiState.update { it.copy(sections = buildSections(settings)) }
         }.launchIn(viewModelScope)
+    }
+
+    private fun toggleSection(sectionId: String) {
+        val isExpanding = sectionId !in _uiState.value.expandedSectionIds
+        _uiState.update { state ->
+            val expandedSectionIds = state.expandedSectionIds.toMutableSet()
+            if (isExpanding) expandedSectionIds += sectionId else expandedSectionIds -= sectionId
+            state.copy(expandedSectionIds = expandedSectionIds)
+        }
+        analyticsTracker.trackEvent(
+            AnalyticsEvents.SETTINGS_SECTION_TOGGLED,
+            mapOf(
+                AnalyticsParams.SECTION_ID to sectionId,
+                AnalyticsParams.EXPANDED to isExpanding
+            )
+        )
     }
 
     private fun buildSections(settings: AppSettings): List<SettingSection> {
@@ -129,7 +158,9 @@ internal class SettingsViewModel @Inject constructor(
     }
 
     private fun buildGeneralSection(settings: AppSettings) = SettingSection(
-        title = UiText.StringResource(R.string.settings_section_general), items = listOf(
+        id = SECTION_ID_GENERAL,
+        title = UiText.StringResource(R.string.settings_section_general),
+        icon = Icons.Outlined.Tune, items = listOf(
             SettingItem(
                 title = UiText.StringResource(R.string.settings_item_theme),
                 subtitle = when (settings.themeMode) {
@@ -164,12 +195,12 @@ internal class SettingsViewModel @Inject constructor(
     )
 
     private fun buildAiSection(settings: AppSettings) = SettingSection(
-        title = UiText.StringResource(R.string.settings_section_ai), items = listOf(
+        id = SECTION_ID_AI,
+        title = UiText.StringResource(R.string.settings_section_ai),
+        icon = Icons.Outlined.SmartToy, items = listOf(
             SettingItem(
                 title = UiText.StringResource(R.string.settings_item_ai_model),
-                subtitle = UiText.DynamicString(
-                    AiModel.freeModels.find { it.id == settings.aiModel }?.name ?: settings.aiModel
-                ),
+                subtitle = UiText.DynamicString(settings.aiModel),
                 icon = Icons.Outlined.PsychologyAlt,
                 route = AiSettings
             ),
@@ -178,7 +209,9 @@ internal class SettingsViewModel @Inject constructor(
 
     private fun buildShoppingSection(settings: AppSettings) =
         SettingSection(
+            id = SECTION_ID_SHOPPING,
             title = UiText.StringResource(R.string.settings_section_shopping),
+            icon = Icons.Outlined.ShoppingCart,
             items = listOf(
                 SettingItem(
                     title = UiText.StringResource(R.string.settings_item_default_list),
@@ -189,7 +222,9 @@ internal class SettingsViewModel @Inject constructor(
             ))
 
     private fun buildDataSection() = SettingSection(
-        title = UiText.StringResource(R.string.settings_section_data), items = listOf(
+        id = SECTION_ID_DATA,
+        title = UiText.StringResource(R.string.settings_section_data),
+        icon = Icons.Outlined.Storage, items = listOf(
             SettingItem(
                 title = UiText.StringResource(R.string.settings_item_delete_all),
                 subtitle = UiText.StringResource(R.string.settings_item_delete_all_desc),
@@ -200,7 +235,9 @@ internal class SettingsViewModel @Inject constructor(
     )
 
     private fun buildNotificationsSection(settings: AppSettings) = SettingSection(
-        title = UiText.StringResource(R.string.settings_section_notifications), items = listOf(
+        id = SECTION_ID_NOTIFICATIONS,
+        title = UiText.StringResource(R.string.settings_section_notifications),
+        icon = Icons.Outlined.NotificationsActive, items = listOf(
             SettingItem(
                 title = UiText.StringResource(R.string.settings_item_notifications),
                 subtitle = if (settings.notificationsEnabled) {
@@ -215,7 +252,9 @@ internal class SettingsViewModel @Inject constructor(
     )
 
     private fun buildSupportSection() = SettingSection(
-        title = UiText.StringResource(R.string.settings_section_support), items = listOf(
+        id = SECTION_ID_SUPPORT,
+        title = UiText.StringResource(R.string.settings_section_support),
+        icon = Icons.Outlined.SupportAgent, items = listOf(
             SettingItem(
                 title = UiText.StringResource(R.string.settings_item_contact),
                 subtitle = UiText.DynamicString(SUPPORT_EMAIL),
@@ -241,7 +280,9 @@ internal class SettingsViewModel @Inject constructor(
     )
 
     private fun buildAboutSection() = SettingSection(
-        title = UiText.StringResource(R.string.settings_section_about), items = listOf(
+        id = SECTION_ID_ABOUT,
+        title = UiText.StringResource(R.string.settings_section_about),
+        icon = Icons.Outlined.Info, items = listOf(
             SettingItem(
                 title = UiText.StringResource(R.string.settings_item_terms),
                 icon = Icons.Outlined.Description,
@@ -261,7 +302,7 @@ internal class SettingsViewModel @Inject constructor(
                 route = ReleaseNotes
             ), SettingItem(
                 title = UiText.StringResource(R.string.settings_item_version),
-                subtitle = UiText.DynamicString(BuildConfig.VERSION_NAME),
+                subtitle = UiText.DynamicString(appVersionProvider.versionName()),
                 icon = Icons.Outlined.Info,
                 route = null
             )

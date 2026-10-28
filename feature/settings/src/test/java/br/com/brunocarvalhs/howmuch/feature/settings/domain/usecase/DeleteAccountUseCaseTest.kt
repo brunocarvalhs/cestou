@@ -63,6 +63,21 @@ class DeleteAccountUseCaseTest {
     }
 
     @Test
+    fun `invoke does not delete the account when it cannot confirm the list is empty`() = runTest {
+        // Regression for B-25: getAll() used to swallow network failures into an empty list,
+        // so the account (and its profile) got deleted while the lists stayed behind, orphaned.
+        every { authService.currentUser } returns AuthenticatedUser(id = "u1")
+        every { authService.hasRecentLogin() } returns true
+        coEvery { shoppingRepository.getAll() } throws IllegalStateException("offline")
+
+        val result = useCase()
+
+        assertTrue(result.isFailure)
+        coVerify(exactly = 0) { userRepository.deleteProfile(any()) }
+        coVerify(exactly = 0) { authService.deleteAccount() }
+    }
+
+    @Test
     fun `invoke does not delete the account when leaving a shared list fails`() = runTest {
         every { authService.currentUser } returns AuthenticatedUser(id = "u1")
         every { authService.hasRecentLogin() } returns true

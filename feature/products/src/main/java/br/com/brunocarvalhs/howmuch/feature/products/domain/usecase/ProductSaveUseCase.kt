@@ -50,7 +50,8 @@ class ProductSaveUseCase @Inject constructor(
         product: Product,
         shoppingId: String
     ): Result<Unit> {
-        val userId = authService.getOrCreateUserId().id
+        val userId = runCatching { authService.getOrCreateUserId().id }
+            .getOrElse { return Result.failure(it) }
         return save(product, shoppingId, userId)
     }
 

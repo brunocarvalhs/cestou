@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import app.cash.turbine.test
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.services.ReminderScheduler
 import io.mockk.coEvery
@@ -68,6 +69,105 @@ class SettingsRepositoryImplTest {
         }
     }
 
+    // region sdd-006 (B-07): migrating a legacy vendor-named provider to the technical one
+
+    @Test
+    fun `getSettings migrates a legacy vendor-named provider to openrouter for a known model`() = runTest {
+        val stored = mutablePreferencesOf(
+            stringPreferencesKey("ai_provider") to "nvidia",
+            stringPreferencesKey("ai_model") to "nvidia/nemotron-3-ultra"
+        )
+        every { dataStore.data } returns flowOf(stored)
+
+        repository.getSettings().test {
+            assertEquals("openrouter", awaitItem().aiProvider)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `getSettings migrates an unknown legacy provider to openrouter when the model is also unknown`() = runTest {
+        val stored = mutablePreferencesOf(
+            stringPreferencesKey("ai_provider") to "some-old-vendor",
+            stringPreferencesKey("ai_model") to "some/unknown-model"
+        )
+        every { dataStore.data } returns flowOf(stored)
+
+        repository.getSettings().test {
+            assertEquals("openrouter", awaitItem().aiProvider)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `getSettings leaves an already-technical gemini provider untouched`() = runTest {
+        val stored = mutablePreferencesOf(
+            stringPreferencesKey("ai_provider") to "gemini",
+            stringPreferencesKey("ai_model") to "gemini-1.5-pro"
+        )
+        every { dataStore.data } returns flowOf(stored)
+
+        repository.getSettings().test {
+            assertEquals("gemini", awaitItem().aiProvider)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `getSettings migration is idempotent`() = runTest {
+        val stored = mutablePreferencesOf(
+            stringPreferencesKey("ai_provider") to "nvidia",
+            stringPreferencesKey("ai_model") to "nvidia/nemotron-3-ultra"
+        )
+        every { dataStore.data } returns flowOf(stored)
+
+        var firstProvider: String? = null
+        var secondProvider: String? = null
+        repository.getSettings().test {
+            firstProvider = awaitItem().aiProvider
+            awaitComplete()
+        }
+        repository.getSettings().test {
+            secondProvider = awaitItem().aiProvider
+            awaitComplete()
+        }
+
+        assertEquals("openrouter", firstProvider)
+        assertEquals(firstProvider, secondProvider)
+    }
+
+    // endregion
+
+    // region aiModel migration — a stored model id no longer in the catalog resets to the default
+
+    @Test
+    fun `getSettings resets a stale ai_model to the default`() = runTest {
+        val stored = mutablePreferencesOf(
+            stringPreferencesKey("ai_model") to "openrouter/auto"
+        )
+        every { dataStore.data } returns flowOf(stored)
+
+        repository.getSettings().test {
+            assertEquals("openrouter/free", awaitItem().aiModel)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `getSettings keeps a stored ai_model that is still in the catalog`() = runTest {
+        val stored = mutablePreferencesOf(
+            stringPreferencesKey("ai_model") to "cohere/north-mini-code:free"
+        )
+        every { dataStore.data } returns flowOf(stored)
+
+        repository.getSettings().test {
+            assertEquals("cohere/north-mini-code:free", awaitItem().aiModel)
+            awaitComplete()
+        }
+    }
+
+    // endregion
+
     @Test
     fun `getSettings falls back to SYSTEM theme when stored value is invalid`() = runTest {
         val stored = mutablePreferencesOf(stringPreferencesKey("theme_mode") to "NOT_A_THEME")
@@ -79,12 +179,6 @@ class SettingsRepositoryImplTest {
         }
     }
 
-    /**
-     * `DataStore<Preferences>.edit { }` is a real extension that wraps the caller's transform
-     * and delegates to the interface's `updateData`, so the mock has to intercept `updateData`
-     * (not `edit`) and thread the resulting [Preferences] through calls to observe what each
-     * repository method actually wrote.
-     */
     private class FakeDataStore(initial: Preferences) {
         var current: Preferences = initial
         operator fun <T> get(key: Preferences.Key<T>): T? = current[key]
@@ -123,24 +217,18 @@ class SettingsRepositoryImplTest {
     }
 
     @Test
-    fun `updateAiSettings stores model, gemini provider and prompt`() = runTest {
+    fun `updateAiSettings stores model and provider`() = runTest {
         val fake = mockEdit()
 
-        repository.updateAiSettings(model = "google/gemini-2.0-flash-001", prompt = "be concise", creativity = 0.9f)
+        repository.updateAiSettings(
+            tier = AiConfigTier.DEFAULT,
+            model = "google/gemini-2.0-flash-001",
+            creativity = 0.9f,
+            customApiKey = null
+        )
 
         assertEquals("google/gemini-2.0-flash-001", fake[stringPreferencesKey("ai_model")])
         assertEquals("gemini", fake[stringPreferencesKey("ai_provider")])
-        assertEquals("be concise", fake[stringPreferencesKey("custom_prompt")])
-    }
-
-    @Test
-    fun `updateAiSettings removes prompt when null`() = runTest {
-        val fake = mockEdit(initial = mutablePreferencesOf(stringPreferencesKey("custom_prompt") to "old prompt"))
-
-        repository.updateAiSettings(model = "some/model", prompt = null, creativity = 0.5f)
-
-        assertFalse(fake.contains(stringPreferencesKey("custom_prompt")))
-        assertEquals("openrouter", fake[stringPreferencesKey("ai_provider")])
     }
 
     @Test

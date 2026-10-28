@@ -36,6 +36,11 @@ class UserRepositoryImpl @Inject constructor(
     // POST with an id maps to set() (create-or-replace); PUT maps to update(), which fails on a
     // missing document. The e-mail is left out on purpose: users/{uid} is readable by any
     // signed-in user who knows the uid (AD-009).
+    //
+    // FirestoreClient.post() always returns the document id as a String (never a Boolean), so
+    // `response` must match that real return type. Declaring `Boolean::class` here made every
+    // saveProfile() call try (and fail) to decode a Firebase UID string as a boolean, logging a
+    // non-fatal SerializationException on every save even though the result is discarded below.
     override suspend fun saveProfile(user: UserProfile): Result<Unit> = runCatching {
         networkService.make(
             request = NetworkService.NetworkRequest(
@@ -43,7 +48,7 @@ class UserRepositoryImpl @Inject constructor(
                 method = NetworkService.Method.POST,
                 payload = mapOf("id" to user.id, "name" to user.name, "photoUrl" to user.photoUrl)
             ),
-            response = Boolean::class
+            response = String::class
         )
         Unit
     }
