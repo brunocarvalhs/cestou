@@ -56,7 +56,6 @@ internal fun AiSettingsScreen(
 ) {
     var tier by remember(state.aiConfigTier) { mutableStateOf(state.aiConfigTier) }
     var model by remember(state.aiModel) { mutableStateOf(state.aiModel) }
-    var prompt by remember(state.customPrompt) { mutableStateOf(state.customPrompt ?: "") }
     var customApiKey by remember(state.customApiKey) { mutableStateOf(state.customApiKey) }
     var creativity by remember(state.creativityLevel) { mutableFloatStateOf(state.creativityLevel) }
 
@@ -71,7 +70,6 @@ internal fun AiSettingsScreen(
                     intent.onUpdateAiSettings(
                         tier,
                         model,
-                        prompt.ifEmpty { null },
                         creativity,
                         customApiKey.ifEmpty { null }
                     )
@@ -152,17 +150,6 @@ internal fun AiSettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = prompt,
-                onValueChange = { prompt = it },
-                label = { Text(stringResource(R.string.settings_ai_label_custom_prompt)) },
-                placeholder = { Text(stringResource(R.string.settings_ai_placeholder_custom_prompt)) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                minLines = 3
-            )
-
             Text(
                 text = stringResource(R.string.settings_ai_label_creativity, creativity),
                 style = MaterialTheme.typography.bodyMedium,
@@ -181,10 +168,10 @@ internal fun AiSettingsScreen(
                     intent.onUpdateAiSettings(
                         tier,
                         model,
-                        prompt.ifEmpty { null },
                         creativity,
                         customApiKey.ifEmpty { null }
                     )
+                    intent.onBack()
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {

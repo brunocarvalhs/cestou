@@ -10,10 +10,9 @@ internal class UpdateAiSettingsUseCase @Inject constructor(
     suspend operator fun invoke(
         tier: AiConfigTier,
         model: String,
-        prompt: String?,
         creativity: Float,
         customApiKey: String?
     ) {
-        repository.updateAiSettings(tier, model, prompt, creativity, customApiKey)
+        repository.updateAiSettings(tier, model, creativity, customApiKey)
     }
 }

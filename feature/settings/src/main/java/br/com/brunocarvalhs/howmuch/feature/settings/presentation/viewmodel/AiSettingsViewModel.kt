@@ -37,8 +37,8 @@ internal class AiSettingsViewModel @Inject constructor(
     private var _navigator: Navigator? = null
 
     val intent = AiSettingsIntent(
-        onUpdateAiSettings = { tier, model, prompt, creativity, customApiKey ->
-            updateAiSettings(tier, model, prompt, creativity, customApiKey)
+        onUpdateAiSettings = { tier, model, creativity, customApiKey ->
+            updateAiSettings(tier, model, creativity, customApiKey)
         },
         onOpenPaywall = {
             _navigator?.navigate(Paywall(source = "ai_settings"))
@@ -64,7 +64,6 @@ internal class AiSettingsViewModel @Inject constructor(
                     state.copy(
                         aiConfigTier = settings.aiConfigTier,
                         aiModel = modelToUse,
-                        customPrompt = settings.customPrompt,
                         customApiKey = settings.customApiKey ?: "",
                         creativityLevel = settings.creativityLevel
                     )
@@ -85,7 +84,6 @@ internal class AiSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingModels = true) }
             val models = aiModelRepository.getAvailableModels()
-            // Pro users can see all models or free models depending on tier; free users can only use default/free.
             _uiState.update { state ->
                 val currentModel = state.aiModel
                 val modelToUse = if (currentModel.isBlank() && models.isNotEmpty()) {
@@ -105,12 +103,11 @@ internal class AiSettingsViewModel @Inject constructor(
     private fun updateAiSettings(
         tier: AiConfigTier,
         model: String,
-        prompt: String?,
         creativity: Float,
         customApiKey: String?
     ) {
         viewModelScope.launch {
-            updateAiSettingsUseCase(tier, model, prompt, creativity, customApiKey)
+            updateAiSettingsUseCase(tier, model, creativity, customApiKey)
         }
     }
 
