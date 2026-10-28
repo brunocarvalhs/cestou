@@ -65,6 +65,17 @@ class ProductSaveUseCaseTest {
     }
 
     @Test
+    fun `invoke by product returns a failure instead of throwing when there is no session`() = runTest {
+        val product = Product(id = "p1", name = "Milk", quantity = 1.0, price = UNIT_PRICE)
+        coEvery { authService.getOrCreateUserId() } throws IllegalStateException("No authenticated user.")
+
+        val result = useCase(product, "list1")
+
+        assertTrue(result.isFailure)
+        coVerify(exactly = 0) { repository.saveProduct(any(), any()) }
+    }
+
+    @Test
     fun `execute reads name, quantity and price from arguments`() = runTest {
         coEvery { duplicateCheckUseCase("Milk", "list1") } returns null
         coEvery { repository.saveProduct(any(), "list1") } returns Result.success(Unit)

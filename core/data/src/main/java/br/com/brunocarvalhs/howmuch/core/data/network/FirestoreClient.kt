@@ -140,13 +140,23 @@ class FirestoreClient @Inject constructor(
     ): Query {
 
         return when {
-            ARRAY_FIELDS.contains(key) -> ref.whereArrayContains(key, value!!)
-
-            key.endsWith("_contains") -> ref.whereArrayContains(
-                key.removeSuffix("_contains"), value!!
+            ARRAY_FIELDS.contains(key) -> ref.whereArrayContains(
+                key,
+                requireNotNull(value) { "Filtro '$key' requer um valor não nulo para whereArrayContains." }
             )
 
-            value is List<*> -> ref.whereIn(key, value)
+            key.endsWith("_contains") -> ref.whereArrayContains(
+                key.removeSuffix("_contains"),
+                requireNotNull(value) { "Filtro '$key' requer um valor não nulo para whereArrayContains." }
+            )
+
+            value is List<*> -> {
+                require(value.isNotEmpty()) { "Filtro '$key' com whereIn requer uma lista não vazia." }
+                require(value.size <= WHERE_IN_MAX_SIZE) {
+                    "Filtro '$key' com whereIn aceita no máximo $WHERE_IN_MAX_SIZE itens, recebeu ${value.size}."
+                }
+                ref.whereIn(key, value)
+            }
 
             else -> ref.whereEqualTo(key, value)
         }
@@ -257,5 +267,6 @@ class FirestoreClient @Inject constructor(
         private val ARRAY_FIELDS = setOf(
             "users", "roles", "products"
         )
+        private const val WHERE_IN_MAX_SIZE = 30
     }
 }
