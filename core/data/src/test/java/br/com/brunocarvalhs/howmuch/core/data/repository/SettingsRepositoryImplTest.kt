@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import app.cash.turbine.test
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.services.ReminderScheduler
 import io.mockk.coEvery
@@ -229,7 +230,13 @@ class SettingsRepositoryImplTest {
     fun `updateAiSettings stores model, gemini provider and prompt`() = runTest {
         val fake = mockEdit()
 
-        repository.updateAiSettings(model = "google/gemini-2.0-flash-001", prompt = "be concise", creativity = 0.9f)
+        repository.updateAiSettings(
+            tier = AiConfigTier.DEFAULT,
+            model = "google/gemini-2.0-flash-001",
+            prompt = "be concise",
+            creativity = 0.9f,
+            customApiKey = null
+        )
 
         assertEquals("google/gemini-2.0-flash-001", fake[stringPreferencesKey("ai_model")])
         assertEquals("gemini", fake[stringPreferencesKey("ai_provider")])
@@ -240,7 +247,13 @@ class SettingsRepositoryImplTest {
     fun `updateAiSettings removes prompt when null`() = runTest {
         val fake = mockEdit(initial = mutablePreferencesOf(stringPreferencesKey("custom_prompt") to "old prompt"))
 
-        repository.updateAiSettings(model = "some/model", prompt = null, creativity = 0.5f)
+        repository.updateAiSettings(
+            tier = AiConfigTier.DEFAULT,
+            model = "some/model",
+            prompt = null,
+            creativity = 0.5f,
+            customApiKey = null
+        )
 
         assertFalse(fake.contains(stringPreferencesKey("custom_prompt")))
         assertEquals("openrouter", fake[stringPreferencesKey("ai_provider")])

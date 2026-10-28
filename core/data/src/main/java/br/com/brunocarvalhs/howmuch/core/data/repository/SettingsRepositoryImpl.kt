@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiModel
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
@@ -29,9 +30,11 @@ private object PreferencesKeys {
     val THEME_MODE = stringPreferencesKey("theme_mode")
     val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
     val REMINDER_TIME = stringPreferencesKey("reminder_time")
+    val AI_CONFIG_TIER = stringPreferencesKey("ai_config_tier")
     val AI_PROVIDER = stringPreferencesKey("ai_provider")
     val AI_MODEL = stringPreferencesKey("ai_model")
     val CUSTOM_PROMPT = stringPreferencesKey("custom_prompt")
+    val CUSTOM_API_KEY = stringPreferencesKey("custom_api_key")
     val CREATIVITY_LEVEL = floatPreferencesKey("creativity_level")
     val DEFAULT_LIST_ID = stringPreferencesKey("default_list_id")
     val SORTING_MODE = stringPreferencesKey("sorting_mode")
@@ -45,6 +48,11 @@ private fun Preferences.toAppSettings(): AppSettings {
         ThemeMode.valueOf(this[PreferencesKeys.THEME_MODE] ?: ThemeMode.SYSTEM.name)
     } catch (e: IllegalArgumentException) {
         ThemeMode.SYSTEM
+    }
+    val aiConfigTier = try {
+        AiConfigTier.valueOf(this[PreferencesKeys.AI_CONFIG_TIER] ?: AiConfigTier.DEFAULT.name)
+    } catch (e: IllegalArgumentException) {
+        AiConfigTier.DEFAULT
     }
     // Um `ai_model` salvo que não está mais no catálogo atual é de uma versão antiga do app
     // (único jeito de escolher um modelo é o dropdown em AiSettingsScreen, não há texto livre) —
@@ -61,9 +69,11 @@ private fun Preferences.toAppSettings(): AppSettings {
         themeMode = themeMode,
         notificationsEnabled = this[PreferencesKeys.NOTIFICATIONS_ENABLED] ?: true,
         reminderTime = this[PreferencesKeys.REMINDER_TIME] ?: "18:00",
+        aiConfigTier = aiConfigTier,
         aiProvider = resolveStoredAiProvider(this[PreferencesKeys.AI_PROVIDER], aiModel),
         aiModel = aiModel,
         customPrompt = this[PreferencesKeys.CUSTOM_PROMPT],
+        customApiKey = this[PreferencesKeys.CUSTOM_API_KEY],
         creativityLevel = this[PreferencesKeys.CREATIVITY_LEVEL] ?: 0.7f,
         defaultListId = this[PreferencesKeys.DEFAULT_LIST_ID],
         sortingMode = this[PreferencesKeys.SORTING_MODE] ?: "CATEGORY",
@@ -122,8 +132,15 @@ internal class SettingsRepositoryImpl @Inject constructor(
         reminderScheduler.sync(getSettings().first())
     }
 
-    override suspend fun updateAiSettings(model: String, prompt: String?, creativity: Float) {
+    override suspend fun updateAiSettings(
+        tier: AiConfigTier,
+        model: String,
+        prompt: String?,
+        creativity: Float,
+        customApiKey: String?
+    ) {
         dataStore.edit { preferences ->
+            preferences[PreferencesKeys.AI_CONFIG_TIER] = tier.name
             preferences[PreferencesKeys.AI_MODEL] = model
             preferences[PreferencesKeys.AI_PROVIDER] = providerFor(model)
 
@@ -133,6 +150,12 @@ internal class SettingsRepositoryImpl @Inject constructor(
                 preferences.remove(PreferencesKeys.CUSTOM_PROMPT)
             }
             preferences[PreferencesKeys.CREATIVITY_LEVEL] = creativity
+
+            if (customApiKey != null && customApiKey.isNotBlank()) {
+                preferences[PreferencesKeys.CUSTOM_API_KEY] = customApiKey
+            } else {
+                preferences.remove(PreferencesKeys.CUSTOM_API_KEY)
+            }
         }
     }
 
