@@ -13,7 +13,6 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.LinkWearDevice
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingCode
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.intent.ProfileIntent
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.state.ProfileUiState
-import br.com.brunocarvalhs.howmuch.feature.settings.navigation.Settings
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,8 +38,6 @@ internal class ProfileViewModel @Inject constructor(
     }
 
     val intent = ProfileIntent(
-        // Any menu option opens the main Settings screen; sub-routes are internal to feature:settings.
-        onNavigate = { _navigator?.navigate(Settings) },
         onSignOut = { signOut() },
         onLinkWearDevice = { _navigator?.navigate(LinkWearDevice) },
         onLinkMobileDevice = { _navigator?.navigate(PairingCode) }

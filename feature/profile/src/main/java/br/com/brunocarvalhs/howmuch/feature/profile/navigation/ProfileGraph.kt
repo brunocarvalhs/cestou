@@ -5,12 +5,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.ManageSubscription
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.screen.ProfileScreen
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.viewmodel.ProfileSubscriptionViewModel
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.viewmodel.ProfileViewModel
+import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.SettingsViewModel
 
 private const val PAYWALL_SOURCE = "profile"
 
@@ -23,12 +26,24 @@ fun NavGraphBuilder.profileGraph(navigator: Navigator) {
         val subscriptionViewModel: ProfileSubscriptionViewModel = hiltViewModel()
         val subscriptionStatus by subscriptionViewModel.status.collectAsStateWithLifecycle()
 
+        val settingsViewModel: SettingsViewModel = hiltViewModel()
+        settingsViewModel.setNavigator(navigator)
+        val settingsState by settingsViewModel.uiState.collectAsStateWithLifecycle()
+
         ProfileScreen(
             state = uiState,
             subscriptionStatus = subscriptionStatus,
             intent = viewModel.intent.copy(
-                onManageSubscription = { navigator.navigate(Paywall(source = PAYWALL_SOURCE)) }
-            )
+                onManageSubscription = {
+                    if (subscriptionStatus == SubscriptionStatus.PRO) {
+                        navigator.navigate(ManageSubscription)
+                    } else {
+                        navigator.navigate(Paywall(source = PAYWALL_SOURCE))
+                    }
+                }
+            ),
+            settingsState = settingsState,
+            settingsIntent = settingsViewModel.intent
         )
     }
 }
