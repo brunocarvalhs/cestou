@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
@@ -47,6 +48,7 @@ class MainViewModelTest {
     private val userRepository = mockk<UserRepository> {
         coEvery { saveProfile(any()) } returns Result.success(Unit)
     }
+    private val aiSession = mockk<AiSession>(relaxed = true)
 
     @Before
     fun setup() {
@@ -69,7 +71,13 @@ class MainViewModelTest {
         every { authService.authState } returns authState
         every { authService.currentUser } answers { authState.value }
         return MainViewModel(
-            savedStateHandle, settingsRepository, authService, userRepository, analyticsTracker, wearableSyncService
+            savedStateHandle,
+            settingsRepository,
+            authService,
+            userRepository,
+            analyticsTracker,
+            wearableSyncService,
+            aiSession
         )
     }
 
@@ -89,6 +97,22 @@ class MainViewModelTest {
         viewModel(currentUser = null)
 
         coVerify(exactly = 0) { wearableSyncService.notifySignOut() }
+    }
+
+    @Test
+    fun `signing out clears the shared AiSession history, so the next account doesn't inherit it`() {
+        viewModel(currentUser = AuthenticatedUser(id = "user-1", displayName = "Bruno"))
+
+        authState.value = null
+
+        verify(exactly = 1) { aiSession.clearHistory() }
+    }
+
+    @Test
+    fun `starting signed out does not touch the AiSession history`() {
+        viewModel(currentUser = null)
+
+        verify(exactly = 0) { aiSession.clearHistory() }
     }
 
     @Test

@@ -12,4 +12,13 @@ data class AiAgentSession(
     override val userId: String? = null,
     val locale: Locale = Locale.getDefault(),
     override val history: MutableList<Content> = mutableListOf()
-) : AiSession
+) : AiSession {
+
+    // Fora do construtor de propósito: é um sinal transiente por tentativa de sendMessage, não
+    // um dado de identidade da sessão — não deve entrar em equals/hashCode/copy (sdd-012).
+    override var toolExecutedThisTurn: Boolean = false
+
+    override fun clearHistory() {
+        history.clear()
+    }
+}
