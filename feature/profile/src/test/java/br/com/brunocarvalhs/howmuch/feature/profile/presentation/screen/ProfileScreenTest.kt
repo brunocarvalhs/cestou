@@ -1,17 +1,26 @@
 package br.com.brunocarvalhs.howmuch.feature.profile.presentation.screen
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.profile.R
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.intent.ProfileIntent
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.state.ProfileUiState
+import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.SettingsIntent
+import br.com.brunocarvalhs.howmuch.feature.settings.presentation.state.SettingItem
+import br.com.brunocarvalhs.howmuch.feature.settings.presentation.state.SettingSection
+import br.com.brunocarvalhs.howmuch.feature.settings.presentation.state.SettingsUiState
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,10 +36,8 @@ class ProfileScreenTest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun `renders the profile title and the current user's display name`() {
-        val title = ApplicationProvider.getApplicationContext<android.content.Context>()
-            .getString(R.string.profile_title)
-        val state = ProfileUiState(user = AuthenticatedUser(id = "u1", displayName = "Ana"))
+    fun `renders the current user's display name and email in the header`() {
+        val state = ProfileUiState(user = AuthenticatedUser(id = "u1", displayName = "Ana", email = "ana@example.com"))
 
         composeTestRule.setContent {
             CestouTheme {
@@ -38,27 +45,45 @@ class ProfileScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithText(title).assertExists()
         composeTestRule.onNodeWithText("Ana").assertExists()
+        composeTestRule.onNodeWithText("ana@example.com").assertExists()
     }
 
     @Test
-    fun `tapping the settings icon triggers onNavigate`() {
-        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-        var navigated = false
+    fun `tapping an already expanded settings leaf item delegates to settingsIntent onNavigate`() {
+        var navigatedTo: Any? = null
+        val settingsState = SettingsUiState(
+            sections = listOf(
+                SettingSection(
+                    id = "general",
+                    title = UiText.DynamicString("General"),
+                    icon = Icons.Default.Info,
+                    items = listOf(
+                        SettingItem(
+                            title = UiText.DynamicString("Theme"),
+                            icon = Icons.Default.Info,
+                            route = "theme_route"
+                        )
+                    )
+                )
+            ),
+            expandedSectionIds = setOf("general")
+        )
 
         composeTestRule.setContent {
             CestouTheme {
                 ProfileScreen(
                     state = ProfileUiState(),
-                    intent = ProfileIntent(onNavigate = { navigated = true })
+                    intent = ProfileIntent(),
+                    settingsState = settingsState,
+                    settingsIntent = SettingsIntent(onNavigate = { navigatedTo = it })
                 )
             }
         }
 
-        composeTestRule.onNodeWithContentDescription(context.getString(R.string.profile_settings_content_description))
-            .performClick()
-        assert(navigated)
+        composeTestRule.onNodeWithTag("settings_item_general_0").performScrollTo().performClick()
+
+        assertEquals("theme_route", navigatedTo)
     }
 
     @Test
@@ -81,19 +106,21 @@ class ProfileScreenTest {
     }
 
     @Test
-    fun `a Pro user sees the active subscription badge`() {
+    fun `a Pro user sees the active subscription badge and can tap it to manage the plan`() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        var tapped = false
 
         composeTestRule.setContent {
             CestouTheme {
                 ProfileScreen(
                     state = ProfileUiState(),
-                    intent = ProfileIntent(),
+                    intent = ProfileIntent(onManageSubscription = { tapped = true }),
                     subscriptionStatus = SubscriptionStatus.PRO
                 )
             }
         }
 
-        composeTestRule.onNodeWithText(context.getString(R.string.profile_subscription_pro_subtitle)).assertExists()
+        composeTestRule.onNodeWithText(context.getString(R.string.profile_subscription_pro_subtitle)).performClick()
+        assert(tapped)
     }
 }

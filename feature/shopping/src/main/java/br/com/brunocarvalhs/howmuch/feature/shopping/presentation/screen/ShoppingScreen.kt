@@ -66,8 +66,7 @@ internal fun ShoppingScreen(
     uiState: ShoppingListUiState,
     windowSizeClass: WindowSizeClass,
     intent: ShoppingListIntent,
-    modifier: Modifier = Modifier,
-    onSettings: () -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }

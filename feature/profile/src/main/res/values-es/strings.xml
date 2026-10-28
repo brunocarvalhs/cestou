@@ -1,6 +1,5 @@
 <resources>
     <string name="profile_title">Perfil</string>
-    <string name="profile_settings_content_description">Configuración</string>
     <string name="profile_menu_sign_out">Cerrar Sesión</string>
     <string name="profile_subscription_pro_title">Cestou Pro</string>
     <string name="profile_subscription_pro_subtitle">Suscripción activa</string>
