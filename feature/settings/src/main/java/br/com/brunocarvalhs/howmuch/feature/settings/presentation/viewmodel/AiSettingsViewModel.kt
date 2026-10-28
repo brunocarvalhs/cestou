@@ -84,15 +84,16 @@ internal class AiSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingModels = true) }
             val models = aiModelRepository.getAvailableModels()
+            val freeModels = models.filter { it.isFree }
             _uiState.update { state ->
                 val currentModel = state.aiModel
-                val modelToUse = if (currentModel.isBlank() && models.isNotEmpty()) {
-                    models.first().id
+                val modelToUse = if (currentModel.isBlank() && freeModels.isNotEmpty()) {
+                    freeModels.first().id
                 } else {
                     currentModel.ifBlank { BuildConfig.OPEN_ROUTER_MODEL }
                 }
                 state.copy(
-                    availableModels = models,
+                    availableModels = freeModels,
                     aiModel = modelToUse,
                     isLoadingModels = false
                 )
