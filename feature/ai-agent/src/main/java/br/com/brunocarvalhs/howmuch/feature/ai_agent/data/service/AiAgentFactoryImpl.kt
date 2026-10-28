@@ -5,6 +5,7 @@ import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
@@ -31,10 +32,14 @@ internal class AiAgentFactoryImpl @Inject constructor(
 ) : AiAgentFactory {
 
     override fun create(settings: AppSettings): AiAgent {
-        // Re-read on every call (unlike the @Singleton `by lazy` repositories in
-        // feature/products), so a rotated key here takes effect immediately, without an
-        // app restart.
-        val geminiApiKey = resolveRemoteString(RemoteVariableKeys.GEMINI_API_KEY, BuildConfig.GEMINI_API_KEY)
+        val customKey = settings.customApiKey?.takeIf {
+            settings.aiConfigTier == AiConfigTier.CUSTOM_BYOK && it.isNotBlank()
+        }
+        val geminiApiKey = if (settings.aiProvider == "gemini") {
+            customKey ?: resolveRemoteString(RemoteVariableKeys.GEMINI_API_KEY, BuildConfig.GEMINI_API_KEY)
+        } else {
+            resolveRemoteString(RemoteVariableKeys.GEMINI_API_KEY, BuildConfig.GEMINI_API_KEY)
+        }
         // The behavior prompt is remote so a missed guardrail or scope issue can be tightened
         // instantly for everyone, without waiting on a Play Store rollout.
         val systemPrompt = resolveRemoteString(RemoteVariableKeys.AI_SYSTEM_PROMPT, SystemPrompts.CESTOU_ASSISTANT)
@@ -54,8 +59,11 @@ internal class AiAgentFactoryImpl @Inject constructor(
             modelName = resolveModel(settings, provider = "gemini", default = BuildConfig.GEMINI_AGENT),
             apiKey = geminiApiKey
         ).takeIf { featureFlagService.isEnabled(FeatureFlagKeys.AI_GEMINI_ENABLED, default = true) }
-        val openRouterApiKey =
+        val openRouterApiKey = if (settings.aiProvider == "openrouter") {
+            customKey ?: resolveRemoteString(RemoteVariableKeys.OPEN_ROUTER_API_KEY, BuildConfig.OPEN_ROUTER_API_KEY)
+        } else {
             resolveRemoteString(RemoteVariableKeys.OPEN_ROUTER_API_KEY, BuildConfig.OPEN_ROUTER_API_KEY)
+        }
         val openRouter = OpenRouterAiAgent(
             dependencies = dependencies,
             model = resolveModel(settings, provider = "openrouter", default = BuildConfig.OPEN_ROUTER_MODEL),

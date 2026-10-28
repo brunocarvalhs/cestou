@@ -3,9 +3,13 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.common.BuildConfig
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
+import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiModelRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateAiSettingsUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.AiSettingsIntent
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.state.AiSettingsUiState
@@ -23,6 +27,7 @@ import javax.inject.Inject
 internal class AiSettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val aiModelRepository: AiModelRepository,
+    private val subscriptionRepository: SubscriptionRepository,
     private val updateAiSettingsUseCase: UpdateAiSettingsUseCase
 ) : ViewModel() {
 
@@ -32,12 +37,18 @@ internal class AiSettingsViewModel @Inject constructor(
     private var _navigator: Navigator? = null
 
     val intent = AiSettingsIntent(
-        onUpdateAiSettings = { model, prompt, creativity -> updateAiSettings(model, prompt, creativity) },
+        onUpdateAiSettings = { tier, model, creativity, customApiKey ->
+            updateAiSettings(tier, model, creativity, customApiKey)
+        },
+        onOpenPaywall = {
+            _navigator?.navigate(Paywall(source = "ai_settings"))
+        },
         onBack = { _navigator?.goBack() }
     )
 
     init {
         observeSettings()
+        observeSubscription()
         loadModels()
     }
 
@@ -51,11 +62,20 @@ internal class AiSettingsViewModel @Inject constructor(
                         settings.aiModel
                     }
                     state.copy(
+                        aiConfigTier = settings.aiConfigTier,
                         aiModel = modelToUse,
-                        customPrompt = settings.customPrompt,
+                        customApiKey = settings.customApiKey ?: "",
                         creativityLevel = settings.creativityLevel
                     )
                 }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    private fun observeSubscription() {
+        subscriptionRepository.observeStatus()
+            .onEach { status ->
+                _uiState.update { it.copy(subscriptionStatus = status) }
             }
             .launchIn(viewModelScope)
     }
@@ -81,9 +101,14 @@ internal class AiSettingsViewModel @Inject constructor(
         }
     }
 
-    private fun updateAiSettings(model: String, prompt: String?, creativity: Float) {
+    private fun updateAiSettings(
+        tier: AiConfigTier,
+        model: String,
+        creativity: Float,
+        customApiKey: String?
+    ) {
         viewModelScope.launch {
-            updateAiSettingsUseCase(model, prompt, creativity)
+            updateAiSettingsUseCase(tier, model, creativity, customApiKey)
         }
     }
 
