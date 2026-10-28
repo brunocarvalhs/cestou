@@ -7,6 +7,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.common.contract.AppVersionProvider
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.usecase.UpdateLanguageUseCase
@@ -49,6 +50,7 @@ class SettingsViewModelTest {
     private val updateCurrencyUseCase = mockk<UpdateCurrencyUseCase>(relaxed = true)
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val navigator = mockk<Navigator>(relaxed = true)
+    private val appVersionProvider = mockk<AppVersionProvider> { every { versionName() } returns "2.2.1" }
 
     private fun viewModel(): SettingsViewModel {
         every { settingsRepository.getSettings() } returns flowOf(AppSettings())
@@ -57,7 +59,8 @@ class SettingsViewModelTest {
             settingsRepository,
             updateLanguageUseCase,
             updateCurrencyUseCase,
-            analyticsTracker
+            analyticsTracker,
+            appVersionProvider
         ).also {
             it.setNavigator(navigator)
         }
@@ -115,6 +118,17 @@ class SettingsViewModelTest {
         vm.intent.onBack()
 
         verify { navigator.goBack() }
+    }
+
+    @Test
+    fun `version item shows the real installed app version, not a hardcoded placeholder`() {
+        val vm = viewModel()
+
+        // The "version" row is the only leaf item with no route (nothing to navigate to).
+        val versionItem = vm.uiState.value.sections.flatMap { it.items }.single { it.route == null }
+
+        assertEquals(UiText.DynamicString("2.2.1"), versionItem.subtitle)
+        verify { appVersionProvider.versionName() }
     }
 
     @Test

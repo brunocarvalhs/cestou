@@ -33,7 +33,6 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
-import br.com.brunocarvalhs.howmuch.feature.settings.navigation.Settings
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.EditShoppingContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.JoinListContent
@@ -63,8 +62,7 @@ fun NavGraphBuilder.shoppingGraph(
         ShoppingScreen(
             uiState = uiState,
             windowSizeClass = windowSizeClass,
-            intent = viewModel.intent,
-            onSettings = { navigator.navigate(route = Settings) },
+            intent = viewModel.intent
         )
     }
 

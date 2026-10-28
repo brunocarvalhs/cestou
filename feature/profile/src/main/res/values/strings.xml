@@ -1,6 +1,5 @@
 <resources>
     <string name="profile_title">Profile</string>
-    <string name="profile_settings_content_description">Settings</string>
     <string name="profile_menu_sign_out">Sign Out</string>
     <string name="profile_subscription_pro_title">Cestou Pro</string>
     <string name="profile_subscription_pro_subtitle">Active subscription</string>

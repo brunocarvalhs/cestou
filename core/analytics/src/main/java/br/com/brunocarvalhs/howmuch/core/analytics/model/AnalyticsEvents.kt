@@ -32,6 +32,7 @@ object AnalyticsEvents {
 
     const val SETTINGS_LANGUAGE_CHANGED = "settings_language_changed"
     const val SETTINGS_CURRENCY_CHANGED = "settings_currency_changed"
+    const val SETTINGS_SECTION_TOGGLED = "settings_section_toggled"
 
     const val AUTH_SIGN_IN_FAILED = "auth_sign_in_failed"
     const val AUTH_SIGN_UP_FAILED = "auth_sign_up_failed"
@@ -44,6 +45,7 @@ object AnalyticsEvents {
 
     const val PAYWALL_SUBSCRIBE_CLICKED = "paywall_subscribe_clicked"
     const val PAYWALL_PURCHASE_FAILED = "paywall_purchase_failed"
+    const val MANAGE_SUBSCRIPTION_PLAY_STORE_OPENED = "manage_subscription_play_store_opened"
 }
 
 /**
@@ -63,4 +65,6 @@ object AnalyticsParams {
     const val AMOUNT = "amount"
     const val ITEMS_COUNT = "items_count"
     const val SOURCE = "source"
+    const val SECTION_ID = "section_id"
+    const val EXPANDED = "expanded"
 }

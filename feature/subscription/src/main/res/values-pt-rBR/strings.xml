@@ -11,4 +11,8 @@
     <string name="paywall_subscribe_button_no_price">Assinar</string>
     <string name="paywall_already_pro">Você já é assinante Pro.</string>
     <string name="paywall_error_prefix">Falha na compra: %1$s</string>
+    <string name="manage_subscription_headline">Você é assinante Pro</string>
+    <string name="manage_subscription_price">%1$s/mês, cobrado pelo Google Play</string>
+    <string name="manage_subscription_play_store_button">Gerenciar no Google Play</string>
+    <string name="manage_subscription_play_store_hint">Cancele ou altere seu plano quando quiser pelo Google Play — o Cestou nunca guarda seus dados de pagamento.</string>
 </resources>

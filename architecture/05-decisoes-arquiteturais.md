@@ -1,4 +1,4 @@
-# 05 — Decisões de arquitetura (AD-001 a AD-012)
+# 05 — Decisões de arquitetura (AD-001 a AD-013)
 
 > Registro das decisões de arquitetura citadas no código (`AD-0xx` em comentários de `.kt` e em `firestore.rules`). Este arquivo preserva o texto original da seção "Decisions" de `.specs/STATE.md`, removido no branch `chore/sdd` (commit `ddf8fb57`). O texto está em inglês porque é transcrito sem edição, para não alterar o raciocínio registrado. O histórico completo continua em `git show develop:.specs/STATE.md`.
 >
@@ -284,4 +284,43 @@
      which also backfills existing Google accounts.
 - **Not done here**: phone sign-in (phase 2), `firestore.rules` name check (waits for the AD-009
   deploy), Maestro flows (no device in this session), re-auth before deleting an e-mail account.
+
+### AD-013
+- **Decision** (`sdd-011-perfil-configuracoes-unificado`, 2026-10-27): merge `feature:settings`'s
+  content into `feature:profile`'s Profile screen as an inline, non-exclusive accordion, instead
+  of navigating to a separate full-screen `Settings` route.
+  1. **Removed the public `Settings` NavKey** (`feature/settings/navigation/Settings.kt`) and the
+     full-screen `SettingsScreen` composable it rendered — both dead once the Profile tab hosts the
+     sections inline. `SettingsScreen.kt` now exposes a public `SettingsSectionsList` composable
+     (accordion, non-exclusive expand/collapse) consumed by both `feature:settings`'s own
+     `SettingsViewModel` and `feature:profile`'s new `ProfileSettingsSection`.
+  2. **Widened `feature:settings`'s public surface**: `SettingsViewModel`, `SettingsUiState`,
+     `SettingSection` (now carries a stable `id: String`), `SettingItem` and `SettingsIntent` went
+     from `internal` to `public` so `feature:profile` can resolve `SettingsViewModel` via
+     `hiltViewModel()` inside its own `composable<Profile>` block (same pattern already used for
+     `ProfileSubscriptionViewModel`) and render its state/intent. This **deepens** the pre-existing
+     `feature:profile` → `feature:settings` Gradle dependency (`feature/profile/build.gradle.kts`)
+     from "one NavKey" to "ViewModel + state + composable" — not a new violation of AGENTS.md §2
+     ("features não dependem umas das outras diretamente"), but a widening of an exception already
+     in place before this task.
+  3. **Second consumer found during implementation, not caught by the plan's static search**:
+     `feature:shopping`'s `ShoppingGraph.kt` also referenced the `Settings` NavKey
+     (`onSettings = { navigator.navigate(route = Settings) }`), wired from `ShoppingScreen`'s
+     unused `onSettings` parameter. Neither `ShoppingScreen` nor `ShoppingHeader` ever invoked that
+     parameter from their composed UI (no gear icon existed in the rendered tree) — confirmed dead
+     before removing it alongside the `Settings` NavKey.
+- **Reason**: The accordion is a categorization device, not an exclusivity device (confirmed with
+  the user: "o accordion é para categorizar") — hence `expandedSectionIds: Set<String>` rather than
+  a single selected section. The expanded state survives returning from a sub-screen because the
+  Profile tab's `SettingsViewModel` instance (scoped to the NavGraph entry) isn't recreated, keeping
+  the UX the user asked for ("a ideia é manter, uma experiência boa").
+- **Trade-off**: `feature:settings`'s public surface is now larger, which makes future indirect
+  coupling from a third feature easier to introduce by accident. Mitigated only by code review
+  discipline (AGENTS.md §6.7), not by a compiler boundary.
+- **Scope**: `feature:settings` (navigation, presentation/{state,intent,viewmodel,screen}),
+  `feature:profile` (new `presentation/components/ProfileSettingsSection.kt`, `ProfileScreen`,
+  `ProfileIntent`, `ProfileViewModel`, `ProfileGraph`), `feature:shopping` (`ShoppingGraph.kt`,
+  `ShoppingScreen.kt` — dead-code cleanup tied to the `Settings` NavKey removal),
+  `core:analytics` (new `SETTINGS_SECTION_TOGGLED` event + `SECTION_ID`/`EXPANDED` params).
+- **Status**: active.
 
