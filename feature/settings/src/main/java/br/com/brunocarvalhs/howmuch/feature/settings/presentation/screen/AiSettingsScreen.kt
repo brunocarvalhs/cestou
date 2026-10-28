@@ -81,7 +81,7 @@ internal fun AiSettingsScreen(
                     onExpandedChange = { showModelDropdown = !showModelDropdown }
                 ) {
                     OutlinedTextField(
-                        value = AiModel.freeModels.find { it.id == model }?.name ?: model,
+                        value = state.availableModels.find { it.id == model }?.name ?: model,
                         onValueChange = {},
                         readOnly = true,
                         label = { Text(stringResource(R.string.settings_ai_label_model)) },
@@ -101,7 +101,7 @@ internal fun AiSettingsScreen(
                         expanded = showModelDropdown,
                         onDismissRequest = { showModelDropdown = false }
                     ) {
-                        AiModel.freeModels.forEach { aiModel ->
+                        state.availableModels.forEach { aiModel ->
                             DropdownMenuItem(
                                 text = {
                                     Column {
@@ -170,7 +170,10 @@ private fun AiSettingsScreenCustomizedPreview() {
     CestouTheme {
         AiSettingsScreen(
             state = AiSettingsUiState(
-                aiModel = AiModel.freeModels.first().id,
+                aiModel = "openrouter/free",
+                availableModels = listOf(
+                    AiModel("openrouter/free", "OpenRouter Free Router", vendor = "OpenRouter")
+                ),
                 customPrompt = "Sempre responda de forma breve e direta.",
                 creativityLevel = 0.9f
             ),

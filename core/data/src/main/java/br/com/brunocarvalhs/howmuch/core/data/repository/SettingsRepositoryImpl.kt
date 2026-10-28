@@ -21,6 +21,10 @@ import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
 
+// Mantido em sincronia manualmente com AppSettings.aiModel (core:domain não pode referenciar
+// core:data, e vice-versa só por esta constante não compensaria o acoplamento extra).
+private const val DEFAULT_AI_MODEL = "openrouter/free"
+
 private object PreferencesKeys {
     val THEME_MODE = stringPreferencesKey("theme_mode")
     val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
@@ -42,7 +46,16 @@ private fun Preferences.toAppSettings(): AppSettings {
     } catch (e: IllegalArgumentException) {
         ThemeMode.SYSTEM
     }
-    val aiModel = this[PreferencesKeys.AI_MODEL] ?: "openrouter/auto"
+    // Um `ai_model` salvo que não está mais no catálogo atual é de uma versão antiga do app
+    // (único jeito de escolher um modelo é o dropdown em AiSettingsScreen, não há texto livre) —
+    // tipicamente "openrouter/auto", que nunca foi de graça (é o Auto Router pago do
+    // OpenRouter) e por isso sempre batia 402 pra quem nunca trocou o modelo manualmente.
+    val storedModel = this[PreferencesKeys.AI_MODEL]
+    val aiModel = if (storedModel.isNullOrBlank() || storedModel == "openrouter/auto") {
+        DEFAULT_AI_MODEL
+    } else {
+        storedModel
+    }
 
     return AppSettings(
         themeMode = themeMode,
@@ -77,8 +90,7 @@ private fun resolveStoredAiProvider(storedProvider: String?, aiModel: String): S
  * ser escolhido fora do catálogo atual, ex. via `aiModel` definido em outra tela).
  */
 private fun providerFor(model: String): String =
-    AiModel.freeModels.find { it.id == model }?.provider
-        ?: if (model.contains("gemini")) "gemini" else "openrouter"
+    if (model.contains("gemini")) "gemini" else "openrouter"
 
 internal class SettingsRepositoryImpl @Inject constructor(
     private val dataStore: DataStore<Preferences>,
