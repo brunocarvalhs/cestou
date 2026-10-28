@@ -10,6 +10,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.usecase.ProductsUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
+import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -21,6 +22,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -99,6 +101,18 @@ class ConfirmItemViewModelTest {
 
         viewModel.onConfirmPurchased(product, price = CONFIRMED_PRICE, quantity = 2.0)
 
+        verify(exactly = 0) { navigator.goBack() }
+    }
+
+    @Test
+    fun `onConfirmPurchased surfaces an error instead of throwing when there is no session`() = runTest {
+        coEvery { authService.getOrCreateUserId() } throws IllegalStateException("No authenticated user.")
+
+        viewModel.onConfirmPurchased(product, price = CONFIRMED_PRICE, quantity = 2.0)
+
+        assertEquals(false, viewModel.uiState.value.isLoading)
+        assertEquals("No authenticated user.", (viewModel.uiState.value.error as UiText.DynamicString).value)
+        coVerify(exactly = 0) { useCase.update(any(), any()) }
         verify(exactly = 0) { navigator.goBack() }
     }
 }

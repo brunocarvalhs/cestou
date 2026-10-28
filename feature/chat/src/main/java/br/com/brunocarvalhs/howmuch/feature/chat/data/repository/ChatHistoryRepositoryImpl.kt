@@ -17,7 +17,7 @@ internal class ChatHistoryRepositoryImpl @Inject constructor(
     override suspend fun load(shoppingId: String): List<ChatMessage> =
         storageService.get<ChatHistoryModel>(key(shoppingId))
             ?.messages
-            ?.map { it.toDomain() }
+            ?.mapNotNull { it.toDomain() }
             ?: emptyList()
 
     override suspend fun save(shoppingId: String, messages: List<ChatMessage>) {
