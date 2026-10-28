@@ -1,6 +1,9 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent
 
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
+
 internal data class AiSettingsIntent(
-    val onUpdateAiSettings: (String, String?, Float) -> Unit = { _, _, _ -> },
+    val onUpdateAiSettings: (AiConfigTier, String, Float, String?) -> Unit = { _, _, _, _ -> },
+    val onOpenPaywall: () -> Unit = {},
     val onBack: () -> Unit = {}
 )

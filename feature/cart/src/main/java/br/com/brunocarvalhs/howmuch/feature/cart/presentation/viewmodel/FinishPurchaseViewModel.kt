@@ -11,8 +11,15 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepositor
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
+import br.com.brunocarvalhs.howmuch.feature.cart.R
+import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.FinishPurchaseUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
@@ -30,6 +37,9 @@ internal class FinishPurchaseViewModel @Inject constructor(
 
     private var _navigator: Navigator? = null
 
+    private val _uiState = MutableStateFlow(FinishPurchaseUiState())
+    val uiState: StateFlow<FinishPurchaseUiState> = _uiState.asStateFlow()
+
     init {
         analyticsTracker.trackScreenView(screenName = "cart_finish_purchase", screenClass = "FinishPurchaseViewModel")
     }
@@ -38,23 +48,42 @@ internal class FinishPurchaseViewModel @Inject constructor(
         _navigator = navigator
     }
 
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
+    }
+
     fun onFinishPurchase(shopping: Shopping, price: Double, establishment: String) {
         viewModelScope.launch {
-            val updatedShopping = shopping.copy(
-                price = price,
-                description = establishment,
-                status = Shopping.Status.FINISH
-            )
-            repository.update(updatedShopping)
-            analyticsTracker.trackEvent(
-                AnalyticsEvents.CART_FINISH_PURCHASE_COMPLETED,
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            // Partial write: status/price/establishment only. `description` is never touched here
+            // (it used to be overwritten with the establishment name) and no other member's
+            // concurrent edit to this list is clobbered.
+            repository.updateFields(
+                shopping.id,
                 mapOf(
-                    AnalyticsParams.SHOPPING_ID to shopping.id,
-                    AnalyticsParams.AMOUNT to price
+                    "status" to Shopping.Status.FINISH.name,
+                    "price" to price,
+                    "establishment" to establishment
                 )
-            )
-            notifyOtherMembers(updatedShopping)
-            _navigator?.goBack()
+            ).onSuccess {
+                analyticsTracker.trackEvent(
+                    AnalyticsEvents.CART_FINISH_PURCHASE_COMPLETED,
+                    mapOf(
+                        AnalyticsParams.SHOPPING_ID to shopping.id,
+                        AnalyticsParams.AMOUNT to price
+                    )
+                )
+                notifyOtherMembers(shopping)
+                _uiState.update { it.copy(isLoading = false) }
+                _navigator?.goBack()
+            }.onFailure {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = UiText.StringResource(R.string.cart_error_finish_purchase)
+                    )
+                }
+            }
         }
     }
 

@@ -6,6 +6,7 @@
     <string name="cart_assistant_status">En línea • IA activa</string>
     <string name="cart_assistant_title">Asistente Cestou</string>
     <string name="cart_checkout">Finalizar</string>
+    <string name="cart_error_finish_purchase">No se pudo finalizar la compra. Inténtalo de nuevo.</string>
     <string name="cart_item_delete_description">Eliminar artículo</string>
     <string name="cart_item_quantity_price">%1$d ud. • %2$s c/u</string>
     <string name="shopping_list_confirm_item_title">Confirmar Artículo</string>

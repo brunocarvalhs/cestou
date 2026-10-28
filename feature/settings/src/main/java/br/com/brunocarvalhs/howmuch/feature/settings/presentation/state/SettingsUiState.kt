@@ -5,18 +5,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 
 @Stable
-internal data class SettingsUiState(
-    val sections: List<SettingSection> = emptyList()
+data class SettingsUiState(
+    val sections: List<SettingSection> = emptyList(),
+    val expandedSectionIds: Set<String> = emptySet()
 )
 
 @Stable
-internal data class SettingSection(
+data class SettingSection(
+    val id: String,
     val title: UiText,
+    val icon: ImageVector,
     val items: List<SettingItem>
 )
 
 @Stable
-internal data class SettingItem(
+data class SettingItem(
     val title: UiText,
     val subtitle: UiText? = null,
     val icon: ImageVector,

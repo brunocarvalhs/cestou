@@ -6,8 +6,6 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
-import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.settings.navigation.Settings
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -32,7 +30,6 @@ class ProfileViewModelTest {
     private val authService = mockk<AuthService>()
     private val userRepository = mockk<UserRepository>()
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
-    private val navigator = mockk<Navigator>(relaxed = true)
 
     @Before
     fun setup() {
@@ -85,17 +82,6 @@ class ProfileViewModelTest {
         ProfileViewModel(authService, userRepository, analyticsTracker)
 
         io.mockk.verify(exactly = 0) { userRepository.getUserProfile(any()) }
-    }
-
-    @Test
-    fun `onNavigate opens the Settings screen`() {
-        every { authService.currentUser } returns null
-        val vm = ProfileViewModel(authService, userRepository, analyticsTracker)
-        vm.setNavigator(navigator)
-
-        vm.intent.onNavigate(Unit)
-
-        verify { navigator.navigate(Settings) }
     }
 
     @Test

@@ -5,6 +5,7 @@ import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
@@ -31,10 +32,14 @@ internal class AiAgentFactoryImpl @Inject constructor(
 ) : AiAgentFactory {
 
     override fun create(settings: AppSettings): AiAgent {
-        // Re-read on every call (unlike the @Singleton `by lazy` repositories in
-        // feature/products), so a rotated key here takes effect immediately, without an
-        // app restart.
-        val geminiApiKey = resolveRemoteString(RemoteVariableKeys.GEMINI_API_KEY, BuildConfig.GEMINI_API_KEY)
+        val customKey = settings.customApiKey?.takeIf {
+            settings.aiConfigTier == AiConfigTier.CUSTOM_BYOK && it.isNotBlank()
+        }
+        val geminiApiKey = if (settings.aiProvider == "gemini") {
+            customKey ?: resolveRemoteString(RemoteVariableKeys.GEMINI_API_KEY, BuildConfig.GEMINI_API_KEY)
+        } else {
+            resolveRemoteString(RemoteVariableKeys.GEMINI_API_KEY, BuildConfig.GEMINI_API_KEY)
+        }
         // The behavior prompt is remote so a missed guardrail or scope issue can be tightened
         // instantly for everyone, without waiting on a Play Store rollout.
         val systemPrompt = resolveRemoteString(RemoteVariableKeys.AI_SYSTEM_PROMPT, SystemPrompts.CESTOU_ASSISTANT)
@@ -54,8 +59,11 @@ internal class AiAgentFactoryImpl @Inject constructor(
             modelName = resolveModel(settings, provider = "gemini", default = BuildConfig.GEMINI_AGENT),
             apiKey = geminiApiKey
         ).takeIf { featureFlagService.isEnabled(FeatureFlagKeys.AI_GEMINI_ENABLED, default = true) }
-        val openRouterApiKey =
+        val openRouterApiKey = if (settings.aiProvider == "openrouter") {
+            customKey ?: resolveRemoteString(RemoteVariableKeys.OPEN_ROUTER_API_KEY, BuildConfig.OPEN_ROUTER_API_KEY)
+        } else {
             resolveRemoteString(RemoteVariableKeys.OPEN_ROUTER_API_KEY, BuildConfig.OPEN_ROUTER_API_KEY)
+        }
         val openRouter = OpenRouterAiAgent(
             dependencies = dependencies,
             model = resolveModel(settings, provider = "openrouter", default = BuildConfig.OPEN_ROUTER_MODEL),
@@ -81,15 +89,25 @@ internal class AiAgentFactoryImpl @Inject constructor(
     private fun resolveModel(settings: AppSettings, provider: String, default: String): String =
         settings.aiModel.takeIf { settings.aiProvider == provider && it.isNotBlank() } ?: default
 
-    private fun selectAgent(provider: String, gemini: AiAgent?, openRouter: AiAgent?): AiAgent =
-        when (provider) {
-            "gemini" -> gemini ?: openRouter ?: NoAiProviderAvailableAgent
-            "openrouter" -> openRouter ?: gemini ?: NoAiProviderAvailableAgent
-            else -> when {
-                openRouter != null && gemini != null -> FallbackAiAgent(openRouter, gemini)
-                openRouter != null -> openRouter
-                gemini != null -> gemini
-                else -> NoAiProviderAvailableAgent
-            }
+    /**
+     * [provider] só decide a ORDEM de preferência entre os dois SDKs, não se há retentativa: se
+     * os dois estiverem disponíveis, a escolha explícita do usuário continua indo primeiro, mas
+     * sempre envolta em [FallbackAiAgent] — sem isso, uma falha de transporte no provider
+     * explicitamente escolhido nunca tentaria o outro (sdd-006, B-08). Antes desta correção, só o
+     * branch `else` (hoje inalcançável depois do fix de B-07, que fazia quase todo modelo cair
+     * aqui por acidente) usava fallback; os branches explícitos só cobriam feature flag desligada.
+     */
+    private fun selectAgent(provider: String, gemini: AiAgent?, openRouter: AiAgent?): AiAgent {
+        val (primary, secondary) = when (provider) {
+            "gemini" -> gemini to openRouter
+            "openrouter" -> openRouter to gemini
+            else -> openRouter to gemini
         }
+        return when {
+            primary != null && secondary != null -> FallbackAiAgent(primary, secondary, session)
+            primary != null -> primary
+            secondary != null -> secondary
+            else -> NoAiProviderAvailableAgent
+        }
+    }
 }

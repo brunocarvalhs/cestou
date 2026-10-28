@@ -50,7 +50,9 @@ internal fun ProductScreen(
     // reappear behind it.
     val canNavigateBack = navBackStackEntry?.destination?.route == Options.PHOTO.name
 
-    val viewModelStoreOwner = LocalViewModelStoreOwner.current!!
+    val viewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current) {
+        "ProductScreen requires a LocalViewModelStoreOwner in the composition."
+    }
     val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(

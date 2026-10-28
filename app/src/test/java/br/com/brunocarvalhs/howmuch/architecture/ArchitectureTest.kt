@@ -156,8 +156,19 @@ class ArchitectureTest {
 
         val NON_CODE_PREFIXES = listOf("import ", "package ", "//", "*", "/*")
 
-        // Audit item 2 (phase 2): shared UI/resources/use cases still owned by another feature.
-        val KNOWN_FEATURE_TO_FEATURE = emptySet<String>()
+        // sdd-011 / AD-013: Profile merges Settings' accordion inline instead of navigating to a
+        // separate full-screen route, so it now resolves SettingsViewModel (and renders its
+        // state/intent/composable) directly instead of through a NavKey. Deepens the
+        // pre-existing feature:profile -> feature:settings Gradle dependency rather than
+        // introducing a new one.
+        val KNOWN_FEATURE_TO_FEATURE = setOf(
+            "feature.profile.navigation.ProfileGraph -> feature.settings.presentation.viewmodel.SettingsViewModel",
+            "feature.profile.presentation.components.ProfileSettingsSection -> feature.settings.presentation.intent.SettingsIntent",
+            "feature.profile.presentation.components.ProfileSettingsSection -> feature.settings.presentation.screen.SettingsSectionsList",
+            "feature.profile.presentation.components.ProfileSettingsSection -> feature.settings.presentation.state.SettingsUiState",
+            "feature.profile.presentation.screen.ProfileScreen -> feature.settings.presentation.intent.SettingsIntent",
+            "feature.profile.presentation.screen.ProfileScreen -> feature.settings.presentation.state.SettingsUiState",
+        )
 
         // Audit items 6/7 (phase 3): AD-011 port and AI base class outside domain.usecase; app root ViewModel.
         val KNOWN_SUFFIX_PACKAGE = setOf(

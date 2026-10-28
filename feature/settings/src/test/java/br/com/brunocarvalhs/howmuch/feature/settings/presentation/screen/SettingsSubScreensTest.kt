@@ -82,7 +82,7 @@ class SettingsSubScreensTest {
         composeTestRule.setContent {
             CestouTheme {
                 AiSettingsScreen(
-                    state = AiSettingsUiState(aiModel = "gemini", customPrompt = "Seja breve", creativityLevel = 0.5f),
+                    state = AiSettingsUiState(aiModel = "gemini", creativityLevel = 0.5f),
                     intent = AiSettingsIntent()
                 )
             }

@@ -1,8 +1,13 @@
 package br.com.brunocarvalhs.howmuch
 
+import android.content.Intent
+import android.net.Uri
+import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
@@ -27,6 +32,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -42,6 +48,7 @@ class MainViewModelTest {
     private val userRepository = mockk<UserRepository> {
         coEvery { saveProfile(any()) } returns Result.success(Unit)
     }
+    private val aiSession = mockk<AiSession>(relaxed = true)
 
     @Before
     fun setup() {
@@ -55,14 +62,23 @@ class MainViewModelTest {
 
     private fun viewModel(
         settings: AppSettings = AppSettings(),
-        currentUser: AuthenticatedUser? = null
+        currentUser: AuthenticatedUser? = null,
+        savedStateHandle: SavedStateHandle = SavedStateHandle()
     ): MainViewModel {
         val settingsRepository = mockk<SettingsRepository>()
         every { settingsRepository.getSettings() } returns flowOf(settings)
         authState.value = currentUser
         every { authService.authState } returns authState
         every { authService.currentUser } answers { authState.value }
-        return MainViewModel(settingsRepository, authService, userRepository, analyticsTracker, wearableSyncService)
+        return MainViewModel(
+            savedStateHandle,
+            settingsRepository,
+            authService,
+            userRepository,
+            analyticsTracker,
+            wearableSyncService,
+            aiSession
+        )
     }
 
     private val authState = MutableStateFlow<AuthenticatedUser?>(null)
@@ -81,6 +97,22 @@ class MainViewModelTest {
         viewModel(currentUser = null)
 
         coVerify(exactly = 0) { wearableSyncService.notifySignOut() }
+    }
+
+    @Test
+    fun `signing out clears the shared AiSession history, so the next account doesn't inherit it`() {
+        viewModel(currentUser = AuthenticatedUser(id = "user-1", displayName = "Bruno"))
+
+        authState.value = null
+
+        verify(exactly = 1) { aiSession.clearHistory() }
+    }
+
+    @Test
+    fun `starting signed out does not touch the AiSession history`() {
+        viewModel(currentUser = null)
+
+        verify(exactly = 0) { aiSession.clearHistory() }
     }
 
     @Test
@@ -190,6 +222,82 @@ class MainViewModelTest {
         coEvery { userRepository.saveProfile(any()) } returns Result.failure(IllegalStateException("offline"))
 
         viewModel(currentUser = AuthenticatedUser(id = "u1", displayName = "Ana Silva"))
+    }
+
+    // endregion
+
+    // region deep link join token (sdd-004-navigator-deeplink)
+
+    private fun inviteIntent(token: String?, path: List<String> = listOf("join", token.orEmpty())): Intent {
+        val uri = mockk<Uri> {
+            every { host } returns InviteLink.HOST
+            every { pathSegments } returns path
+            every { getQueryParameter("token") } returns null
+        }
+        return mockk {
+            every { action } returns Intent.ACTION_VIEW
+            every { data } returns uri
+        }
+    }
+
+    @Test
+    fun `onDeepLink stores the token from a matching invite link`() {
+        val vm = viewModel()
+
+        vm.onDeepLink(inviteIntent(token = "ABC123"))
+
+        assertEquals("ABC123", vm.pendingJoinToken.value)
+    }
+
+    @Test
+    fun `onDeepLink ignores an intent that is not a VIEW action`() {
+        val vm = viewModel()
+        val intent = mockk<Intent> {
+            every { action } returns Intent.ACTION_MAIN
+            every { data } returns null
+        }
+
+        vm.onDeepLink(intent)
+
+        assertNull(vm.pendingJoinToken.value)
+    }
+
+    @Test
+    fun `onDeepLink ignores a VIEW intent for an unrelated link`() {
+        val vm = viewModel()
+        val uri = mockk<Uri> {
+            every { host } returns "example.com"
+            every { pathSegments } returns listOf("other")
+        }
+        val intent = mockk<Intent> {
+            every { action } returns Intent.ACTION_VIEW
+            every { data } returns uri
+        }
+
+        vm.onDeepLink(intent)
+
+        assertNull(vm.pendingJoinToken.value)
+    }
+
+    @Test
+    fun `consumePendingJoinToken returns the stored token once, then null`() {
+        val vm = viewModel()
+        vm.onDeepLink(inviteIntent(token = "ABC123"))
+
+        assertEquals("ABC123", vm.consumePendingJoinToken())
+        assertNull(vm.consumePendingJoinToken())
+        assertNull(vm.pendingJoinToken.value)
+    }
+
+    @Test
+    fun `pendingJoinToken survives across ViewModel instances sharing a SavedStateHandle`() {
+        val savedStateHandle = SavedStateHandle()
+        val first = viewModel(savedStateHandle = savedStateHandle)
+        first.onDeepLink(inviteIntent(token = "ABC123"))
+
+        val recreated = viewModel(savedStateHandle = savedStateHandle)
+
+        assertEquals("ABC123", recreated.pendingJoinToken.value)
     }
 
     // endregion
