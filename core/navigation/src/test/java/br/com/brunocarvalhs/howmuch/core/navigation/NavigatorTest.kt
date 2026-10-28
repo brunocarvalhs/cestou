@@ -81,4 +81,27 @@ class NavigatorTest {
         navigator.goBack()
         verify { newNavController.popBackStack() }
     }
+
+    @Test
+    fun `navigate does not throw when not bound to a NavController`() {
+        val unboundNavigator = Navigator()
+
+        unboundNavigator.navigate("shopping_list")
+    }
+
+    @Test
+    fun `goBack does not throw when not bound to a NavController`() {
+        val unboundNavigator = Navigator()
+
+        unboundNavigator.goBack()
+    }
+
+    @Test
+    fun `navigate does nothing on the stale NavController once unbound`() {
+        navigator.unbind(navController)
+
+        navigator.navigate("shopping_list")
+
+        verify(exactly = 0) { navController.navigate(any<String>(), any<NavOptionsBuilder.() -> Unit>()) }
+    }
 }
