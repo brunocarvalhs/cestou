@@ -3,6 +3,7 @@ package br.com.brunocarvalhs.howmuch.feature.chat.data.repository
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.stringPreferencesKey
 import br.com.brunocarvalhs.howmuch.core.data.service.DataStoreStorageService
 import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 import io.mockk.coEvery
@@ -93,5 +94,26 @@ class ChatHistoryRepositoryImplTest {
 
         assertTrue(repository.load("list2").isEmpty())
         assertEquals(listOneMessages, repository.load("list1"))
+    }
+
+    @Test
+    fun `load discards a message with an unknown sender but keeps the valid ones`() = runTest {
+        val fake = mockEdit()
+        val rawJson = """
+            {"messages":[
+                {"id":1,"text":"ok","sender":"USER","createdAtEpochMillis":$FIRST_MESSAGE_EPOCH_MILLIS},
+                {"id":2,"text":"corrupted","sender":"INVALID","createdAtEpochMillis":$SECOND_MESSAGE_EPOCH_MILLIS}
+            ]}
+        """.trimIndent()
+        fake.current = fake.current.toMutablePreferences().apply {
+            set(stringPreferencesKey("chat_history_list1"), rawJson)
+        }
+        every { dataStore.data } answers { flowOf(fake.current) }
+
+        val result = repository().load("list1")
+
+        assertEquals(1, result.size)
+        assertEquals("ok", result.single().text)
+        assertEquals(ChatMessage.Sender.USER, result.single().sender)
     }
 }

@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import javax.inject.Inject
@@ -26,19 +27,22 @@ class CommonProductRepositoryImpl @Inject constructor(
 ) : CommonProductRepository {
 
     override fun getAll(): Flow<List<CommonProduct>> = flow {
-        val userId = authService.getOrCreateUserId().id
+        val userId = runCatching { authService.getOrCreateUserId().id }.getOrNull()
         emit(userId)
     }.flatMapLatest { userId ->
-        networkService.observe<List<CommonProductModel>>(
-            request = NetworkService.NetworkRequest(
-                endpoint = endpoint(userId),
-                method = NetworkService.Method.GET
-            )
-        ).map { models -> models?.map { it.toDomain() } ?: emptyList() }
-            .catch { e ->
-                Timber.e(e, "Error observing common products")
-                emit(emptyList())
-            }
+        if (userId == null) {
+            flowOf(emptyList())
+        } else {
+            networkService.observe<List<CommonProductModel>>(
+                request = NetworkService.NetworkRequest(
+                    endpoint = endpoint(userId),
+                    method = NetworkService.Method.GET
+                )
+            ).map { models -> models?.map { it.toDomain() } ?: emptyList() }
+        }
+    }.catch { e ->
+        Timber.e(e, "Error observing common products")
+        emit(emptyList())
     }
 
     override suspend fun seedDefaultsIfEmpty(): Result<Unit> = runCatching {

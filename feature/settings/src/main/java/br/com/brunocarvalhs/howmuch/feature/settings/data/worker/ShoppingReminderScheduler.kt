@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import br.com.brunocarvalhs.howmuch.core.common.util.ReminderTimeParser
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.services.ReminderScheduler
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -43,7 +44,7 @@ internal class ShoppingReminderScheduler @Inject constructor(
     }
 
     private fun initialDelayMillis(reminderTime: String): Long {
-        val (hour, minute) = parseTime(reminderTime)
+        val (hour, minute) = ReminderTimeParser.parse(reminderTime)
         val now = Calendar.getInstance()
         val target = (now.clone() as Calendar).apply {
             set(Calendar.HOUR_OF_DAY, hour)
@@ -55,18 +56,7 @@ internal class ShoppingReminderScheduler @Inject constructor(
         return target.timeInMillis - now.timeInMillis
     }
 
-    private fun parseTime(reminderTime: String): Pair<Int, Int> {
-        val parts = reminderTime.split(":")
-        val hour = parts.getOrNull(0)?.toIntOrNull()?.coerceIn(0, MAX_HOUR) ?: DEFAULT_HOUR
-        val minute = parts.getOrNull(1)?.toIntOrNull()?.coerceIn(0, MAX_MINUTE) ?: DEFAULT_MINUTE
-        return hour to minute
-    }
-
     companion object {
         const val WORK_NAME = "shopping_reminder"
-        private const val DEFAULT_HOUR = 18
-        private const val DEFAULT_MINUTE = 0
-        private const val MAX_HOUR = 23
-        private const val MAX_MINUTE = 59
     }
 }
