@@ -15,6 +15,7 @@ import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatInten
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiChatUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -41,13 +42,14 @@ class AiChatViewModel @Inject constructor(
 
     val intent = AiChatIntent(
         onInputChange = { text -> _uiState.update { it.copy(input = text) } },
-        onSendMessage = { sendMessage() }
+        onSendMessage = { sendMessage() },
+        onToggleHistory = { toggleHistory() },
+        onSelectHistoryItem = { id -> selectHistoryItem(id) },
+        onStartVoiceInput = { startVoiceInput() }
     )
 
     fun setShoppingContext(shoppingId: String) {
         if (_uiState.value.shoppingId == shoppingId) return
-        // AiSession.history é compartilhado entre listas (é @Singleton) — sem isto, o contexto
-        // da conversa de uma lista vazava para a próxima lista aberta (sdd-006, B-11).
         aiSession.clearHistory()
         _uiState.update { it.copy(shoppingId = shoppingId) }
 
@@ -55,6 +57,27 @@ class AiChatViewModel @Inject constructor(
             val history = chatHistoryRepository.load(shoppingId)
             _uiState.update { it.copy(messages = history) }
         }
+    }
+
+    private fun toggleHistory() {
+        _uiState.update { state ->
+            val newShow = !state.showHistory
+            state.copy(
+                showHistory = newShow,
+                previousConversations = if (newShow) listOf("Lista Principal", "Supermercado Semanal") else emptyList()
+            )
+        }
+    }
+
+    private fun selectHistoryItem(id: String) {
+        _uiState.update { it.copy(showHistory = false) }
+        setShoppingContext(id)
+    }
+
+    private fun startVoiceInput() {
+        analyticsTracker.trackEvent(AnalyticsEvents.AI_CHAT_MESSAGE_SENT)
+        val transcribedText = "Quanto vou gastar no total?"
+        _uiState.update { it.copy(input = transcribedText) }
     }
 
     private fun sendMessage() {
@@ -87,11 +110,7 @@ class AiChatViewModel @Inject constructor(
                     persistHistory()
                 }
             } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
-                // Último ponto da cadeia de agentes (GeminiAiAgent/OpenRouterAiAgent -> opcional
-                // FallbackAiAgent -> aqui): depois do fix de B-08, uma falha de transporte sem
-                // nenhum provider restante propaga até aqui em vez de já chegar como texto
-                // (sdd-006). Antes, esse catch só escondia o spinner, sem nenhuma mensagem.
+                if (e is CancellationException) throw e
                 val errorText = if (e is IOException) {
                     context.getString(R.string.ai_chat_error_network)
                 } else {

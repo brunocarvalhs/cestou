@@ -6,4 +6,8 @@
     <string name="ai_chat_upgrade_banner">You\'ve used your free message. Subscribe to Cestou Pro to keep chatting.</string>
     <string name="ai_chat_error_network">I couldn\'t connect to the internet right now. Check your connection and try again in a moment.</string>
     <string name="ai_chat_error_generic">I couldn\'t understand or process your request right now. Could you try rephrasing your message?</string>
+    <string name="ai_chat_greeting">How can Cestou help you?</string>
+    <string name="ai_chat_history_content_description">History</string>
+    <string name="ai_chat_close_content_description">Close</string>
+    <string name="ai_chat_voice_content_description">Voice input</string>
 </resources>
