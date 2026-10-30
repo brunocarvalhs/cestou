@@ -20,8 +20,10 @@
     <string name="shopping_management_button_create">Create</string>
 
     <string name="shopping_filter_all">All</string>
-    <string name="shopping_filter_active">Shopping</string>
     <string name="shopping_filter_favorites">Favorites</string>
+    <string name="shopping_filter_open">In Progress</string>
+    <string name="shopping_filter_group">Group</string>
+    <string name="shopping_filter_finished">Finished</string>
     <string name="shopping_management_edit_list_title">Edit List</string>
     <string name="shopping_management_label_description">Description / Location</string>
     <string name="shopping_management_placeholder_description">Ex: Monthly shopping</string>

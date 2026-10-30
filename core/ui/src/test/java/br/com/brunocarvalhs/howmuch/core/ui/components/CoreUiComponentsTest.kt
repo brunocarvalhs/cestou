@@ -16,6 +16,7 @@ import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
+import br.com.brunocarvalhs.howmuch.core.ui.R
 import br.com.brunocarvalhs.howmuch.core.ui.components.scanner.QRCodeOverlay
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragTarget
@@ -58,6 +59,16 @@ class CoreUiComponentsTest {
             CestouTheme { CestouBottomNavigation(currentRoute = "x", onNavigate = {}, visible = false) }
         }
         composeTestRule.waitForIdle()
+    }
+
+    @Test
+    fun `bottom navigation includes default items`() {
+        val items = listOf(
+            BottomNavItem.Lists,
+            BottomNavItem.ProfileItem
+        )
+        assertEquals(2, items.size)
+        assertEquals(R.string.nav_lists, BottomNavItem.Lists.titleRes)
     }
 
     @Test

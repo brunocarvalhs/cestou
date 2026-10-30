@@ -10,6 +10,8 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.ShareShoppingUseCase
+import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingCreateUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDeleteUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDuplicateUseCase
@@ -169,5 +171,16 @@ class ShoppingListViewModelTest {
         vm.intent.onShowCreateSheet(true)
 
         assertEquals(true, vm.uiState.value.isCreateSheetVisible)
+    }
+
+    @Test
+    fun `onOpenAiChat navigates to AiChat with empty shoppingId`() {
+        val navigator = mockk<Navigator>(relaxed = true)
+        val vm = viewModel()
+        vm.setNavigator(navigator)
+
+        vm.intent.onOpenAiChat()
+
+        coVerify { navigator.navigate(AiChat(shoppingId = "")) }
     }
 }
