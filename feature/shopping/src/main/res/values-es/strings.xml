@@ -19,9 +19,11 @@
     <string name="shopping_management_placeholder_description_new">Ej: Mercado de la esquina</string>
     <string name="shopping_management_button_create">Crear</string>
 
-    <string name="shopping_filter_all">Todos</string>
-    <string name="shopping_filter_active">Compras</string>
+    <string name="shopping_filter_all">Todas</string>
     <string name="shopping_filter_favorites">Favoritos</string>
+    <string name="shopping_filter_open">En curso</string>
+    <string name="shopping_filter_group">En grupo</string>
+    <string name="shopping_filter_finished">Finalizadas</string>
     <string name="shopping_management_edit_list_title">Editar Lista</string>
     <string name="shopping_management_label_description">Descripción / Lugar</string>
     <string name="shopping_management_placeholder_description">Ej: Compras del mes</string>

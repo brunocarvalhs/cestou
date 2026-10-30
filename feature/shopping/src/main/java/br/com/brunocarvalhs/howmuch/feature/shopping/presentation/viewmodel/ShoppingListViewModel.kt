@@ -14,6 +14,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.ShareShoppingUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
@@ -81,6 +82,7 @@ internal class ShoppingListViewModel @Inject constructor(
             _uiState.update { it.copy(searchQuery = value) }
             applyFilters()
         },
+        onOpenAiChat = { _navigator?.navigate(AiChat(shoppingId = "")) },
         onToggleFavorite = { shopping ->
             handleShoppingAction(ShoppingAction.ToggleFavorite(shopping))
         },
@@ -223,9 +225,11 @@ internal class ShoppingListViewModel @Inject constructor(
                 shopping.description.lowercase().contains(query)
 
             val matchesFilter = when (filter) {
-                ShoppingFilter.SHOPPING -> shopping.status != Shopping.Status.FINISH
                 ShoppingFilter.FAVORITES -> shopping.isFavorite
-                else -> true
+                ShoppingFilter.OPEN -> shopping.status != Shopping.Status.FINISH
+                ShoppingFilter.GROUP -> shopping.users.size > 1 || shopping.roles.size > 1
+                ShoppingFilter.FINISHED -> shopping.status == Shopping.Status.FINISH
+                ShoppingFilter.ALL -> true
             }
 
             matchesQuery && matchesFilter
