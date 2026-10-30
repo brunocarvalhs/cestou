@@ -65,4 +65,15 @@ Implementar layout de configuração de agente de IA em 3 níveis no app:
 2. Nível 2: Seleção de agente específico (modelos built-in/gratuitos disponíveis).
 3. Nível 3: Agentes de IA pagos usando API key externa (Bring Your Own Key - BYOK), permitindo incluir chaves para Claude, GPT e outros com pagamento externo dentro do app.
 
+---
+
+# sdd-015-chat-bottom-sheet-voice
+
+Converter a tela de chat (`AiChatScreen`) em um ModalBottomSheet (com suporte a navegação em diálogo/bottom sheet no `chatGraph`), contendo:
+1. Ícone de fechar à direita.
+2. Ícone de histórico à esquerda, abrindo uma lista de conversas anteriores.
+3. Texto de boas-vindas: "Como Cestou pode lhe ajudar?".
+4. Input de mensagem com botão dinâmico: se houver texto, exibe o ícone de enviar (send); se não houver texto, exibe o ícone de microfone (voice input) para gravação/simulação de transcrição de áudio para texto para envio à IA.
+
+
 

@@ -22,16 +22,19 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Keyboard
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,12 +43,14 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -77,7 +82,6 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import androidx.compose.foundation.lazy.grid.items as gridItems
 
 private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
     .withZone(ZoneId.systemDefault())
@@ -91,7 +95,6 @@ private const val BUBBLE_TAIL_RADIUS_DP = 4
 private const val AVATAR_SIZE_DP = 40
 private const val EMOJI_PICKER_HEIGHT_DP = 260
 private const val EMOJI_PICKER_COLUMNS = 8
-// The LazyColumn always wraps state.messages with one leading and one trailing Spacer item.
 private const val LEADING_AND_TRAILING_SPACERS = 2
 
 private val QUICK_EMOJIS = listOf(
@@ -114,160 +117,261 @@ fun AiChatScreen(
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(AVATAR_SIZE_DP.dp)
-                                .clip(CircleShape)
-                                .background(CestouBrightGreen),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.AutoAwesome,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = stringResource(R.string.ai_chat_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = intent.onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(
-                                br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_back
-                            )
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = intent.onSettings) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = stringResource(R.string.ai_chat_settings_content_description)
-                        )
-                    }
-                }
-            )
-        },
-        bottomBar = {
-            Column(modifier = Modifier.navigationBarsPadding()) {
-                if (!isSendEnabled) {
-                    AiChatUpgradeBanner(onClick = onUpgradeClick)
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
-                        .imePadding()
-                ) {
-                    OutlinedTextField(
-                        value = state.input,
-                        onValueChange = { intent.onInputChange(it) },
-                        enabled = isSendEnabled,
-                        placeholder = { Text(text = stringResource(R.string.ai_chat_input_label)) },
-                        leadingIcon = {
-                            IconButton(
-                                onClick = {
-                                    if (showEmojiPicker) {
-                                        showEmojiPicker = false
-                                        focusRequester.requestFocus()
-                                        keyboardController?.show()
-                                    } else {
-                                        keyboardController?.hide()
-                                        focusManager.clearFocus()
-                                        showEmojiPicker = true
+    ModalBottomSheet(
+        onDismissRequest = intent.onBack,
+        sheetState = sheetState
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(600.dp)
+        ) {
+            Scaffold(
+                topBar = {
+                    Column {
+                        TopAppBar(
+                            title = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(AVATAR_SIZE_DP.dp)
+                                            .clip(CircleShape)
+                                            .background(CestouBrightGreen),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.AutoAwesome,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onPrimary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
                                     }
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        text = stringResource(R.string.ai_chat_title),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
                                 }
-                            ) {
-                                if (showEmojiPicker) {
+                            },
+                            navigationIcon = {
+                                IconButton(onClick = intent.onToggleHistory) {
                                     Icon(
-                                        imageVector = Icons.Default.Keyboard,
+                                        imageVector = Icons.Default.History,
                                         contentDescription = stringResource(
-                                            R.string.ai_chat_keyboard_content_description
+                                            R.string.ai_chat_history_content_description
                                         )
                                     )
-                                } else {
-                                    Text(text = EMOJI_ICON, style = MaterialTheme.typography.titleMedium)
+                                }
+                            },
+                            actions = {
+                                IconButton(onClick = intent.onSettings) {
+                                    Icon(
+                                        imageVector = Icons.Default.Settings,
+                                        contentDescription = stringResource(
+                                            R.string.ai_chat_settings_content_description
+                                        )
+                                    )
+                                }
+                                IconButton(onClick = intent.onBack) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = stringResource(
+                                            R.string.ai_chat_close_content_description
+                                        )
+                                    )
                                 }
                             }
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .focusRequester(focusRequester)
-                            .onFocusEvent { if (it.isFocused) showEmojiPicker = false },
-                        shape = RoundedCornerShape(28.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                            focusedBorderColor = MaterialTheme.colorScheme.primary
                         )
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    FilledIconButton(onClick = { intent.onSendMessage() }, enabled = isSendEnabled) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(
-                                br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_send_message
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.ai_chat_greeting),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(12.dp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                        )
+                        }
+                    }
+                },
+                bottomBar = {
+                    Column(modifier = Modifier.navigationBarsPadding()) {
+                        if (!isSendEnabled) {
+                            AiChatUpgradeBanner(onClick = onUpgradeClick)
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                                .imePadding()
+                        ) {
+                            OutlinedTextField(
+                                value = state.input,
+                                onValueChange = { intent.onInputChange(it) },
+                                enabled = isSendEnabled,
+                                placeholder = {
+                                    Text(text = stringResource(R.string.ai_chat_input_label))
+                                },
+                                leadingIcon = {
+                                    IconButton(
+                                        onClick = {
+                                            if (showEmojiPicker) {
+                                                showEmojiPicker = false
+                                                focusRequester.requestFocus()
+                                                keyboardController?.show()
+                                            } else {
+                                                keyboardController?.hide()
+                                                focusManager.clearFocus()
+                                                showEmojiPicker = true
+                                            }
+                                        }
+                                    ) {
+                                        if (showEmojiPicker) {
+                                            Icon(
+                                                imageVector = Icons.Default.Keyboard,
+                                                contentDescription = stringResource(
+                                                    R.string.ai_chat_keyboard_content_description
+                                                )
+                                            )
+                                        } else {
+                                            Text(
+                                                text = EMOJI_ICON,
+                                                style = MaterialTheme.typography.titleMedium
+                                            )
+                                        }
+                                    }
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .focusRequester(focusRequester)
+                                    .onFocusEvent { if (it.isFocused) showEmojiPicker = false },
+                                shape = RoundedCornerShape(28.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            if (state.input.isBlank()) {
+                                FilledIconButton(
+                                    onClick = { intent.onStartVoiceInput() },
+                                    enabled = isSendEnabled
+                                ) {
+                                    Icon(
+                                        Icons.Default.Mic,
+                                        contentDescription = stringResource(
+                                            R.string.ai_chat_voice_content_description
+                                        )
+                                    )
+                                }
+                            } else {
+                                FilledIconButton(
+                                    onClick = { intent.onSendMessage() },
+                                    enabled = isSendEnabled
+                                ) {
+                                    val sendDesc = stringResource(
+                                        br.com.brunocarvalhs.howmuch.core.ui.R.string
+                                            .content_description_send_message
+                                    )
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.Send,
+                                        contentDescription = sendDesc
+                                    )
+                                }
+                            }
+                        }
+
+                        if (showEmojiPicker) {
+                            EmojiPickerPanel(
+                                onEmojiSelected = { emoji ->
+                                    intent.onInputChange(state.input + emoji)
+                                },
+                                modifier = Modifier.height(EMOJI_PICKER_HEIGHT_DP.dp)
+                            )
+                        }
+                    }
+                },
+                contentWindowInsets = WindowInsets(0, 0, 0, 0)
+            ) { paddingValues ->
+                val listState = rememberLazyListState()
+
+                LaunchedEffect(state.messages.size, state.isLoading) {
+                    val itemCount = state.messages.size +
+                        LEADING_AND_TRAILING_SPACERS +
+                        if (state.isLoading) 1 else 0
+                    if (itemCount > 0) {
+                        listState.animateScrollToItem(itemCount - 1)
                     }
                 }
 
-                if (showEmojiPicker) {
-                    EmojiPickerPanel(
-                        onEmojiSelected = { emoji -> intent.onInputChange(state.input + emoji) },
-                        modifier = Modifier.height(EMOJI_PICKER_HEIGHT_DP.dp)
-                    )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                ) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        item { Spacer(modifier = Modifier.height(4.dp)) }
+
+                        items(state.messages) { message ->
+                            ChatBubble(message = message)
+                        }
+
+                        if (state.isLoading) {
+                            item {
+                                TypingBubble()
+                            }
+                        }
+
+                        item { Spacer(modifier = Modifier.height(4.dp)) }
+                    }
+
+                    if (state.showHistory) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.TopCenter)
+                                .padding(8.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            shape = RoundedCornerShape(12.dp),
+                            tonalElevation = 8.dp
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = "Conversas Anteriores",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                state.previousConversations.forEach { item ->
+                                    Text(
+                                        text = item,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable { intent.onSelectHistoryItem(item) }
+                                            .padding(vertical = 8.dp),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
-        },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
-    ) { paddingValues ->
-        val listState = rememberLazyListState()
-
-        // listState.layoutInfo.totalItemsCount lags one layout pass behind the state change
-        // that triggers this effect, so it must not be used to compute the scroll target —
-        // derive the count from the same state driving the LazyColumn content below instead.
-        LaunchedEffect(state.messages.size, state.isLoading) {
-            val itemCount = state.messages.size + LEADING_AND_TRAILING_SPACERS + if (state.isLoading) 1 else 0
-            if (itemCount > 0) {
-                listState.animateScrollToItem(itemCount - 1)
-            }
-        }
-
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            item { Spacer(modifier = Modifier.height(4.dp)) }
-
-            items(state.messages) { message ->
-                ChatBubble(message = message)
-            }
-
-            if (state.isLoading) {
-                item {
-                    TypingBubble()
-                }
-            }
-
-            item { Spacer(modifier = Modifier.height(4.dp)) }
         }
     }
 }
@@ -342,7 +446,7 @@ private fun EmojiPickerPanel(
             .background(MaterialTheme.colorScheme.surfaceVariant),
         contentPadding = PaddingValues(8.dp)
     ) {
-        gridItems(QUICK_EMOJIS) { emoji ->
+        items(QUICK_EMOJIS) { emoji ->
             Box(
                 modifier = Modifier
                     .aspectRatio(1f)
@@ -377,8 +481,6 @@ private fun TypingBubble() {
     }
 }
 
-// Matches CestouLockedBanner's errorContainer treatment (core:ui) — this is a hit-a-limit
-// alert, not a positive/brand-colored message, so it must not read as primaryContainer green.
 private const val UPGRADE_BANNER_BG_ALPHA = 0.7f
 private const val UPGRADE_BANNER_TEXT_ALPHA = 0.8f
 
