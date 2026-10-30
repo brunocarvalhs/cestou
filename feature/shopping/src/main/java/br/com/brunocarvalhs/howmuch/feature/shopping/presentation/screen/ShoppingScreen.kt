@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -13,8 +14,11 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -25,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -33,7 +38,10 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -52,12 +60,13 @@ import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.common.ShoppingEmptyState
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.CreateShoppingContent
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingFilterChips
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingItem
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingItemLoading
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingSearchBar
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.ShoppingListIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingListUiState
 
-private const val HOVER_ALPHA = 0.5f
 private const val LOADING_ITEMS_COUNT = 5
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -81,9 +90,6 @@ internal fun ShoppingScreen(
         }
     }
 
-    // addObserver() replays ON_RESUME synchronously when the lifecycle is already resumed,
-    // so this alone covers both the initial load and every subsequent return to this screen —
-    // a separate LaunchedEffect(Unit) { onFetchAll() } would double-fire on first composition.
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -97,26 +103,54 @@ internal fun ShoppingScreen(
     DragAndDropContainer {
         Scaffold(
             topBar = {
-                CenterAlignedTopAppBar(
+                var menuExpanded by remember { mutableStateOf(false) }
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(br.com.brunocarvalhs.howmuch.core.ui.R.string.app_name),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    },
                     actions = {
                         IconButton(onClick = intent.onShowJoinDialog) {
                             Icon(
                                 imageVector = Icons.Default.QrCodeScanner,
                                 contentDescription = stringResource(
                                     R.string.shopping_management_button_join
-                                )
+                                ),
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = stringResource(
+                                    br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_more_options
+                                ),
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false },
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.shopping_management_notifications_title)) },
+                                onClick = { menuExpanded = false },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.NotificationsNone,
+                                        contentDescription = null
+                                    )
+                                }
                             )
                         }
                     },
-                    title = {
-                        Text(
-                            text = stringResource(br.com.brunocarvalhs.howmuch.core.ui.R.string.app_name),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor = MaterialTheme.colorScheme.background
                     )
                 )
             },
@@ -134,24 +168,37 @@ internal fun ShoppingScreen(
             containerColor = MaterialTheme.colorScheme.background,
             contentWindowInsets = WindowInsets(0, 0, 0, 0)
         ) { padding ->
-            PullToRefreshBox(
-                isRefreshing = uiState.isLoading,
-                onRefresh = { intent.onFetchAll() },
+            Column(
                 modifier = modifier
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(1),
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 16.dp)
-                ) {
-                    item {
-                        SectionHeader(stringResource(R.string.shopping_management_section_recent))
-                    }
+                ShoppingSearchBar(
+                    query = uiState.searchQuery,
+                    onQueryChange = intent.onQueryChange,
+                    onOpenAiChat = intent.onOpenAiChat,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
 
-                    shoppingListContent(uiState, intent)
+                ShoppingFilterChips(
+                    selectedFilter = uiState.selectedFilter,
+                    onFilterSelected = intent.onFilter,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                PullToRefreshBox(
+                    isRefreshing = uiState.isLoading,
+                    onRefresh = { intent.onFetchAll() },
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(1),
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        shoppingListContent(uiState, intent)
+                    }
                 }
             }
         }
@@ -205,41 +252,11 @@ private fun LazyGridScope.shoppingListItems(
 }
 
 @Composable
-private fun SectionHeader(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
-    )
-}
-
-@Composable
 private fun ShoppingListItemWrapper(
     shopping: Shopping,
     uiState: ShoppingListUiState,
     intent: ShoppingListIntent
 ) {
-//    val globalIndex = uiState.filteredList.indexOf(shopping)
-//    DropTarget(
-//        onDataDropped = { data ->
-//            if (data is Shopping) {
-//                val fromIndex = uiState.filteredList.indexOf(data)
-//                if (fromIndex != -1 && globalIndex != -1) {
-//                    intent.onMove(fromIndex, globalIndex)
-//                }
-//            }
-//        }
-//    ) { isHovered, _ ->
-//        val dragAlpha by animateFloatAsState(
-//            targetValue = if (isHovered) HOVER_ALPHA else 1.0f,
-//            label = "dragAlpha"
-//        )
-//
-//        DragTarget(
-//            modifier = Modifier.alpha(dragAlpha),
-//            dataToDrop = shopping
-//        ) {
     ShoppingItem(
         modifier = Modifier.padding(vertical = 4.dp),
         onClick = { intent.onOpen(shopping.id) },
@@ -262,8 +279,6 @@ private fun ShoppingListItemWrapper(
             }
         }
     )
-//        }
-//    }
 }
 
 private val previewShoppingLists = listOf(

@@ -20,7 +20,7 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.material3.window.size)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.navigation3.runtime)
+    api(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.timber)
