@@ -10,8 +10,11 @@ data class AiChatUiState(
     val isLoading: Boolean = false,
     val input: String = "",
     val shoppingId: String? = null,
+    val sessionId: String? = null,
     val showHistory: Boolean = false,
-    val previousConversations: List<String> = emptyList()
+    val previousConversations: List<String> = emptyList(),
+    val isRecording: Boolean = false,
+    val voiceErrorMessage: String? = null
 ) : AiAgentContext {
     override fun toMetadata(): Map<String, Any?> = mapOf(
         "messages_count" to messages.size,
