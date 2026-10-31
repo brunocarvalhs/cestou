@@ -70,4 +70,19 @@ class ShoppingScreenTest {
 
         composeTestRule.onRoot().assertExists()
     }
+
+    @Test
+    fun `renders search bar in shopping screen`() {
+        composeTestRule.setContent {
+            CestouTheme {
+                ShoppingScreen(
+                    uiState = ShoppingListUiState(searchQuery = "Groceries"),
+                    windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(400.dp, 800.dp)),
+                    intent = ShoppingListIntent()
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("Groceries").assertExists()
+    }
 }
