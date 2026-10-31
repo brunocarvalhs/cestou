@@ -2,6 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.chat.data.mapper
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 import br.com.brunocarvalhs.howmuch.feature.chat.data.model.ChatMessageModel
+import br.com.brunocarvalhs.howmuch.feature.chat.data.model.ChatSessionModel
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.model.ChatSession
 import timber.log.Timber
 import java.time.Instant
 
@@ -29,3 +31,24 @@ internal fun ChatMessage.toModel(): ChatMessageModel = ChatMessageModel(
     sender = sender.name,
     createdAtEpochMillis = createdAt.toEpochMilli()
 )
+
+internal fun ChatSessionModel.toDomain(): ChatSession =
+    ChatSession(
+        id = id,
+        title = title,
+        shoppingId = shoppingId,
+        lastMessage = lastMessage,
+        updatedAtEpochMillis = updatedAtEpochMillis,
+        messageCount = messageCount
+    )
+
+internal fun ChatSession.toModel(): ChatSessionModel =
+    ChatSessionModel(
+        id = id,
+        title = title,
+        shoppingId = shoppingId,
+        lastMessage = lastMessage,
+        updatedAtEpochMillis = updatedAtEpochMillis,
+        messageCount = messageCount
+    )
+

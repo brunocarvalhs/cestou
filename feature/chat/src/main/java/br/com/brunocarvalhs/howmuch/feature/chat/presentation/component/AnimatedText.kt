@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextLayoutResult
@@ -25,6 +26,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
+
+private const val COLOR_PEACH = 0xFFFFB74D
+private const val COLOR_ORANGE = 0xFFFF9800
+private const val COLOR_ORANGE_DARK = 0xFFF57C00
+private const val COLOR_ORANGE_DEEP = 0xFFE65100
+private const val COLOR_ORANGE_RED = 0xFFFF7043
+private const val ANIMATION_DURATION_MS = 12000
+private const val GRADIENT_OFFSET_TARGET = 1000f
+private const val GRADIENT_OFFSET_SPAN = 1000f
 
 @Composable
 fun AnimatedColorText(
@@ -50,35 +60,33 @@ fun AnimatedColorText(
 
     val offsetAnim by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = 1000f,
+        targetValue = GRADIENT_OFFSET_TARGET,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 12000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
+            animation = tween(durationMillis = ANIMATION_DURATION_MS, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse,
         ),
-        label = "GradientOffset"
+        label = "GradientOffset",
     )
 
     val gradientColors = listOf(
-        Color(0xFFFFB74D), // Laranja claro / Pêssego
-        Color(0xFFFF9800), // Laranja padrão
-        Color(0xFFF57C00), // Laranja escuro
-        Color(0xFFE65100), // Laranja bem escuro / Queimado
-        Color(0xFFFF7043), // Laranja avermelhado
-        Color(0xFFFFB74D)  // Fecha o ciclo
+        Color(COLOR_PEACH),
+        Color(COLOR_ORANGE),
+        Color(COLOR_ORANGE_DARK),
+        Color(COLOR_ORANGE_DEEP),
+        Color(COLOR_ORANGE_RED),
+        Color(COLOR_PEACH),
     )
 
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         val animatedBrush = Brush.linearGradient(
             colors = gradientColors,
-            start = androidx.compose.ui.geometry.Offset(offsetAnim, offsetAnim),
-            // 2. Aumentar a área de espalhamento (de 500f para 1000f) para mesclar melhor as cores
-            end = androidx.compose.ui.geometry.Offset(offsetAnim + 1000f, offsetAnim + 1000f)
+            start = Offset(offsetAnim, offsetAnim),
+            end = Offset(offsetAnim + GRADIENT_OFFSET_SPAN, offsetAnim + GRADIENT_OFFSET_SPAN),
         )
 
-        // Restante do seu código Text continua igual...
         Text(
             modifier = modifier,
             text = text,
@@ -100,8 +108,8 @@ fun AnimatedColorText(
             style = TextStyle(
                 brush = animatedBrush,
                 fontSize = fontSize,
-                fontWeight = fontWeight
-            )
+                fontWeight = fontWeight,
+            ),
         )
     }
 }

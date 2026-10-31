@@ -16,7 +16,9 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiSettings
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.screen.AiChatScreen
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.screen.AiHistoryScreen
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel.AiChatViewModel
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel.AiHistoryViewModel
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel.ChatAiGateViewModel
 import kotlinx.serialization.Serializable
 
@@ -36,21 +38,47 @@ fun NavGraphBuilder.chatGraph(navigator: Navigator) {
         val gateViewModel: ChatAiGateViewModel = hiltViewModel()
         val isSendEnabled by gateViewModel.isSendEnabled.collectAsStateWithLifecycle()
 
-        LaunchedEffect(route.shoppingId) {
-            viewModel.setShoppingContext(route.shoppingId)
+        LaunchedEffect(route.shoppingId, route.sessionId) {
+            val sessionId = route.sessionId
+            val shoppingId = route.shoppingId
+            when {
+                sessionId != null -> viewModel.loadSession(sessionId)
+                shoppingId != null -> viewModel.setShoppingContext(shoppingId)
+            }
         }
 
         AiChatScreen(
             state = uiState,
             intent = viewModel.intent.copy(
                 onSettings = { navigator.navigate(AiSettings) },
-                onBack = { navigator.goBack() }
+                onBack = { navigator.goBack() },
+                onToggleHistory = { navigator.navigate(AiHistory) }
             ),
             isSendEnabled = isSendEnabled,
             onUpgradeClick = { navigator.navigate(Paywall(source = PAYWALL_SOURCE)) }
         )
     }
     composable<AiHistory> {
+        val viewModel: AiHistoryViewModel = hiltViewModel()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+        LaunchedEffect(uiState.selectedSessionId) {
+            val sessionId = uiState.selectedSessionId
+            if (sessionId != null) {
+                navigator.navigate(AiChat(sessionId = sessionId)) {
+                    popUpTo(AiHistory) { inclusive = true }
+                }
+            }
+        }
+
+        AiHistoryScreen(
+            state = uiState,
+            intent = viewModel.intent.copy(
+                onBack = { navigator.goBack() },
+                onSelectSession = { sessionId ->
+                    viewModel.intent.onSelectSession(sessionId)
+                }
+            )
+        )
     }
 }
