@@ -11,10 +11,12 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.SpeechToTextManager
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatIntent
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiChatUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -29,7 +31,8 @@ class AiChatViewModel @Inject constructor(
     private val analyticsTracker: AnalyticsTracker,
     private val aiTrialRepository: AiTrialRepository,
     private val aiSession: AiSession,
-    @ApplicationContext private val context: Context
+    private val speechToTextManager: SpeechToTextManager,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AiChatUiState())
@@ -37,17 +40,22 @@ class AiChatViewModel @Inject constructor(
 
     init {
         analyticsTracker.trackScreenView(screenName = "ai_chat", screenClass = "AiChatViewModel")
+        observeSpeechRecognizer()
     }
 
     val intent = AiChatIntent(
         onInputChange = { text -> _uiState.update { it.copy(input = text) } },
-        onSendMessage = { sendMessage() }
+        onSendMessage = { sendMessage() },
+        onToggleHistory = { toggleHistory() },
+        onSelectHistoryItem = { id -> selectHistoryItem(id) },
+        onStartVoiceInput = { startVoiceInput() },
+        onStopVoiceInput = { stopVoiceInput() },
+        onStopVoiceInputAndSend = { stopVoiceInputAndSend() },
+        onVoiceResultReceived = { text -> handleVoiceResult(text) },
     )
 
     fun setShoppingContext(shoppingId: String) {
         if (_uiState.value.shoppingId == shoppingId) return
-        // AiSession.history é compartilhado entre listas (é @Singleton) — sem isto, o contexto
-        // da conversa de uma lista vazava para a próxima lista aberta (sdd-006, B-11).
         aiSession.clearHistory()
         _uiState.update { it.copy(shoppingId = shoppingId) }
 
@@ -55,6 +63,84 @@ class AiChatViewModel @Inject constructor(
             val history = chatHistoryRepository.load(shoppingId)
             _uiState.update { it.copy(messages = history) }
         }
+    }
+
+    fun loadSession(sessionId: String) {
+        aiSession.clearHistory()
+        _uiState.update { it.copy(sessionId = sessionId) }
+
+        viewModelScope.launch {
+            val history = chatHistoryRepository.loadSession(sessionId)
+            _uiState.update { it.copy(messages = history) }
+        }
+    }
+
+    private fun toggleHistory() {
+        _uiState.update { state ->
+            val newShow = !state.showHistory
+            state.copy(showHistory = newShow)
+        }
+    }
+
+    private fun selectHistoryItem(id: String) {
+        _uiState.update { it.copy(showHistory = false) }
+        loadSession(id)
+    }
+
+    private fun observeSpeechRecognizer() {
+        viewModelScope.launch {
+            speechToTextManager.isListening.collect { listening ->
+                _uiState.update { it.copy(isRecording = listening) }
+            }
+        }
+        viewModelScope.launch {
+            speechToTextManager.recognizedText.collect { text ->
+                if (!text.isNullOrBlank()) {
+                    handleVoiceResult(text)
+                }
+            }
+        }
+        viewModelScope.launch {
+            speechToTextManager.errorMessage.collect { error ->
+                if (!error.isNullOrBlank()) {
+                    _uiState.update { it.copy(voiceErrorMessage = error, isRecording = false) }
+                }
+            }
+        }
+    }
+
+    private fun startVoiceInput() {
+        analyticsTracker.trackEvent("ai_chat_voice_input_started")
+        if (speechToTextManager.isRecognitionAvailable()) {
+            _uiState.update { it.copy(isRecording = true, voiceErrorMessage = null) }
+            speechToTextManager.clearResult()
+            speechToTextManager.startListening()
+        } else {
+            _uiState.update {
+                it.copy(
+                    voiceErrorMessage = context.getString(R.string.ai_chat_voice_not_supported),
+                    isRecording = false,
+                )
+            }
+        }
+    }
+
+    private fun stopVoiceInput() {
+        speechToTextManager.stopListening()
+        _uiState.update { it.copy(isRecording = false) }
+    }
+
+    private fun stopVoiceInputAndSend() {
+        speechToTextManager.stopListening()
+        _uiState.update { it.copy(isRecording = false) }
+        val text = _uiState.value.input
+        if (text.isNotBlank()) {
+            sendMessage()
+        }
+    }
+
+    private fun handleVoiceResult(text: String) {
+        _uiState.update { it.copy(input = text) }
     }
 
     private fun sendMessage() {
@@ -69,7 +155,7 @@ class AiChatViewModel @Inject constructor(
             it.copy(
                 messages = it.messages + userMessage,
                 input = "",
-                isLoading = true
+                isLoading = true,
             )
         }
         persistHistory()
@@ -81,17 +167,13 @@ class AiChatViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             messages = it.messages + assistantMessage,
-                            isLoading = false
+                            isLoading = false,
                         )
                     }
                     persistHistory()
                 }
             } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
-                // Último ponto da cadeia de agentes (GeminiAiAgent/OpenRouterAiAgent -> opcional
-                // FallbackAiAgent -> aqui): depois do fix de B-08, uma falha de transporte sem
-                // nenhum provider restante propaga até aqui em vez de já chegar como texto
-                // (sdd-006). Antes, esse catch só escondia o spinner, sem nenhuma mensagem.
+                if (e is CancellationException) throw e
                 val errorText = if (e is IOException) {
                     context.getString(R.string.ai_chat_error_network)
                 } else {
@@ -108,9 +190,18 @@ class AiChatViewModel @Inject constructor(
 
     private fun persistHistory() {
         val state = _uiState.value
-        val shoppingId = state.shoppingId ?: return
         viewModelScope.launch {
-            chatHistoryRepository.save(shoppingId, state.messages)
+            val sessionId = state.sessionId
+            if (sessionId != null) {
+                chatHistoryRepository.saveSession(
+                    sessionId = sessionId,
+                    messages = state.messages,
+                    shoppingId = state.shoppingId,
+                )
+            } else {
+                val shoppingId = state.shoppingId ?: return@launch
+                chatHistoryRepository.save(shoppingId, state.messages)
+            }
         }
     }
 }

@@ -7,6 +7,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.SpeechToTextManager
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -14,6 +15,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -38,20 +40,32 @@ class AiChatViewModelReliabilityTest {
     private val chatHistoryRepository = mockk<ChatHistoryRepository>(relaxed = true)
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val aiTrialRepository = mockk<AiTrialRepository>(relaxed = true)
+    private val speechToTextManager = mockk<SpeechToTextManager>(relaxed = true) {
+        every { isListening } returns MutableStateFlow(false)
+        every { recognizedText } returns MutableStateFlow(null)
+        every { errorMessage } returns MutableStateFlow(null)
+    }
 
     private val aiSession = mockk<AiSession>(relaxed = true)
     private val context = mockk<Context> {
         every { getString(R.string.ai_chat_error_network) } returns "network error"
         every { getString(R.string.ai_chat_error_generic) } returns "generic error"
     }
-    private val viewModel = AiChatViewModel(
-        assistantUseCase, chatHistoryRepository, analyticsTracker, aiTrialRepository, aiSession, context
-    )
+    private lateinit var viewModel: AiChatViewModel
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         coEvery { chatHistoryRepository.load(any()) } returns emptyList()
+        viewModel = AiChatViewModel(
+            assistantUseCase,
+            chatHistoryRepository,
+            analyticsTracker,
+            aiTrialRepository,
+            aiSession,
+            speechToTextManager,
+            context
+        )
     }
 
     @After
