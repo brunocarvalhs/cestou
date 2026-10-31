@@ -75,5 +75,12 @@ Converter a tela de chat (`AiChatScreen`) em um ModalBottomSheet (com suporte a 
 3. Texto de boas-vindas: "Como Cestou pode lhe ajudar?".
 4. Input de mensagem com botão dinâmico: se houver texto, exibe o ícone de enviar (send); se não houver texto, exibe o ícone de microfone (voice input) para gravação/simulação de transcrição de áudio para texto para envio à IA.
 
+---
+
+# sdd-016-chat-history-voice-lottie
+
+Implementar tela de Histórico de Conversas com IA (`AiHistoryScreen`), gerenciamento de múltiplas sessões no `ChatHistoryRepository`, suporte nativo a gravação de voz (Speech-to-Text com permissão `RECORD_AUDIO`) e inclusão das animações Lottie para digitação da IA (`ai_thinking_loader.json`) e ondas de áudio (`audio_wave_micro_interaction.json`).
+
+
 
 
