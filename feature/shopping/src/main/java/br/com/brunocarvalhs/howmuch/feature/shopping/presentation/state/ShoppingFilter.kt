@@ -5,6 +5,8 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.R
 
 internal enum class ShoppingFilter(val title: UiText) {
     ALL(UiText.StringResource(R.string.shopping_filter_all)),
-    SHOPPING(UiText.StringResource(R.string.shopping_filter_active)),
-    FAVORITES(UiText.StringResource(R.string.shopping_filter_favorites))
+    FAVORITES(UiText.StringResource(R.string.shopping_filter_favorites)),
+    OPEN(UiText.StringResource(R.string.shopping_filter_open)),
+    GROUP(UiText.StringResource(R.string.shopping_filter_group)),
+    FINISHED(UiText.StringResource(R.string.shopping_filter_finished))
 }
