@@ -12,16 +12,35 @@ Roadmap dos próximos SDDs a implementar (conforme prioridade de severidade):
 
 ---
 
-# Histórico de SDDs Concluídos e Mergeados na develop
+# sdd-013-openrouter-dynamic-models
 
-- [x] sdd-000-setup-sdd (PR #227) - Governança de SDD e automação de skills.
-- [x] sdd-002-network-error-contract (PR #227) - Contrato de erros no NetworkService.
-- [x] sdd-003-shopping-data-integrity (PR #228) - Integridade ao duplicar listas e atualizar campos parciais.
-- [x] sdd-004-navigator-deeplink (PR #229) - Estabilidade do Navigator e captura de convites por deep link.
-- [x] sdd-005-crash-hardening (PR #230) - Proteção contra crashes por dados nulos/inválidos e sessão expirada.
-- [x] sdd-006-ai-agent-reliability (PR #232) - Confiabilidade do agente de IA, feedback de tools e privacidade de histórico.
-- [x] sdd-011-perfil-configuracoes-unificado (PR #231) - Telas de perfil e configurações unificadas.
-- [x] sdd-012-ai-agent-fallback-safety (PR #232) - Proteção contra fallback indevido pós-efeitos colaterais e clearHistory.
-- [x] sdd-013-openrouter-dynamic-models (PR #233) - Modelos de IA dinâmicos da API OpenRouter sem lista estática.
-- [x] sdd-014-ai-agent-three-tier-config (PR #234) - Configuração de IA em 3 níveis (Default, Built-in, BYOK) com bloqueio Pro.
-- [x] sdd-015-search-bar-ai-chat (PR #236) - Barra de busca, chips de filtros e atalho de chat na lista de compras.
+Carregar dinamicamente a lista de modelos de IA da API do OpenRouter (`https://openrouter.ai/api/v1/models`) em vez da lista fixa (`AiModel.freeModels`), permitindo a seleção de modelos com fallback para a lista estática em caso de falha/offline e mantendo sempre um modelo gratuito (`free`) como padrão.
+
+---
+
+# sdd-014-ai-agent-three-tier-config
+
+Implementar layout de configuração de agente de IA em 3 níveis no app:
+1. Nível 1: Valor default sempre o mesmo (`openrouter/free`, automático e gratuito).
+2. Nível 2: Seleção de agente específico (modelos built-in/gratuitos disponíveis).
+3. Nível 3: Agentes de IA pagos usando API key externa (Bring Your Own Key - BYOK), permitindo incluir chaves para Claude, GPT e outros com pagamento externo dentro do app.
+
+---
+
+# sdd-015-chat-bottom-sheet-voice
+
+Converter a tela de chat (`AiChatScreen`) em um ModalBottomSheet (com suporte a navegação em diálogo/bottom sheet no `chatGraph`), contendo:
+1. Ícone de fechar à direita.
+2. Ícone de histórico à esquerda, abrindo uma lista de conversas anteriores.
+3. Texto de boas-vindas: "Como Cestou pode lhe ajudar?".
+4. Input de mensagem com botão dinâmico: se houver texto, exibe o ícone de enviar (send); se não houver texto, exibe o ícone de microfone (voice input) para gravação/simulação de transcrição de áudio para texto para envio à IA.
+
+---
+
+# sdd-016-chat-history-voice-lottie
+
+Implementar tela de Histórico de Conversas com IA (`AiHistoryScreen`), gerenciamento de múltiplas sessões no `ChatHistoryRepository`, suporte nativo a gravação de voz (Speech-to-Text com permissão `RECORD_AUDIO`) e inclusão das animações Lottie para digitação da IA (`ai_thinking_loader.json`) e ondas de áudio (`audio_wave_micro_interaction.json`).
+
+
+
+
