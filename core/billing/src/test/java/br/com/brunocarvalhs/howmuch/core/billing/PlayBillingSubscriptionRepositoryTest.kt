@@ -236,4 +236,83 @@ class PlayBillingSubscriptionRepositoryTest {
 
         assertEquals(flowResult, result)
     }
+
+    @Test
+    fun `refresh does not downgrade Pro status to Free when queryPurchasesAsync returns SERVICE_UNAVAILABLE`() {
+        purchasesResult = PurchasesResult(ok(), listOf(purchase(Purchase.PurchaseState.PURCHASED, acked = true)))
+        val r = repo()
+        awaitStatus(r, SubscriptionStatus.PRO)
+
+        purchasesResult = PurchasesResult(ok(BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE), emptyList())
+        runBlocking { r.refresh() }
+
+        assertEquals(SubscriptionStatus.PRO, runBlocking { r.observeStatus().first() })
+    }
+
+    @Test
+    fun `refresh does not downgrade Pro status to Free when queryPurchasesAsync throws an exception`() {
+        purchasesResult = PurchasesResult(ok(), listOf(purchase(Purchase.PurchaseState.PURCHASED, acked = true)))
+        val r = repo()
+        awaitStatus(r, SubscriptionStatus.PRO)
+
+        coEvery { client.queryPurchasesAsync(any<QueryPurchasesParams>()) } throws IllegalStateException("IPC dead")
+        runBlocking { r.refresh() }
+
+        assertEquals(SubscriptionStatus.PRO, runBlocking { r.observeStatus().first() })
+    }
+
+    @Test
+    fun `refresh downgrades to Free when queryPurchasesAsync returns OK with empty purchase list`() {
+        purchasesResult = PurchasesResult(ok(), listOf(purchase(Purchase.PurchaseState.PURCHASED, acked = true)))
+        val r = repo()
+        awaitStatus(r, SubscriptionStatus.PRO)
+
+        purchasesResult = PurchasesResult(ok(), emptyList())
+        runBlocking { r.refresh() }
+
+        assertEquals(SubscriptionStatus.FREE, runBlocking { r.observeStatus().first() })
+    }
+
+    @Test
+    fun `startConnection failure is handled gracefully without crashing`() {
+        every { client.startConnection(any()) } answers {
+            firstArg<BillingClientStateListener>().onBillingSetupFinished(
+                ok(BillingClient.BillingResponseCode.BILLING_UNAVAILABLE)
+            )
+        }
+        ready = false
+        val r = repo()
+
+        runBlocking { r.refresh() }
+
+        assertEquals(SubscriptionStatus.FREE, runBlocking { r.observeStatus().first() })
+    }
+
+    @Test
+    fun `queryFormattedPrice returns null when connection cannot be established`() {
+        ready = false
+        every { client.startConnection(any()) } answers {
+            firstArg<BillingClientStateListener>().onBillingSetupFinished(
+                ok(BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE)
+            )
+        }
+        val r = repo()
+
+        val price = runBlocking { r.queryFormattedPrice() }
+        assertNull(price)
+    }
+
+    @Test
+    fun `purchase returns ITEM_UNAVAILABLE when connection cannot be established`() {
+        ready = false
+        every { client.startConnection(any()) } answers {
+            firstArg<BillingClientStateListener>().onBillingSetupFinished(
+                ok(BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE)
+            )
+        }
+        val r = repo()
+
+        val result = runBlocking { r.purchase(mockk<Activity>()) }
+        assertEquals(BillingClient.BillingResponseCode.ITEM_UNAVAILABLE, result.responseCode)
+    }
 }
