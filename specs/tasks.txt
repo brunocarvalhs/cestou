@@ -1,3 +1,5 @@
+# [CONCLUÍDO - PR #227] Setup do SDD
+
 Estruturar o fluxo de Spec-Driven Development (SDD) e a governança de agentes de IA neste repositório, conforme um template de SDD local (não versionado).
 
 O que entra:
@@ -13,13 +15,14 @@ Nenhum código de produção é alterado nesta tarefa.
 
 ---
 
-# sdd-001-auditoria-geral
+# [CONCLUÍDO] sdd-001-auditoria-geral
 
 Fazer um SDD completo do projeto e gerar uma lista de tasks com: funcionalidades que faltam, bugs de lógica e possíveis crashes. Cada item deve citar arquivo:linha, ter severidade e uma correção proposta. Nenhum código de produção é alterado nesta tarefa; cada item vira um SDD próprio (sdd-0NN) antes de ser implementado.
+Status: Auditoria realizada e desdobrada nos planos técnicos sdd-002 até sdd-011.
 
 ---
 
-# sdd-012-ai-agent-fallback-safety
+# [CONCLUÍDO - PR #232] sdd-012-ai-agent-fallback-safety
 
 Débito técnico levantado pela revisão (code-reviewer) do sdd-006-ai-agent-reliability, resultado AJUSTES NECESSARIOS:
 
@@ -52,17 +55,33 @@ aceito, com justificativa.
 
 ---
 
-# sdd-013-openrouter-dynamic-models
+# [CONCLUÍDO - PR #233] sdd-013-openrouter-dynamic-models
 
 Carregar dinamicamente a lista de modelos de IA da API do OpenRouter (`https://openrouter.ai/api/v1/models`) em vez da lista fixa (`AiModel.freeModels`), permitindo a seleção de modelos com fallback para a lista estática em caso de falha/offline e mantendo sempre um modelo gratuito (`free`) como padrão.
 
 ---
 
-# sdd-014-ai-agent-three-tier-config
+# [CONCLUÍDO - PR #234] sdd-014-ai-agent-three-tier-config
 
 Implementar layout de configuração de agente de IA em 3 níveis no app:
 1. Nível 1: Valor default sempre o mesmo (`openrouter/free`, automático e gratuito).
 2. Nível 2: Seleção de agente específico (modelos built-in/gratuitos disponíveis).
 3. Nível 3: Agentes de IA pagos usando API key externa (Bring Your Own Key - BYOK), permitindo incluir chaves para Claude, GPT e outros com pagamento externo dentro do app.
 
+---
 
+# [CONCLUÍDO - PR #236] sdd-015-search-bar-ai-chat
+
+Adicionar barra de busca na lista de compras (`ShoppingScreen`), ponto de entrada rápido para o chat de IA e chips de filtros por categoria e status dos itens.
+
+---
+
+# [EM ABERTO / PENDENTE NA DEVELOP]
+
+## PR #237 - feat(chat): convert chat screen into modal bottom sheet with history and voice input
+- Branch: `feature/chat-bottom-sheet-voice`
+- Status: Aberto (revisão / pipeline aguardando correção de cobertura de testes).
+
+## PR #238 - feat(chat): add AI chat history, native voice input, and Lottie thinking animation
+- Branch: `feature/chat-voice-history`
+- Status: Aberto (submetido recentemente, checks em andamento).
