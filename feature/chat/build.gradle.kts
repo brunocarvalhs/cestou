@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":core:ai"))
 
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.foundation.layout)
     implementation(libs.markdown.renderer.m3)
 
     implementation(libs.androidx.compose.material.icons.core)
