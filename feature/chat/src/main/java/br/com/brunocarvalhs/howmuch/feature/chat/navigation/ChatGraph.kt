@@ -6,19 +6,29 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.toRoute
+import androidx.navigation3.runtime.NavKey
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.RouteProtocol
+import br.com.brunocarvalhs.howmuch.core.navigation.RouteType
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiSettings
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.screen.AiChatScreen
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel.AiChatViewModel
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel.ChatAiGateViewModel
+import kotlinx.serialization.Serializable
 
 private const val PAYWALL_SOURCE = "ai_chat"
 
+@Serializable
+data object AiHistory : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}
+
 fun NavGraphBuilder.chatGraph(navigator: Navigator) {
-    composable<AiChat> { backStackEntry ->
+    dialog<AiChat> { backStackEntry ->
         val route: AiChat = backStackEntry.toRoute()
         val viewModel: AiChatViewModel = hiltViewModel()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -39,5 +49,8 @@ fun NavGraphBuilder.chatGraph(navigator: Navigator) {
             isSendEnabled = isSendEnabled,
             onUpgradeClick = { navigator.navigate(Paywall(source = PAYWALL_SOURCE)) }
         )
+    }
+    composable<AiHistory> {
+
     }
 }
