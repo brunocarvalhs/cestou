@@ -10,4 +10,11 @@
     <string name="ai_chat_history_content_description">Historial</string>
     <string name="ai_chat_close_content_description">Cerrar</string>
     <string name="ai_chat_voice_content_description">Entrada de voz</string>
+    <string name="ai_chat_history_title">Historial de Conversaciones</string>
+    <string name="ai_chat_history_empty">No se encontraron conversaciones</string>
+    <string name="ai_chat_history_new_chat">Nueva conversación</string>
+    <string name="ai_chat_history_delete_content_description">Eliminar conversación</string>
+    <string name="ai_chat_voice_permission_required">Permiso de micrófono requerido para grabación de voz.</string>
+    <string name="ai_chat_voice_not_supported">Reconocimiento de voz no soportado en este dispositivo.</string>
+    <string name="ai_chat_voice_listening">Escuchando…</string>
 </resources>
