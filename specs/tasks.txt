@@ -4,7 +4,7 @@ Nova Auditoria Geral do Projeto Cestou realizada com sucesso em 2026-10-31.
 Plano detalhado em: `specs/sdd-001-auditoria-geral/tasks.md`.
 
 Roadmap dos próximos SDDs a implementar (conforme prioridade de severidade):
-1. sdd-016-billing-hardening: Resiliência no Google Play Billing, timeout em conexões e prevenção contra downgrade indevido de usuários PRO.
+1. sdd-016-billing-hardening: Resiliência no Google Play Billing, timeout em conexões e prevenção contra downgrade indevido de usuários PRO. (Plano pronto em `specs/sdd-016-billing-hardening/tasks.md`)
 2. sdd-017-ai-agent-safety: Remoção de tools simuladas/inseguras, proteção contra alteração indevida de roles/status pelo LLM e fix de consumo de trial no chat.
 3. sdd-018-firestore-resilience: Desserialização elemento-a-elemento no Firestore e retry com backoff no snapshot listener.
 4. sdd-019-shopping-rules-collaboration: Fix de ordenação por position na lista de compras, join idempotente e ações de sair/gerenciar membros.
