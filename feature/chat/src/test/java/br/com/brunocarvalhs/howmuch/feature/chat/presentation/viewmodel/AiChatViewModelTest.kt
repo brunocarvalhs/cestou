@@ -4,10 +4,12 @@ import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.SpeechToTextManager
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -15,6 +17,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -34,18 +37,31 @@ class AiChatViewModelTest {
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val aiTrialRepository = mockk<AiTrialRepository>(relaxed = true)
     private val aiSession = mockk<AiSession>(relaxed = true)
+    private val speechToTextManager = mockk<SpeechToTextManager>(relaxed = true) {
+        every { isListening } returns MutableStateFlow(false)
+        every { recognizedText } returns MutableStateFlow(null)
+        every { errorMessage } returns MutableStateFlow(null)
+    }
     private val context = mockk<Context> {
         every { getString(R.string.ai_chat_error_network) } returns "network error"
         every { getString(R.string.ai_chat_error_generic) } returns "generic error"
+        every { getString(R.string.ai_chat_voice_not_supported) } returns "voice not supported"
     }
-    private val viewModel = AiChatViewModel(
-        assistantUseCase, chatHistoryRepository, analyticsTracker, aiTrialRepository, aiSession, context
-    )
+    private lateinit var viewModel: AiChatViewModel
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         coEvery { chatHistoryRepository.load(any()) } returns emptyList()
+        viewModel = AiChatViewModel(
+            assistantUseCase,
+            chatHistoryRepository,
+            analyticsTracker,
+            aiTrialRepository,
+            aiSession,
+            speechToTextManager,
+            context
+        )
     }
 
     @After
@@ -107,9 +123,9 @@ class AiChatViewModelTest {
     @Test
     fun `setShoppingContext loads persisted history for that shopping id`() {
         val persisted = listOf(
-            br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage(
+            ChatMessage(
                 text = "previous message",
-                sender = br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage.Sender.USER
+                sender = ChatMessage.Sender.USER
             )
         )
         coEvery { chatHistoryRepository.load("list1") } returns persisted
@@ -128,5 +144,14 @@ class AiChatViewModelTest {
         viewModel.intent.onSendMessage()
 
         coVerify { chatHistoryRepository.save("list1", viewModel.uiState.value.messages) }
+    }
+
+    @Test
+    fun `startVoiceInput starts listening when available`() {
+        every { speechToTextManager.isRecognitionAvailable() } returns true
+
+        viewModel.intent.onStartVoiceInput()
+
+        verify { speechToTextManager.startListening() }
     }
 }
