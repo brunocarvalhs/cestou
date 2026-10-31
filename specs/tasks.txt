@@ -1,86 +1,27 @@
-Estruturar o fluxo de Spec-Driven Development (SDD) e a governança de agentes de IA neste repositório, conforme um template de SDD local (não versionado).
-
-O que entra:
-- AGENTS.md como fonte de verdade para agentes.
-- Skills em .agents/skills/: code-planner, code-implementer, code-reviewer, android-architecture, open-pull-request.
-- specs/ versionado, com tasks.txt (entrada) e sdd-<NNN>-<slug>/tasks.md (plano).
-- Seção "Documentação e SDD" no README.md.
-- .github/copilot-instructions.md.
-
-Contexto: o SDD anterior (.specs/ e .agents/skills/spec-driven) está sendo removido neste branch (chore/sdd). Não usar caminhos legados.
-
-Nenhum código de produção é alterado nesta tarefa.
-
----
-
 # sdd-001-auditoria-geral
 
-Fazer um SDD completo do projeto e gerar uma lista de tasks com: funcionalidades que faltam, bugs de lógica e possíveis crashes. Cada item deve citar arquivo:linha, ter severidade e uma correção proposta. Nenhum código de produção é alterado nesta tarefa; cada item vira um SDD próprio (sdd-0NN) antes de ser implementado.
+Nova Auditoria Geral do Projeto Cestou realizada com sucesso em 2026-10-31.
+Plano detalhado em: `specs/sdd-001-auditoria-geral/tasks.md`.
+
+Roadmap dos próximos SDDs a implementar (conforme prioridade de severidade):
+1. sdd-016-billing-hardening: Resiliência no Google Play Billing, timeout em conexões e prevenção contra downgrade indevido de usuários PRO.
+2. sdd-017-ai-agent-safety: Remoção de tools simuladas/inseguras, proteção contra alteração indevida de roles/status pelo LLM e fix de consumo de trial no chat.
+3. sdd-018-firestore-resilience: Desserialização elemento-a-elemento no Firestore e retry com backoff no snapshot listener.
+4. sdd-019-shopping-rules-collaboration: Fix de ordenação por position na lista de compras, join idempotente e ações de sair/gerenciar membros.
+5. sdd-020-cart-budget-ux: Progresso de orçamento e alertas no carrinho, lembrete diário funcional e desfazer (undo) em exclusões.
 
 ---
 
-# sdd-012-ai-agent-fallback-safety
+# Histórico de SDDs Concluídos e Mergeados na develop
 
-Débito técnico levantado pela revisão (code-reviewer) do sdd-006-ai-agent-reliability, resultado AJUSTES NECESSARIOS:
-
-1. (Bloqueante) `FallbackAiAgent` (`feature/ai-agent/.../data/service/FallbackAiAgent.kt`) recorre ao
-   provider secundário para qualquer exceção do primário, mesmo quando uma tool call já foi
-   executada (efeito colateral real, ex. produto já gravado no Firestore) na mesma rodada —
-   contradiz o próprio critério de aceitação do sdd-006 ("exceto se o primário já executou uma
-   tool nesta rodada"). Risco de duplicar a ação ao cair no secundário. Agora que
-   `AiAgentFactoryImpl.selectAgent` sempre envolve `FallbackAiAgent` quando os dois provedores
-   existem, esse caminho é o padrão para a maioria dos usuários, não um caso raro.
-2. (Bloqueante, documentação) `AiSession.clearHistory()` (novo método público em
-   `core/ai/.../contract/AiSession.kt`) não está registrado em nenhum `tasks.md` como mudança de
-   contrato público — foi necessário por uma restrição real de classpath (`:feature:chat`/`:app`
-   não têm o SDK do Gemini, que `core:ai` só expõe como `implementation`) descoberta durante a
-   implementação do sdd-006, mas o SDD daquela tarefa não foi atualizado para refletir isso.
-3. (Aviso) `AiSession.history: MutableList<Content>` continua público e mutável mesmo depois de
-   `clearHistory()` existir — os dois mecanismos de limpeza coexistem; avaliar se vale estreitar o
-   contrato.
-4. (Aviso) Faltam testes no nível `sendMessage` completo de `GeminiAiAgent`/`OpenRouterAiAgent`
-   para `MAX_TOOL_ROUNDS` (parar na 5ª rodada, nunca mandar a 6ª) e para o relançamento da
-   exceção de transporte — não cobertos por não existir hoje infraestrutura de mock do SDK do
-   Gemini (`GenerativeModel`/`Chat`, construído via `by lazy`) nem do `HttpClient` do OpenRouter
-   (hardcoded, sem injeção).
-
-Referência: revisão completa na conversa que implementou sdd-006 (seção "Divergências
-bloqueantes" e "Avisos" do code-reviewer). Nenhum código de produção é alterado nesta tarefa de
-planejamento; o plano deve decidir, para o item 1, entre corrigir a lacuna (adicionar uma guarda
-de "tool já executada") ou rebaixar/documentar o critério de aceitação do sdd-006 como risco
-aceito, com justificativa.
-
----
-
-# sdd-013-openrouter-dynamic-models
-
-Carregar dinamicamente a lista de modelos de IA da API do OpenRouter (`https://openrouter.ai/api/v1/models`) em vez da lista fixa (`AiModel.freeModels`), permitindo a seleção de modelos com fallback para a lista estática em caso de falha/offline e mantendo sempre um modelo gratuito (`free`) como padrão.
-
----
-
-# sdd-014-ai-agent-three-tier-config
-
-Implementar layout de configuração de agente de IA em 3 níveis no app:
-1. Nível 1: Valor default sempre o mesmo (`openrouter/free`, automático e gratuito).
-2. Nível 2: Seleção de agente específico (modelos built-in/gratuitos disponíveis).
-3. Nível 3: Agentes de IA pagos usando API key externa (Bring Your Own Key - BYOK), permitindo incluir chaves para Claude, GPT e outros com pagamento externo dentro do app.
-
----
-
-# sdd-015-chat-bottom-sheet-voice
-
-Converter a tela de chat (`AiChatScreen`) em um ModalBottomSheet (com suporte a navegação em diálogo/bottom sheet no `chatGraph`), contendo:
-1. Ícone de fechar à direita.
-2. Ícone de histórico à esquerda, abrindo uma lista de conversas anteriores.
-3. Texto de boas-vindas: "Como Cestou pode lhe ajudar?".
-4. Input de mensagem com botão dinâmico: se houver texto, exibe o ícone de enviar (send); se não houver texto, exibe o ícone de microfone (voice input) para gravação/simulação de transcrição de áudio para texto para envio à IA.
-
----
-
-# sdd-016-chat-history-voice-lottie
-
-Implementar tela de Histórico de Conversas com IA (`AiHistoryScreen`), gerenciamento de múltiplas sessões no `ChatHistoryRepository`, suporte nativo a gravação de voz (Speech-to-Text com permissão `RECORD_AUDIO`) e inclusão das animações Lottie para digitação da IA (`ai_thinking_loader.json`) e ondas de áudio (`audio_wave_micro_interaction.json`).
-
-
-
-
+- [x] sdd-000-setup-sdd (PR #227) - Governança de SDD e automação de skills.
+- [x] sdd-002-network-error-contract (PR #227) - Contrato de erros no NetworkService.
+- [x] sdd-003-shopping-data-integrity (PR #228) - Integridade ao duplicar listas e atualizar campos parciais.
+- [x] sdd-004-navigator-deeplink (PR #229) - Estabilidade do Navigator e captura de convites por deep link.
+- [x] sdd-005-crash-hardening (PR #230) - Proteção contra crashes por dados nulos/inválidos e sessão expirada.
+- [x] sdd-006-ai-agent-reliability (PR #232) - Confiabilidade do agente de IA, feedback de tools e privacidade de histórico.
+- [x] sdd-011-perfil-configuracoes-unificado (PR #231) - Telas de perfil e configurações unificadas.
+- [x] sdd-012-ai-agent-fallback-safety (PR #232) - Proteção contra fallback indevido pós-efeitos colaterais e clearHistory.
+- [x] sdd-013-openrouter-dynamic-models (PR #233) - Modelos de IA dinâmicos da API OpenRouter sem lista estática.
+- [x] sdd-014-ai-agent-three-tier-config (PR #234) - Configuração de IA em 3 níveis (Default, Built-in, BYOK) com bloqueio Pro.
+- [x] sdd-015-search-bar-ai-chat (PR #236) - Barra de busca, chips de filtros e atalho de chat na lista de compras.
