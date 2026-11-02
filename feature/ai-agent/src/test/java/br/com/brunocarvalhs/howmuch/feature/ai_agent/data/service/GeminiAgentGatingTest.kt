@@ -5,7 +5,7 @@ import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
-import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.FunctionCall
+import com.google.ai.client.generativeai.type.FunctionCallPart
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -15,22 +15,29 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
- * Covers the AD-010 gate at [OpenRouterAiAgent.executeToolCall]: the single chokepoint every
- * OpenRouter tool call passes through before an [br.com.brunocarvalhs.howmuch.core.ai.contract.AgentAction]
- * actually runs.
+ * Covers the AD-010 gate at [GeminiAgent.executeFunctionCall]: the single chokepoint every
+ * Gemini function call passes through before an [br.com.brunocarvalhs.howmuch.core.ai.contract.AgentAction]
+ * actually runs. Runs under Robolectric because [GeminiAgent.executeFunctionCall] builds its
+ * response with the real `org.json.JSONObject`, which throws "not mocked" under a plain JVM
+ * unit test.
  */
-class OpenRouterAiAgentGatingTest {
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
+class GeminiAgentGatingTest {
 
     private val registry = mockk<AgentRegistry>()
     private val subscriptionRepository = mockk<SubscriptionRepository>()
     private val session = mockk<AiSession>(relaxed = true)
 
-    private fun agentWithStatus(status: SubscriptionStatus): OpenRouterAiAgent {
+    private fun agentWithStatus(status: SubscriptionStatus): GeminiAgent {
         every { subscriptionRepository.observeStatus() } returns flowOf(status)
-        return OpenRouterAiAgent(
-            dependencies = AiAgentDependencies(
+        return GeminiAgent(
+            dependencies = AgentDependencies(
                 session = session,
                 crashReporter = mockk<CrashReporter>(relaxed = true),
                 subscriptionRepository = subscriptionRepository,
@@ -45,9 +52,9 @@ class OpenRouterAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        val result = agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+        val response = agent.executeFunctionCall(FunctionCallPart("fake_action", emptyMap()), emptyMap())
 
-        assertEquals("Essa ação é exclusiva do plano Pro.", result)
+        assertEquals("Essa ação é exclusiva do plano Pro.", response.response.getString("result"))
         assertFalse(action.executed)
     }
 
@@ -57,7 +64,7 @@ class OpenRouterAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.PRO)
 
-        agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+        agent.executeFunctionCall(FunctionCallPart("fake_action", emptyMap()), emptyMap())
 
         assertTrue(action.executed)
     }
@@ -68,7 +75,7 @@ class OpenRouterAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+        agent.executeFunctionCall(FunctionCallPart("fake_action", emptyMap()), emptyMap())
 
         assertTrue(action.executed)
     }
@@ -79,9 +86,9 @@ class OpenRouterAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        val result = agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+        val response = agent.executeFunctionCall(FunctionCallPart("fake_action", emptyMap()), emptyMap())
 
-        assertEquals("Erro: not found", result)
+        assertEquals("Erro: not found", response.response.getString("result"))
     }
 
     @Test
@@ -90,9 +97,9 @@ class OpenRouterAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        val result = agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+        val response = agent.executeFunctionCall(FunctionCallPart("fake_action", emptyMap()), emptyMap())
 
-        assertEquals("OK", result)
+        assertEquals("OK", response.response.getString("result"))
     }
 
     @Test(expected = kotlinx.coroutines.CancellationException::class)
@@ -102,18 +109,18 @@ class OpenRouterAiAgentGatingTest {
             every { registry.find("fake_action") } returns action
             val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-            agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+            agent.executeFunctionCall(FunctionCallPart("fake_action", emptyMap()), emptyMap())
         }
 
     @Test
     fun `marks the session as having run a tool before dispatching it, even if it then fails`() = runTest {
-        // sdd-012: FallbackAiAgent relies on this flag being set *before* the call, not after,
+        // sdd-012: FallbackAgent relies on this flag being set *before* the call, not after,
         // since a failed action can still have a partial side effect.
         val action = FakeAgentAction(result = Result.failure(Exception("boom")))
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+        agent.executeFunctionCall(FunctionCallPart("fake_action", emptyMap()), emptyMap())
 
         verify { session.toolExecutedThisTurn = true }
     }
@@ -124,7 +131,7 @@ class OpenRouterAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+        agent.executeFunctionCall(FunctionCallPart("fake_action", emptyMap()), emptyMap())
 
         verify(exactly = 0) { session.toolExecutedThisTurn = true }
     }

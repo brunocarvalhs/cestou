@@ -8,7 +8,7 @@ import java.util.Locale
  * Dados de sessão que persistem durante as interações com a IA.
  * Esta implementação é específica para o Google Gemini.
  */
-data class AiAgentSession(
+data class AgentSession(
     override val userId: String? = null,
     val locale: Locale = Locale.getDefault(),
     override val history: MutableList<Content> = mutableListOf()

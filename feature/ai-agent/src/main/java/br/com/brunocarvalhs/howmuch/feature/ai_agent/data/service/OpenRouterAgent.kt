@@ -1,8 +1,8 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 import br.com.brunocarvalhs.howmuch.core.ai.BuildConfig
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
+import br.com.brunocarvalhs.howmuch.core.ai.contract.Agent
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
@@ -36,11 +36,11 @@ import timber.log.Timber
  * Implementação do Agente utilizando a API do OpenRouter.
  * Suporta múltiplos modelos (como GPT-4, Claude, etc) e Function Calling.
  */
-internal class OpenRouterAiAgent(
-    dependencies: AiAgentDependencies,
+internal class OpenRouterAgent(
+    dependencies: AgentDependencies,
     private val model: String = BuildConfig.OPEN_ROUTER_MODEL,
     private val apiKey: String = BuildConfig.OPEN_ROUTER_API_KEY
-) : AiAgent {
+) : Agent {
 
     private val session: AiSession = dependencies.session
     private val registry: AgentRegistry = dependencies.registry
@@ -69,10 +69,10 @@ internal class OpenRouterAiAgent(
 
     override suspend fun sendMessage(
         prompt: String,
-        context: AiAgentContext
+        context: AgentContext
     ): Flow<String> = flow {
         val meta = context.toMetadata()
-        // Zera no início da tentativa: FallbackAiAgent lê este sinal só depois que esta chamada
+        // Zera no início da tentativa: FallbackAgent lê este sinal só depois que esta chamada
         // falha, então precisa refletir só o que aconteceu *nesta* tentativa (sdd-012).
         session.toolExecutedThisTurn = false
 
@@ -130,7 +130,7 @@ internal class OpenRouterAiAgent(
                 )
             )
             // Relança em vez de emitir um texto amigável — ver o mesmo comentário em
-            // GeminiAiAgent.sendMessage (sdd-006, B-08).
+            // GeminiAgent.sendMessage (sdd-006, B-08).
             throw e
         }
     }
@@ -235,7 +235,7 @@ internal class OpenRouterAiAgent(
         subscriptionRepository.observeStatus().first() == SubscriptionStatus.PRO
 
     companion object {
-        private const val TAG = "OpenRouterAiAgent"
+        private const val TAG = "OpenRouterAgent"
         private const val REQUEST_TIMEOUT_MS = 45_000L
         private const val CONNECT_TIMEOUT_MS = 15_000L
         // Omitting max_tokens lets OpenRouter default to the routed model's own max output

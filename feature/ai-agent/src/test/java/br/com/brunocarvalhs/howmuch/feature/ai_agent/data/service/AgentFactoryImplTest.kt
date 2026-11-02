@@ -13,7 +13,7 @@ import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagServic
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.RemoteVariableService
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.RemoteVariableKeys
-import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AiAgentSession
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AgentSession
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
@@ -62,63 +62,63 @@ private fun RemoteVariableService.stubDefaultRemoteKeys() {
     stubRemoteSystemPrompt()
 }
 
-/** Reads the private `apiKey` field the GeminiAiAgent was actually constructed with. */
-private fun GeminiAiAgent.actualApiKey(): String {
-    val field: Field = GeminiAiAgent::class.java.getDeclaredField("apiKey")
+/** Reads the private `apiKey` field the GeminiAgent was actually constructed with. */
+private fun GeminiAgent.actualApiKey(): String {
+    val field: Field = GeminiAgent::class.java.getDeclaredField("apiKey")
     field.isAccessible = true
     return field.get(this) as String
 }
 
-/** Reads the private `apiKey` field the OpenRouterAiAgent was actually constructed with. */
-private fun OpenRouterAiAgent.actualApiKey(): String {
-    val field: Field = OpenRouterAiAgent::class.java.getDeclaredField("apiKey")
+/** Reads the private `apiKey` field the OpenRouterAgent was actually constructed with. */
+private fun OpenRouterAgent.actualApiKey(): String {
+    val field: Field = OpenRouterAgent::class.java.getDeclaredField("apiKey")
     field.isAccessible = true
     return field.get(this) as String
 }
 
-/** Reads the private `systemPrompt` field the OpenRouterAiAgent was actually constructed with. */
-private fun OpenRouterAiAgent.actualSystemPrompt(): String {
-    val field: Field = OpenRouterAiAgent::class.java.getDeclaredField("systemPrompt")
+/** Reads the private `systemPrompt` field the OpenRouterAgent was actually constructed with. */
+private fun OpenRouterAgent.actualSystemPrompt(): String {
+    val field: Field = OpenRouterAgent::class.java.getDeclaredField("systemPrompt")
     field.isAccessible = true
     return field.get(this) as String
 }
 
-/** Reads the private `modelName` field the GeminiAiAgent was actually constructed with. */
-private fun GeminiAiAgent.actualModel(): String {
-    val field: Field = GeminiAiAgent::class.java.getDeclaredField("modelName")
+/** Reads the private `modelName` field the GeminiAgent was actually constructed with. */
+private fun GeminiAgent.actualModel(): String {
+    val field: Field = GeminiAgent::class.java.getDeclaredField("modelName")
     field.isAccessible = true
     return field.get(this) as String
 }
 
-/** Reads the private `model` field the OpenRouterAiAgent was actually constructed with. */
-private fun OpenRouterAiAgent.actualModel(): String {
-    val field: Field = OpenRouterAiAgent::class.java.getDeclaredField("model")
+/** Reads the private `model` field the OpenRouterAgent was actually constructed with. */
+private fun OpenRouterAgent.actualModel(): String {
+    val field: Field = OpenRouterAgent::class.java.getDeclaredField("model")
     field.isAccessible = true
     return field.get(this) as String
 }
 
-/** Reads the private `primary`/`secondary` agents out of a FallbackAiAgent. */
-private fun FallbackAiAgent.primaryAgent(): Any {
-    val field: Field = FallbackAiAgent::class.java.getDeclaredField("primary")
+/** Reads the private `primary`/`secondary` agents out of a FallbackAgent. */
+private fun FallbackAgent.primaryAgent(): Any {
+    val field: Field = FallbackAgent::class.java.getDeclaredField("primary")
     field.isAccessible = true
     return field.get(this)!!
 }
 
-private fun FallbackAiAgent.secondaryAgent(): Any {
-    val field: Field = FallbackAiAgent::class.java.getDeclaredField("secondary")
+private fun FallbackAgent.secondaryAgent(): Any {
+    val field: Field = FallbackAgent::class.java.getDeclaredField("secondary")
     field.isAccessible = true
     return field.get(this)!!
 }
 
-class AiAgentFactoryImplTest {
+class AgentFactoryImplTest {
 
-    private val session = mockk<AiAgentSession>(relaxed = true)
+    private val session = mockk<AgentSession>(relaxed = true)
     private val registry = mockk<AgentRegistry>(relaxed = true)
     private val featureFlagService = mockk<FeatureFlagService>()
     private val remoteVariableService = mockk<RemoteVariableService>()
     private val crashReporter = mockk<CrashReporter>(relaxed = true)
     private val subscriptionRepository = mockk<SubscriptionRepository>(relaxed = true)
-    private val factory = AiAgentFactoryImpl(
+    private val factory = AgentFactoryImpl(
         session,
         registry,
         featureFlagService,
@@ -128,38 +128,38 @@ class AiAgentFactoryImplTest {
     )
 
     @Test
-    fun `create returns a FallbackAiAgent when no explicit provider is chosen and both are enabled`() {
+    fun `create returns a FallbackAgent when no explicit provider is chosen and both are enabled`() {
         featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
         remoteVariableService.stubDefaultRemoteKeys()
 
         val agent = factory.create(AppSettings(aiProvider = "auto"))
 
-        assertTrue(agent is FallbackAiAgent)
+        assertTrue(agent is FallbackAgent)
     }
 
     @Test
-    fun `create wraps the explicitly selected gemini provider in a FallbackAiAgent, with openrouter as backup`() {
+    fun `create wraps the explicitly selected gemini provider in a FallbackAgent, with openrouter as backup`() {
         // Both enabled: an explicit choice must still retry the other provider on a transport
         // failure (sdd-006, B-08) — only when the explicitly chosen one is the only one available
         // (see "falls back ... when the selected one is disabled" below) is it returned bare.
         featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
         remoteVariableService.stubDefaultRemoteKeys()
 
-        val agent = factory.create(AppSettings(aiProvider = "gemini")) as FallbackAiAgent
+        val agent = factory.create(AppSettings(aiProvider = "gemini")) as FallbackAgent
 
-        assertTrue(agent.primaryAgent() is GeminiAiAgent)
-        assertTrue(agent.secondaryAgent() is OpenRouterAiAgent)
+        assertTrue(agent.primaryAgent() is GeminiAgent)
+        assertTrue(agent.secondaryAgent() is OpenRouterAgent)
     }
 
     @Test
-    fun `create wraps the explicitly selected openrouter provider in a FallbackAiAgent, with gemini as backup`() {
+    fun `create wraps the explicitly selected openrouter provider in a FallbackAgent, with gemini as backup`() {
         featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
         remoteVariableService.stubDefaultRemoteKeys()
 
-        val agent = factory.create(AppSettings(aiProvider = "openrouter")) as FallbackAiAgent
+        val agent = factory.create(AppSettings(aiProvider = "openrouter")) as FallbackAgent
 
-        assertTrue(agent.primaryAgent() is OpenRouterAiAgent)
-        assertTrue(agent.secondaryAgent() is GeminiAiAgent)
+        assertTrue(agent.primaryAgent() is OpenRouterAgent)
+        assertTrue(agent.secondaryAgent() is GeminiAgent)
     }
 
     @Test
@@ -169,17 +169,17 @@ class AiAgentFactoryImplTest {
 
         val agent = factory.create(AppSettings(aiProvider = "gemini"))
 
-        assertTrue(agent is OpenRouterAiAgent)
+        assertTrue(agent is OpenRouterAgent)
     }
 
     @Test
-    fun `create returns NoAiProviderAvailableAgent when both providers are disabled`() {
+    fun `create returns NoProviderAvailableAgent when both providers are disabled`() {
         featureFlagService.stubFlags(geminiEnabled = false, openRouterEnabled = false)
         remoteVariableService.stubDefaultRemoteKeys()
 
         val agent = factory.create(AppSettings(aiProvider = "auto"))
 
-        assertTrue(agent is NoAiProviderAvailableAgent)
+        assertTrue(agent is NoProviderAvailableAgent)
     }
 
     @Test
@@ -189,31 +189,31 @@ class AiAgentFactoryImplTest {
 
         val agent = factory.create(AppSettings(aiProvider = "auto"))
 
-        assertTrue(agent is OpenRouterAiAgent)
+        assertTrue(agent is OpenRouterAgent)
     }
 
     @Test
-    fun `create builds GeminiAiAgent with the remote key when Remote Config returns a valid value`() {
+    fun `create builds GeminiAgent with the remote key when Remote Config returns a valid value`() {
         featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
         remoteVariableService.stubRemoteKey("remote-rotated-key")
         remoteVariableService.stubRemoteOpenRouterKey(BuildConfig.OPEN_ROUTER_API_KEY)
         remoteVariableService.stubRemoteSystemPrompt()
 
-        val agent = (factory.create(AppSettings(aiProvider = "gemini")) as FallbackAiAgent)
-            .primaryAgent() as GeminiAiAgent
+        val agent = (factory.create(AppSettings(aiProvider = "gemini")) as FallbackAgent)
+            .primaryAgent() as GeminiAgent
 
         assertEquals("remote-rotated-key", agent.actualApiKey())
     }
 
     @Test
-    fun `create builds GeminiAiAgent with the BuildConfig key when Remote Config has no value`() {
+    fun `create builds GeminiAgent with the BuildConfig key when Remote Config has no value`() {
         featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
         // Mirrors FirebaseRemoteConfigService's real fallback contract: an unfetched/unactivated
         // key returns the caller-supplied default.
         remoteVariableService.stubDefaultRemoteKeys()
 
-        val agent = (factory.create(AppSettings(aiProvider = "gemini")) as FallbackAiAgent)
-            .primaryAgent() as GeminiAiAgent
+        val agent = (factory.create(AppSettings(aiProvider = "gemini")) as FallbackAgent)
+            .primaryAgent() as GeminiAgent
 
         assertEquals(BuildConfig.GEMINI_API_KEY, agent.actualApiKey())
     }
@@ -225,21 +225,21 @@ class AiAgentFactoryImplTest {
         remoteVariableService.stubRemoteOpenRouterKey(BuildConfig.OPEN_ROUTER_API_KEY)
         remoteVariableService.stubRemoteSystemPrompt()
 
-        val agent = (factory.create(AppSettings(aiProvider = "gemini")) as FallbackAiAgent)
-            .primaryAgent() as GeminiAiAgent
+        val agent = (factory.create(AppSettings(aiProvider = "gemini")) as FallbackAgent)
+            .primaryAgent() as GeminiAgent
 
         assertEquals(BuildConfig.GEMINI_API_KEY, agent.actualApiKey())
     }
 
     @Test
-    fun `create builds OpenRouterAiAgent with the remote key when Remote Config returns a valid value`() {
+    fun `create builds OpenRouterAgent with the remote key when Remote Config returns a valid value`() {
         featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
         remoteVariableService.stubRemoteKey(BuildConfig.GEMINI_API_KEY)
         remoteVariableService.stubRemoteOpenRouterKey("remote-rotated-openrouter-key")
         remoteVariableService.stubRemoteSystemPrompt()
 
-        val agent = (factory.create(AppSettings(aiProvider = "openrouter")) as FallbackAiAgent)
-            .primaryAgent() as OpenRouterAiAgent
+        val agent = (factory.create(AppSettings(aiProvider = "openrouter")) as FallbackAgent)
+            .primaryAgent() as OpenRouterAgent
 
         assertEquals("remote-rotated-openrouter-key", agent.actualApiKey())
     }
@@ -251,34 +251,34 @@ class AiAgentFactoryImplTest {
         remoteVariableService.stubRemoteOpenRouterKey("   ")
         remoteVariableService.stubRemoteSystemPrompt()
 
-        val agent = (factory.create(AppSettings(aiProvider = "openrouter")) as FallbackAiAgent)
-            .primaryAgent() as OpenRouterAiAgent
+        val agent = (factory.create(AppSettings(aiProvider = "openrouter")) as FallbackAgent)
+            .primaryAgent() as OpenRouterAgent
 
         assertEquals(BuildConfig.OPEN_ROUTER_API_KEY, agent.actualApiKey())
     }
 
     @Test
-    fun `create passes the user-picked model to GeminiAiAgent when gemini is selected`() {
+    fun `create passes the user-picked model to GeminiAgent when gemini is selected`() {
         featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
         remoteVariableService.stubDefaultRemoteKeys()
 
         val agent = (
-            factory.create(AppSettings(aiProvider = "gemini", aiModel = "gemini-1.5-pro")) as FallbackAiAgent
-            ).primaryAgent() as GeminiAiAgent
+            factory.create(AppSettings(aiProvider = "gemini", aiModel = "gemini-1.5-pro")) as FallbackAgent
+            ).primaryAgent() as GeminiAgent
 
         assertEquals("gemini-1.5-pro", agent.actualModel())
     }
 
     @Test
-    fun `create passes the user-picked model to OpenRouterAiAgent when openrouter is selected`() {
+    fun `create passes the user-picked model to OpenRouterAgent when openrouter is selected`() {
         featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
         remoteVariableService.stubDefaultRemoteKeys()
 
         val agent = (
             factory.create(
                 AppSettings(aiProvider = "openrouter", aiModel = "anthropic/claude-3-haiku")
-            ) as FallbackAiAgent
-            ).primaryAgent() as OpenRouterAiAgent
+            ) as FallbackAgent
+            ).primaryAgent() as OpenRouterAgent
 
         assertEquals("anthropic/claude-3-haiku", agent.actualModel())
     }
@@ -290,10 +290,10 @@ class AiAgentFactoryImplTest {
 
         val agent = factory.create(
             AppSettings(aiProvider = "auto", aiModel = "anthropic/claude-3-haiku")
-        ) as FallbackAiAgent
+        ) as FallbackAgent
 
-        assertEquals(BuildConfig.OPEN_ROUTER_MODEL, (agent.primaryAgent() as OpenRouterAiAgent).actualModel())
-        assertEquals(BuildConfig.GEMINI_AGENT, (agent.secondaryAgent() as GeminiAiAgent).actualModel())
+        assertEquals(BuildConfig.OPEN_ROUTER_MODEL, (agent.primaryAgent() as OpenRouterAgent).actualModel())
+        assertEquals(BuildConfig.GEMINI_AGENT, (agent.secondaryAgent() as GeminiAgent).actualModel())
     }
 
     @Test
@@ -301,8 +301,8 @@ class AiAgentFactoryImplTest {
         featureFlagService.stubFlags(geminiEnabled = true, openRouterEnabled = true)
         remoteVariableService.stubDefaultRemoteKeys()
 
-        val agent = (factory.create(AppSettings(aiProvider = "openrouter")) as FallbackAiAgent)
-            .primaryAgent() as OpenRouterAiAgent
+        val agent = (factory.create(AppSettings(aiProvider = "openrouter")) as FallbackAgent)
+            .primaryAgent() as OpenRouterAgent
 
         assertEquals(SystemPrompts.CESTOU_ASSISTANT, agent.actualSystemPrompt())
     }
@@ -314,8 +314,8 @@ class AiAgentFactoryImplTest {
         remoteVariableService.stubRemoteOpenRouterKey(BuildConfig.OPEN_ROUTER_API_KEY)
         remoteVariableService.stubRemoteSystemPrompt("prompt atualizado remotamente")
 
-        val agent = (factory.create(AppSettings(aiProvider = "openrouter")) as FallbackAiAgent)
-            .primaryAgent() as OpenRouterAiAgent
+        val agent = (factory.create(AppSettings(aiProvider = "openrouter")) as FallbackAgent)
+            .primaryAgent() as OpenRouterAgent
 
         assertEquals("prompt atualizado remotamente", agent.actualSystemPrompt())
     }

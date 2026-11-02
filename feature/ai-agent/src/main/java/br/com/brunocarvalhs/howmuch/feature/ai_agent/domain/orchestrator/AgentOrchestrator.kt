@@ -1,9 +1,9 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.orchestrator
 
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentFactory
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
-import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AiAgentSession
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AgentSession
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -15,16 +15,16 @@ import javax.inject.Singleton
  * Esta classe é o "cérebro" da integração com IA no projeto.
  */
 @Singleton
-class AiAgentOrchestrator @Inject constructor(
-    private val factory: AiAgentFactory,
+class AgentOrchestrator @Inject constructor(
+    private val factory: AgentFactory,
     private val settingsRepository: SettingsRepository,
-    val session: AiAgentSession
+    val session: AgentSession
 ) {
     /**
      * Envia uma mensagem para o assistente e recebe o fluxo de resposta.
      * O histórico é mantido automaticamente na sessão.
      */
-    suspend fun chat(prompt: String, context: AiAgentContext): Flow<String> {
+    suspend fun chat(prompt: String, context: AgentContext): Flow<String> {
         val settings = settingsRepository.getSettings().first()
         val agent = factory.create(settings)
         return agent.sendMessage(prompt, context)
