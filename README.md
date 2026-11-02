@@ -78,9 +78,9 @@ Este projeto adota **Spec-Driven Development (SDD)**: antes de implementar uma t
 
 **Fluxo recomendado:**
 
-1. **Escreva a tarefa** em `specs/tasks.txt` (texto livre: o que fazer e por quê).
+1. **Escreva a tarefa** em `.specs/tasks.txt` (texto livre: o que fazer e por quê).
 2. **Gere o plano técnico** com a skill [`code-planner`](.agents/skills/code-planner/SKILL.md).
-   - Produz `specs/<feature-id>/tasks.md` seguindo o template SDD.
+   - Produz `.specs/<feature-id>/tasks.md` seguindo o template SDD.
    - Se houver ambiguidade bloqueante, o plano sai com `status: blocked` e uma seção **Perguntas em Aberto**. Resolva-as antes de implementar.
 3. **Revise o plano** com um maintainer.
 4. **Implemente** com a skill [`code-implementer`](.agents/skills/code-implementer/SKILL.md), somente com `status: ready`.
@@ -89,7 +89,7 @@ Este projeto adota **Spec-Driven Development (SDD)**: antes de implementar uma t
 
 **Convenções:**
 
-- `specs/` é **versionada**: `specs/tasks.txt` (tarefa atual) e `specs/<feature-id>/tasks.md` (plano).
+- `.specs/` é **versionada** (apesar do prefixo `.`): `.specs/tasks.txt` (tarefa atual) e `.specs/<feature-id>/tasks.md` (plano).
 - Mudanças em símbolos públicos entre módulos são marcadas no plano e exigem registro no processo de release.
 - Para dúvidas de arquitetura, use a skill [`android-architecture`](.agents/skills/android-architecture/SKILL.md).
 

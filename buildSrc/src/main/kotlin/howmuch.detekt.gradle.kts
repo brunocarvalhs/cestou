@@ -15,7 +15,7 @@ val detektComposeRulesVersion = "0.4.22"
 
 configure<DetektExtension> {
     toolVersion = detektVersion
-    config.setFrom(files("config/detekt/detekt.yml"))
+    config.setFrom(files("buildSrc/config/detekt/detekt.yml"))
     parallel = true
     buildUponDefaultConfig = true
     autoCorrect = true
