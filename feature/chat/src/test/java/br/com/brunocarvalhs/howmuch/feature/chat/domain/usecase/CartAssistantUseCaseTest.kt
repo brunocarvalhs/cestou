@@ -3,6 +3,7 @@ package br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiProvider
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import io.mockk.coEvery
@@ -22,7 +23,7 @@ class CartAssistantUseCaseTest {
 
     @Test
     fun `invoke creates the agent from current settings and forwards the prompt`() = runTest {
-        val settings = AppSettings(aiProvider = "gemini")
+        val settings = AppSettings(aiProvider = AiProvider.GEMINI)
         val context = mockk<AiAgentContext>()
         val agent = mockk<AiAgent>()
         every { settingsRepository.getSettings() } returns flowOf(settings)

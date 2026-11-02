@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import app.cash.turbine.test
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiProvider
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.services.ReminderScheduler
 import io.mockk.coEvery
@@ -38,7 +39,7 @@ class SettingsRepositoryImplTest {
         repository.getSettings().test {
             val settings = awaitItem()
             assertEquals(ThemeMode.SYSTEM, settings.themeMode)
-            assertEquals("openrouter", settings.aiProvider)
+            assertEquals(AiProvider.OPENROUTER, settings.aiProvider)
             assertEquals("CATEGORY", settings.sortingMode)
             assertFalse(settings.remindersEnabled)
             assertEquals("pt-BR", settings.language)
@@ -61,7 +62,7 @@ class SettingsRepositoryImplTest {
         repository.getSettings().test {
             val settings = awaitItem()
             assertEquals(ThemeMode.DARK, settings.themeMode)
-            assertEquals("openrouter", settings.aiProvider)
+            assertEquals(AiProvider.OPENROUTER, settings.aiProvider)
             assertTrue(settings.remindersEnabled)
             assertEquals("en", settings.language)
             assertEquals("USD", settings.currency)
@@ -80,7 +81,7 @@ class SettingsRepositoryImplTest {
         every { dataStore.data } returns flowOf(stored)
 
         repository.getSettings().test {
-            assertEquals("openrouter", awaitItem().aiProvider)
+            assertEquals(AiProvider.OPENROUTER, awaitItem().aiProvider)
             awaitComplete()
         }
     }
@@ -94,7 +95,7 @@ class SettingsRepositoryImplTest {
         every { dataStore.data } returns flowOf(stored)
 
         repository.getSettings().test {
-            assertEquals("openrouter", awaitItem().aiProvider)
+            assertEquals(AiProvider.OPENROUTER, awaitItem().aiProvider)
             awaitComplete()
         }
     }
@@ -108,7 +109,23 @@ class SettingsRepositoryImplTest {
         every { dataStore.data } returns flowOf(stored)
 
         repository.getSettings().test {
-            assertEquals("gemini", awaitItem().aiProvider)
+            assertEquals(AiProvider.GEMINI, awaitItem().aiProvider)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun `getSettings reads a provider already persisted in the new AiProvider_name format`() = runTest {
+        // sdd-026: updateAiSettings now writes AiProvider.name (uppercase) instead of the old
+        // lowercase technical literal; resolveStoredAiProvider must read both formats.
+        val stored = mutablePreferencesOf(
+            stringPreferencesKey("ai_provider") to AiProvider.GEMINI.name,
+            stringPreferencesKey("ai_model") to "gemini-1.5-pro"
+        )
+        every { dataStore.data } returns flowOf(stored)
+
+        repository.getSettings().test {
+            assertEquals(AiProvider.GEMINI, awaitItem().aiProvider)
             awaitComplete()
         }
     }
@@ -121,8 +138,8 @@ class SettingsRepositoryImplTest {
         )
         every { dataStore.data } returns flowOf(stored)
 
-        var firstProvider: String? = null
-        var secondProvider: String? = null
+        var firstProvider: AiProvider? = null
+        var secondProvider: AiProvider? = null
         repository.getSettings().test {
             firstProvider = awaitItem().aiProvider
             awaitComplete()
@@ -132,7 +149,7 @@ class SettingsRepositoryImplTest {
             awaitComplete()
         }
 
-        assertEquals("openrouter", firstProvider)
+        assertEquals(AiProvider.OPENROUTER, firstProvider)
         assertEquals(firstProvider, secondProvider)
     }
 
@@ -228,7 +245,7 @@ class SettingsRepositoryImplTest {
         )
 
         assertEquals("google/gemini-2.0-flash-001", fake[stringPreferencesKey("ai_model")])
-        assertEquals("gemini", fake[stringPreferencesKey("ai_provider")])
+        assertEquals(AiProvider.GEMINI.name, fake[stringPreferencesKey("ai_provider")])
     }
 
     @Test
