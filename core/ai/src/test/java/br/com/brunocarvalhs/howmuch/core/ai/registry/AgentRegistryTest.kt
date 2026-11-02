@@ -1,19 +1,19 @@
 package br.com.brunocarvalhs.howmuch.core.ai.registry
 
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentAction
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentActionProvider
+import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
-import io.mockk.mockk
-import org.junit.After
+import br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentParameter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
 class AgentRegistryTest {
 
-    private fun fakeAction(actionId: String) = object : AgentAction<Unit> {
-        override val id = actionId
-        override val description = "desc-$actionId"
+    /** Dublê de [AgentActionUseCase] sem depender das anotações `@AiAgentAction`/`@AiAgentParameter`
+     * (sdd-027) — [AgentRegistry] só precisa de `id`, não da extração de metadados. */
+    private class FakeActionUseCase(override val id: String) : AgentActionUseCase<Unit>() {
+        override val description: String = "desc-$id"
+        override val parameters: List<AiAgentParameter> = emptyList()
         override suspend fun execute(
             arguments: Map<String, Any?>,
             session: AiSession,
@@ -21,62 +21,42 @@ class AgentRegistryTest {
         ): Result<Unit> = Result.success(Unit)
     }
 
-    @After
-    fun tearDown() {
-        AgentRegistry.clear()
+    @Test
+    fun `find returns the action with a matching id from the injected set`() {
+        val registry = AgentRegistry(actions = setOf(FakeActionUseCase("delete_shopping_list")))
+
+        assertEquals("delete_shopping_list", registry.find("delete_shopping_list")?.id)
     }
 
     @Test
-    fun `register makes the action findable by id`() {
-        val action = fakeAction("delete_shopping_list")
+    fun `find returns null for an id not present in the injected set`() {
+        val registry = AgentRegistry(actions = setOf(FakeActionUseCase("a")))
 
-        AgentRegistry.register(action)
-
-        assertEquals(action, AgentRegistry.find("delete_shopping_list"))
+        assertNull(registry.find("unknown"))
     }
 
     @Test
-    fun `find returns null for an unknown id`() {
-        assertNull(AgentRegistry.find("unknown"))
+    fun `getAll returns every action from the injected set`() {
+        val registry = AgentRegistry(actions = setOf(FakeActionUseCase("a"), FakeActionUseCase("b")))
+
+        assertEquals(2, registry.getAll().size)
     }
 
     @Test
-    fun `registerProvider converts and registers every provider`() {
-        val action = fakeAction("update_shopping_list")
-        val provider = mockk<AgentActionProvider>()
-        io.mockk.every { provider.toAgentAction() } returns action
+    fun `getAll returns an empty list when the injected set is empty`() {
+        val registry = AgentRegistry(actions = emptySet())
 
-        AgentRegistry.registerProvider(provider)
-
-        assertEquals(action, AgentRegistry.find("update_shopping_list"))
+        assertEquals(0, registry.getAll().size)
     }
 
     @Test
-    fun `getAll returns every registered action`() {
-        AgentRegistry.register(fakeAction("a"))
-        AgentRegistry.register(fakeAction("b"))
+    fun `two actions with the same id in the set keep only the last one`() {
+        val first = FakeActionUseCase("a")
+        val second = FakeActionUseCase("a")
 
-        assertEquals(2, AgentRegistry.getAll().size)
-    }
+        val registry = AgentRegistry(actions = linkedSetOf(first, second))
 
-    @Test
-    fun `clear removes every registered action`() {
-        AgentRegistry.register(fakeAction("a"))
-
-        AgentRegistry.clear()
-
-        assertEquals(0, AgentRegistry.getAll().size)
-    }
-
-    @Test
-    fun `register overwrites a previous action with the same id`() {
-        val first = fakeAction("a")
-        val second = fakeAction("a")
-
-        AgentRegistry.register(first)
-        AgentRegistry.register(second)
-
-        assertEquals(second, AgentRegistry.find("a"))
-        assertEquals(1, AgentRegistry.getAll().size)
+        assertEquals(1, registry.getAll().size)
+        assertEquals(second, registry.find("a"))
     }
 }
