@@ -8,7 +8,7 @@ A fonte de verdade é o `AGENTS.md` na raiz do repositório. Leia-o antes de qua
 - Módulos: `:app`, `:core:*`, `:feature:*`, `:wear`. Features têm `domain/`, `data/`, `presentation/`, `navigation/`, `di/`.
 - Antes de codar tarefa não trivial: escreva em `specs/tasks.txt` e gere o plano com a skill `code-planner`. Implemente só com `status: ready` (skill `code-implementer`).
 - Validação antes de commit: `./gradlew lintDebug`, `./gradlew detekt`, `./gradlew testDebug`.
-- Cobertura mínima de 80% (`./gradlew koverVerify koverVerifyLayout`).
+- Cobertura mínima de 95% (`./gradlew koverVerify koverVerifyLayout`).
 
 ## Regras que o agente deve seguir
 
