@@ -19,7 +19,7 @@ Regras de acesso: `firestore.rules`. Coleções identificadas nas regras:
 | `/users/{userId}` | Perfil e configurações do usuário | Por `userId`. |
 | `/common-products/{itemId}` | Catálogo de produtos comuns | Ver regra no arquivo. |
 | `/shortCodes/{code}` | Índice de código curto para entrar em listas | Leitura para qualquer usuário autenticado (`isSignedIn`); `list` negado para impedir enumeração. |
-| `/notifications/{notificationId}` | Notificações entre membros | Ver regra no arquivo. |
+| `/notifications/{notificationId}` | Notificações entre membros | Leitura só do destinatário (`userId == uid`, inclusive a consulta de não lidas `isRead == false`); criação por qualquer logado com payload fixo (campos opcionais `shoppingId`/`senderId` validados); update só vira `isRead` para `true`; delete negado. Ver regra no arquivo e AD-009. |
 
 Estado atual: a entrada por código usa o índice `shortCodes/{code}` (`ShoppingRepositoryImpl.kt`, `resolveShortCode` e `ensureShortCodeIndex`). Como o índice não existe para listas antigas, há um fallback por consulta em `shopping` que as regras versionadas em `firestore.rules` negam a não-membros. Essas regras ainda não foram publicadas, então o fallback funciona em produção até o deploy da decisão AD-009 (`05-decisoes-arquiteturais.md`), que o interrompe. O comentário em `firestore.rules` (bloco `shopping`) registra o motivo: não é possível liberar a consulta de um único código sem liberar a leitura de todas as listas (decisão G5).
 

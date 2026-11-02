@@ -5,8 +5,9 @@
 //   npm install --no-save @firebase/rules-unit-testing firebase
 //   firebase emulators:exec --only firestore --project demo-cestou "node rules.test.mjs"
 //
-// It is deliberately NOT wired into Gradle or CI: this repo has no JS toolchain
-// and adding one is a separate decision. Keep it in sync when the rules change.
+// It is not part of Gradle (this repo has no JS toolchain there). CI runs it in its own
+// workflow, .github/workflows/firestore-rules.yml, only when the rules or this folder change.
+// Keep it in sync when the rules change.
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -296,6 +297,35 @@ await t('extra fields are rejected', () =>
   assertFails(setDoc(doc(editor(), 'notifications', 'n6'), { ...notif('n6', OWNER), payloadUrl: 'http://evil' })));
 await t('oversized message is rejected', () =>
   assertFails(setDoc(doc(editor(), 'notifications', 'n7'), notif('n7', OWNER, { message: 'x'.repeat(501) }))));
+await t('notification with shoppingId and senderId between list members succeeds', () =>
+  assertSucceeds(setDoc(doc(editor(), 'notifications', 'n9'),
+    notif('n9', OWNER, { shoppingId: LIST_ID, senderId: EDITOR }))));
+await t('senderId must be the writer', () =>
+  assertFails(setDoc(doc(editor(), 'notifications', 'n10'),
+    notif('n10', OWNER, { shoppingId: LIST_ID, senderId: OUTSIDER }))));
+await t('writer who is not a list member cannot reference the list', () =>
+  assertFails(setDoc(doc(outsider(), 'notifications', 'n11'),
+    notif('n11', OWNER, { shoppingId: LIST_ID, senderId: OUTSIDER }))));
+await t('recipient who is not a list member is rejected when shoppingId is sent', () =>
+  assertFails(setDoc(doc(editor(), 'notifications', 'n12'),
+    notif('n12', OUTSIDER, { shoppingId: LIST_ID, senderId: EDITOR }))));
+await t('shoppingId pointing at a missing list is rejected', () =>
+  assertFails(setDoc(doc(editor(), 'notifications', 'n13'),
+    notif('n13', OWNER, { shoppingId: 'ghost', senderId: EDITOR }))));
+await t('empty or oversized shoppingId is rejected', () => Promise.all([
+  assertFails(setDoc(doc(editor(), 'notifications', 'n14'), notif('n14', OWNER, { shoppingId: '' }))),
+  assertFails(setDoc(doc(editor(), 'notifications', 'n15'), notif('n15', OWNER, { shoppingId: 'x'.repeat(129) }))),
+]));
+await t('non-string shoppingId is rejected', () =>
+  assertFails(setDoc(doc(editor(), 'notifications', 'n16'), notif('n16', OWNER, { shoppingId: 42 }))));
+await t('senderId alone (no list) is accepted when it is the writer', () =>
+  assertSucceeds(setDoc(doc(editor(), 'notifications', 'n17'), notif('n17', OWNER, { senderId: EDITOR }))));
+await t('recipient may query only the unread notifications', () =>
+  assertSucceeds(getDocs(query(collection(owner(), 'notifications'),
+    where('userId', '==', OWNER), where('isRead', '==', false)))));
+await t('other user cannot query the unread feed of the recipient', () =>
+  assertFails(getDocs(query(collection(editor(), 'notifications'),
+    where('userId', '==', OWNER), where('isRead', '==', false)))));
 await t('id must match the document id', () =>
   assertFails(setDoc(doc(editor(), 'notifications', 'n8'), notif('nope', OWNER))));
 await t('recipient marks as read', () =>

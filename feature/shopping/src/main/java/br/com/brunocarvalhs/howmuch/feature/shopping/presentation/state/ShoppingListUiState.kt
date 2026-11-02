@@ -17,6 +17,7 @@ internal data class ShoppingListUiState(
     val sortingMode: String = "CATEGORY",
     val isLoading: Boolean = false,
     val isCreateSheetVisible: Boolean = false,
+    val unreadNotifications: Int = 0,
     val error: UiText? = null
 ) : AgentContext {
     override fun toMetadata(): Map<String, Any?> =

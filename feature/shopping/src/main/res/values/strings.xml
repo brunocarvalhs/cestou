@@ -126,4 +126,32 @@
     <string name="shopping_wear_tile_label">Current list</string>
     <string name="shopping_wear_tile_empty">Open a list on your watch</string>
     <string name="shopping_wear_tile_signed_out">Pair with your phone</string>
+
+    <!-- Notifications -->
+    <plurals name="shopping_notifications_bell_unread">
+        <item quantity="one">Notifications, %d unread</item>
+        <item quantity="other">Notifications, %d unread</item>
+    </plurals>
+    <string name="notifications_badge_overflow">%1$d+</string>
+    <string name="notifications_filter_all">All</string>
+    <string name="notifications_filter_lists">Lists</string>
+    <string name="notifications_section_today">Today</string>
+    <string name="notifications_section_yesterday">Yesterday</string>
+    <string name="notifications_section_earlier">Earlier</string>
+    <string name="notifications_mark_all_read">Mark all read</string>
+    <string name="notifications_unread_indicator">Unread</string>
+    <string name="notifications_empty_title">No notifications</string>
+    <string name="notifications_empty_message">Updates from your shared lists show up here.</string>
+    <string name="notifications_empty_filtered_message">No notifications in this filter.</string>
+    <string name="notifications_time_now">just now</string>
+    <plurals name="notifications_time_minutes_ago">
+        <item quantity="one">%d min ago</item>
+        <item quantity="other">%d min ago</item>
+    </plurals>
+    <plurals name="notifications_time_hours_ago">
+        <item quantity="one">%d h ago</item>
+        <item quantity="other">%d h ago</item>
+    </plurals>
+    <string name="notifications_error_list_unavailable">This list is no longer available.</string>
+    <string name="notifications_error_mark_read">Could not update the notification. Try again.</string>
 </resources>

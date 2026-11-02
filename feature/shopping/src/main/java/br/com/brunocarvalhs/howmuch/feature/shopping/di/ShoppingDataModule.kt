@@ -9,7 +9,9 @@ import br.com.brunocarvalhs.howmuch.core.data.service.DataStoreStorageService
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.repository.ShoppingRepositoryImpl
+import br.com.brunocarvalhs.howmuch.feature.shopping.data.text.ResourceNotificationTexts
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.text.ResourceShoppingTexts
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.text.NotificationTexts
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.text.ShoppingTexts
 import dagger.Binds
 import dagger.Module
@@ -17,6 +19,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import java.time.Clock
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -35,7 +38,14 @@ abstract class ShoppingDataModule {
     @Binds
     internal abstract fun bindShoppingTexts(impl: ResourceShoppingTexts): ShoppingTexts
 
+    @Binds
+    internal abstract fun bindNotificationTexts(impl: ResourceNotificationTexts): NotificationTexts
+
     companion object {
+        /** Unscoped on purpose: each consumer gets the device zone as of its creation, not the process start. */
+        @Provides
+        fun provideClock(): Clock = Clock.systemDefaultZone()
+
         @Provides
         @Singleton
         @WearListDataStore
