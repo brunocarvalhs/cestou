@@ -15,7 +15,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.currentStateAsState
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
@@ -67,6 +69,9 @@ private fun NavGraphBuilder.cartDestination(
         val parentEntry = remember(backStackEntry) {
             navigator.navController.getBackStackEntry<CartFlow>()
         }
+        /** Avoids NavBackStackEntry.getViewModelStore() throwing after `parentEntry` is destroyed (Crashlytics fatal). */
+        val parentEntryLifecycleState by parentEntry.lifecycle.currentStateAsState()
+        if (parentEntryLifecycleState == Lifecycle.State.DESTROYED) return@composable
         val viewModel: CartViewModel = hiltViewModel(parentEntry)
         viewModel.setNavigator(navigator)
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -110,6 +115,9 @@ private fun NavGraphBuilder.finishPurchaseDestination(navigator: Navigator) {
         val parentEntry = remember(backStackEntry) {
             navigator.navController.getBackStackEntry<CartFlow>()
         }
+        /** Avoids NavBackStackEntry.getViewModelStore() throwing after `parentEntry` is destroyed (Crashlytics fatal). */
+        val parentEntryLifecycleState by parentEntry.lifecycle.currentStateAsState()
+        if (parentEntryLifecycleState == Lifecycle.State.DESTROYED) return@dialog
         val listViewModel: CartViewModel = hiltViewModel(parentEntry)
         val listUiState by listViewModel.uiState.collectAsStateWithLifecycle()
         val snackbarHostState = remember { SnackbarHostState() }
@@ -205,6 +213,9 @@ private fun NavGraphBuilder.productHistoryDestination(navigator: Navigator) {
         val parentEntry = remember(backStackEntry) {
             navigator.navController.getBackStackEntry<CartFlow>()
         }
+        /** Avoids NavBackStackEntry.getViewModelStore() throwing after `parentEntry` is destroyed (Crashlytics fatal). */
+        val parentEntryLifecycleState by parentEntry.lifecycle.currentStateAsState()
+        if (parentEntryLifecycleState == Lifecycle.State.DESTROYED) return@dialog
         // Reuses the parent CartViewModel's already-resolved memberProfiles — no new
         // UserRepository call for this sheet (T10 done-when).
         val listViewModel: CartViewModel = hiltViewModel(parentEntry)
@@ -229,6 +240,9 @@ private fun NavGraphBuilder.shareOptionsDestination(navigator: Navigator) {
         val parentEntry = remember(backStackEntry) {
             navigator.navController.getBackStackEntry<CartFlow>()
         }
+        /** Avoids NavBackStackEntry.getViewModelStore() throwing after `parentEntry` is destroyed (Crashlytics fatal). */
+        val parentEntryLifecycleState by parentEntry.lifecycle.currentStateAsState()
+        if (parentEntryLifecycleState == Lifecycle.State.DESTROYED) return@dialog
         val listViewModel: CartViewModel = hiltViewModel(parentEntry)
         val listUiState by listViewModel.uiState.collectAsStateWithLifecycle()
 
