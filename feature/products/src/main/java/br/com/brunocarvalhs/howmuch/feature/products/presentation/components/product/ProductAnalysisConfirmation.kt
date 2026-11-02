@@ -192,7 +192,8 @@ private fun AnalysisResultItem(
 
 private val previewProducts = listOf(
     Product(
-        id = "1", name = "Tomate",
+        id = "1",
+        name = "Tomate",
         quantity = 3.0,
         price = 0.0,
         category = "Hortifruti",

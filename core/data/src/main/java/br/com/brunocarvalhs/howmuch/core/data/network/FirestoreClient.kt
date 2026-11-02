@@ -123,7 +123,6 @@ class FirestoreClient @Inject constructor(
     private suspend fun delete(
         endpoint: String
     ): Boolean {
-
         require(isDocumentPath(endpoint)) {
             "DELETE requer um endpoint de documento."
         }
@@ -138,7 +137,6 @@ class FirestoreClient @Inject constructor(
         key: String,
         value: Any?
     ): Query {
-
         return when {
             ARRAY_FIELDS.contains(key) -> ref.whereArrayContains(
                 key,
@@ -168,7 +166,6 @@ class FirestoreClient @Inject constructor(
      * shopping/{id}/products/{id}/prices
      */
     private fun collectionRef(endpoint: String): CollectionReference {
-
         val parts = endpoint.split("/")
 
         require(parts.size % 2 == 1) {
@@ -180,7 +177,6 @@ class FirestoreClient @Inject constructor(
         var i = 1
 
         while (i < parts.size) {
-
             val document = collection.document(parts[i])
 
             if (i + 1 < parts.size) {
@@ -199,7 +195,6 @@ class FirestoreClient @Inject constructor(
      * shopping/{id}/products/{id}/prices/{id}
      */
     private fun documentRef(endpoint: String): DocumentReference {
-
         val parts = endpoint.split("/")
 
         require(parts.size % 2 == 0) {
@@ -265,7 +260,9 @@ class FirestoreClient @Inject constructor(
 
     companion object {
         private val ARRAY_FIELDS = setOf(
-            "users", "roles", "products"
+            "users",
+            "roles",
+            "products"
         )
         private const val WHERE_IN_MAX_SIZE = 30
     }

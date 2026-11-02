@@ -21,6 +21,7 @@ object AnalyticsEvents {
 
     const val PRODUCT_SEARCH_PERFORMED = "product_search_performed"
     const val PRODUCT_SELECTED = "product_selected"
+
     // Fired for every "add to list" path that isn't a search pick (recipe, common/favorite
     // product, quick add free-text, AI photo scan) so the beta funnel can be broken down by
     // AnalyticsParams.SOURCE without multiplying event names per entry point.

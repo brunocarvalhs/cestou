@@ -38,7 +38,7 @@ fun Map<String, Any?>.getBoolean(key: String): Boolean? {
 fun Map<String, Any?>.getList(key: String): List<String> {
     val value = this[key]
     if (value is List<*>) return value.mapNotNull { it?.toString()?.removeSurrounding("\"") }
-    
+
     // Se vier como uma string separada por vírgula
     return getString(key)?.split(",")?.map { it.trim() } ?: emptyList()
 }

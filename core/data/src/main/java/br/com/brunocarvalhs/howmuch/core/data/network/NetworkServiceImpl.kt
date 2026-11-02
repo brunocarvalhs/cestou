@@ -10,7 +10,6 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
-import timber.log.Timber
 import javax.inject.Inject
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -143,8 +142,10 @@ class NetworkServiceImpl @Inject constructor(
 
     @OptIn(InternalSerializationApi::class)
     private fun <T : Any> getSerializer(response: KClass<T>, responseType: KType?): KSerializer<Any?> {
-        return (responseType?.let { json.serializersModule.serializer(it) }
-            ?: json.serializersModule.serializer(response.java)) as KSerializer<Any?>
+        return (
+            responseType?.let { json.serializersModule.serializer(it) }
+                ?: json.serializersModule.serializer(response.java)
+            ) as KSerializer<Any?>
     }
 
     @Suppress("UNCHECKED_CAST")

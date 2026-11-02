@@ -15,7 +15,9 @@ private val previewMessages = listOf(
         sender = ChatMessage.Sender.ASSISTANT,
     ),
     ChatMessage(
-        id = 3, text = "Consegue sugerir algo mais barato?", sender = ChatMessage.Sender.USER,
+        id = 3,
+        text = "Consegue sugerir algo mais barato?",
+        sender = ChatMessage.Sender.USER,
     ),
 )
 
@@ -24,7 +26,8 @@ private val previewMessages = listOf(
 private fun AiChatScreenEmptyPreview() {
     CestouTheme {
         AiChatScreen(
-            state = AiChatUiState(), intent = AiChatIntent(),
+            state = AiChatUiState(),
+            intent = AiChatIntent(),
         )
     }
 }
@@ -36,7 +39,8 @@ private fun AiChatScreenConversationProgressPreview() {
         AiChatScreen(
             state = AiChatUiState(
                 isRecording = true,
-            ), intent = AiChatIntent(),
+            ),
+            intent = AiChatIntent(),
         )
     }
 }
@@ -47,8 +51,10 @@ private fun AiChatScreenConversationPreview() {
     CestouTheme {
         AiChatScreen(
             state = AiChatUiState(
-                messages = previewMessages, input = "Consegue sugerir algo mais barato?",
-            ), intent = AiChatIntent(),
+                messages = previewMessages,
+                input = "Consegue sugerir algo mais barato?",
+            ),
+            intent = AiChatIntent(),
         )
     }
 }
@@ -59,7 +65,8 @@ private fun AiChatScreenLoadingPreview() {
     CestouTheme {
         AiChatScreen(
             state = AiChatUiState(
-                messages = previewMessages, isLoading = true,
+                messages = previewMessages,
+                isLoading = true,
             ),
             intent = AiChatIntent(),
         )

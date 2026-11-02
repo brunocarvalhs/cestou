@@ -3,5 +3,7 @@
   <ManuallySuppressedIssues/>
   <CurrentIssues>
     <ID>Filename:AiAgentModels.kt$br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentModels.kt</ID>
+    <ID>MatchingDeclarationName:AiAgentModels.kt$AiAgentParameter</ID>
+    <ID>UseCheckOrError:AgentActionUseCase.kt$AgentActionUseCase$throw IllegalStateException("A classe ${this::class.simpleName} deve ser anotada com @AiAgentAction")</ID>
   </CurrentIssues>
 </SmellBaseline>

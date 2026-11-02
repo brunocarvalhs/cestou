@@ -16,7 +16,6 @@ import br.com.brunocarvalhs.howmuch.core.domain.usecase.ProductsUseCase
 import br.com.brunocarvalhs.howmuch.core.domain.usecase.ShoppingClearPurchasedUseCase
 import br.com.brunocarvalhs.howmuch.core.domain.usecase.SortProductsUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.ConfirmItemRoute
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.FinishPurchaseRoute

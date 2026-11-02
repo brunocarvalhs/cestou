@@ -2,5 +2,10 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
+    <ID>InstanceOfCheckForException:AiChatViewModel.kt$AiChatViewModel$e is CancellationException</ID>
+    <ID>InstanceOfCheckForException:AiChatViewModel.kt$AiChatViewModel$e is IOException</ID>
+    <ID>ModifierMissing:AiHistoryScreen.kt$AiHistoryScreen</ID>
+    <ID>ModifierNotUsedAtRoot:AnimatedText.kt$modifier = modifier</ID>
+    <ID>TooGenericExceptionCaught:AiChatViewModel.kt$AiChatViewModel$e: Exception</ID>
   </CurrentIssues>
 </SmellBaseline>

@@ -7,7 +7,6 @@ import br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentParameter
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import timber.log.Timber
 
-
 /**
  * Classe base para UseCases que funcionam como ferramentas (actions) para o Agente de IA.
  * Extrai automaticamente metadados das anotações @AiAgentAction e @AiAgentParameter.

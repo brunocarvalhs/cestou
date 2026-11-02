@@ -8,7 +8,7 @@ import java.util.*
 fun Long.toMonthYearString(): String {
     val date = Instant.ofEpochMilli(this).atZone(ZoneId.systemDefault()).toLocalDate()
     val formatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
-    return date.format(formatter).replaceFirstChar { 
-        if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() 
+    return date.format(formatter).replaceFirstChar {
+        if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
     }
 }

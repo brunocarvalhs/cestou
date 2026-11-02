@@ -66,10 +66,10 @@ internal class ProductPhotoViewModel @Inject constructor(
 
     private fun analyzeImage() {
         val uri = _uiState.value.capturedImageUri ?: return
-        
+
         viewModelScope.launch {
             _uiState.update { it.copy(isAnalyzing = true, errorMessage = null) }
-            
+
             analyzeImageUseCase(uri.toString())
                 .onSuccess { products ->
                     analyticsTracker.trackEvent(

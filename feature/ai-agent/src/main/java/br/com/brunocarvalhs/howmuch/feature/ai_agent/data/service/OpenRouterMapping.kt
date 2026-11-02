@@ -41,12 +41,16 @@ internal fun buildOpenRouterTools(actions: List<AgentAction<*>>): List<Tool> = a
             parameters = JsonObject(
                 mapOf(
                     "type" to JsonPrimitive("object"),
-                    "properties" to JsonObject(action.parameters.associate { param ->
-                        param.name to JsonObject(mapOf(
-                            "type" to JsonPrimitive(param.type),
-                            "description" to JsonPrimitive(param.description)
-                        ))
-                    }),
+                    "properties" to JsonObject(
+                        action.parameters.associate { param ->
+                            param.name to JsonObject(
+                                mapOf(
+                                    "type" to JsonPrimitive(param.type),
+                                    "description" to JsonPrimitive(param.description)
+                                )
+                            )
+                        }
+                    ),
                     "required" to JsonArray(
                         action.parameters.filter { it.isRequired }.map { JsonPrimitive(it.name) }
                     )

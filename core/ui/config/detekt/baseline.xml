@@ -2,5 +2,29 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
+    <ID>ComposableParamOrder:CestouTextField.kt$CestouPasswordField</ID>
+    <ID>ComposableParamOrder:CestouTextField.kt$CestouTextField</ID>
+    <ID>ComposableParamOrder:CestouTopBar.kt$CestouTopBar</ID>
+    <ID>ComposableParamOrder:DragDropUtils.kt$DragTarget</ID>
+    <ID>ComposableParamOrder:DragDropUtils.kt$DropTarget</ID>
+    <ID>ComposableParamOrder:Suggestions.kt$Suggestions</ID>
+    <ID>CompositionLocalAllowlist:DragDropUtils.kt$LocalDragTargetInfo</ID>
+    <ID>CompositionLocalAllowlist:LocalCurrency.kt$LocalCurrency</ID>
+    <ID>LambdaParameterInRestartableEffect:DragDropUtils.kt$onDataDropped</ID>
+    <ID>MatchingDeclarationName:CestouBottomNavigation.kt$BottomNavItem</ID>
+    <ID>ModifierMissing:CestouEmptyState.kt$CestouEmptyState</ID>
+    <ID>ModifierMissing:CestouLockedBanner.kt$CestouLockedBanner</ID>
+    <ID>ModifierMissing:QRCodeOverlay.kt$QRCodeOverlay</ID>
+    <ID>ModifierNaming:CestouTextField.kt$errorModifier</ID>
+    <ID>ModifierWithoutDefault:CestouTextField.kt$errorModifier</ID>
+    <ID>NestedBlockDepth:QrCodeGenerator.kt$QrCodeGenerator$fun generate(content: String, size: Int): Bitmap?</ID>
+    <ID>ParameterNaming:CameraPreview.kt$onBarcodeScanned</ID>
+    <ID>ParameterNaming:DragDropUtils.kt$onDataDropped</ID>
+    <ID>PrintStackTrace:QrCodeGenerator.kt$QrCodeGenerator$e</ID>
+    <ID>ReturnCount:ProductCategory.kt$ProductCategory.Companion$fun fromString(value: String?): ProductCategory</ID>
+    <ID>SpreadOperator:UiText.kt$UiText$(resId, *args)</ID>
+    <ID>TooGenericExceptionCaught:CameraPreview.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:QrCodeGenerator.kt$QrCodeGenerator$e: Exception</ID>
+    <ID>UnusedParameter:CestouTopBar.kt$modifier: Modifier = Modifier</ID>
   </CurrentIssues>
 </SmellBaseline>

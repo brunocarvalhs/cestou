@@ -117,11 +117,13 @@ abstract class DataModule {
         @Singleton
         fun provideHttpClient(): HttpClient = HttpClient(CIO) {
             install(ContentNegotiation) {
-                json(Json {
-                    ignoreUnknownKeys = true
-                    encodeDefaults = true
-                    coerceInputValues = true
-                })
+                json(
+                    Json {
+                        ignoreUnknownKeys = true
+                        encodeDefaults = true
+                        coerceInputValues = true
+                    }
+                )
             }
             install(HttpTimeout) {
                 requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS

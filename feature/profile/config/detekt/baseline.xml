@@ -2,5 +2,7 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
+    <ID>ReturnCount:ProfileViewModel.kt$ProfileViewModel$private fun AuthenticatedUser?.mergeWith(profile: UserProfile?): AuthenticatedUser?</ID>
+    <ID>UnusedParameter:ProfileWearGraph.kt$navigator: Navigator</ID>
   </CurrentIssues>
 </SmellBaseline>

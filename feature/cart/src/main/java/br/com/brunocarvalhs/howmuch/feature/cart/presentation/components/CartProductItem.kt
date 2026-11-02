@@ -46,7 +46,6 @@ internal fun CartProductItem(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Checkbox(
                 checked = isPurchased,
                 onCheckedChange = { onCheckedChange.invoke(it) }

@@ -50,7 +50,10 @@ class LinkWearViewModelTest {
     }
 
     private fun link(): LinkWearViewModel = LinkWearViewModel(
-        wearableSyncService, authService, googleIdTokenProvider, featureFlagService
+        wearableSyncService,
+        authService,
+        googleIdTokenProvider,
+        featureFlagService
     ).apply {
         intent.onCodeChange("123456")
         intent.onLinkClick(context)

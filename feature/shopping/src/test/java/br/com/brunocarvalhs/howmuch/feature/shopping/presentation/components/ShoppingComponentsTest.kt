@@ -75,7 +75,10 @@ class ShoppingComponentsTest {
                     JoinListContent(onDismiss = {}, onJoin = {}, onScan = {})
                     JoinListContent(onDismiss = {}, onJoin = {}, onScan = {}, isLoading = true)
                     JoinListContent(
-                        onDismiss = {}, onJoin = {}, onScan = {}, initialToken = "abc",
+                        onDismiss = {},
+                        onJoin = {},
+                        onScan = {},
+                        initialToken = "abc",
                         error = UiText.DynamicString("Token inválido ou expirado")
                     )
                 }

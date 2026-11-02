@@ -31,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -96,13 +95,16 @@ private fun NotificationCard(
     onClick: () -> Unit
 ) {
     val borderColor = if (!notification.isRead) MaterialTheme.colorScheme.primary else Color.Transparent
-    
+
     CestouCard(
         modifier = Modifier
             .fillMaxWidth()
             .then(
-                if (!notification.isRead) Modifier.border(2.dp, borderColor, MaterialTheme.shapes.large)
-                else Modifier
+                if (!notification.isRead) {
+                    Modifier.border(2.dp, borderColor, MaterialTheme.shapes.large)
+                } else {
+                    Modifier
+                }
             ),
         onClick = onClick
     ) {
@@ -125,9 +127,9 @@ private fun NotificationCard(
                     modifier = Modifier.size(20.dp)
                 )
             }
-            
+
             Spacer(modifier = Modifier.width(16.dp))
-            
+
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -145,17 +147,17 @@ private fun NotificationCard(
                         )
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(4.dp))
-                
+
                 Text(
                     text = notification.description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 Text(
                     text = notification.time,
                     style = MaterialTheme.typography.labelSmall,
