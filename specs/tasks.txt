@@ -1,3 +1,29 @@
+# sdd-025-auditoria-clean-architecture-design-patterns
+
+Auditoria de conformidade com Clean Architecture (grafo de dependências entre os 19 módulos, separação de
+camadas dentro de cada feature) e de Design Patterns GoF (já aplicados vs. oportunidades de consolidação),
+realizada em 2026-11-02 a pedido do usuário. O projeto já tem um guard-rail Konsist real e passando
+(`app/src/test/.../architecture/ArchitectureTest.kt`) cobrindo a Dependency Rule — a dívida real encontrada
+não está no grafo de módulos, e sim em: `AgentRegistry` como service locator global no chokepoint de
+dispatch de IA (A-01, P1), regra de negócio divergente entre `invoke()`/`execute()` em `ProductSaveUseCase`
+(A-02, P1), duplicação de dispatch entre `GeminiAiAgent`/`OpenRouterAiAgent` já excluída do gate de
+cobertura do Kover por esse motivo (A-03, P2), e `aiProvider` "stringly-typed" que deve ser resolvido antes
+do `sdd-014` (BYOK multi-provider) (A-04, P2).
+Plano detalhado em: `specs/sdd-025-auditoria-clean-architecture-design-patterns/tasks.md`.
+
+Roadmap derivado desta auditoria:
+1. sdd-026-ai-provider-consolidation: Template Method (`BaseAiAgent`) + `enum AiProvider`, desbloqueia a
+   cobertura hoje excluída do Kover. **Deve rodar antes de sdd-014.** Plano pronto em
+   `specs/sdd-026-ai-provider-consolidation/tasks.md`, status `ready`.
+2. sdd-027-ai-registry-di-refactor: substitui o `object AgentRegistry` por registro via Hilt Multibinding.
+   Maior risco — sequenciar depois que `sdd-017` (branch em andamento) estabilizar.
+3. sdd-028-business-rule-parity-review: corrige `ProductSaveUseCase` e audita os demais `AgentActionUseCase`
+   quanto ao mesmo padrão de regra divergente entre caminho humano e caminho do agente.
+4. sdd-029-visibility-and-dependency-cleanup: `internal` em `feature:subscription`/`products`, AD formal
+   para `cart`→`products`/`shopping`, remoção de dependência Gradle morta `shopping`→`settings`.
+
+---
+
 # sdd-001-auditoria-geral
 
 Nova Auditoria Geral do Projeto Cestou realizada com sucesso em 2026-10-31.

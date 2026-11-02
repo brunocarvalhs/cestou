@@ -1,26 +1,13 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 import br.com.brunocarvalhs.howmuch.core.ai.BuildConfig
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
-import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
-import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
-import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
-import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
 import com.google.ai.client.generativeai.GenerativeModel
-import com.google.ai.client.generativeai.type.BlockThreshold
 import com.google.ai.client.generativeai.type.Content
 import com.google.ai.client.generativeai.type.FunctionCallPart
-import com.google.ai.client.generativeai.type.FunctionDeclaration
 import com.google.ai.client.generativeai.type.FunctionResponsePart
-import com.google.ai.client.generativeai.type.HarmCategory
-import com.google.ai.client.generativeai.type.SafetySetting
-import com.google.ai.client.generativeai.type.Schema
 import com.google.ai.client.generativeai.type.TextPart
-import com.google.ai.client.generativeai.type.Tool
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import org.json.JSONObject
 import timber.log.Timber
@@ -30,48 +17,20 @@ import timber.log.Timber
  */
 internal class GeminiAiAgent(
     dependencies: AiAgentDependencies,
+    private val modelFactory: GeminiModelFactory,
     private val modelName: String = BuildConfig.GEMINI_AGENT,
     private val apiKey: String = BuildConfig.GEMINI_API_KEY
-) : AiAgent {
+) : BaseAgent(dependencies) {
 
-    private val session: AiSession = dependencies.session
-    private val registry: AgentRegistry = dependencies.registry
-    private val crashReporter: CrashReporter = dependencies.crashReporter
-    private val systemPrompt: String = dependencies.systemPrompt
-    private val subscriptionRepository: SubscriptionRepository = dependencies.subscriptionRepository
+    override val providerTag: String = "gemini"
+    override val modelLabel: String get() = modelName
 
     private val generativeModel: GenerativeModel by lazy {
-        GenerativeModel(
+        modelFactory.create(
             modelName = modelName,
             apiKey = apiKey,
-            systemInstruction = Content(
-                role = "system",
-                parts = listOf(TextPart(systemPrompt))
-            ),
-            tools = listOf(
-                Tool(
-                    functionDeclarations = registry.getAll().map { action ->
-                        FunctionDeclaration(
-                            name = action.id,
-                            description = action.description,
-                            parameters = action.parameters.map { param ->
-                                when (param.type) {
-                                    "integer" -> Schema.int(param.name, param.description)
-                                    "number" -> Schema.double(param.name, param.description)
-                                    "boolean" -> Schema.bool(param.name, param.description)
-                                    else -> Schema.str(param.name, param.description)
-                                }
-                            },
-                            requiredParameters = action.parameters.filter { it.isRequired }
-                                .map { it.name }
-                        )
-                    }
-                )
-            ),
-            safetySettings = listOf(
-                SafetySetting(HarmCategory.HARASSMENT, BlockThreshold.ONLY_HIGH),
-                SafetySetting(HarmCategory.HATE_SPEECH, BlockThreshold.ONLY_HIGH),
-            )
+            systemPrompt = systemPrompt,
+            tools = registry.getAll()
         )
     }
 
@@ -104,7 +63,7 @@ internal class GeminiAiAgent(
                 rounds++
 
                 val toolResponses = response.functionCalls.map { functionCall ->
-                    executeFunctionCall(functionCall, meta)
+                    toFunctionResponsePart(functionCall, meta)
                 }
 
                 // Cria o conteúdo da resposta das ferramentas e envia de volta
@@ -126,7 +85,7 @@ internal class GeminiAiAgent(
             crashReporter.recordException(
                 e,
                 extras = mapOf(
-                    "provider" to "gemini",
+                    "provider" to providerTag,
                     "model" to modelName
                 )
             )
@@ -140,60 +99,22 @@ internal class GeminiAiAgent(
     }
 
     /**
-     * Dispatch chokepoint (AD-010): resolves [functionCall] against [registry], gates it behind
-     * the Pro subscription when [AgentAction.requiresPro] is set, and otherwise executes it.
-     * `internal` (not `private`) so the gate is directly unit-testable.
+     * Adapta a function call do SDK do Gemini para o formato de [BaseAgent.executeAction]
+     * (AD-010) e empacota o resultado de volta no formato que o SDK espera de retorno. Não
+     * executa nada por si só — quem executa é [BaseAgent.executeAction]. `internal` (não
+     * `private`) para continuar diretamente testável, como já era antes desta extração
+     * (sdd-026, A-03) — ver [GeminiAiAgentGatingTest].
      */
-    internal suspend fun executeFunctionCall(
+    internal suspend fun toFunctionResponsePart(
         functionCall: FunctionCallPart,
         meta: Map<String, Any?>
     ): FunctionResponsePart {
-        val action = registry.find(functionCall.name)
-        val result = if (action != null && action.requiresPro && !isPro()) {
-            "Essa ação é exclusiva do plano Pro."
-        } else if (action != null) {
-            try {
-                // Marcado antes de executar, não depois: mesmo uma execução que termina em
-                // exceção pode ter mutação parcial (sdd-012) — conservador de propósito.
-                session.toolExecutedThisTurn = true
-                action.execute(
-                    arguments = functionCall.args,
-                    session = session,
-                    metadata = meta
-                ).toToolFeedback()
-            } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
-                Timber.tag(TAG).e(
-                    e,
-                    "Erro executando a função '%s' com args=%s",
-                    functionCall.name,
-                    functionCall.args
-                )
-                crashReporter.recordException(
-                    e,
-                    extras = mapOf(
-                        "provider" to "gemini",
-                        "model" to modelName,
-                        "function" to functionCall.name
-                    )
-                )
-                "Erro na execução da ação: ${e.message}"
-            }
-        } else {
-            Timber.tag(TAG).w("Ação '%s' não encontrada no registry", functionCall.name)
-            "Erro: Ação '${functionCall.name}' não encontrada"
-        }
-
-        // Cria a parte de resposta para o Gemini
+        val result = executeAction(functionCall.name, functionCall.args, meta)
         return FunctionResponsePart(
             name = functionCall.name,
             response = JSONObject().apply { put("result", result) }
         )
     }
-
-    /** Point-in-time read of the current entitlement (AD-010); the gate only needs "right now". */
-    private suspend fun isPro(): Boolean =
-        subscriptionRepository.observeStatus().first() == SubscriptionStatus.PRO
 
     companion object {
         private const val TAG = "GeminiAiAgent"

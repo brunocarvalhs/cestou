@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.core.data.repository
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiModel
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiProvider
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiModelRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -48,7 +49,7 @@ class AiModelRepositoryImpl @Inject constructor(
                     id = dto.id,
                     name = cleanName,
                     vendor = vendor,
-                    provider = "openrouter",
+                    provider = AiProvider.OPENROUTER,
                     isFree = isFree
                 )
             }

@@ -103,13 +103,6 @@ kover {
                     "*.ShoppingReminderScheduler*",
                     "*.ShoppingReminderWorker*"
                 )
-                // Provedores de IA que constroem o cliente do SDK (GenerativeModel / Ktor
-                // HttpClient) como campo privado inline em vez de injetado — não testável sem
-                // um refactor de DI (fora de escopo aqui; considerar injetar o client depois).
-                classes(
-                    "*.GeminiAiAgent*",
-                    "*.OpenRouterAiAgent*"
-                )
                 // Ponto de entrada do app: Activity que só monta o Compose root (setContent)
                 // e faz roteamento de deep link, e a Application que só registra o Hilt/Timber
                 // no boot — mesma categoria de presentation.screen, sem teste de layout dedicado.
