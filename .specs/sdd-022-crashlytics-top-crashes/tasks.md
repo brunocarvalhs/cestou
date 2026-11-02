@@ -60,7 +60,7 @@ Fatal Exception: java.lang.IllegalStateException: Navigator not bound to a NavCo
   ...
   br.com.brunocarvalhs.howmuch.MainActivity.CestouApp$lambda$4$18$0 (MainActivity.java:187)
 ```
-Este é exatamente o item **C-01** já descrito e corrigido em `specs/sdd-004-navigator-deeplink/tasks.md` (status: `implemented`), via os commits:
+Este é exatamente o item **C-01** já descrito e corrigido em `.specs/sdd-004-navigator-deeplink/tasks.md` (status: `implemented`), via os commits:
 - `b8bb264a` (2026-10-21) — "fix: bind Navigator synchronously to avoid NavController race crash"
 - `7dbd5cff` (2026-10-27) — "fix(navigation): fix Navigator crash and lost invites from deep links"
 
@@ -108,7 +108,7 @@ Isto é um bug conhecido de incompatibilidade `androidx.work` + build específic
 - Qualquer mudança em `Navigator.kt` (issue B já resolvida; `navigate`/`goBack`/`unbind` não são tocados).
 - Migração de `ShoppingReminderWorker` para `@HiltWorker`/`HiltWorkerFactory`/`Configuration.Provider` do Hilt — o commit original (`9958fc05`) optou deliberadamente por `EntryPointAccessors` para manter a inicialização padrão simples; a correção de C preserva essa decisão, apenas substituindo "automática via ContentProvider" por "manual e defensiva em `onCreate`", sem introduzir `HiltWorkerFactory`.
 - Novas funcionalidades de lembrete ou mudança de UX da tela de notificações.
-- Qualquer outro item do backlog de `specs/sdd-001-auditoria-geral/tasks.md` ou de `specs/sdd-005-crash-hardening/tasks.md` (C-02 a C-06) — fora do escopo deste plano, que é limitado aos 3 issues abertos no Crashlytics.
+- Qualquer outro item do backlog de `.specs/sdd-001-auditoria-geral/tasks.md` ou de `.specs/sdd-005-crash-hardening/tasks.md` (C-02 a C-06) — fora do escopo deste plano, que é limitado aos 3 issues abertos no Crashlytics.
 
 ## 3. Impacto Arquitetural
 
@@ -174,7 +174,7 @@ Nenhum contrato público novo ou alterado. Todas as assinaturas abaixo são `int
 | 1 | `cartDestination`/`finishPurchaseDestination`/`productHistoryDestination`/`shareOptionsDestination` sempre chamam `hiltViewModel(parentEntry)` assim que recompostas, mesmo que a entry pai já tenha sido destruída. | As 4 composables encerram a composição sem acessar `parentEntry`/`hiltViewModel` quando `backStackEntry`/`parentEntry` já estão `DESTROYED`. | `CartGraph.kt:67-70,110-113,205-210,229-232` |
 | 2 | `WorkManager` é inicializado automaticamente via `ContentProvider` (`androidx.startup.InitializationProvider`), antes de `Application.onCreate()`, sem proteção contra `NoSuchMethodError` de frameworks incompatíveis. | `WorkManagerInitializer` é removido do manifest; `WorkManager.initialize()` passa a rodar manualmente em `CestouApplication.onCreate()`, protegido por `try/catch`. Em caso de falha, o app continua normalmente e o lembrete diário fica indisponível nesse aparelho. | `app/src/main/AndroidManifest.xml:63-67`; `CestouApplication.kt:15-18` |
 | 3 | `ShoppingReminderScheduler.sync()` assume `WorkManager.getInstance(context)` sempre disponível. | `sync()` captura falha de `WorkManager` indisponível e retorna silenciosamente (sem crash), preservando o restante do fluxo de configurações. | `ShoppingReminderScheduler.kt:28` |
-| 4 | Issue "Navigator not bound to a NavController" (B) listado como aberto no Crashlytics. | Sem mudança de código — comportamento já corrigido por `b8bb264a`/`7dbd5cff` (`specs/sdd-004-navigator-deeplink/tasks.md`), confirmado pelos eventos restritos à versão 2.2.0. | `core/navigation/.../Navigator.kt:23-24,40-44,52-74` |
+| 4 | Issue "Navigator not bound to a NavController" (B) listado como aberto no Crashlytics. | Sem mudança de código — comportamento já corrigido por `b8bb264a`/`7dbd5cff` (`.specs/sdd-004-navigator-deeplink/tasks.md`), confirmado pelos eventos restritos à versão 2.2.0. | `core/navigation/.../Navigator.kt:23-24,40-44,52-74` |
 
 ## 6. Critérios de Aceitação
 
@@ -218,7 +218,7 @@ Nenhuma pergunta bloqueante — `status: ready`.
 Não bloqueantes (confirmar com o maintainer durante a implementação/review):
 - [ ] Confirmar com o maintainer se deve fechar manualmente o issue B ("Navigator not bound to a NavController") no console do Crashlytics, já que o código já está corrigido desde antes da release 2.3.0.
 - [ ] Confirmar em `core:analytics` o nome do método/API já existente para reportar exceção não fatal (ex.: `FirebaseCrashlytics.recordException`) a ser usado na falha defensiva de inicialização do WorkManager (C), para manter o nome canônico de evento consistente com o resto do app.
-- [ ] Decidir se a captura em `CestouApplication.onCreate()` deve ser `catch (t: Throwable)` (mais amplo, cobre qualquer incompatibilidade de framework) ou restrita a `NoSuchMethodError`/`NoClassDefFoundError` (mais estreito, não esconde outros bugs de configuração do WorkManager). Recomendação deste plano: `Throwable`, pelo precedente de robustez já adotado em `specs/sdd-005-crash-hardening/tasks.md` para falhas de origem externa/SO.
+- [ ] Decidir se a captura em `CestouApplication.onCreate()` deve ser `catch (t: Throwable)` (mais amplo, cobre qualquer incompatibilidade de framework) ou restrita a `NoSuchMethodError`/`NoClassDefFoundError` (mais estreito, não esconde outros bugs de configuração do WorkManager). Recomendação deste plano: `Throwable`, pelo precedente de robustez já adotado em `.specs/sdd-005-crash-hardening/tasks.md` para falhas de origem externa/SO.
 
 ## 10. Checklist de Conformidade
 - [x] Decisões citam `arquivo:linha` (e `architecture/` quando existir).
