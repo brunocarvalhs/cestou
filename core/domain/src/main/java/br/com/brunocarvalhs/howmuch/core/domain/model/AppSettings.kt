@@ -8,7 +8,7 @@ data class AppSettings(
     val notificationsEnabled: Boolean = true,
     val reminderTime: String = "18:00",
     val aiConfigTier: AiConfigTier = AiConfigTier.DEFAULT,
-    val aiProvider: String = "openrouter",
+    val aiProvider: AiProvider = AiProvider.OPENROUTER,
     val aiModel: String = "openrouter/free",
     val customApiKey: String? = null,
     val creativityLevel: Float = 0.7f,

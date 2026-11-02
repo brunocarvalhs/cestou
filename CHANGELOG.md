@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+* chore(infra): delete Realtime Database instance (legacy v1.x data, irrecoverable)
+
 ## [2.2.1] - 2026-10-16
 
 * Merge pull request #206 from brunocarvalhs/develop
