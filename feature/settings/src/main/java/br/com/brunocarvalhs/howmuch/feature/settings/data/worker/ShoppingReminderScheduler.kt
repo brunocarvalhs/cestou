@@ -25,7 +25,17 @@ internal class ShoppingReminderScheduler @Inject constructor(
 ) : ReminderScheduler {
 
     override fun sync(settings: AppSettings) {
-        val workManager = WorkManager.getInstance(context)
+        /**
+         * WorkManager can be unavailable here if its defensive manual init
+         * (CestouApplication.onCreate) failed on this device - see the Crashlytics fatal on
+         * JobScheduler.forNamespace this guards against. Skipping the sync keeps settings writes
+         * working even though the reminder itself can't be scheduled.
+         */
+        val workManager = try {
+            WorkManager.getInstance(context)
+        } catch (_: IllegalStateException) {
+            return
+        }
 
         if (!settings.notificationsEnabled || !settings.remindersEnabled) {
             workManager.cancelUniqueWork(WORK_NAME)
