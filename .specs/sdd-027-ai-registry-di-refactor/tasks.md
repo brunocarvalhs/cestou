@@ -20,7 +20,7 @@ Resolve o achado **A-01** de `specs/sdd-025-auditoria-clean-architecture-design-
 `mutableMapOf` global, em desacordo direto com AGENTS.md §5 ("Sem service locator"). Toda subclasse
 de `AgentActionUseCase` se auto-registra nele via side-effect de construtor
 (`core/ai/.../base/AgentActionUseCase.kt:33-37`, com `@Suppress("LeakingThis")`), e esse registro é
-exatamente o que `GeminiAiAgent`/`OpenRouterAiAgent` consultam para despachar as tool calls vindas
+exatamente o que `GeminiAgent`/`OpenRouterAgent` consultam para despachar as tool calls vindas
 do LLM — o ponto de maior risco de segurança do app (tema central de `sdd-017`, **já mergeado** em
 `develop` via PR #242, satisfazendo o pré-requisito de sequenciamento registrado em `sdd-025` §7 e
 em `specs/tasks.txt`).
@@ -51,10 +51,10 @@ redundante e arriscada por cima dela.
   inteiro) que `AgentActionUseCase` é o único implementador existente; a indireção não tem outro
   consumidor e só existia para suportar o padrão de self-registration que está sendo removido.
 - Remover o `@Provides fun provideAgentRegistry(): AgentRegistry = AgentRegistry`
-  (`feature/ai-agent/.../di/AiAgentModule.kt:40-42`) — com `@Inject constructor`, o Hilt resolve
+  (`feature/ai-agent/.../di/AgentModule.kt:40-42`) — com `@Inject constructor`, o Hilt resolve
   `AgentRegistry` automaticamente, sem módulo nenhum.
-- Remover o valor default `= AgentRegistry` de `AiAgentDependencies.registry`
-  (`feature/ai-agent/.../AiAgentDependencies.kt:17`) — confirmado por busca que **nenhum** call site
+- Remover o valor default `= AgentRegistry` de `AgentDependencies.registry`
+  (`feature/ai-agent/.../AgentDependencies.kt:17`) — confirmado por busca que **nenhum** call site
   de produção ou teste depende desse default hoje; todos já passam `registry = registry`
   explicitamente.
 - Atualizar `CestouApplication` para injetar `AgentRegistry` diretamente em vez do `Set` bruto,
@@ -88,7 +88,7 @@ coisa certa (ser a própria fonte de verdade do registro).
 
 **Arquivos alterados (produção):**
 `core/ai/.../registry/AgentRegistry.kt`, `core/ai/.../base/AgentActionUseCase.kt`,
-`feature/ai-agent/.../di/AiAgentModule.kt`, `feature/ai-agent/.../AiAgentDependencies.kt`,
+`feature/ai-agent/.../di/AgentModule.kt`, `feature/ai-agent/.../AgentDependencies.kt`,
 `app/.../CestouApplication.kt`.
 
 **Diagrama (antes → depois):**
@@ -97,8 +97,8 @@ coisa certa (ser a própria fonte de verdade do registro).
 ANTES
 AgentActionUseCase.init{} ──side-effect──▶ object AgentRegistry (mutableMapOf, global)
      ▲ instanciado só se                        ▲
-     │ algo mais no grafo                        │ GeminiAiAgent/OpenRouterAiAgent leem
-     │ pedir essa classe                         │ (via AiAgentDependencies.registry)
+     │ algo mais no grafo                        │ GeminiAgent/OpenRouterAgent leem
+     │ pedir essa classe                         │ (via AgentDependencies.registry)
 CestouApplication injeta Set<AgentActionUseCase<*>> SÓ para forçar essa instanciação no boot
 
 DEPOIS
@@ -111,13 +111,13 @@ ShoppingAgentModule/ProductAgentModule (@IntoSet, já existentes, inalterados)
       @Singleton class AgentRegistry (byId = actions.associateBy { it.id }, imutável após construção)
                     │                                   │
                     ▼                                   ▼
-      CestouApplication (log de boot)      GeminiAiAgent/OpenRouterAiAgent (via AiAgentDependencies)
+      CestouApplication (log de boot)      GeminiAgent/OpenRouterAgent (via AgentDependencies)
 ```
 
 **Injeção via Hilt:** `AgentRegistry` não precisa mais de `@Provides`/`@Binds` — o próprio `@Inject
 constructor` resolve, puxando o `Set<AgentActionUseCase<*>>` que já é montado pelos módulos
-`@IntoSet` existentes em `feature:shopping`/`feature:products`. `AiAgentFactoryImpl` continua
-recebendo `registry: AgentRegistry` no construtor exatamente como hoje (`feature/ai-agent/.../AiAgentFactoryImpl.kt:28`)
+`@IntoSet` existentes em `feature:shopping`/`feature:products`. `AgentFactoryImpl` continua
+recebendo `registry: AgentRegistry` no construtor exatamente como hoje (`feature/ai-agent/.../AgentFactoryImpl.kt:28`)
 — só a implementação por trás do tipo muda.
 
 ## 4. Contratos e Interfaces
@@ -145,8 +145,8 @@ abstract class AgentActionUseCase<R> : AgentAction<R> {
 // core/ai/contract/AgentActionProvider.kt — REMOVIDO (BREAKING interno, zero consumidor externo
 // confirmado por busca).
 
-// feature/ai-agent/data/service/AiAgentDependencies.kt — default removido (nenhum call site usava)
-internal data class AiAgentDependencies(
+// feature/ai-agent/data/service/AgentDependencies.kt — default removido (nenhum call site usava)
+internal data class AgentDependencies(
     val session: AiSession,
     val crashReporter: CrashReporter,
     val subscriptionRepository: SubscriptionRepository,
@@ -154,7 +154,7 @@ internal data class AiAgentDependencies(
     val systemPrompt: String = SystemPrompts.CESTOU_ASSISTANT
 )
 
-// feature/ai-agent/di/AiAgentModule.kt — método removido:
+// feature/ai-agent/di/AgentModule.kt — método removido:
 // @Provides @Singleton fun provideAgentRegistry(): AgentRegistry = AgentRegistry  (DELETADO)
 
 // app/CestouApplication.kt — ponto de injeção alterado
@@ -169,8 +169,8 @@ class CestouApplication : Application() {
 ```
 
 **Consumidores confirmados por busca exaustiva (`grep` no repositório inteiro) que precisam mudar:**
-`core/ai/.../base/AgentActionUseCase.kt`, `feature/ai-agent/.../di/AiAgentModule.kt`,
-`feature/ai-agent/.../AiAgentDependencies.kt`, `app/.../CestouApplication.kt`,
+`core/ai/.../base/AgentActionUseCase.kt`, `feature/ai-agent/.../di/AgentModule.kt`,
+`feature/ai-agent/.../AgentDependencies.kt`, `app/.../CestouApplication.kt`,
 `core/ai/src/test/.../AgentRegistryTest.kt`. **Nenhum outro arquivo** no repositório referencia
 `AgentRegistry.register`/`.registerProvider`/`.clear`/`AgentActionProvider`/`toAgentAction` fora
 desta lista — confirmado linha a linha.
@@ -209,8 +209,8 @@ Nenhum endpoint, coleção Firestore, evento de Analytics ou chave de remote-con
   (mantém o cenário de "overwrite" já testado hoje, adaptado para `associateBy`). Não precisa mais de
   `@After { clear() }` — cada teste constrói sua própria instância isolada, eliminando o próprio
   motivo do achado A-01 (estado global entre testes).
-- **Unitários — sem mudança de cenário, só de mock:** `AiAgentFactoryImplTest`, `GeminiAiAgentTest`,
-  `OpenRouterAiAgentTest`, `GeminiAiAgentGatingTest`, `OpenRouterAiAgentGatingTest` já mockam
+- **Unitários — sem mudança de cenário, só de mock:** `AgentFactoryImplTest`, `GeminiAgentTest`,
+  `OpenRouterAgentTest`, `GeminiAgentGatingTest`, `OpenRouterAgentGatingTest` já mockam
   `AgentRegistry` como instância (`mockk<AgentRegistry>(relaxed = true)`), nunca como `object` — não
   deveriam precisar de nenhuma alteração; confirmar isso é o próprio critério de aceitação do
   `code-implementer` antes de considerar a tarefa concluída.

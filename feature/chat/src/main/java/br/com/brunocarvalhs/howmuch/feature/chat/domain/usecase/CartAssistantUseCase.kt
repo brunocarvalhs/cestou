@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase
 
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentFactory
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -12,7 +12,7 @@ import javax.inject.Inject
  * Ele mantém a instância do serviço de IA para preservar o histórico da conversa durante a sessão.
  */
 class CartAssistantUseCase @Inject constructor(
-    private val agentFactory: AiAgentFactory,
+    private val agentFactory: AgentFactory,
     private val settingsRepository: SettingsRepository
 ) {
     /**
@@ -20,7 +20,7 @@ class CartAssistantUseCase @Inject constructor(
      */
     suspend operator fun invoke(
         prompt: String,
-        context: AiAgentContext
+        context: AgentContext
     ): Flow<String> {
         val settings = settingsRepository.getSettings().first()
         val agentService = agentFactory.create(settings)

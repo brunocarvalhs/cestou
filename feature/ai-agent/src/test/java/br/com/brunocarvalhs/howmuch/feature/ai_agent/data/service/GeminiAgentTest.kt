@@ -1,6 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
@@ -17,11 +17,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Cobre a integração entre [GeminiAiAgent.sendMessage] e o [GeminiModelFactory] injetado via Hilt
+ * Cobre a integração entre [GeminiAgent.sendMessage] e o [GeminiModelFactory] injetado via Hilt
  * (sdd-026, A-03) — antes o `GenerativeModel` era montado inline, sem seam de injeção. O gate de
- * dispatch em si (Pro/registry/erro de tool) já é coberto por [GeminiAiAgentGatingTest].
+ * dispatch em si (Pro/registry/erro de tool) já é coberto por [GeminiAgentGatingTest].
  */
-class GeminiAiAgentTest {
+class GeminiAgentTest {
 
     private val session = mockk<AiSession>(relaxed = true)
     private val registry = mockk<AgentRegistry>(relaxed = true)
@@ -29,8 +29,8 @@ class GeminiAiAgentTest {
     private val subscriptionRepository = mockk<SubscriptionRepository>(relaxed = true)
     private val modelFactory = mockk<GeminiModelFactory>()
 
-    private val agent = GeminiAiAgent(
-        dependencies = AiAgentDependencies(
+    private val agent = GeminiAgent(
+        dependencies = AgentDependencies(
             session = session,
             crashReporter = crashReporter,
             subscriptionRepository = subscriptionRepository,
@@ -53,7 +53,7 @@ class GeminiAiAgentTest {
                 tools = any()
             )
         } throws IllegalStateException("boom")
-        val context = mockk<AiAgentContext> { every { toMetadata() } returns emptyMap() }
+        val context = mockk<AgentContext> { every { toMetadata() } returns emptyMap() }
 
         val failure = runCatching { agent.sendMessage("oi", context).toList() }
 
@@ -76,7 +76,7 @@ class GeminiAiAgentTest {
         every { generativeModel.startChat(any()) } returns chat
         coEvery { chat.sendMessage(any<String>()) } throws IllegalStateException("boom")
         every { session.history } returns mutableListOf()
-        val context = mockk<AiAgentContext> { every { toMetadata() } returns emptyMap() }
+        val context = mockk<AgentContext> { every { toMetadata() } returns emptyMap() }
 
         val failure = runCatching { agent.sendMessage("oi", context).toList() }
 

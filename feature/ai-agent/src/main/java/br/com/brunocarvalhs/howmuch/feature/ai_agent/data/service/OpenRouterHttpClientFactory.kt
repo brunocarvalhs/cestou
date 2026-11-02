@@ -9,7 +9,7 @@ import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 /**
- * Isola a construção do [HttpClient] usado por [OpenRouterAiAgent] atrás de uma interface
+ * Isola a construção do [HttpClient] usado por [OpenRouterAgent] atrás de uma interface
  * injetável, para que o agente seja testável sem abrir uma conexão HTTP real (sdd-026, A-03) —
  * antes, o client era montado inline dentro do próprio agente, o que o excluía do gate de
  * cobertura do Kover (`howmuch.kover.gradle.kts`).
@@ -18,7 +18,7 @@ internal interface OpenRouterHttpClientFactory {
 
     /**
      * Monta um [HttpClient] configurado com timeout estendido (ver [OpenRouterHttpClientFactoryImpl]).
-     * Recebe [json] em vez de construir sua própria instância de [Json] porque [OpenRouterAiAgent]
+     * Recebe [json] em vez de construir sua própria instância de [Json] porque [OpenRouterAgent]
      * reaproveita o mesmo [Json] tanto para configurar o `ContentNegotiation` deste client quanto
      * para `encode`/`decode` manual de `ChatRequest`/`ChatResponse` fora do client — uma única
      * configuração de serialização para as duas pontas, em vez de duas que podem divergir.

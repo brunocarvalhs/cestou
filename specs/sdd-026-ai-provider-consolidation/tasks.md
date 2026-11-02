@@ -16,8 +16,8 @@
 > **Nota pós-implementação (2026-11-02, via `code-reviewer`):** os nomes do pseudocódigo da §4 foram
 > ajustados durante a revisão para evitar um verbo ambíguo: `BaseAiAgent` → **`BaseAgent`**;
 > `BaseAiAgent.dispatchToolCall` → **`BaseAgent.executeAction`** (é o único lugar que de fato executa
-> a `AgentAction`); `GeminiAiAgent.executeFunctionCall` → **`GeminiAiAgent.toFunctionResponsePart`** e
-> `OpenRouterAiAgent.executeToolCall` → **`OpenRouterAiAgent.toToolCallContent`** (os dois agora são só
+> a `AgentAction`); `GeminiAgent.executeFunctionCall` → **`GeminiAgent.toFunctionResponsePart`** e
+> `OpenRouterAgent.executeToolCall` → **`OpenRouterAgent.toToolCallContent`** (os dois agora são só
 > adaptadores de formato, não executores — o nome "execute" ficou reservado para onde a execução
 > realmente ocorre). Nenhum contrato público nem comportamento mudou, só nomenclatura interna.
 
@@ -32,31 +32,31 @@ replicar a duplicação/inconsistência com um 3º provider (recomendação já 
 Dois problemas, mesma causa raiz (os dois providers de IA foram escritos como duas implementações
 independentes em vez de uma abstração compartilhada):
 
-1. **A-03** — `GeminiAiAgent.executeFunctionCall` (`feature/ai-agent/.../GeminiAiAgent.kt:147-192`) e
-   `OpenRouterAiAgent.executeToolCall` (`feature/ai-agent/.../OpenRouterAiAgent.kt:198-231`) duplicam
+1. **A-03** — `GeminiAgent.executeFunctionCall` (`feature/ai-agent/.../GeminiAgent.kt:147-192`) e
+   `OpenRouterAgent.executeToolCall` (`feature/ai-agent/.../OpenRouterAgent.kt:198-231`) duplicam
    quase byte a byte o gate Pro (AD-010), o dispatch via `AgentRegistry.find`, o `try/catch` com
-   `crashReporter.recordException` e o log de erro — `isPro()` (`GeminiAiAgent.kt:194-196` vs.
-   `OpenRouterAiAgent.kt:233-235`) é **idêntica** nas duas classes. As duas classes constroem seu
-   cliente de SDK inline (`GenerativeModel`/`HttpClient` via `by lazy`, `GeminiAiAgent.kt:43-76`,
-   `OpenRouterAiAgent.kt:56-68`) em vez de receber via injeção — por isso estão **excluídas do gate de
+   `crashReporter.recordException` e o log de erro — `isPro()` (`GeminiAgent.kt:194-196` vs.
+   `OpenRouterAgent.kt:233-235`) é **idêntica** nas duas classes. As duas classes constroem seu
+   cliente de SDK inline (`GenerativeModel`/`HttpClient` via `by lazy`, `GeminiAgent.kt:43-76`,
+   `OpenRouterAgent.kt:56-68`) em vez de receber via injeção — por isso estão **excluídas do gate de
    cobertura do Kover** (`buildSrc/src/main/kotlin/howmuch.kover.gradle.kts:106-112`), com um comentário
-   no próprio arquivo já reconhecendo a dívida. Confirmado: não existe hoje nenhum `GeminiAiAgentTest.kt`
-   nem `OpenRouterAiAgentTest.kt` no projeto.
+   no próprio arquivo já reconhecendo a dívida. Confirmado: não existe hoje nenhum `GeminiAgentTest.kt`
+   nem `OpenRouterAgentTest.kt` no projeto.
 2. **A-04** — `AppSettings.aiProvider` (`core/domain/.../AppSettings.kt:11`) e `AiModel.provider`
    (`core/domain/.../AiModel.kt:13`) são `String` livre (`"gemini"`/`"openrouter"`, e um 3º valor
    `"auto"` usado apenas em teste — ver §5, regra 3), enquanto `AiConfigTier`
    (`core/domain/.../AiConfigTier.kt`), no mesmo domínio, já é um `enum` type-safe persistido como
    `.name` no DataStore (`SettingsRepositoryImpl.kt:140`). A comparação por string aparece em pelo
-   menos 4 pontos de `AiAgentFactoryImpl.kt` (linhas 38, 62, 73, 101-104).
+   menos 4 pontos de `AgentFactoryImpl.kt` (linhas 38, 62, 73, 101-104).
 
 ## 2. Escopo
 
 **Inclui:**
 - Extrair `BaseAiAgent` (Template Method) com o gate Pro + dispatch + tratamento de erro compartilhado
-  entre `GeminiAiAgent` e `OpenRouterAiAgent`.
+  entre `GeminiAgent` e `OpenRouterAgent`.
 - Injetar os clientes de SDK (`GenerativeModel`, `HttpClient`) via Hilt, através de uma Factory
   injetável por agente, para tornar as duas classes testáveis sem round-trip de rede real.
-- Criar `GeminiAiAgentTest`/`OpenRouterAiAgentTest` e remover a exclusão das duas classes em
+- Criar `GeminiAgentTest`/`OpenRouterAgentTest` e remover a exclusão das duas classes em
   `howmuch.kover.gradle.kts`.
 - Introduzir `enum AiProvider` em `core:domain` e migrar `AppSettings.aiProvider`/`AiModel.provider`
   e todos os pontos de comparação por string listados em §4.
@@ -84,7 +84,7 @@ Nenhuma mudança em `presentation`/`navigation` — confirmado que nem `feature:
 `AiSettingsViewModel.kt`) nem `:wear` tocam `aiProvider`/`AiModel.provider` diretamente.
 
 **Padrão aplicado:** Template Method (GoF) para o dispatch compartilhado; Factory Method (GoF, mesmo
-idioma já usado em `AiAgentFactoryImpl`) para a injeção dos clientes de SDK — consistência com os
+idioma já usado em `AgentFactoryImpl`) para a injeção dos clientes de SDK — consistência com os
 padrões já catalogados como "aplicados corretamente" em `sdd-025` §5.1.
 
 **Novos arquivos:**
@@ -94,14 +94,14 @@ padrões já catalogados como "aplicados corretamente" em `sdd-025` §5.1.
   (interface + implementação default, ambas `internal`)
 - `feature/ai-agent/src/main/java/br/com/brunocarvalhs/howmuch/feature/ai_agent/data/service/OpenRouterHttpClientFactory.kt`
   (interface + implementação default, ambas `internal`)
-- `feature/ai-agent/src/test/java/br/com/brunocarvalhs/howmuch/feature/ai_agent/data/service/GeminiAiAgentTest.kt`
-- `feature/ai-agent/src/test/java/br/com/brunocarvalhs/howmuch/feature/ai_agent/data/service/OpenRouterAiAgentTest.kt`
+- `feature/ai-agent/src/test/java/br/com/brunocarvalhs/howmuch/feature/ai_agent/data/service/GeminiAgentTest.kt`
+- `feature/ai-agent/src/test/java/br/com/brunocarvalhs/howmuch/feature/ai_agent/data/service/OpenRouterAgentTest.kt`
 
 **Arquivos alterados (produção):**
 `core/domain/.../AppSettings.kt`, `core/domain/.../AiModel.kt`, `core/data/.../SettingsRepositoryImpl.kt`,
-`core/data/.../AiModelRepositoryImpl.kt:51`, `feature/ai-agent/.../GeminiAiAgent.kt`,
-`feature/ai-agent/.../OpenRouterAiAgent.kt`, `feature/ai-agent/.../AiAgentFactoryImpl.kt`,
-`feature/ai-agent/.../di/AiAgentModule.kt`, `buildSrc/src/main/kotlin/howmuch.kover.gradle.kts:106-112`
+`core/data/.../AiModelRepositoryImpl.kt:51`, `feature/ai-agent/.../GeminiAgent.kt`,
+`feature/ai-agent/.../OpenRouterAgent.kt`, `feature/ai-agent/.../AgentFactoryImpl.kt`,
+`feature/ai-agent/.../di/AgentModule.kt`, `buildSrc/src/main/kotlin/howmuch.kover.gradle.kts:106-112`
 (remove a exclusão).
 
 **Diagrama (antes → depois do dispatch chokepoint):**
@@ -109,7 +109,7 @@ padrões já catalogados como "aplicados corretamente" em `sdd-025` §5.1.
 ```
 ANTES
 ┌─────────────────┐        ┌──────────────────┐
-│  GeminiAiAgent   │        │ OpenRouterAiAgent │
+│  GeminiAgent   │        │ OpenRouterAgent │
 │ executeFunctionCall()     │ executeToolCall()  │   <- lógica idêntica, 2x
 │ isPro()          │        │ isPro()            │   <- lógica idêntica, 2x
 │ GenerativeModel (inline)  │ HttpClient (inline) │   <- não injetável, exclui Kover
@@ -123,17 +123,17 @@ DEPOIS
                  └──────────┬────────────────┘
                  ┌──────────┴────────────┐
        ┌─────────▼────────┐    ┌─────────▼─────────┐
-       │  GeminiAiAgent    │    │ OpenRouterAiAgent  │
+       │  GeminiAgent    │    │ OpenRouterAgent  │
        │  providerTag      │    │  providerTag       │
        │  GeminiModelFactory (injetado via Hilt)     │
        │  OpenRouterHttpClientFactory (injetado via Hilt) │
        └───────────────────┘    └────────────────────┘
 ```
 
-**Injeção via Hilt:** `GeminiModelFactory`/`OpenRouterHttpClientFactory` ligados em `AiAgentModule`
-(`@Binds @Singleton`, mesmo padrão já usado para `AiAgentFactory`/`AiSession`). `AiAgentFactoryImpl`
+**Injeção via Hilt:** `GeminiModelFactory`/`OpenRouterHttpClientFactory` ligados em `AgentModule`
+(`@Binds @Singleton`, mesmo padrão já usado para `AgentFactory`/`AiSession`). `AgentFactoryImpl`
 passa a receber as duas factories no construtor (hoje já recebe 6 dependências via `@Inject
-constructor`) e repassá-las para `GeminiAiAgent`/`OpenRouterAiAgent` junto de `AiAgentDependencies`.
+constructor`) e repassá-las para `GeminiAgent`/`OpenRouterAgent` junto de `AgentDependencies`.
 
 ## 4. Contratos e Interfaces
 
@@ -161,14 +161,14 @@ data class AiModel(
 
 // feature/ai-agent/data/service/BaseAiAgent.kt — internal
 internal abstract class BaseAiAgent(
-    protected val dependencies: AiAgentDependencies
-) : AiAgent {
+    protected val dependencies: AgentDependencies
+) : Agent {
     /** "gemini" | "openrouter" — usado em Timber.tag e crashReporter extras, substitui os literais
-     * hoje espalhados em GeminiAiAgent.kt:129,175 e OpenRouterAiAgent.kt:128,220. */
+     * hoje espalhados em GeminiAgent.kt:129,175 e OpenRouterAgent.kt:128,220. */
     protected abstract val providerTag: String
 
     /** Template Method: gate Pro (AD-010) + AgentRegistry.find + execute + try/catch + crashReporter.
-     * Corpo igual ao de GeminiAiAgent.executeFunctionCall/OpenRouterAiAgent.executeToolCall hoje —
+     * Corpo igual ao de GeminiAgent.executeFunctionCall/OpenRouterAgent.executeToolCall hoje —
      * só a extração de nome/args de cada SDK fica na subclasse, antes de chamar isto. */
     protected suspend fun dispatchToolCall(
         actionName: String,
@@ -183,38 +183,38 @@ internal abstract class BaseAiAgent(
 internal interface GeminiModelFactory {
     fun create(modelName: String, apiKey: String, systemPrompt: String, tools: List<AgentAction<*>>): GenerativeModel
 }
-// implementação default internal substitui o `by lazy { GenerativeModel(...) }` hoje inline em GeminiAiAgent.kt:43-76
+// implementação default internal substitui o `by lazy { GenerativeModel(...) }` hoje inline em GeminiAgent.kt:43-76
 
 // feature/ai-agent/data/service/OpenRouterHttpClientFactory.kt — internal
 internal interface OpenRouterHttpClientFactory {
     fun create(): HttpClient
 }
-// implementação default internal substitui o `HttpClient(OkHttp) { ... }` hoje inline em OpenRouterAiAgent.kt:56-68
+// implementação default internal substitui o `HttpClient(OkHttp) { ... }` hoje inline em OpenRouterAgent.kt:56-68
 
-// feature/ai-agent/data/service/GeminiAiAgent.kt — assinatura alterada
-internal class GeminiAiAgent(
-    dependencies: AiAgentDependencies,
+// feature/ai-agent/data/service/GeminiAgent.kt — assinatura alterada
+internal class GeminiAgent(
+    dependencies: AgentDependencies,
     private val modelFactory: GeminiModelFactory, // NOVO
     private val modelName: String = BuildConfig.GEMINI_AGENT,
     private val apiKey: String = BuildConfig.GEMINI_API_KEY
 ) : BaseAiAgent(dependencies) { override val providerTag = "gemini" /* ... */ }
 
-// feature/ai-agent/data/service/OpenRouterAiAgent.kt — assinatura alterada (mesmo padrão)
-internal class OpenRouterAiAgent(
-    dependencies: AiAgentDependencies,
+// feature/ai-agent/data/service/OpenRouterAgent.kt — assinatura alterada (mesmo padrão)
+internal class OpenRouterAgent(
+    dependencies: AgentDependencies,
     private val httpClientFactory: OpenRouterHttpClientFactory, // NOVO
     private val model: String = BuildConfig.OPEN_ROUTER_MODEL,
     private val apiKey: String = BuildConfig.OPEN_ROUTER_API_KEY
 ) : BaseAiAgent(dependencies) { override val providerTag = "openrouter" /* ... */ }
 
-// feature/ai-agent/data/service/AiAgentFactoryImpl.kt — selectAgent assinatura alterada
-private fun selectAgent(provider: AiProvider, gemini: AiAgent?, openRouter: AiAgent?): AiAgent
+// feature/ai-agent/data/service/AgentFactoryImpl.kt — selectAgent assinatura alterada
+private fun selectAgent(provider: AiProvider, gemini: Agent?, openRouter: Agent?): Agent
 // when(provider) { AiProvider.GEMINI -> ...; AiProvider.OPENROUTER -> ...; AiProvider.AUTO -> ... }
 ```
 
 **Consumidores que precisam ser atualizados no mesmo PR** (breaking interno de `AppSettings.aiProvider`/`AiModel.provider`):
 `core/data/.../SettingsRepositoryImpl.kt` (leitura/escrita DataStore), `core/data/.../AiModelRepositoryImpl.kt:51`,
-`feature/ai-agent/.../AiAgentFactoryImpl.kt`, e os testes listados em §7. Confirmado por busca: nenhuma
+`feature/ai-agent/.../AgentFactoryImpl.kt`, e os testes listados em §7. Confirmado por busca: nenhuma
 tela (`feature:settings`, `AiSettingsScreen.kt`/`AiTier2Content.kt`/`AiTier3Content.kt`/`AiSettingsViewModel.kt`)
 nem `:wear` leem `aiProvider`/`AiModel.provider` diretamente — zero impacto de UI.
 
@@ -224,11 +224,11 @@ Nenhum endpoint, coleção Firestore, evento de Analytics ou chave de remote-con
 
 | # | Regra atual | Comportamento após a mudança | Origem (`arquivo:linha`) |
 |---|---|---|---|
-| 1 | Gate Pro + dispatch + erro duplicados byte a byte em 2 classes | Mesmo comportamento; implementação única em `BaseAiAgent.dispatchToolCall`/`isPro` | `GeminiAiAgent.kt:147-196`, `OpenRouterAiAgent.kt:198-235` |
+| 1 | Gate Pro + dispatch + erro duplicados byte a byte em 2 classes | Mesmo comportamento; implementação única em `BaseAiAgent.dispatchToolCall`/`isPro` | `GeminiAgent.kt:147-196`, `OpenRouterAgent.kt:198-235` |
 | 2 | `aiProvider` persistido como string livre; valor legado/desconhecido cai no heurístico `providerFor(aiModel)` via `when` | Idêntico, mas resolvido com parsing seguro de enum (`AiProvider.entries.firstOrNull { it.name.equals(stored, ignoreCase = true) }`), nunca `AiProvider.valueOf()` direto — `valueOf` lançaria `IllegalArgumentException` em qualquer valor legado (ex. `"nvidia"`) | `SettingsRepositoryImpl.kt:91,101` |
-| 3 | `aiProvider == "auto"` nunca é produzido pela leitura real do DataStore hoje (`resolveStoredAiProvider` só retorna `"gemini"`/`"openrouter"`); só é exercitado via `AppSettings(aiProvider = "auto")` em testes, para validar o branch `else` de `selectAgent` | **Preservado 1:1** — `AiProvider.AUTO` continua inatingível pelos dados reais; não é objetivo deste SDD corrigir essa divergência (ver §9.1) | `AppSettings.kt:11` (default `"openrouter"`, nunca `"auto"`); `AiAgentFactoryImplTest.kt` usa `"auto"` em 3 testes |
-| 4 | `GenerativeModel`/`HttpClient` construídos inline dentro do próprio agente | Construídos via `GeminiModelFactory`/`OpenRouterHttpClientFactory` injetadas via Hilt | `GeminiAiAgent.kt:43-76`, `OpenRouterAiAgent.kt:56-68` |
-| 5 | `GeminiAiAgent`/`OpenRouterAiAgent` excluídas do gate de cobertura do Kover | Exclusão removida; classes cobertas por teste unitário real | `buildSrc/src/main/kotlin/howmuch.kover.gradle.kts:106-112` |
+| 3 | `aiProvider == "auto"` nunca é produzido pela leitura real do DataStore hoje (`resolveStoredAiProvider` só retorna `"gemini"`/`"openrouter"`); só é exercitado via `AppSettings(aiProvider = "auto")` em testes, para validar o branch `else` de `selectAgent` | **Preservado 1:1** — `AiProvider.AUTO` continua inatingível pelos dados reais; não é objetivo deste SDD corrigir essa divergência (ver §9.1) | `AppSettings.kt:11` (default `"openrouter"`, nunca `"auto"`); `AgentFactoryImplTest.kt` usa `"auto"` em 3 testes |
+| 4 | `GenerativeModel`/`HttpClient` construídos inline dentro do próprio agente | Construídos via `GeminiModelFactory`/`OpenRouterHttpClientFactory` injetadas via Hilt | `GeminiAgent.kt:43-76`, `OpenRouterAgent.kt:56-68` |
+| 5 | `GeminiAgent`/`OpenRouterAgent` excluídas do gate de cobertura do Kover | Exclusão removida; classes cobertas por teste unitário real | `buildSrc/src/main/kotlin/howmuch.kover.gradle.kts:106-112` |
 
 ## 6. Critérios de Aceitação
 
@@ -248,15 +248,15 @@ Nenhum endpoint, coleção Firestore, evento de Analytics ou chave de remote-con
 ## 7. Plano de Testes
 
 - **Unitários — novos:**
-  - `GeminiAiAgentTest`: gate Pro bloqueia/libera ação (`requiresPro`), dispatch encontra/não encontra
+  - `GeminiAgentTest`: gate Pro bloqueia/libera ação (`requiresPro`), dispatch encontra/não encontra
     ação no registry, captura de exceção chama `crashReporter.recordException` com `provider = "gemini"`,
     `modelFactory.create(...)` é chamado com os parâmetros corretos (mockável, já que é uma interface).
-  - `OpenRouterAiAgentTest`: mesmos cenários, substituindo `modelFactory` por `httpClientFactory`.
+  - `OpenRouterAgentTest`: mesmos cenários, substituindo `modelFactory` por `httpClientFactory`.
   - (Opcional, se reduzir duplicação de teste também) `BaseAiAgentTest` com uma subclasse de teste mínima,
     cobrindo só `dispatchToolCall`/`isPro` uma vez — a decidir pelo code-implementer conforme o quanto o
     corpo real divergir entre Gemini/OpenRouter após a extração.
 - **Unitários — atualizados** (troca de `String` por `AiProvider`, sem mudança de cenário):
-  `AiAgentFactoryImplTest.kt` (todas as 14 ocorrências de `AppSettings(aiProvider = "gemini"/"openrouter"/"auto")`),
+  `AgentFactoryImplTest.kt` (todas as 14 ocorrências de `AppSettings(aiProvider = "gemini"/"openrouter"/"auto")`),
   `SettingsRepositoryImplTest.kt` (6 ocorrências de `assertEquals("openrouter"/"gemini", ...)`, mais um
   cenário **novo** para o valor legado desconhecido da regra 2), `core/domain/.../AiModelTest.kt` (2
   ocorrências de `assertEquals("openrouter", model.provider)`), `CartAssistantUseCaseTest.kt:25`
