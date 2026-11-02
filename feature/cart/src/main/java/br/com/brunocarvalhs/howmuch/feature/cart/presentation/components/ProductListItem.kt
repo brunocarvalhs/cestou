@@ -62,7 +62,6 @@ internal fun ProductListItem(
     attributionProfile: UserProfile? = null,
     onShowHistory: () -> Unit = {}
 ) {
-
     val dismissState = rememberSwipeToDismissBoxState(
         initialValue = SwipeToDismissBoxValue.Settled,
         positionalThreshold = SwipeToDismissBoxDefaults.positionalThreshold

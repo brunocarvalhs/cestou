@@ -268,7 +268,6 @@ internal fun EditShoppingContent(
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 private fun EditShoppingContentPreview() {

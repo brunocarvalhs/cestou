@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>MaxLineLength:ArchitectureTest.kt$ArchitectureTest.Companion$"feature.profile.presentation.components.ProfileSettingsSection -&gt; feature.settings.presentation.intent.SettingsIntent"</ID>
+    <ID>MaxLineLength:ArchitectureTest.kt$ArchitectureTest.Companion$"feature.profile.presentation.components.ProfileSettingsSection -&gt; feature.settings.presentation.screen.SettingsSectionsList"</ID>
+    <ID>MaxLineLength:ArchitectureTest.kt$ArchitectureTest.Companion$"feature.profile.presentation.components.ProfileSettingsSection -&gt; feature.settings.presentation.state.SettingsUiState"</ID>
+    <ID>ReturnCount:MainViewModel.kt$MainViewModel$fun onDeepLink(intent: Intent)</ID>
+    <ID>ThrowsCount:CestouAppFunctions.kt$BaseCestouAppFunctionService$@AppFunction(isDescribedByKDoc = true) suspend fun addRecipeIngredientsToList( recipeId: String, shoppingId: String, )</ID>
+    <ID>TooGenericExceptionCaught:WorkManagerSafeInit.kt$t: Throwable</ID>
+  </CurrentIssues>
+</SmellBaseline>

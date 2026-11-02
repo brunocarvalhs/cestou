@@ -40,10 +40,12 @@ internal class NotificationSettingsViewModel @Inject constructor(
     private fun observeSettings() {
         settingsRepository.getSettings()
             .onEach { settings ->
-                _uiState.update { it.copy(
-                    notificationsEnabled = settings.notificationsEnabled,
-                    reminderTime = settings.reminderTime
-                ) }
+                _uiState.update {
+                    it.copy(
+                        notificationsEnabled = settings.notificationsEnabled,
+                        reminderTime = settings.reminderTime
+                    )
+                }
             }
             .launchIn(viewModelScope)
     }

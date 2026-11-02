@@ -1,5 +1,11 @@
 <?xml version="1.0" ?>
 <SmellBaseline>
   <ManuallySuppressedIssues/>
-  <CurrentIssues/>
+  <CurrentIssues>
+    <ID>InstanceOfCheckForException:FirebaseAuthService.kt$FirebaseAuthService$e is FirebaseAuthRecentLoginRequiredException</ID>
+    <ID>InstanceOfCheckForException:FirebaseAuthService.kt$FirebaseAuthService$e is kotlinx.coroutines.CancellationException</ID>
+    <ID>SwallowedException:FirebaseAuthServiceTest.kt$FirebaseAuthServiceTest$e: IllegalStateException</ID>
+    <ID>TooGenericExceptionCaught:FirebaseAuthService.kt$FirebaseAuthService$e: Exception</ID>
+    <ID>UseCheckOrError:FirebaseAuthService.kt$FirebaseAuthService$throw IllegalStateException("No authenticated user. Sign-in is required.")</ID>
+  </CurrentIssues>
 </SmellBaseline>

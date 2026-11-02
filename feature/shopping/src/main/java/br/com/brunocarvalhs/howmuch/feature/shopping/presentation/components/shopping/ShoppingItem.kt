@@ -146,22 +146,34 @@ internal fun ShoppingItem(
             DropdownMenuItem(
                 text = { Text(stringResource(CoreR.string.action_edit)) },
                 leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                onClick = { showMenu = false; onEditClick() }
+                onClick = {
+                    showMenu = false
+                    onEditClick()
+                }
             )
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.action_duplicate)) },
                 leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null) },
-                onClick = { showMenu = false; onDuplicateClick() }
+                onClick = {
+                    showMenu = false
+                    onDuplicateClick()
+                }
             )
             DropdownMenuItem(
                 text = { Text(stringResource(CoreR.string.action_share)) },
                 leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) },
-                onClick = { showMenu = false; onShareClick() }
+                onClick = {
+                    showMenu = false
+                    onShareClick()
+                }
             )
             DropdownMenuItem(
                 text = { Text(stringResource(CoreR.string.action_finish)) },
                 leadingIcon = { Icon(Icons.Default.CheckCircle, contentDescription = null) },
-                onClick = { showMenu = false; onFinishClick() }
+                onClick = {
+                    showMenu = false
+                    onFinishClick()
+                }
             )
             HorizontalDivider()
             DropdownMenuItem(
@@ -169,7 +181,10 @@ internal fun ShoppingItem(
                 leadingIcon = {
                     Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                 },
-                onClick = { showMenu = false; onDeleteClick() }
+                onClick = {
+                    showMenu = false
+                    onDeleteClick()
+                }
             )
         }
     }
