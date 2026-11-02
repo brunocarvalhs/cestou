@@ -48,18 +48,19 @@ fun DragAndDropContainer(
             content()
             if (state.isDragging) {
                 var targetSize by remember { mutableStateOf(IntSize.Zero) }
-                Box(modifier = Modifier
-                    .graphicsLayer {
-                        val offset = (state.dragPosition + state.dragOffset)
-                        scaleX = DRAG_SCALE
-                        scaleY = DRAG_SCALE
-                        alpha = if (targetSize == IntSize.Zero) 0f else DRAG_ALPHA
-                        translationX = offset.x.minus(targetSize.width / 2)
-                        translationY = offset.y.minus(targetSize.height / 2)
-                    }
-                    .onGloballyPositioned {
-                        targetSize = it.size
-                    }
+                Box(
+                    modifier = Modifier
+                        .graphicsLayer {
+                            val offset = (state.dragPosition + state.dragOffset)
+                            scaleX = DRAG_SCALE
+                            scaleY = DRAG_SCALE
+                            alpha = if (targetSize == IntSize.Zero) 0f else DRAG_ALPHA
+                            translationX = offset.x.minus(targetSize.width / 2)
+                            translationY = offset.y.minus(targetSize.height / 2)
+                        }
+                        .onGloballyPositioned {
+                            targetSize = it.size
+                        }
                 ) {
                     state.draggableComposable?.invoke()
                 }
@@ -77,32 +78,33 @@ fun <T> DragTarget(
     var currentPosition by remember { mutableStateOf(Offset.Zero) }
     val currentState = LocalDragTargetInfo.current
 
-    Box(modifier = modifier
-        .onGloballyPositioned {
-            currentPosition = it.positionInWindow()
-        }
-        .pointerInput(Unit) {
-            detectDragGesturesAfterLongPress(
-                onDragStart = { offset ->
-                    currentState.dataToDrop = dataToDrop
-                    currentState.isDragging = true
-                    currentState.dragPosition = currentPosition + offset
-                    currentState.draggableComposable = content
-                },
-                onDrag = { change, dragAmount ->
-                    change.consume()
-                    currentState.dragOffset += Offset(dragAmount.x, dragAmount.y)
-                },
-                onDragEnd = {
-                    currentState.isDragging = false
-                    currentState.dragOffset = Offset.Zero
-                },
-                onDragCancel = {
-                    currentState.isDragging = false
-                    currentState.dragOffset = Offset.Zero
-                }
-            )
-        }
+    Box(
+        modifier = modifier
+            .onGloballyPositioned {
+                currentPosition = it.positionInWindow()
+            }
+            .pointerInput(Unit) {
+                detectDragGesturesAfterLongPress(
+                    onDragStart = { offset ->
+                        currentState.dataToDrop = dataToDrop
+                        currentState.isDragging = true
+                        currentState.dragPosition = currentPosition + offset
+                        currentState.draggableComposable = content
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        currentState.dragOffset += Offset(dragAmount.x, dragAmount.y)
+                    },
+                    onDragEnd = {
+                        currentState.isDragging = false
+                        currentState.dragOffset = Offset.Zero
+                    },
+                    onDragCancel = {
+                        currentState.isDragging = false
+                        currentState.dragOffset = Offset.Zero
+                    }
+                )
+            }
     ) {
         content()
     }
@@ -118,12 +120,14 @@ fun DropTarget(
     val dragPosition = dragInfo.dragPosition + dragInfo.dragOffset
     var isHovered by remember { mutableStateOf(false) }
 
-    Box(modifier = modifier.onGloballyPositioned {
-        val rect = it.boundsInWindow()
-        isHovered = dragInfo.isDragging && rect.contains(dragPosition)
-    }) {
+    Box(
+        modifier = modifier.onGloballyPositioned {
+            val rect = it.boundsInWindow()
+            isHovered = dragInfo.isDragging && rect.contains(dragPosition)
+        }
+    ) {
         content(isHovered, if (isHovered) dragInfo.dataToDrop else null)
-        
+
         // Handle drop
         LaunchedEffect(dragInfo.isDragging) {
             if (!dragInfo.isDragging && isHovered) {

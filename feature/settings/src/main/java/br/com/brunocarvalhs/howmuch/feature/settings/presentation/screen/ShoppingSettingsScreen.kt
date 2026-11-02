@@ -46,13 +46,13 @@ internal fun ShoppingSettingsScreen(
         topBar = {
             SettingsHeader(
                 title = stringResource(R.string.settings_section_shopping),
-                onBack = { 
+                onBack = {
                     intent.onUpdateShoppingPreferences(
                         state.defaultListId,
                         sortingMode,
                         remindersEnabled
                     )
-                    intent.onBack() 
+                    intent.onBack()
                 }
             )
         }
@@ -82,9 +82,9 @@ internal fun ShoppingSettingsScreen(
                     text = stringResource(R.string.settings_shopping_sort_category),
                     modifier = Modifier.padding(start = 8.dp)
                 )
-                
+
                 Spacer(modifier = Modifier.width(16.dp))
-                
+
                 RadioButton(
                     selected = sortingMode == "NAME",
                     onClick = { sortingMode = "NAME" }
@@ -120,7 +120,7 @@ internal fun ShoppingSettingsScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
-                onClick = { 
+                onClick = {
                     intent.onUpdateShoppingPreferences(
                         state.defaultListId,
                         sortingMode,

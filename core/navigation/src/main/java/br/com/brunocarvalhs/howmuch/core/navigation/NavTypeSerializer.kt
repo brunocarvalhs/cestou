@@ -57,15 +57,20 @@ inline fun <reified T : Any> navTypeSerializerNullable(): NavType<T?> =
         }
 
         override fun parseValue(value: String): T? {
-            return if (value == "null") null
-            else navJson.decodeFromString(
-                URLDecoder.decode(value, StandardCharsets.UTF_8.name())
-            )
+            return if (value == "null") {
+                null
+            } else {
+                navJson.decodeFromString(
+                    URLDecoder.decode(value, StandardCharsets.UTF_8.name())
+                )
+            }
         }
 
         override fun put(bundle: Bundle, key: String, value: T?) {
             bundle.putString(
-                key, value?.let { navJson.encodeToString(it) })
+                key,
+                value?.let { navJson.encodeToString(it) }
+            )
         }
 
         override fun serializeAsValue(value: T?): String {

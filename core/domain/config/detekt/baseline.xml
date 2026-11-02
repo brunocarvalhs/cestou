@@ -2,5 +2,8 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
+    <ID>MaxLineLength:PersonNameValidator.kt$PersonNameValidator$/** Letters (any script) with single inner hyphens/apostrophes: "Ana-Clara", "O'Neil", not "-Ana" or "Ana--Clara". */</ID>
+    <ID>ReturnCount:PersonNameValidator.kt$PersonNameValidator$private fun String.capitalizePart(): String</ID>
+    <ID>ThrowsCount:NetworkService.kt$suspend fun NetworkService.deleteDocumentWithSubCollections(path: String, vararg subCollections: String)</ID>
   </CurrentIssues>
 </SmellBaseline>

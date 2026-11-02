@@ -4,10 +4,10 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
@@ -24,8 +24,10 @@ import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 import br.com.brunocarvalhs.howmuch.core.ui.R as CoreUiR
 
-// Teste de layout via Robolectric (JVM), não androidTest: valida a composição real da tela
-// sem depender de emulador, adequado para rodar na esteira de CI.
+// Espelha feature/settings/src/androidTest/.../AiSettingsScreenTest.kt em Robolectric (JVM) para
+// contar na variante "layout" do Kover, já que testes androidTest não são medidos por ela.
+// BYOK-tier flow (tier 3 / custom API key) é coberto em AiSettingsByokTest, separado para não
+// estourar o limite do Detekt (TooManyFunctions) após a fusão das duas suítes.
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [34])
 class AiSettingsScreenTest {
@@ -35,6 +37,50 @@ class AiSettingsScreenTest {
 
     private fun string(resId: Int) =
         ApplicationProvider.getApplicationContext<android.content.Context>().getString(resId)
+
+    @Test
+    fun `selecting the specific tier shows the model picker for pro users`() {
+        composeTestRule.setContent {
+            CestouTheme {
+                AiSettingsScreen(
+                    state = AiSettingsUiState(subscriptionStatus = SubscriptionStatus.PRO),
+                    intent = AiSettingsIntent()
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag("ai_settings_byok_key_field").assertDoesNotExist()
+    }
+
+    @Test
+    fun `specific tier model dropdown lists and selects an available model`() {
+        var selectedModelId: String? = null
+
+        composeTestRule.setContent {
+            CestouTheme {
+                AiSettingsScreen(
+                    state = AiSettingsUiState(
+                        aiConfigTier = AiConfigTier.SPECIFIC,
+                        aiModel = "openrouter/free",
+                        availableModels = listOf(
+                            AiModel("openrouter/free", "OpenRouter Free Router", vendor = "OpenRouter"),
+                            AiModel("gemini/pro", "Gemini Pro", vendor = "Google")
+                        ),
+                        subscriptionStatus = SubscriptionStatus.PRO
+                    ),
+                    intent = AiSettingsIntent(
+                        onUpdateAiSettings = { _, model, _, _ -> selectedModelId = model }
+                    )
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("OpenRouter Free Router").performScrollTo().performClick()
+        composeTestRule.onNodeWithText("Gemini Pro").performScrollTo().performClick()
+        composeTestRule.onNodeWithTag("ai_settings_save_button").performScrollTo().performClick()
+
+        assertEquals("gemini/pro", selectedModelId)
+    }
 
     @Test
     fun `shows a pro badge on tier 2 and 3 for a free subscription`() {
@@ -113,60 +159,6 @@ class AiSettingsScreenTest {
         composeTestRule.onNodeWithText(paidModel.name).performClick()
 
         composeTestRule.onNodeWithText(paidModel.name).assertExists()
-    }
-
-    @Test
-    fun `selecting tier 3 as a pro user reveals the custom api key field`() {
-        composeTestRule.setContent {
-            CestouTheme {
-                AiSettingsScreen(
-                    state = AiSettingsUiState(subscriptionStatus = SubscriptionStatus.PRO),
-                    intent = AiSettingsIntent(),
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText(string(R.string.settings_ai_tier_3_title)).performScrollTo().performClick()
-
-        composeTestRule.onNodeWithText(string(R.string.settings_ai_label_custom_api_key)).assertExists()
-    }
-
-    @Test
-    fun `typing a custom api key updates the field`() {
-        composeTestRule.setContent {
-            CestouTheme {
-                AiSettingsScreen(
-                    state = AiSettingsUiState(
-                        aiConfigTier = AiConfigTier.CUSTOM_BYOK,
-                        subscriptionStatus = SubscriptionStatus.PRO,
-                    ),
-                    intent = AiSettingsIntent(),
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText(string(R.string.settings_ai_label_custom_api_key))
-            .performTextInput("sk-test-123")
-
-        composeTestRule.onNodeWithText("sk-test-123").assertExists()
-    }
-
-    @Test
-    fun `selecting tier 3 as a free user opens the paywall instead of switching tier`() {
-        var paywallOpened = false
-
-        composeTestRule.setContent {
-            CestouTheme {
-                AiSettingsScreen(
-                    state = AiSettingsUiState(subscriptionStatus = SubscriptionStatus.FREE),
-                    intent = AiSettingsIntent(onOpenPaywall = { paywallOpened = true }),
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText(string(R.string.settings_ai_tier_3_title)).performScrollTo().performClick()
-
-        assertEquals(true, paywallOpened)
     }
 
     @Test

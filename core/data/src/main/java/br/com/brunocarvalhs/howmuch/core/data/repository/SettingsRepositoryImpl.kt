@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiModel
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiProvider
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
@@ -83,22 +84,29 @@ private fun Preferences.toAppSettings(): AppSettings {
 
 /**
  * [storedProvider] pode ser um valor legado (o fabricante, ex. "nvidia") de antes de
- * [AiModel.vendor]/[AiModel.provider] existirem separados (sdd-006, B-07) — re-derivado do
- * [aiModel] salvo a cada leitura, sem precisar reescrever o DataStore.
+ * [AiModel.vendor]/[AiModel.provider] existirem separados (sdd-006, B-07), um `AiProvider.name`
+ * já técnico (gravado por [updateAiSettings] a partir desta mudança, sdd-026), ou um valor
+ * técnico legado em minúsculas (gravado antes desta mudança) — re-derivado do [aiModel] salvo a
+ * cada leitura quando desconhecido, sem precisar reescrever o DataStore. `ignoreCase` é
+ * necessário para continuar lendo os valores legados em minúsculas; `entries.firstOrNull` (não
+ * `AiProvider.valueOf()`) porque um valor legado desconhecido (ex. "nvidia") lançaria
+ * `IllegalArgumentException` em vez de cair no heurístico.
  */
-private fun resolveStoredAiProvider(storedProvider: String?, aiModel: String): String =
-    when (storedProvider) {
-        null, "gemini", "openrouter" -> storedProvider ?: "openrouter"
-        else -> providerFor(aiModel)
+private fun resolveStoredAiProvider(storedProvider: String?, aiModel: String): AiProvider =
+    if (storedProvider == null) {
+        AiProvider.OPENROUTER
+    } else {
+        AiProvider.entries.firstOrNull { it.name.equals(storedProvider, ignoreCase = true) }
+            ?: providerFor(aiModel)
     }
 
 /**
- * Resolve o provider técnico (`"openrouter"`/`"gemini"`) de [model]: usa o catálogo quando o
- * modelo é conhecido; senão, cai no heurístico por nome (um modelo da família Gemini ainda pode
- * ser escolhido fora do catálogo atual, ex. via `aiModel` definido em outra tela).
+ * Resolve o provider técnico ([AiProvider.OPENROUTER]/[AiProvider.GEMINI]) de [model]: usa o
+ * catálogo quando o modelo é conhecido; senão, cai no heurístico por nome (um modelo da família
+ * Gemini ainda pode ser escolhido fora do catálogo atual, ex. via `aiModel` definido em outra tela).
  */
-private fun providerFor(model: String): String =
-    if (model.contains("gemini")) "gemini" else "openrouter"
+private fun providerFor(model: String): AiProvider =
+    if (model.contains("gemini")) AiProvider.GEMINI else AiProvider.OPENROUTER
 
 internal class SettingsRepositoryImpl @Inject constructor(
     private val dataStore: DataStore<Preferences>,
@@ -139,7 +147,7 @@ internal class SettingsRepositoryImpl @Inject constructor(
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.AI_CONFIG_TIER] = tier.name
             preferences[PreferencesKeys.AI_MODEL] = model
-            preferences[PreferencesKeys.AI_PROVIDER] = providerFor(model)
+            preferences[PreferencesKeys.AI_PROVIDER] = providerFor(model).name
             preferences[PreferencesKeys.CREATIVITY_LEVEL] = creativity
 
             if (customApiKey != null && customApiKey.isNotBlank()) {

@@ -8,7 +8,6 @@ import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.ClearCacheUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.DeleteAccountUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.DeleteAllDataUseCase
-import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.DataSettingsViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
