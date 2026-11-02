@@ -2,7 +2,6 @@ package br.com.brunocarvalhs.howmuch.feature.products.di
 
 import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.CommonProductAddAllToShoppingUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.PriceComparisonUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductListSaveUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSearchUseCase
@@ -38,10 +37,6 @@ abstract class ProductAgentModule {
     @Binds
     @IntoSet
     abstract fun bindRecipeAddToList(useCase: RecipeAddToListUseCase): AgentActionUseCase<*>
-
-    @Binds
-    @IntoSet
-    abstract fun bindPriceComparison(useCase: PriceComparisonUseCase): AgentActionUseCase<*>
 
     @Binds
     @IntoSet

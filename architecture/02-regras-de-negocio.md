@@ -26,7 +26,7 @@
 | 2.2 | Categoria padrão: `"Outros"`. | `Product.kt` |
 | 2.3 | Cada produto guarda histórico de atividades (`ADDED`, `EDITED`, `PURCHASED`). Quem adicionou, editou por último e comprou são derivados do histórico. | `Product.kt`, `ProductActivity.kt` |
 | 2.4 | Limpar comprados remove os produtos marcados como comprados da lista. | `core/domain/.../usecase/ShoppingClearPurchasedUseCase.kt` e `feature/products/.../ShoppingClearPurchasedUseCaseImpl.kt` |
-| 2.5 | Verificação de duplicidade antes de salvar, e comparação de preços entre listas/mercados. | `feature/products/domain/usecase/ProductDuplicateCheckUseCase.kt`, `PriceComparisonUseCase.kt` |
+| 2.5 | Verificação de duplicidade antes de salvar. (A tool de IA `compare_prices`/`PriceComparisonUseCase.kt` foi removida em `sdd-017`: retornava preços fictícios hardcoded apresentados como reais — ver `specs/sdd-017-ai-agent-safety/tasks.md`, B-09.) | `feature/products/domain/usecase/ProductDuplicateCheckUseCase.kt` |
 | 2.6 | Ordenação de produtos. | `core/domain/.../usecase/SortProductsUseCase.kt` |
 
 ## 3. Assinatura (FREE e PRO)
