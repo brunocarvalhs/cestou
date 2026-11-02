@@ -1,9 +1,9 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 /**
- * Single source of truth for the assistant's system prompt, shared by every [AiAgent]
+ * Single source of truth for the assistant's system prompt, shared by every [Agent]
  * implementation (Gemini, OpenRouter, ...). Keeping it in one place avoids the providers'
- * instructions drifting apart — which is exactly what happened before: OpenRouterAiAgent used to
+ * instructions drifting apart — which is exactly what happened before: OpenRouterAgent used to
  * ship with a literal "(Diretrizes iguais ao Gemini)" placeholder instead of the real guidelines.
  */
 internal object SystemPrompts {
@@ -26,7 +26,7 @@ internal object SystemPrompts {
     """.trimIndent()
 
     /**
-     * Turns [AiAgentContext.toMetadata] into a line appended to the system prompt for this one
+     * Turns [AgentContext.toMetadata] into a line appended to the system prompt for this one
      * request, so the model actually sees which shopping list the user is chatting from.
      *
      * `metadata` only ever reached [AgentAction.execute] before — the model itself had no way to

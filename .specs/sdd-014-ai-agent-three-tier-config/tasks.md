@@ -21,7 +21,7 @@
   - Atualização do `SettingsRepository` para persistir e recuperar o tier e a API key.
   - Injeção de `SubscriptionRepository` no `AiSettingsViewModel` para verificar se o usuário é `PRO` antes de permitir a seleção do Nível 2 ou Nível 3.
   - Redesenho da `AiSettingsScreen` (`feature/settings/presentation/screen/AiSettingsScreen.kt`) com abas/cartões claros para os 3 níveis, exibindo banner ou redirecionando para o Paywall caso um usuário `FREE` tente acessar os Níveis 2 ou 3.
-  - Atualização da fábrica de agentes `AiAgentFactoryImpl` para respeitar a chave customizada de BYOK quando o Nível 3 estiver ativo.
+  - Atualização da fábrica de agentes `AgentFactoryImpl` para respeitar a chave customizada de BYOK quando o Nível 3 estiver ativo.
   - Testes unitários para o ViewModel (`AiSettingsViewModelTest`), Repositório e Gating de Assinatura.
 - **Exclui:**
   - Processamento de pagamentos de IA in-app (o Nível 3 é BYOK / chave externa paga por fora; a assinatura Pro do app é gerenciada por `core:billing` e `feature:subscription`).
@@ -53,7 +53,7 @@
 | # | Regra atual | Comportamento após a mudança | Origem (`arquivo:linha`) |
 |---|---|---|---|
 | 1 | Seleção livre de modelos na lista | Nível 1 (Default) é livre; Níveis 2 (Específico) e 3 (BYOK) exigem assinatura `SubscriptionStatus.PRO` | `AiSettingsScreen.kt:30` |
-| 2 | Chaves fixas via `BuildConfig` | Suporte a chave customizada no Nível 3 para assinantes Pro | `AiAgentFactoryImpl.kt:37` |
+| 2 | Chaves fixas via `BuildConfig` | Suporte a chave customizada no Nível 3 para assinantes Pro | `AgentFactoryImpl.kt:37` |
 
 ## 6. Critérios de Aceitação
 - **Performance:** Recomposição otimizada, sem I/O síncrono na Main Thread, observação reativa de status de assinatura e settings.

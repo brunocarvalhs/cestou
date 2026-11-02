@@ -9,7 +9,7 @@ import org.junit.Test
 
 /**
  * Cobre a construção do [com.google.ai.client.generativeai.GenerativeModel] extraída de
- * [GeminiAiAgent] (sdd-026, A-03) — antes inline e não testável sem uma chamada real ao SDK.
+ * [GeminiAgent] (sdd-026, A-03) — antes inline e não testável sem uma chamada real ao SDK.
  */
 class GeminiModelFactoryImplTest {
 

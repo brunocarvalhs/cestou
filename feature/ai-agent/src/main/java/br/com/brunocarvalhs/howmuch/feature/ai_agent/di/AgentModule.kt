@@ -1,14 +1,14 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.di
 
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentFactory
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
-import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.AiAgentFactoryImpl
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.AgentFactoryImpl
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.GeminiModelFactory
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.GeminiModelFactoryImpl
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.OpenRouterHttpClientFactory
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.OpenRouterHttpClientFactoryImpl
-import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AiAgentSession
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AgentSession
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -19,15 +19,15 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-internal abstract class AiAgentModule {
+internal abstract class AgentModule {
 
     @Binds
     @Singleton
-    abstract fun bindAiAgentFactory(impl: AiAgentFactoryImpl): AiAgentFactory
+    abstract fun bindAiAgentFactory(impl: AgentFactoryImpl): AgentFactory
 
     @Binds
     @Singleton
-    abstract fun bindAiSession(impl: AiAgentSession): AiSession
+    abstract fun bindAiSession(impl: AgentSession): AiSession
 
     @Binds
     @Singleton
@@ -40,9 +40,9 @@ internal abstract class AiAgentModule {
     companion object {
         @Provides
         @Singleton
-        fun provideAiAgentSession(authService: AuthService): AiAgentSession {
+        fun provideAiAgentSession(authService: AuthService): AgentSession {
             val userId = authService.currentUser?.id
-            return AiAgentSession(
+            return AgentSession(
                 userId = userId,
                 locale = Locale.getDefault()
             )

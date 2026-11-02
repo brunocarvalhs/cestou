@@ -1,6 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
+import br.com.brunocarvalhs.howmuch.core.ai.contract.Agent
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
@@ -11,14 +11,14 @@ import kotlinx.coroutines.flow.first
 import timber.log.Timber
 
 /**
- * Base compartilhada pelos providers de IA ([GeminiAiAgent], [OpenRouterAiAgent]). Extrai o
+ * Base compartilhada pelos providers de IA ([GeminiAgent], [OpenRouterAgent]). Extrai o
  * dispatch chokepoint (gate Pro + execução no [AgentRegistry] + tratamento de erro) que antes era
  * duplicado quase byte a byte nas duas classes (sdd-026, A-03) — o loop de function-calling de
  * [sendMessage], cujo formato difere real entre os dois SDKs, continua em cada subclasse.
  */
 internal abstract class BaseAgent(
-    dependencies: AiAgentDependencies
-) : AiAgent {
+    dependencies: AgentDependencies
+) : Agent {
 
     protected val session: AiSession = dependencies.session
     protected val registry: AgentRegistry = dependencies.registry
