@@ -20,11 +20,11 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Covers the AD-010 gate at [GeminiAiAgent.executeFunctionCall]: the single chokepoint every
- * Gemini function call passes through before an [br.com.brunocarvalhs.howmuch.core.ai.contract.AgentAction]
- * actually runs. Runs under Robolectric because [GeminiAiAgent.executeFunctionCall] builds its
- * response with the real `org.json.JSONObject`, which throws "not mocked" under a plain JVM
- * unit test.
+ * Covers the AD-010 gate at [BaseAgent.executeAction] (sdd-026), reached here through
+ * [GeminiAiAgent.toFunctionResponsePart] — the adapter that converts the Gemini SDK's function
+ * call into the shared executor's shape and back. Runs under Robolectric because
+ * [GeminiAiAgent.toFunctionResponsePart] builds its response with the real `org.json.JSONObject`,
+ * which throws "not mocked" under a plain JVM unit test.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -42,7 +42,8 @@ class GeminiAiAgentGatingTest {
                 crashReporter = mockk<CrashReporter>(relaxed = true),
                 subscriptionRepository = subscriptionRepository,
                 registry = registry
-            )
+            ),
+            modelFactory = mockk(relaxed = true)
         )
     }
 
@@ -52,7 +53,7 @@ class GeminiAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        val response = agent.executeFunctionCall(FunctionCallPart("fake_action", emptyMap()), emptyMap())
+        val response = agent.toFunctionResponsePart(FunctionCallPart("fake_action", emptyMap()), emptyMap())
 
         assertEquals("Essa ação é exclusiva do plano Pro.", response.response.getString("result"))
         assertFalse(action.executed)
@@ -64,7 +65,7 @@ class GeminiAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.PRO)
 
-        agent.executeFunctionCall(FunctionCallPart("fake_action", emptyMap()), emptyMap())
+        agent.toFunctionResponsePart(FunctionCallPart("fake_action", emptyMap()), emptyMap())
 
         assertTrue(action.executed)
     }
@@ -75,7 +76,7 @@ class GeminiAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        agent.executeFunctionCall(FunctionCallPart("fake_action", emptyMap()), emptyMap())
+        agent.toFunctionResponsePart(FunctionCallPart("fake_action", emptyMap()), emptyMap())
 
         assertTrue(action.executed)
     }
@@ -86,7 +87,7 @@ class GeminiAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        val response = agent.executeFunctionCall(FunctionCallPart("fake_action", emptyMap()), emptyMap())
+        val response = agent.toFunctionResponsePart(FunctionCallPart("fake_action", emptyMap()), emptyMap())
 
         assertEquals("Erro: not found", response.response.getString("result"))
     }
@@ -97,7 +98,7 @@ class GeminiAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        val response = agent.executeFunctionCall(FunctionCallPart("fake_action", emptyMap()), emptyMap())
+        val response = agent.toFunctionResponsePart(FunctionCallPart("fake_action", emptyMap()), emptyMap())
 
         assertEquals("OK", response.response.getString("result"))
     }
@@ -109,7 +110,7 @@ class GeminiAiAgentGatingTest {
             every { registry.find("fake_action") } returns action
             val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-            agent.executeFunctionCall(FunctionCallPart("fake_action", emptyMap()), emptyMap())
+            agent.toFunctionResponsePart(FunctionCallPart("fake_action", emptyMap()), emptyMap())
         }
 
     @Test
@@ -120,7 +121,7 @@ class GeminiAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        agent.executeFunctionCall(FunctionCallPart("fake_action", emptyMap()), emptyMap())
+        agent.toFunctionResponsePart(FunctionCallPart("fake_action", emptyMap()), emptyMap())
 
         verify { session.toolExecutedThisTurn = true }
     }
@@ -131,7 +132,7 @@ class GeminiAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        agent.executeFunctionCall(FunctionCallPart("fake_action", emptyMap()), emptyMap())
+        agent.toFunctionResponsePart(FunctionCallPart("fake_action", emptyMap()), emptyMap())
 
         verify(exactly = 0) { session.toolExecutedThisTurn = true }
     }
