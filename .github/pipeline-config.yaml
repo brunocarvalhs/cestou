@@ -156,14 +156,14 @@ checks:
 coverage:
   kover:
     name: "Kover"
-    display_name: "\U0001F4CA Test Coverage Gate (min. 80%)"
-    description: "Minimum aggregated line coverage gate (80%), enforced via kover { reports { total { verify { rule { minBound(80) } } } } } in the root build.gradle.kts"
+    display_name: "\U0001F4CA Test Coverage Gate (min. 85%)"
+    description: "Minimum aggregated line coverage gate (85%), enforced via kover { reports { total { verify { rule { minBound(85) } } } } } in howmuch.kover.gradle.kts"
     enabled: true
     command: "./gradlew koverVerify koverVerifyLayout"
     report_path: "build/reports/kover/html/index.html"
     pr_comment:
-      success: "✅ Cobertura de testes acima de 80%! Bom trabalho."
-      failure: "❌ A cobertura de testes ficou abaixo do mínimo de 80%, por favor complemente os testes."
+      success: "✅ Cobertura de testes acima de 85%! Bom trabalho."
+      failure: "❌ A cobertura de testes ficou abaixo do mínimo de 85%, por favor complemente os testes."
     step_names:
       run: "\U0001F4CA Run Coverage Verification"
       upload_report: "\U0001F4E4 Upload Coverage Report"

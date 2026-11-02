@@ -70,7 +70,9 @@ kover {
                     "*.databinding.*",
                     "*Hilt_*",
                     "dagger.hilt.internal.*",
-                    "hilt_aggregated_deps.*"
+                    "hilt_aggregated_deps.*",
+                    "*.contract.*",
+                    "*.exception.*"
                 )
                 annotatedBy("dagger.Module", "dagger.hilt.InstallIn")
                 // Funções @Preview só existem para o Android Studio; não são código do app nem testadas.
@@ -138,7 +140,7 @@ kover {
             filtersAppend { excludes { classes(LAYOUT_CLASSES) } }
             verify {
                 rule {
-                    minBound(80)
+                    minBound(85)
                 }
             }
         }
@@ -148,7 +150,7 @@ kover {
             filtersAppend { includes { classes(LAYOUT_CLASSES) } }
             verify {
                 rule {
-                    minBound(80)
+                    minBound(85)
                 }
             }
         }
