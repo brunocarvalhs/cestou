@@ -2,7 +2,6 @@ package br.com.brunocarvalhs.howmuch.feature.ai_agent.di
 
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
-import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.AiAgentFactoryImpl
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.GeminiModelFactory
@@ -48,9 +47,5 @@ internal abstract class AiAgentModule {
                 locale = Locale.getDefault()
             )
         }
-
-        @Provides
-        @Singleton
-        fun provideAgentRegistry(): AgentRegistry = AgentRegistry
     }
 }
