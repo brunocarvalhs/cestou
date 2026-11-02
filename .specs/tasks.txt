@@ -16,6 +16,10 @@ Auditoria dedicada a bugs de lógica preditivos (app inteiro), realizada em 2026
 Revalida linha a linha os itens B/C de `sdd-001` ainda não corrigidos e adiciona 4 novos achados (B-14 a B-17) em módulos antes não cobertos (`core/ai`, `feature/ai-agent`, `core/remote-config`, `feature/profile`, `feature/settings`, `core/navigation`, `wear/`, `app/`).
 Plano detalhado em: `.specs/sdd-023-auditoria-logica-producao/tasks.md`.
 
+# chore/kover-coverage-85
+
+Gate de cobertura mínima do Kover elevado de 80% para 85% (`buildSrc/src/main/kotlin/howmuch.kover.gradle.kts`), com testes unitários complementares para fechar a diferença e timeout de CI do job de cobertura ampliado para 25min. Implementado e mergeado via PR #240.
+
 ---
 
 # sdd-013-openrouter-dynamic-models
