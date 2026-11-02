@@ -1,168 +1,208 @@
-# Task: Remover tools simuladas, proteger roles/status contra manipulação pelo LLM e corrigir consumo de trial no chat
+# Task: AI Agent Safety & Chat Polish
 
-- **Slug:** sdd-017-ai-agent-safety
+- **Slug:** ai-agent-safety
 - **Autor do plano:** Code-Planner (SDD)
-- **Data:** 2026-10-31
+- **Data:** 2026-11-01
 - **Status:** ready
-- **Versão-alvo:** 2.3.0 (minor — novos invariantes de segurança, sem breaking change em contrato público)
-- **Tipo de mudança:** fix + refactor
-- **Impacto público (módulo):** additive (novos parâmetros `@AiAgentParameter` removidos de `ShoppingUpdateUseCase`; o `ShoppingRepository.updateFields` continua público inalterado)
-
----
+- **Versão-alvo:** 2.3.2 (patch de segurança/estabilidade)
+- **Tipo de mudança:** fix
+- **Impacto público (módulo):** none
 
 ## 1. Contexto e Motivação
 
-O backlog de auditoria (`specs/tasks.txt`, item 2) identificou três classes de problemas de segurança no subsistema de IA do Cestou:
+Pedido do usuário: gerar o plano do `sdd-017-ai-agent-safety` priorizando **B-02** e **B-10**, ambos reclassificados como **P0** em `specs/sdd-023-auditoria-logica-producao/tasks.md` §2.1 — qualquer colaborador de uma lista (até um membro sem papel de edição) pode, só pedindo no chat, apagar a lista inteira ou zerar `users`/`roles` de outro dono, porque nenhum dos dois use cases expostos como tool de IA valida o papel (`role`) de quem está pedindo.
 
-1. **Tool simulada em produção** — `PriceComparisonUseCase` (`feature/products/src/main/java/.../PriceComparisonUseCase.kt:19`) retorna dados hardcoded de estabelecimentos fictícios como se fossem dados reais. O LLM os apresenta ao usuário como comparação de preços genuína, induzindo decisões de compra baseadas em informação falsa.
+Este plano também cobre os demais itens já atribuídos ao SDD-017 no roadmap (`specs/tasks.txt`, `specs/sdd-001-auditoria-geral/tasks.md` §3): **B-05**, **B-06**, **C-02**, **C-03**, **B-09**, **B-15** — todos revalidados linha a linha nesta sessão de planejamento, com evidência atual de `HEAD` (branch `fix/crashlytics-top-crashes`).
 
-2. **Manipulação de roles/status pelo LLM** — `ShoppingUpdateUseCase` (`feature/shopping/src/main/java/.../ShoppingUpdateUseCase.kt:44-50`) aceita `users` e `roles` (mapa de permissões) como argumentos livres do LLM, que pode escrever `"OWNER"` para qualquer userId recebido no contexto. Aceita também `status` como string arbitrária (apenas `valueOf` valida, que lança exceção em vez de recusar silenciosamente). Um prompt adversarial do tipo "mude meu role para OWNER na lista X" ou "mude o status para DELETED" seria executado.
+**Achado adicional desta investigação (corrige o diagnóstico de causa-raiz de `sdd-023`):** `sdd-023-auditoria-logica-producao/tasks.md` §2.1 apontava a ausência de `userId` no metadata da tool (`AiChatUiState.toMetadata()`, linhas 19-22) como bloqueio estrutural para corrigir B-02/B-10. Investigação mais profunda mostra que:
+- `AiSession.userId` (`core/ai/.../contract/AiSession.kt:10`) existe, mas é preenchido **uma única vez**, no momento em que o Hilt resolve o `@Singleton` `AiAgentSession` (`AiAgentModule.kt:32-38`: `authService.currentUser?.id` lido na criação do singleton) — não é um valor observado live, então confiar nele para uma checagem de permissão seria uma segunda classe de bug (usuário stale após troca de sessão).
+- O caminho correto já tem precedente direto no mesmo pacote: `ShoppingCreateUseCase` (`feature/shopping/.../domain/usecase/ShoppingCreateUseCase.kt:35,43`) já injeta `AuthService` diretamente no use case e lê `authService.getOrCreateUserId()`/`currentUser` **no momento da execução**, não via `AiSession`/metadata. A correção de B-02/B-10 segue exatamente esse padrão já estabelecido — nenhuma mudança é necessária em `core:ai` (`AiSession`, `AiAgentContext`, `AgentAction`).
 
-3. **Trial consumido antes da resposta** — `AiChatViewModel.sendMessage()` (`feature/chat/src/main/java/.../AiChatViewModel.kt:66`) chama `aiTrialRepository.markFreeMessageUsed()` no momento do envio da mensagem do usuário, **antes** de a resposta chegar. Se o provider falhar (timeout, rede, modelo indisponível), o trial é queimado sem que o usuário tenha recebido nenhum valor.
-
-Rastreabilidade: `specs/tasks.txt` (item 2), `AiChatViewModel.kt:66`, `PriceComparisonUseCase.kt:27-36`, `ShoppingUpdateUseCase.kt:44-50`.
+Rastreabilidade:
+- `feature/shopping/.../domain/usecase/ShoppingUpdateUseCase.kt:1-61`
+- `feature/shopping/.../domain/usecase/ShoppingMultiDeleteUseCase.kt:1-39`
+- `feature/shopping/.../domain/usecase/ShoppingCreateUseCase.kt:32-72` (padrão de referência)
+- `feature/shopping/.../domain/exception/OwnershipRequiredException.kt:1-17` (exceção já existente, hoje só usada no caminho não-IA)
+- `feature/shopping/.../presentation/viewmodel/ShoppingListViewModel.kt:96-109,168-191` (checagem OWNER já existente no caminho de UI, usada como referência de estilo)
+- `feature/chat/.../presentation/viewmodel/AiChatViewModel.kt:146-189`
+- `feature/chat/.../presentation/screen/AiChatScreen.kt:251-305`
+- `feature/ai-agent/.../data/service/GeminiAiAgent.kt:115`, `OpenRouterAiAgent.kt:117-120`
+- `feature/products/.../domain/usecase/PriceComparisonUseCase.kt:1-43`
+- `feature/products/.../di/ProductAgentModule.kt:42-44`
+- `feature/ai-agent/.../data/service/AiAgentFactoryImpl.kt:35-42,62-66`
+- `feature/settings/.../presentation/screen/AiSettingsScreen.kt:70-77,166-180`
+- `specs/sdd-001-auditoria-geral/tasks.md` §2.1-2.2 (B-02, B-05, B-06, B-09, B-10, C-02, C-03)
+- `specs/sdd-023-auditoria-logica-producao/tasks.md` §2.1-2.2 (B-02, B-10 reclassificado P0, B-15)
+- `architecture/05-decisoes-arquiteturais.md` AD-010 (chokepoint de gating Pro já usado como modelo de dispatch)
 
 ---
 
 ## 2. Escopo
 
 **Inclui:**
-- Remover `PriceComparisonUseCase` como `AgentAction` registrada (desregistrar do `AgentRegistry`/remover de `ProductAgentModule`) ou eliminar completamente a tool, pois não há backend real de comparação de preços.
-- Remover os parâmetros `users` e `roles` do contrato de tool de `ShoppingUpdateUseCase`, impedindo o LLM de alterar permissões de membros.
-- Restringir `status` em `ShoppingUpdateUseCase` a uma allowlist de transições seguras (ex.: apenas `IN_PROGRESS` via `ShoppingReopenUseCase` já dedicada — avaliar remoção completa do campo `status` da tool de update).
-- Mover `markFreeMessageUsed()` para depois do sucesso da resposta do agente em `AiChatViewModel`.
-- Testes unitários para cada fix.
+- **B-02 (P0):** bloquear alteração de `users`/`roles` via `update_shopping_list` por quem não é OWNER da lista.
+- **B-10 (P0):** bloquear `delete_multi_shopping_list` por quem não é OWNER da lista.
+- **C-03 (P2, mesmo arquivo de B-02):** aceitar `status` enviado pelo LLM independente de caixa (`"finished"` == `"FINISHED"`).
+- **B-05 (P1):** só marcar o crédito de mensagem grátis como usado depois de receber ao menos uma resposta do assistente, nunca antes do envio nem em erro de rede.
+- **B-06 (P1):** impedir múltiplos envios concorrentes a partir do botão de enviar/microfone e de `sendMessage()`.
+- **C-02 (P1):** garantir que `isLoading` sempre retorna a `false`, mesmo se o Flow do assistente completar sem emitir nenhuma resposta.
+- **B-09 (P2):** remover a tool `compare_prices` (`PriceComparisonUseCase`) do registry — dados fictícios apresentados como reais.
+- **B-15 (P2):** impedir que a tela de Configurações de IA salve/saia com tier BYOK selecionado e chave em branco, para que `AiAgentFactoryImpl` nunca mais caia silenciosamente na chave compartilhada em nome do usuário.
+- Correção de visibilidade (`internal`) de `ShoppingMultiDeleteUseCase`, hoje `public` sem nenhum consumidor fora do módulo (desvio de AGENTS.md §5 encontrado de forma incidental ao tocar no arquivo).
+- Testes unitários/instrumentados para todos os itens acima.
 
 **Exclui:**
-- Implementar comparação de preços real (feature futura, sem escopo definido).
-- Alterar o fluxo de assinatura/billing (`core:billing`, `feature:subscription`).
-- Modificar `ShoppingRepository.updateFields` (contrato público inalterado).
-- Alterar `ChatAiGateViewModel` ou a lógica de gate de acesso ao chat.
-- Gestão de membros (join/sair) — coberta pelo sdd-019.
+- Publicação de `firestore.rules` (D-01, `sdd-001`) — a correção aqui é só na camada de aplicação; sem as regras publicadas, um cliente modificado ainda poderia repetir a escrita direto no Firestore. Fica registrado como risco residual (seção 8), não como bloqueio deste SDD.
+- Qualquer mudança em `AiSession`, `AiAgentContext` ou no contrato `AgentAction` de `core:ai` — não são necessárias (ver nota de causa-raiz na seção 1).
+- B-03, B-04, B-07, B-08, B-11, B-12, B-13, B-14, B-16, B-17, C-04, D-01, D-02 — atribuídos a SDD-018/019/020 por `specs/sdd-023-auditoria-logica-producao/tasks.md` §3.
+- Implementação real de comparação de preços (fica para um SDD futuro, se houver integração com serviço real de cotação).
+- Mudança no mecanismo de fallback BYOK→chave compartilhada dentro de `AiAgentFactoryImpl` em si — a correção atua na origem (impedir salvar/entrar nesse estado pela UI), não no fallback (ver "Perguntas em Aberto" para a alternativa considerada e descartada).
 
 ---
 
 ## 3. Impacto Arquitetural
 
-### Módulos e camadas afetados
+- **Módulos e camadas afetados:**
+  - `feature/shopping` — `domain/usecase/ShoppingUpdateUseCase.kt`, `domain/usecase/ShoppingMultiDeleteUseCase.kt` (+ testes em `src/test`).
+  - `feature/chat` — `presentation/viewmodel/AiChatViewModel.kt`, `presentation/screen/AiChatScreen.kt` (+ testes).
+  - `feature/products` — remoção de `domain/usecase/PriceComparisonUseCase.kt`, `di/ProductAgentModule.kt` (binding), `src/test/.../PriceComparisonUseCaseTest.kt` (removido).
+  - `feature/settings` — `presentation/screen/AiSettingsScreen.kt` (validação local, sem tocar ViewModel/UseCase — ver justificativa na seção 9).
+- **Padrão aplicado:** Clean Architecture + MVI, sem novas camadas. Os dois use cases de `feature/shopping` passam a injetar `AuthService` (`core:domain`), exatamente como `ShoppingCreateUseCase` já faz — nenhum novo tipo de dependência entre módulos.
+- **Novos arquivos:** nenhum. Todas as mudanças são em arquivos existentes; `PriceComparisonUseCase.kt` e seu teste são **removidos**, não criados.
+- **Injeção via Hilt:** `ShoppingUpdateUseCase`/`ShoppingMultiDeleteUseCase` continuam `@Singleton @Inject constructor`, só ganham um parâmetro (`AuthService`) já disponível no grafo de `feature/shopping` (usado por `ShoppingCreateUseCase` no mesmo módulo). A remoção do `@Binds @IntoSet` de `PriceComparisonUseCase` em `ProductAgentModule.kt:42-44` tira a classe do `Set<AgentActionUseCase<*>>` injetado em `CestouApplication.kt:16`, que é o que hoje força sua auto-instanciação e autorregistro (`AgentActionUseCase.init { AgentRegistry.register(this) }`, `core/ai/.../base/AgentActionUseCase.kt:33-38`) — sem o binding, a tool nunca é construída e desaparece de `AgentRegistry.getAll()`, que é a lista usada por `GeminiAiAgent`/`OpenRouterAiAgent` para declarar `FunctionDeclaration`s ao modelo.
 
-| Módulo | Camada | Arquivo |
-|---|---|---|
-| `:feature:products` | `domain/usecase` | `PriceComparisonUseCase.kt` |
-| `:feature:products` | `di` | `ProductAgentModule.kt` |
-| `:feature:shopping` | `domain/usecase` | `ShoppingUpdateUseCase.kt` |
-| `:feature:chat` | `presentation/viewmodel` | `AiChatViewModel.kt` |
-| `:feature:products` (test) | `domain/usecase` | `PriceComparisonUseCaseTest.kt` (novo) |
-| `:feature:shopping` (test) | `domain/usecase` | `ShoppingUpdateUseCaseSecurityTest.kt` (novo) |
-| `:feature:chat` (test) | `presentation/viewmodel` | `AiChatViewModelTrialTest.kt` (novo) |
-
-### Padrões aplicados
-- Clean Architecture + MVI: a lógica de segurança fica na camada `domain/usecase` (sem vazar para `presentation`).
-- Allowlist de transições de estado no use case, não no repositório.
-- Trial consumption: side-effect movido para o `onSuccess` do `Flow`, mantendo o `viewModelScope` atual.
-
-### Diagrama ASCII — fluxo corrigido do trial
+### Diagrama ASCII — B-02/B-10 (chokepoint de permissão)
 
 ```
-AiChatViewModel.sendMessage()
-    │
-    ├─► emit userMessage ao estado (UI atualiza)
-    │
-    ├─► assistantUseCase(prompt, context).collect { response →
-    │       emit assistantMessage ao estado
-    │       aiTrialRepository.markFreeMessageUsed()  ← MOVIDO PARA CÁ
-    │       persistHistory()
-    │   }
-    │
-    └─► catch(Exception) →
-            emit errorMessage
-            // trial NÃO consumido em caso de erro
+┌─────────────────────────────────────────────────────────────────────┐
+│ LLM decide chamar update_shopping_list / delete_multi_shopping_list  │
+└───────────────────────────────────┬───────────────────────────────────┘
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│ GeminiAiAgent.executeFunctionCall / OpenRouterAiAgent.executeToolCall│
+│  (chokepoint de dispatch, AD-010 — só gating de Pro hoje)            │
+└───────────────────────────────────┬───────────────────────────────────┘
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│ ShoppingUpdateUseCase.execute() / ShoppingMultiDeleteUseCase.invoke()│
+│  1. repository.getById(id)                                          │
+│  2. NOVO: val callerId = authService.currentUser?.id   (live read)  │
+│  3. NOVO: if (shopping.roles[callerId] != OWNER) →                  │
+│           Result.failure(OwnershipRequiredException(...))           │
+│  4. (OK) repository.updateFields(...) / repository.delete(...)      │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Diagrama ASCII — ShoppingUpdateUseCase allowlist
+### Esboço (assinatura + lógica ilustrativa, não é código final)
 
-```
-ShoppingUpdateUseCase.execute()
-    │
-    ├─► extrair "title", "description", "price"    ← permitidos
-    ├─► extrair "status" → apenas se IN_PROGRESS ou DONE  ← allowlist
-    ├─► NÃO extrair "users"                         ← removido
-    └─► NÃO extrair "roles"                         ← removido
+```kotlin
+// feature/shopping/.../domain/usecase/ShoppingUpdateUseCase.kt
+internal class ShoppingUpdateUseCase @Inject constructor(
+    private val repository: ShoppingRepository,
+    private val authService: AuthService           // NOVO parâmetro
+) : AgentActionUseCase<Unit>() {
+
+    override suspend fun execute(
+        arguments: Map<String, Any?>,
+        session: AiSession,
+        metadata: Map<String, Any?>
+    ): Result<Unit> {
+        val id = arguments.getString("shopping_id") ?: throw Exception("Shopping ID is required")
+        val shopping = repository.getById(id) ?: throw Exception("Shopping list not found")
+
+        val fields = buildMap<String, Any?> {
+            arguments.getString("title")?.let { put("title", it) }
+            arguments.getString("description")?.let { put("description", it) }
+            arguments.getDouble("price")?.let { put("price", it) }
+            arguments.getString("status")
+                // C-03: tolerante a caixa — entries.firstOrNull(ignoreCase) em vez de valueOf
+                ?.let { s -> Shopping.Status.entries.firstOrNull { it.name.equals(s, ignoreCase = true) } }
+                ?.let { put("status", it.name) }
+
+            if (arguments.containsKey("users") || arguments.containsKey("roles")) {
+                // B-02: só o OWNER pode alterar posse/papéis
+                val callerId = authService.currentUser?.id
+                if (shopping.roles[callerId] != User.Role.OWNER.name) {
+                    return Result.failure(OwnershipRequiredException("update_shopping_list.users_roles"))
+                }
+                arguments.getList("users")?.let { put("users", it) }
+                arguments.getMap("roles")?.let { put("roles", it) }
+            }
+        }
+        return invoke(id, fields)
+    }
+}
 ```
 
-### Injeção via Hilt
-- `PriceComparisonUseCase`: remover `@Binds` em `ProductAgentModule`. Se a classe não for usada por nenhum outro ponto, pode ser deletada; caso contrário, manter a classe mas remover o binding do `@InstallIn(SingletonComponent)`.
-- Nenhum novo módulo Hilt necessário.
+```kotlin
+// feature/shopping/.../domain/usecase/ShoppingMultiDeleteUseCase.kt
+internal class ShoppingMultiDeleteUseCase @Inject constructor(   // visibilidade corrigida: public → internal
+    private val repository: ShoppingRepository,
+    private val authService: AuthService           // NOVO parâmetro
+) : AgentActionUseCase<Unit>() {
+
+    suspend operator fun invoke(id: String): Result<Unit> = runCatching {
+        val shopping = repository.getById(id) ?: throw Exception("Shopping not found")
+        // B-10: só o OWNER pode excluir a lista
+        val callerId = authService.currentUser?.id
+        if (shopping.roles[callerId] != User.Role.OWNER.name) {
+            throw OwnershipRequiredException("delete_multi_shopping_list")
+        }
+        repository.delete(shopping)
+    }
+}
+```
+
+`OwnershipRequiredException` já existe (`feature/shopping/.../domain/exception/OwnershipRequiredException.kt`) e sua mensagem já é adequada como feedback para o LLM: `Result.failure` chega em `Result<*>.toToolFeedback()` (`feature/ai-agent/.../ToolFeedback.kt:12-15`), que converte para `"Erro: Ação '...' requer papel de owner na lista"` — texto devolvido ao modelo, não exibido como string de UI (`strings.xml` não se aplica aqui).
+
+### Esboço — B-05/B-06/C-02 (`AiChatViewModel.sendMessage()`)
+
+```kotlin
+private fun sendMessage() {
+    val text = _uiState.value.input
+    if (text.isBlank() || _uiState.value.isLoading) return   // B-06: guarda contra chamada concorrente
+
+    analyticsTracker.trackEvent(AnalyticsEvents.AI_CHAT_MESSAGE_SENT)
+    // B-05: markFreeMessageUsed() REMOVIDO daqui — só dispara depois de uma resposta recebida
+
+    val userMessage = ChatMessage(text = text, sender = ChatMessage.Sender.USER)
+    _uiState.update { it.copy(messages = it.messages + userMessage, input = "", isLoading = true) }
+    persistHistory()
+
+    viewModelScope.launch {
+        var receivedAny = false
+        try {
+            assistantUseCase(text, _uiState.value)
+                .onCompletion { _uiState.update { it.copy(isLoading = false) } }  // C-02: nunca trava
+                .collect { response ->
+                    receivedAny = true
+                    val assistantMessage = ChatMessage(text = response, sender = ChatMessage.Sender.ASSISTANT)
+                    _uiState.update { it.copy(messages = it.messages + assistantMessage, isLoading = false) }
+                    persistHistory()
+                }
+            if (receivedAny) aiTrialRepository.markFreeMessageUsed()  // B-05: só após sucesso real
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            // ... tratamento de erro existente (linhas 177-186), sem markFreeMessageUsed() ...
+        }
+    }
+}
+```
+
+`AiChatScreen.kt:280,296` — adicionar `!state.isLoading` à condição `enabled` dos dois `FilledIconButton` (microfone e enviar), como segunda camada de defesa (a guarda em `sendMessage()` já cobre o caso raiz, mas o botão habilitado durante `isLoading` é uma UX enganosa por si só).
 
 ---
 
 ## 4. Contratos e Interfaces
 
-### A. `PriceComparisonUseCase` — `internal` → removida do registry
+| Elemento | Antes | Depois | `public`/`internal` | Justificativa |
+|---|---|---|---|---|
+| `ShoppingUpdateUseCase` (construtor) | `(repository: ShoppingRepository)` | `(repository: ShoppingRepository, authService: AuthService)` | `internal` (sem mudança) | Classe já era `internal`; só consumida via Hilt dentro do módulo. Teste em `src/test` precisa ser atualizado para o novo construtor (não é contrato público entre módulos). |
+| `ShoppingMultiDeleteUseCase` (construtor + classe) | `class ... (repository: ShoppingRepository)` (`public`) | `internal class ... (repository: ShoppingRepository, authService: AuthService)` | `public` → `internal` | Confirmado via busca (`grep -rln "ShoppingMultiDeleteUseCase"`) que não há nenhum consumidor fora de `feature/shopping` — `public` era desvio de AGENTS.md §5, não um contrato intencional. |
+| `PriceComparisonUseCase` | existe, registrado | **removido** (classe, binding em `ProductAgentModule.kt:42-44`, teste) | — | Tool nunca teve dado real; `requiresPro`/`id` eram só metadados internos do registry, não contrato consumido por outro módulo. |
+| `AiChatUiState`, `AiAgentContext`, `AiSession`, `AgentAction` | inalterados | inalterados | — | Nenhuma mudança necessária (ver nota de causa-raiz, seção 1). |
 
-```kotlin
-// ANTES (feature/products/.../ProductAgentModule.kt)
-@Binds
-@IntoSet
-abstract fun bindPriceComparison(useCase: PriceComparisonUseCase): AgentActionUseCase<*>
-
-// DEPOIS: linha removida.
-// A classe PriceComparisonUseCase em si pode ser deletada ou mantida
-// internamente SEM anotação @AiAgentAction (decisão: deletar, pois não
-// tem função sem o binding de agent).
-```
-
-> Impacto público: **nenhum** — `PriceComparisonUseCase` é `internal`-by-convention; o `AgentRegistry` é `object` interno ao módulo. Nenhum consumidor externo.
-
-### B. `ShoppingUpdateUseCase.execute()` — parâmetros proibidos
-
-```kotlin
-// ANTES: o buildMap aceitava "users", "roles" e "status" livre
-// DEPOIS:
-private val ALLOWED_STATUS_TRANSITIONS = setOf(
-    Shopping.Status.IN_PROGRESS,
-    Shopping.Status.DONE
-)
-
-override suspend fun execute(...): Result<Unit> {
-    val id = arguments.getString("shopping_id") ?: throw Exception("Shopping ID is required")
-    repository.getById(id) ?: throw Exception("Shopping list not found")
-    val fields = buildMap<String, Any?> {
-        arguments.getString("title")?.let { put("title", it) }
-        arguments.getString("description")?.let { put("description", it) }
-        arguments.getDouble("price")?.let { put("price", it) }
-        arguments.getString("status")
-            ?.let { raw ->
-                runCatching { Shopping.Status.valueOf(raw) }.getOrNull()
-            }
-            ?.takeIf { it in ALLOWED_STATUS_TRANSITIONS }
-            ?.let { put("status", it.name) }
-        // "users" e "roles" removidos: o LLM não pode alterar permissões de membros
-    }
-    return invoke(id, fields)
-}
-```
-
-> Impacto público: `internal` — sem breaking change externo. A tool `update_shopping_list` no registry perde silenciosamente os parâmetros `users`/`roles`, pois eles eram aceitos dinamicamente via `buildMap`, não como `@AiAgentParameter` declarados — logo **o contrato de tool exposto ao LLM não muda** (já não havia parâmetros `users`/`roles` na anotação `@AiAgentParameter`).
-
-### C. `AiChatViewModel.sendMessage()` — trial consumption
-
-```kotlin
-// ANTES
-viewModelScope.launch { aiTrialRepository.markFreeMessageUsed() }  // L66, disparo imediato
-
-// DEPOIS: removida a linha acima do bloco de lançamento.
-// Dentro do collect:
-assistantUseCase(text, _uiState.value).collect { response ->
-    val assistantMessage = ...
-    _uiState.update { ... }
-    viewModelScope.launch { aiTrialRepository.markFreeMessageUsed() }  // consumido após resposta
-    persistHistory()
-}
-```
-
-> Impacto público: **nenhum** — comportamento interno de `AiChatViewModel` (`internal` via Hilt).
-> `markFreeMessageUsed()` continua usando `NonCancellable` em `AiTrialRepositoryImpl`, então a proteção contra cancelamento do scope permanece válida (`core/data/.../AiTrialRepositoryImpl.kt:28`).
+Nenhum novo endpoint, coleção Firestore, evento de Analytics ou remote-config é introduzido. Nenhum `NavKey` é alterado.
 
 ---
 
@@ -170,117 +210,45 @@ assistantUseCase(text, _uiState.value).collect { response ->
 
 | # | Regra atual | Comportamento após a mudança | Origem (`arquivo:linha`) |
 |---|---|---|---|
-| 1 | `PriceComparisonUseCase` retorna preços simulados de 3 estabelecimentos fictícios | Tool removida do registry; LLM não pode mais invocar `compare_prices` | `PriceComparisonUseCase.kt:27-36` |
-| 2 | `ShoppingUpdateUseCase` aceita `users` e `roles` livres do LLM | Campos removidos do `buildMap`; tentativa de alterar membros/roles via IA resulta em no-op silencioso | `ShoppingUpdateUseCase.kt:44-50` |
-| 3 | `ShoppingUpdateUseCase` aceita qualquer string como `status` (apenas `valueOf` valida) | Apenas `IN_PROGRESS` e `DONE` são aceitos; outros valores são ignorados silenciosamente | `ShoppingUpdateUseCase.kt:47-49` |
-| 4 | `markFreeMessageUsed()` é chamado antes da resposta do agente | `markFreeMessageUsed()` só é chamado após ao menos um chunk de resposta ser coletado com sucesso | `AiChatViewModel.kt:66` |
-| 5 | Trial Free: 1 mensagem grátis antes de bloquear (regra atual de produto) | Regra mantida; apenas o *momento* do consumo muda (após resposta bem-sucedida) | `ChatAiGateViewModel.kt:37`, `AiTrialRepositoryImpl.kt:23` |
+| 1 | Qualquer membro pode alterar `users`/`roles` de uma lista via tool de IA. | Só o OWNER (`shopping.roles[callerId] == OWNER`) pode alterar `users`/`roles`; demais recebem `OwnershipRequiredException`. | `ShoppingUpdateUseCase.kt:55-56` |
+| 2 | Qualquer membro pode excluir a lista inteira via tool de IA. | Só o OWNER pode excluir; demais recebem `OwnershipRequiredException`. | `ShoppingMultiDeleteUseCase.kt:26-29` |
+| 3 | `status` enviado pela IA precisa casar exatamente com o enum (`valueOf`). | `status` é aceito independente de caixa (`"finished"` == `"FINISHED"`). | `ShoppingUpdateUseCase.kt:52-54` |
+| 4 | Crédito de mensagem grátis é debitado antes do envio ter sucesso. | Crédito só é debitado depois de receber ao menos uma resposta do assistente. | `AiChatViewModel.kt:151` |
+| 5 | Botão de enviar/microfone e `sendMessage()` não bloqueiam envio concorrente. | Guarda em `sendMessage()` (early return se `isLoading`) + botões desabilitados durante `isLoading`. | `AiChatViewModel.kt:146-148`; `AiChatScreen.kt:280,296` |
+| 6 | Flow do assistente pode completar sem emitir nada, deixando `isLoading=true` para sempre. | `.onCompletion` garante `isLoading=false` em qualquer desfecho do Flow. | `AiChatViewModel.kt:163-174` |
+| 7 | Tool `compare_prices` retorna preços fictícios hardcoded como se fossem reais. | Tool removida do registry; IA não tem mais essa opção disponível. | `PriceComparisonUseCase.kt:28-35` |
+| 8 | Tela de Configurações de IA permite sair/salvar com tier BYOK e chave em branco. | Salvar/voltar é bloqueado nesse estado; usuário vê erro inline até preencher a chave ou trocar de tier. | `AiSettingsScreen.kt:70-77,166-180` |
 
 ---
 
 ## 6. Critérios de Aceitação
 
-### Fix 1 — PriceComparisonUseCase removida
-
-- [ ] `AgentRegistry.getAll()` não contém `compare_prices` após inicialização do grafo Hilt.
-- [ ] Um prompt "compare preços de arroz" não aciona nenhuma tool call; o LLM responde dentro do escopo textual.
-- [ ] `ProductAgentModule` não tem `@Binds` para `PriceComparisonUseCase`.
-
-### Fix 2 — ShoppingUpdateUseCase sem roles/users/status livre
-
-- [ ] Um `execute()` com `arguments = mapOf("shopping_id" to "X", "roles" to mapOf("uid" to "OWNER"))` não escreve nada em `roles` no Firestore.
-- [ ] Um `execute()` com `arguments = mapOf("shopping_id" to "X", "users" to listOf("uid2"))` não escreve nada em `users`.
-- [ ] `status = "DELETED"` (ou qualquer valor fora da allowlist) é ignorado (nenhuma chamada a `updateFields` com essa chave).
-- [ ] `status = "IN_PROGRESS"` e `status = "DONE"` são aceitos e escritos.
-
-### Fix 3 — Trial consumido após resposta
-
-- [ ] Quando o agente retorna erro (exception propagada), `markFreeMessageUsed()` **não** é chamado.
-- [ ] Quando o agente retorna ao menos um chunk, `markFreeMessageUsed()` é chamado exatamente uma vez.
-- [ ] O comportamento de gate (`ChatAiGateViewModel.isSendEnabled`) permanece inalterado — o teste existente `ChatAiGateViewModelTest` não quebra.
-
-### Performance / Observabilidade
-
-- Nenhum dispatch extra de coroutine no caminho feliz.
-- `markFreeMessageUsed()` continua dentro de `NonCancellable` (garantido pela impl em `AiTrialRepositoryImpl`).
-- Nenhum evento de Analytics novo necessário (fix é de segurança, não feature).
-
-### Compatibilidade
-
-- minSdk 28, targetSdk 37 — nenhuma API nova.
-- Wear OS: `AiTrialRepository` é usado no `:wear` via `core:domain`; a interface não muda.
+- **Performance:** nenhuma allocação ou I/O adicional relevante — a checagem de permissão é um lookup O(1) em `Map` já carregado (`shopping.roles`), sem nova leitura de rede (`repository.getById` já era chamado antes da mudança). Nenhuma nova coroutine/dispatcher introduzido.
+- **Feature toggles:** nenhum necessário — comportamento correto não deve ser opcional; ver risco residual de dados de `roles` legados na seção 8.
+- **Observabilidade:** nenhum evento de Analytics novo é proposto. Decisão deliberada: `AgentActionUseCase`s vivem em `domain/usecase/` (domínio puro, AGENTS.md §2) e `AnalyticsTracker` é infraestrutura transversal (`core:analytics`) — nenhum outro use case de IA hoje injeta `AnalyticsTracker`, e abrir essa exceção aqui violaria a separação de camadas só para instrumentar uma negação esperada de regra de negócio (`BusinessRuleException`, por definição "não necessariamente um bug a investigar" — `core/domain/.../exception/BusinessRuleException.kt:6-8`). Exceções genuínas continuam cobertas pelo `crashReporter.recordException` já existente no catch do chokepoint de dispatch (`GeminiAiAgent.kt:172-179`).
+- **Compatibilidade:** `minSdk 28` inalterado. `:wear` não é afetado — `ShoppingUpdateUseCase`/`ShoppingMultiDeleteUseCase` pertencem a `feature:shopping` (não compilado no `:wear`); `AiChatViewModel` é compilado no `:wear` (comentário em `AiAgentModule.kt`... na verdade em `ChatAiGateViewModel.kt:9-11`), mas as mudanças propostas usam apenas tipos já presentes no `:wear` (`AiTrialRepository`, `Flow.onCompletion`), sem novas dependências de módulo.
 
 ---
 
 ## 7. Plano de Testes
 
-### Unitários
-
-#### `PriceComparisonUseCaseTest` (novo — ou arquivo de remoção se a classe for deletada)
-- Se a classe for **deletada**: verificar que o arquivo não existe mais (lint/compilação).
-- Se mantida sem binding: teste de regressão confirmando que `AgentRegistry.find("compare_prices")` retorna `null` após inicialização do módulo Hilt em testes.
-
-#### `ShoppingUpdateUseCaseSecurityTest` (novo — `:feature:shopping/test`)
-
-```
-given: execute com "roles" = mapOf("uid" to "OWNER")
-when: invocado
-then: ShoppingRepository.updateFields NÃO recebe a chave "roles"
-
-given: execute com "users" = listOf("uid2")
-when: invocado
-then: ShoppingRepository.updateFields NÃO recebe a chave "users"
-
-given: execute com "status" = "DELETED"
-when: invocado
-then: ShoppingRepository.updateFields NÃO recebe a chave "status"
-
-given: execute com "status" = "IN_PROGRESS"
-when: invocado
-then: ShoppingRepository.updateFields RECEBE status = "IN_PROGRESS"
-
-given: execute com "status" = "DONE"
-when: invocado
-then: ShoppingRepository.updateFields RECEBE status = "DONE"
-
-given: execute com "title" = "Nova lista" (sem campos proibidos)
-when: invocado
-then: ShoppingRepository.updateFields RECEBE apenas title = "Nova lista"
-```
-
-Mocks: `ShoppingRepository` (verificação de argumentos via `mockk verify`).
-
-#### `AiChatViewModelTrialTest` (novo — `:feature:chat/test`)
-
-```
-given: assistantUseCase lança exception
-when: sendMessage invocado
-then: aiTrialRepository.markFreeMessageUsed NÃO é chamado
-
-given: assistantUseCase retorna Flow com 1 item
-when: sendMessage invocado
-then: aiTrialRepository.markFreeMessageUsed é chamado exatamente 1 vez
-
-given: assistantUseCase retorna Flow vazio (sem emit)
-when: sendMessage invocado
-then: aiTrialRepository.markFreeMessageUsed NÃO é chamado (sem resposta = sem consumo)
-```
-
-Mocks: `CartAssistantUseCase`, `AiTrialRepository`, `ChatHistoryRepository`, `AnalyticsTracker`, `AiSession`.
-
-> **Nota sobre "Flow vazio":** a discussão sobre se um Flow vazio deve ou não consumir o trial é uma decisão de produto; o comportamento sugerido acima (não consumir) é conservador e pode ser alterado na revisão.
-
-### Instrumentados / UI
-- Nenhum teste instrumentado novo: os fixes são de lógica pura (use cases e ViewModel), já cobertos por unitários.
-- Os testes existentes `AiChatViewModelTest` e `AiChatViewModelReliabilityTest` devem passar sem alteração (verificar após a mudança).
-
-### Lint / Detekt / Cobertura
-```
-./gradlew lintDebug
-./gradlew detekt
-./gradlew testDebug
-./gradlew koverVerify koverVerifyLayout
-```
+- **`ShoppingUpdateUseCaseTest.kt`** (atualizar construtor em todos os testes existentes para `ShoppingUpdateUseCase(repository, authService)`):
+  - Novo: `execute` nega alteração de `users`/`roles` quando `authService.currentUser?.id` não é o OWNER em `shopping.roles` → `Result.isFailure`, `repository.updateFields` **nunca** chamado (`coVerify(exactly = 0)`).
+  - Novo: `execute` permite alteração de `users`/`roles` quando o chamador é OWNER.
+  - Novo: `execute` aceita `status` em minúsculo (`"finished"`) e grava `"FINISH"`.
+  - Existentes: continuam válidos, só ajustando a instanciação do use case.
+- **`ShoppingMultiDeleteUseCaseTest.kt`** (mesmo ajuste de construtor):
+  - Novo: `invoke`/`execute` negam exclusão quando o chamador não é OWNER → `Result.isFailure`, `repository.delete` nunca chamado.
+  - Novo: `invoke`/`execute` permitem exclusão quando o chamador é OWNER.
+- **`AiChatViewModelTest.kt` / `AiChatViewModelReliabilityTest.kt`:**
+  - Novo (B-05): `markFreeMessageUsed()` não é chamado quando o `Flow` do assistente lança `IOException` (mock de `CartAssistantUseCase` retornando `flow { throw IOException() }`).
+  - Novo (B-05): `markFreeMessageUsed()` é chamado exatamente uma vez após receber uma resposta com sucesso.
+  - Novo (B-06): segunda chamada a `sendMessage()` enquanto `isLoading == true` não dispara uma segunda invocação de `assistantUseCase` (`coVerify(exactly = 1)`).
+  - Novo (C-02): `Flow` que completa sem emitir nenhum valor (`flow { }`) resulta em `uiState.value.isLoading == false` ao final.
+- **`AiChatScreenTest.kt`** (instrumentado, `testTag` existente da tela): adicionar caso cobrindo botão de enviar/microfone desabilitado quando `state.isLoading == true`.
+- **`PriceComparisonUseCaseTest.kt`:** removido junto com a classe. `ProductAgentModuleTest` (se existir) ou verificação manual: `AgentRegistry.find("compare_prices")` deve retornar `null` após a remoção do binding.
+- **Novo teste instrumentado `AiSettingsScreenTest.kt`** (`feature/settings/src/androidTest`, seletor por `testTag` — ex.: `ai_settings_byok_key_field`, `ai_settings_byok_key_error`): selecionar tier BYOK, deixar a chave em branco, tocar em "Salvar" → tela permanece aberta e o erro inline é exibido; preencher a chave → "Salvar" navega de volta normalmente.
+- **Lint/Detekt/Cobertura:** `./gradlew lintDebug detekt testDebug koverVerify koverVerifyLayout` — obrigatório antes do PR, incluindo verificação de que a cobertura de `ShoppingUpdateUseCase`/`ShoppingMultiDeleteUseCase` (lógica nova) atinge o mínimo de 80% exigido.
 
 ---
 
@@ -288,31 +256,25 @@ Mocks: `CartAssistantUseCase`, `AiTrialRepository`, `ChatHistoryRepository`, `An
 
 | Risco | Probabilidade | Impacto | Mitigação |
 |---|---|---|---|
-| Usuários que dependiam de `compare_prices` (prompt habitual) deixam de ver resposta de ferramenta | baixa | baixo — a tool nunca retornou dados reais; o LLM passa a responder textualmente sobre preços | System prompt já instrui o LLM a lidar com limitações dentro do escopo; nenhuma degradação real |
-| `markFreeMessageUsed()` chamado múltiplas vezes se o Flow emitir múltiplos items | média | baixo — `save(KEY_FREE_MESSAGE_USED, true)` é idempotente (sobrescreve `true` com `true`) | Garantido por `AiTrialRepositoryImpl.kt:29` (escreve `true` incondicionalmente); mesmo assim, adicionar flag local `trialConsumed` no ViewModel para chamar apenas na primeira emissão |
-| `ShoppingUpdateUseCase` interna: `invoke(id, fields)` chamado com `fields` vazio se o LLM passar só campos proibidos | baixa | baixo — `updateFields` com mapa vazio é no-op no Firestore (merge parcial com zero campos) | Adicionar early-return se `fields.isEmpty()` para evitar round-trip desnecessário ao Firestore |
-| Testes existentes de `AiChatViewModel` mockam `aiTrialRepository` e podem falhar se a assinatura do mock mudar | baixa | baixo | Revisar `AiChatViewModelTest.kt` e `AiChatViewModelReliabilityTest.kt` após a mudança; ajustar `verify` se necessário |
+| Dados legados de `roles` corrompidos ou incompletos (ex.: lista criada antes de algum fix anterior, sem entrada OWNER) passam a negar a própria alteração/exclusão a um usuário que deveria ser dono. | Baixa | Médio (usuário legítimo bloqueado de gerenciar a própria lista) | `ShoppingListViewModel` já aplica a mesma checagem (`roles[userId] == OWNER`) no caminho de UI hoje — se o dado estiver corrompido, o usuário já está bloqueado lá também; não é uma regressão nova, só estende a mesma regra ao caminho de IA. Monitorar `OwnershipRequiredException` via Crashlytics não-fatal se a taxa de negação for anormalmente alta após o release. |
+| Sem `firestore.rules` publicadas (D-01), a correção de B-02/B-10 só impede o caminho pelo app — um cliente modificado ainda escreve direto no Firestore. | Alta (já é um risco aberto hoje) | Alto | Fora de escopo deste SDD; registrado como dependência para D-01, já rastreado em `sdd-001`. |
+| Remover `PriceComparisonUseCase` tira uma funcionalidade (ainda que fictícia) que o usuário podia perceber como "funcionando". | Baixa | Baixo (dado era fictício; manter é o risco real — usuário tomando decisão de compra com preço inventado) | Nenhuma — é o resultado desejado. Se houver demanda de produto por comparação de preços real, abrir um SDD novo com integração real. |
+| Validação de BYOK só no Composable (não no ViewModel/UseCase) pode ser contornada por um caminho de entrada futuro que não passe por `AiSettingsScreen`. | Baixa (hoje só existe esse caminho) | Baixo | Documentado explicitamente na seção 9; se um segundo ponto de entrada para `AiConfigTier`/`customApiKey` for criado no futuro, a mesma validação precisa ser replicada ou centralizada em `UpdateAiSettingsUseCase`. |
 
 ---
 
 ## 9. Perguntas em Aberto (bloqueantes)
 
-Nenhuma questão bloqueante identificada. As decisões abaixo são deliberadas e podem ser revisadas pelo maintainer na revisão do plano, mas não impedem o início da implementação:
+Nenhuma bloqueante. Duas decisões de design foram tomadas durante o planejamento (não bloqueantes, registradas para rastreabilidade):
 
-- [ ] **Decisão de produto — `compare_prices`:** deletar a classe `PriceComparisonUseCase` completamente ou apenas remover o binding do Hilt (mantendo a classe para eventual reutilização futura com backend real)? **Sugestão do plano: deletar** — sem backend real, a classe só gera confusão futura.
-- [ ] **Flow vazio = trial consumido?** Se o provider retornar um `Flow` que completa sem nenhum `emit` (ex.: modelo retorna resposta vazia), o trial deve ser consumido? **Sugestão do plano: não consumir** (conservador, mas pode ser revertido).
-- [ ] **`status = "DONE"` deve ser permitido via IA?** Finalizar uma lista via LLM pode ser intencional (e.g. "marque minha lista como concluída"). A allowlist acima inclui `DONE`. Se o produto decidir que apenas `IN_PROGRESS` é seguro, remover `DONE` da allowlist.
-
-> Nenhum item acima é bloqueante: a implementação pode avançar com as sugestões do plano; os itens são pontos de revisão.
-
----
+- [x] **Onde validar B-15 (BYOK em branco)?** Decidido: validação local no Composable `AiSettingsScreen`, não no `AiSettingsViewModel`/`UpdateAiSettingsUseCase`. Motivo: tanto o botão "Salvar" (linha 166-180) quanto o botão de voltar na topbar (linha 70-77) chamam `intent.onUpdateAiSettings(...)` seguido **imediatamente** de `intent.onBack()`/navegação, de forma incondicional e sem aguardar confirmação do ViewModel (que roda em `viewModelScope.launch`, assíncrono). Colocar a validação só no ViewModel exigiria introduzir um canal de evento "pode navegar" (ex.: `SharedFlow` de confirmação) para sincronizar a navegação com o resultado assíncrono — escopo desproporcional para impedir um campo de texto em branco. A validação local (`tier == CUSTOM_BYOK && customApiKey.isBlank()`) é síncrona, resolve o cenário de falha documentado por completo, e é consistente com o fato de já existir estado local (`remember { mutableStateOf(...) }`) para os três campos editáveis na mesma tela.
+- [x] **Corrigir também o fallback silencioso dentro de `AiAgentFactoryImpl`?** Decidido: não neste SDD. Com a validação da UI em vigor, o estado "tier BYOK + chave em branco" não é mais alcançável pelo fluxo normal do app; adicionar uma segunda defesa dentro da factory (ex.: log/crash report se esse estado for alcançado) é um nice-to-have de defesa-em-profundidade, não uma correção do bug documentado — pode entrar em um SDD de hardening futuro se o item for priorizado.
 
 ## 10. Checklist de Conformidade
-
-- [x] Decisões citam `arquivo:linha` (e `architecture/` quando existir).
-- [x] Nenhum código de produção escrito (apenas pseudocódigo/assinaturas).
+- [x] Decisões citam `arquivo:linha` (e `architecture/05-decisoes-arquiteturais.md` AD-010, quando aplicável).
+- [x] Nenhum código de produção escrito nesta tarefa (apenas esboços ilustrativos, claramente rotulados).
 - [x] Seção 6 preenchida de forma substantiva.
-- [x] Mudança em símbolo público reflete `breaking` em "Impacto público" — **não há breaking change**.
-- [x] Novo endpoint/remote-config: não aplicável.
-- [x] Novo cache: não aplicável.
-- [x] Perguntas em aberto exauridas (nenhuma bloqueante).
+- [x] Mudança de visibilidade de `ShoppingMultiDeleteUseCase` (`public`→`internal`) registrada na seção 4; confirmado sem consumidores externos antes de propor.
+- [x] Nenhum novo endpoint/remote-config — não aplicável.
+- [x] Nenhum novo cache — não aplicável.
+- [x] Perguntas em aberto exauridas (nenhuma bloqueante; duas decisões de design documentadas).

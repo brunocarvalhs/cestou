@@ -1,12 +1,14 @@
-# Task: Aumentar Cobertura de Testes para 95% (Kover)
+# Task: Aumentar Cobertura de Testes (Kover)
 
 - **Slug:** sdd-021-test-coverage-95
 - **Autor do plano:** Code-Planner (SDD)
 - **Data:** 2026-10-31
-- **Status:** ready
+- **Status:** implementado (PR #240, commit `5de5a51e`) — meta reduzida de 95% para 85% durante a implementação; ver nota abaixo.
 - **Versão-alvo:** 2.3.0
 - **Tipo de mudança:** refactor
 - **Impacto público (módulo):** none
+
+> **Nota pós-implementação:** o plano original visava 95%, mas a implementação (código prevalece sobre o plano, `AGENTS.md` §1) elevou o gate para 85% (`buildSrc/src/main/kotlin/howmuch.kover.gradle.kts:138,151`) — 95% exigiria cobertura instrumentada/UI fora do escopo deste plano (ver "Exclui" abaixo). O restante desta seção é o plano original, preservado para rastreabilidade.
 
 ## 1. Contexto e Motivação
 - Aumentar o gate de cobertura agregada de linhas do Kover de 80% para 95% em todo o projeto Cestou (`buildSrc/src/main/kotlin/howmuch.kover.gradle.kts`).
@@ -14,7 +16,7 @@
 
 ## 2. Escopo
 - **Inclui:**
-  - Ajuste do `minBound(95)` no Kover (`howmuch.kover.gradle.kts`).
+  - Ajuste do `minBound(95)` no Kover (`howmuch.kover.gradle.kts`) — **implementado como `minBound(85)`**, ver nota pós-implementação acima.
   - Criação de testes unitários adicionais em módulos/classes com cobertura pendente (repositórios, use cases e viewmodels sem testes completos).
   - Atualização da documentação (`AGENTS.md`, `.github/pipeline-config.yaml`, `.github/copilot-instructions.md`).
 - **Exclui:**
