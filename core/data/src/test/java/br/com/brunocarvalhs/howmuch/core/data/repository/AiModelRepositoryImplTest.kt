@@ -19,7 +19,10 @@ class AiModelRepositoryImplTest {
     fun `getAvailableModels returns mapped models on success`() = runTest {
         val mockEngine = MockEngine { _ ->
             respond(
-                content = """{"data": [{"id": "openai/gpt-4o:free", "name": "GPT-4o", "pricing": {"prompt": "0.0", "completion": "0.0"}}]}""",
+                content = """
+                    {"data": [{"id": "openai/gpt-4o:free", "name": "GPT-4o",
+                    "pricing": {"prompt": "0.0", "completion": "0.0"}}]}
+                """.trimIndent().replace("\n", " "),
                 status = HttpStatusCode.OK,
                 headers = headersOf(HttpHeaders.ContentType, "application/json")
             )
