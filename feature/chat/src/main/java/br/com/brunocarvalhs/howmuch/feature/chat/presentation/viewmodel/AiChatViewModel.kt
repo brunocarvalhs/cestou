@@ -19,6 +19,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -145,10 +146,12 @@ class AiChatViewModel @Inject constructor(
 
     private fun sendMessage() {
         val text = _uiState.value.input
-        if (text.isBlank()) return
+        // Guards against a second concurrent send while the assistant is still answering the
+        // first one — the send/mic buttons already disable on isLoading, this is the ViewModel-
+        // side backstop (sdd-017, B-06).
+        if (text.isBlank() || _uiState.value.isLoading) return
 
         analyticsTracker.trackEvent(AnalyticsEvents.AI_CHAT_MESSAGE_SENT)
-        viewModelScope.launch { aiTrialRepository.markFreeMessageUsed() }
 
         val userMessage = ChatMessage(text = text, sender = ChatMessage.Sender.USER)
         _uiState.update {
@@ -161,17 +164,27 @@ class AiChatViewModel @Inject constructor(
         persistHistory()
 
         viewModelScope.launch {
+            // Tracks whether the trial credit should be spent: never before a response actually
+            // comes back, so a network failure no longer burns the user's one free message
+            // (sdd-017, B-05).
+            var receivedAny = false
             try {
-                assistantUseCase(text, _uiState.value).collect { response ->
-                    val assistantMessage = ChatMessage(text = response, sender = ChatMessage.Sender.ASSISTANT)
-                    _uiState.update {
-                        it.copy(
-                            messages = it.messages + assistantMessage,
-                            isLoading = false,
-                        )
+                assistantUseCase(text, _uiState.value)
+                    // Guarantees isLoading always returns to false, even if the assistant Flow
+                    // completes without emitting anything (sdd-017, C-02).
+                    .onCompletion { _uiState.update { it.copy(isLoading = false) } }
+                    .collect { response ->
+                        receivedAny = true
+                        val assistantMessage = ChatMessage(text = response, sender = ChatMessage.Sender.ASSISTANT)
+                        _uiState.update {
+                            it.copy(
+                                messages = it.messages + assistantMessage,
+                                isLoading = false,
+                            )
+                        }
+                        persistHistory()
                     }
-                    persistHistory()
-                }
+                if (receivedAny) aiTrialRepository.markFreeMessageUsed()
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 val errorText = if (e is IOException) {

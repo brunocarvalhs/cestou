@@ -63,6 +63,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -277,11 +278,15 @@ fun AiChatScreen(
                                             permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                                         }
                                     },
-                                    enabled = isSendEnabled,
+                                    // Also gated on !state.isLoading (sdd-017, B-06): a button
+                                    // left enabled mid-response invites a second, overlapping
+                                    // request before the first one even finishes.
+                                    enabled = isSendEnabled && !state.isLoading,
                                     colors = IconButtonDefaults.filledIconButtonColors(
                                         containerColor = buttonColor,
                                         contentColor = contentColor,
                                     ),
+                                    modifier = Modifier.testTag("ai_chat_voice_button"),
                                 ) {
                                     Icon(
                                         Icons.Default.Mic,
@@ -293,7 +298,9 @@ fun AiChatScreen(
                             } else {
                                 FilledIconButton(
                                     onClick = { intent.onSendMessage() },
-                                    enabled = isSendEnabled,
+                                    // sdd-017, B-06: disabled while a response is in flight.
+                                    enabled = isSendEnabled && !state.isLoading,
+                                    modifier = Modifier.testTag("ai_chat_send_button"),
                                 ) {
                                     Icon(
                                         Icons.AutoMirrored.Filled.Send,

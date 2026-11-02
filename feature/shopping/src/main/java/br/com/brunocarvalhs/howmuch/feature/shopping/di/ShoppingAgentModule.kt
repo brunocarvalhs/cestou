@@ -41,7 +41,7 @@ abstract class ShoppingAgentModule {
 
     @Binds
     @IntoSet
-    abstract fun bindShoppingMultiDelete(useCase: ShoppingMultiDeleteUseCase): AgentActionUseCase<*>
+    internal abstract fun bindShoppingMultiDelete(useCase: ShoppingMultiDeleteUseCase): AgentActionUseCase<*>
 
     @Binds
     @IntoSet
