@@ -17,9 +17,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Covers the AD-010 gate at [OpenRouterAiAgent.executeToolCall]: the single chokepoint every
- * OpenRouter tool call passes through before an [br.com.brunocarvalhs.howmuch.core.ai.contract.AgentAction]
- * actually runs.
+ * Covers the AD-010 gate at [BaseAgent.executeAction] (sdd-026), reached here through
+ * [OpenRouterAiAgent.toToolCallContent] — the adapter that converts the OpenAI-compatible tool
+ * call into the shared executor's shape.
  */
 class OpenRouterAiAgentGatingTest {
 
@@ -35,7 +35,8 @@ class OpenRouterAiAgentGatingTest {
                 crashReporter = mockk<CrashReporter>(relaxed = true),
                 subscriptionRepository = subscriptionRepository,
                 registry = registry
-            )
+            ),
+            httpClientFactory = mockk(relaxed = true)
         )
     }
 
@@ -45,7 +46,7 @@ class OpenRouterAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        val result = agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+        val result = agent.toToolCallContent(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
 
         assertEquals("Essa ação é exclusiva do plano Pro.", result)
         assertFalse(action.executed)
@@ -57,7 +58,7 @@ class OpenRouterAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.PRO)
 
-        agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+        agent.toToolCallContent(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
 
         assertTrue(action.executed)
     }
@@ -68,7 +69,7 @@ class OpenRouterAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+        agent.toToolCallContent(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
 
         assertTrue(action.executed)
     }
@@ -79,7 +80,7 @@ class OpenRouterAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        val result = agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+        val result = agent.toToolCallContent(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
 
         assertEquals("Erro: not found", result)
     }
@@ -90,7 +91,7 @@ class OpenRouterAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        val result = agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+        val result = agent.toToolCallContent(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
 
         assertEquals("OK", result)
     }
@@ -102,7 +103,7 @@ class OpenRouterAiAgentGatingTest {
             every { registry.find("fake_action") } returns action
             val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-            agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+            agent.toToolCallContent(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
         }
 
     @Test
@@ -113,7 +114,7 @@ class OpenRouterAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+        agent.toToolCallContent(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
 
         verify { session.toolExecutedThisTurn = true }
     }
@@ -124,7 +125,7 @@ class OpenRouterAiAgentGatingTest {
         every { registry.find("fake_action") } returns action
         val agent = agentWithStatus(SubscriptionStatus.FREE)
 
-        agent.executeToolCall(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
+        agent.toToolCallContent(FunctionCall(name = "fake_action", arguments = "{}"), emptyMap())
 
         verify(exactly = 0) { session.toolExecutedThisTurn = true }
     }
