@@ -10,14 +10,14 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
 /**
- * Pulled out of [OpenRouterAiAgent] so the mapping between our internal models and OpenRouter's
+ * Pulled out of [OpenRouterAgent] so the mapping between our internal models and OpenRouter's
  * OpenAI-compatible request/response shape can be unit tested without spinning up an HTTP client.
  * Every function here corresponds to a bug that made every OpenRouter conversation fail in
  * practice — regression tests for these should stay in lockstep with any future change.
  */
 
 /**
- * [AiSession.history] is shared with [GeminiAiAgent] and stores roles using the Gemini SDK's
+ * [AiSession.history] is shared with [GeminiAgent] and stores roles using the Gemini SDK's
  * convention ("user"/"model"). OpenRouter/OpenAI-compatible providers reject "model" outright
  * (they expect "assistant"), which used to fail every multi-turn OpenRouter request outright.
  */

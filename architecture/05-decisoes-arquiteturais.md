@@ -74,7 +74,7 @@
 - **Trade-off**: The compiled fallback still ships inside the APK, so this buys *fast rotation*, not
   *secrecy* — the old key stays valid until manually revoked at the provider. Callers holding the
   client `by lazy` in a `@Singleton` (`ProductRepositoryImpl`, `RecipeRepositoryImpl`) only pick up a
-  rotated key after an app restart. Callers that re-read per invocation (`AiAgentFactoryImpl.create()`)
+  rotated key after an app restart. Callers that re-read per invocation (`AgentFactoryImpl.create()`)
   rotate immediately. Each call site must also guard against a blank remote value, which `getString`
   returns verbatim.
 - **Scope**: Any API key or secret currently sourced from `BuildConfig` (today: `GEMINI_API_KEY`).
@@ -199,7 +199,7 @@
   is no free trial, promo grant, or sign-in-based auto-upgrade to `PRO` anywhere in this contract.
 - **Reason**: Isolate the third-party Play Billing SDK and its `Activity`-scoped purchase flow to
   one module (`core:billing`), so every other paid-feature gate (`ShoppingSubscriptionGateViewModel`,
-  `CartSubscriptionGateViewModel`, `GeminiAiAgent`/`OpenRouterAiAgent`'s dispatch gating) depends on
+  `CartSubscriptionGateViewModel`, `GeminiAgent`/`OpenRouterAgent`'s dispatch gating) depends on
   a trivial two-state enum instead of Play Billing internals.
 - **Trade-off**: `SubscriptionRepository` alone can't express *why* a user is `FREE`/`PRO` (no
   expiry, no product id) — any feature needing that detail has to go through `core:billing`

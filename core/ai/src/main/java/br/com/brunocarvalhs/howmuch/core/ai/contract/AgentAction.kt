@@ -12,7 +12,7 @@ interface AgentAction<R> {
 
     /**
      * Whether this action is gated behind the Pro subscription (AD-010). Checked once, at the
-     * dispatch chokepoint (`GeminiAiAgent`/`OpenRouterAiAgent`), never per use case. Defaults to
+     * dispatch chokepoint (`GeminiAgent`/`OpenRouterAgent`), never per use case. Defaults to
      * `false` - no real action flips this yet, that is a pending commercial decision.
      */
     val requiresPro: Boolean get() = false

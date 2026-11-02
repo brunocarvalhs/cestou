@@ -1,8 +1,8 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 import br.com.brunocarvalhs.howmuch.core.ai.BuildConfig
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
+import br.com.brunocarvalhs.howmuch.core.ai.contract.Agent
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
@@ -28,11 +28,11 @@ import timber.log.Timber
 /**
  * Implementação do Agente utilizando Google Gemini AI SDK.
  */
-internal class GeminiAiAgent(
-    dependencies: AiAgentDependencies,
+internal class GeminiAgent(
+    dependencies: AgentDependencies,
     private val modelName: String = BuildConfig.GEMINI_AGENT,
     private val apiKey: String = BuildConfig.GEMINI_API_KEY
-) : AiAgent {
+) : Agent {
 
     private val session: AiSession = dependencies.session
     private val registry: AgentRegistry = dependencies.registry
@@ -77,11 +77,11 @@ internal class GeminiAiAgent(
 
     override suspend fun sendMessage(
         prompt: String,
-        context: AiAgentContext
+        context: AgentContext
     ): Flow<String> = flow {
         val chat = generativeModel.startChat(history = session.history)
         val meta = context.toMetadata()
-        // Zera no início da tentativa: FallbackAiAgent lê este sinal só depois que esta chamada
+        // Zera no início da tentativa: FallbackAgent lê este sinal só depois que esta chamada
         // falha, então precisa refletir só o que aconteceu *nesta* tentativa (sdd-012).
         session.toolExecutedThisTurn = false
 
@@ -131,9 +131,9 @@ internal class GeminiAiAgent(
                 )
             )
             // Relança em vez de emitir um texto amigável: só o ponto mais externo da cadeia de
-            // agentes (FallbackAiAgent, se houver um secundário; senão AiChatViewModel) decide o
-            // que o usuário vê. Antes, emitir aqui escondia a falha de FallbackAiAgent.catch,
-            // que nunca disparava (sdd-006, B-08) — ver FallbackAiAgentTest, que já provava que
+            // agentes (FallbackAgent, se houver um secundário; senão AiChatViewModel) decide o
+            // que o usuário vê. Antes, emitir aqui escondia a falha de FallbackAgent.catch,
+            // que nunca disparava (sdd-006, B-08) — ver FallbackAgentTest, que já provava que
             // o fallback em si funciona.
             throw e
         }
@@ -196,6 +196,6 @@ internal class GeminiAiAgent(
         subscriptionRepository.observeStatus().first() == SubscriptionStatus.PRO
 
     companion object {
-        private const val TAG = "GeminiAiAgent"
+        private const val TAG = "GeminiAgent"
     }
 }

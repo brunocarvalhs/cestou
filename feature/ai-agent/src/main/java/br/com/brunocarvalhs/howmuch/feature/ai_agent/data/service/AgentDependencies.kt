@@ -6,11 +6,11 @@ import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
 
 /**
- * Bundles the collaborators shared by every [br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent]
- * implementation (currently [GeminiAiAgent] and [OpenRouterAiAgent]), keeping their own
+ * Bundles the collaborators shared by every [br.com.brunocarvalhs.howmuch.core.ai.contract.Agent]
+ * implementation (currently [GeminiAgent] and [OpenRouterAgent]), keeping their own
  * constructors down to just this plus their provider-specific model/apiKey.
  */
-internal data class AiAgentDependencies(
+internal data class AgentDependencies(
     val session: AiSession,
     val crashReporter: CrashReporter,
     val subscriptionRepository: SubscriptionRepository,
