@@ -349,6 +349,19 @@ jobs:
           target: ${{ needs.prepare.outputs.instrumented_target }}
           arch: ${{ needs.prepare.outputs.instrumented_arch }}
           disable-animations: true
+          # Without an explicit -gpu mode the emulator has intermittently hit
+          # "Failed to find ColorBuffer" / "Failed to bind to texture: invalid
+          # color buffer" partway through the Compose test suite (seen
+          # repeatedly on this hosted runner, always mid-run, never a real
+          # assertion failure) - a known class of issue with the emulator's
+          # GPU/EGL state under swiftshader on these runners. Forcing
+          # swiftshader_indirect explicitly (rather than relying on the
+          # action's auto-detected default) and trimming unrelated resource
+          # contention (audio, boot animation, camera, snapshot I/O) are the
+          # standard mitigations for this failure mode.
+          emulator-options: >-
+            -no-window -gpu swiftshader_indirect -no-snapshot -noaudio
+            -no-boot-anim -camera-back none -camera-front none
           script: |
             chmod +x gradlew
             ${{ needs.prepare.outputs.instrumented_command }}
