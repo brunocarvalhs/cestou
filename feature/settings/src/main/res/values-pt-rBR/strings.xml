@@ -81,6 +81,7 @@
     <string name="settings_ai_tier_3_desc">Use modelos pagos externos (Claude, GPT, etc.) com sua própria chave de API. Exclusivo para assinantes Pro.</string>
     <string name="settings_ai_label_custom_api_key">Chave de API (BYOK)</string>
     <string name="settings_ai_placeholder_custom_api_key">Insira sua chave de API (sk-…</string>
+    <string name="settings_ai_byok_key_required_error">Informe sua chave de API ou troque para outro nível</string>
     <string name="settings_ai_pro_badge">PRO</string>
     <string name="settings_ai_upgrade_prompt">Assine o Pro para desbloquear modelos específicos e chaves de API personalizadas.</string>
     <string name="settings_ai_button_upgrade">Assinar o Pro</string>
