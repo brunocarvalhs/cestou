@@ -20,6 +20,7 @@ jobs:
       checks_stage_1: ${{ steps.config.outputs.checks_stage_1 }}
       checks_stage_2: ${{ steps.config.outputs.checks_stage_2 }}
       coverage_enabled: ${{ steps.config.outputs.coverage_enabled }}
+      coverage_timeout: ${{ steps.config.outputs.coverage_timeout }}
       coverage_display_name: ${{ steps.config.outputs.coverage_display_name }}
       coverage_pr_success: ${{ steps.config.outputs.coverage_pr_success }}
       coverage_pr_failure: ${{ steps.config.outputs.coverage_pr_failure }}
@@ -47,6 +48,7 @@ jobs:
       size_pr_success: ${{ steps.config.outputs.size_pr_success }}
       size_pr_failure: ${{ steps.config.outputs.size_pr_failure }}
       step_checkout: ${{ steps.config.outputs.step_checkout }}
+      step_free_disk_space: ${{ steps.config.outputs.step_free_disk_space }}
       step_setup_env: ${{ steps.config.outputs.step_setup_env }}
       step_run_check: ${{ steps.config.outputs.step_run_check }}
       step_comment_failure: ${{ steps.config.outputs.step_comment_failure }}
@@ -94,6 +96,7 @@ jobs:
           echo "checks_stage_1=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 1)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
           echo "checks_stage_2=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 2)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
           echo "coverage_enabled=$(yq '.coverage.kover.enabled' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "coverage_timeout=$(yq '.coverage.kover.timeout_minutes // .build.default_timeout_minutes' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "coverage_display_name=$(yq '.coverage.kover.display_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "coverage_pr_success=$(yq '.coverage.kover.pr_comment.success' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "coverage_pr_failure=$(yq '.coverage.kover.pr_comment.failure' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
@@ -125,6 +128,7 @@ jobs:
           echo "size_module=$(yq '.build.targets[] | select(.name == strenv(SIZE_TARGET)) | .module' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "size_apk_glob=$(yq '.build.targets[] | select(.name == strenv(SIZE_TARGET)) | .variants[] | select(.name == strenv(SIZE_VARIANT)) | .path' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_checkout=$(yq '.build.step_names.checkout' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_free_disk_space=$(yq '.build.step_names.free_disk_space' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_setup_env=$(yq '.build.step_names.setup_environment' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_run_check=$(yq '.build.step_names.run_check' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_comment_failure=$(yq '.build.step_names.comment_failure' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
@@ -259,7 +263,7 @@ jobs:
       needs.prepare.outputs.coverage_enabled == 'true' &&
       (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped')
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
+    timeout-minutes: ${{ fromJson(needs.prepare.outputs.coverage_timeout) }}
     name: 📊 Test Coverage Gate
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
@@ -320,6 +324,9 @@ jobs:
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
         uses: actions/checkout@v7
+
+      - name: ${{ needs.prepare.outputs.step_free_disk_space }}
+        run: .github/scripts/free-disk-space.sh
 
       - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
@@ -391,6 +398,9 @@ jobs:
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
         uses: actions/checkout@v7
+
+      - name: ${{ needs.prepare.outputs.step_free_disk_space }}
+        run: .github/scripts/free-disk-space.sh
 
       - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
