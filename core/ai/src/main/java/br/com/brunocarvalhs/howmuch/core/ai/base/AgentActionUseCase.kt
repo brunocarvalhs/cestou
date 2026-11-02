@@ -2,16 +2,17 @@ package br.com.brunocarvalhs.howmuch.core.ai.base
 
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentAction
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentAction
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentActionProvider
 import br.com.brunocarvalhs.howmuch.core.ai.model.AiAgentParameter
-import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
-import timber.log.Timber
 
 /**
  * Classe base para UseCases que funcionam como ferramentas (actions) para o Agente de IA.
- * Extrai automaticamente metadados das anotações @AiAgentAction e @AiAgentParameter.
+ * Extrai automaticamente metadados das anotações @AiAgentAction e @AiAgentParameter. Cada
+ * subclasse concreta é ligada ao `Set<AgentActionUseCase<*>>` via `@Binds @IntoSet` no módulo
+ * Hilt da própria feature (ex. `ShoppingAgentModule`) — essa classe não se auto-registra em
+ * lugar nenhum (sdd-027, A-01): quem monta o registro é [br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry],
+ * a partir desse mesmo `Set`.
  */
-abstract class AgentActionUseCase<R> : AgentAction<R>, AgentActionProvider {
+abstract class AgentActionUseCase<R> : AgentAction<R> {
 
     private val actionDef: AiAgentAction by lazy {
         this::class.annotations.filterIsInstance<AiAgentAction>().firstOrNull()
@@ -28,13 +29,4 @@ abstract class AgentActionUseCase<R> : AgentAction<R>, AgentActionProvider {
                 AiAgentParameter(it.name, it.type, it.description, it.isRequired)
             }
     }
-
-    init {
-        @Suppress("LeakingThis")
-        AgentRegistry.register(this).also {
-            Timber.d("✅ Ferramenta de IA registrada: $id - $description")
-        }
-    }
-
-    override fun toAgentAction(): AgentAction<*> = this
 }

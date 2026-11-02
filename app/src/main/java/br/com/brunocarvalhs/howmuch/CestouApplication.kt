@@ -3,7 +3,7 @@ package br.com.brunocarvalhs.howmuch
 import android.app.Application
 import androidx.work.Configuration
 import androidx.work.WorkManager
-import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
+import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
@@ -13,14 +13,14 @@ import javax.inject.Inject
 class CestouApplication : Application() {
 
     @Inject
-    lateinit var agentUseCases: Set<@JvmSuppressWildcards AgentActionUseCase<*>>
+    lateinit var agentRegistry: AgentRegistry
 
     @Inject
     lateinit var crashReporter: CrashReporter
 
     override fun onCreate() {
         super.onCreate()
-        Timber.d("🚀 ${agentUseCases.size} Agentes de IA registrados na inicialização.")
+        Timber.d("🚀 ${agentRegistry.getAll().size} Agentes de IA registrados na inicialização.")
         /**
          * WorkManager's default ContentProvider auto-init is disabled (AndroidManifest.xml)
          * because it crashed the whole app at process start on devices whose framework lacks
