@@ -15,6 +15,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -119,5 +120,46 @@ class AiChatViewModelReliabilityTest {
 
         coVerify { chatHistoryRepository.save("list1", viewModel.uiState.value.messages) }
         assertTrue(viewModel.uiState.value.messages.last().text.isNotBlank())
+    }
+
+    // sdd-017, B-05: the free trial credit must never be spent on a failed send.
+    @Test
+    fun `onSendMessage does not mark the free trial as used when the agent chain fails`() = runTest {
+        viewModel.intent.onInputChange("hello")
+        coEvery { assistantUseCase("hello", any()) } returns flow { throw IOException("offline") }
+
+        viewModel.intent.onSendMessage()
+
+        coVerify(exactly = 0) { aiTrialRepository.markFreeMessageUsed() }
+    }
+
+    // sdd-017, C-02 + B-05: a Flow that completes without ever emitting (e.g. the model answered
+    // with only tool calls and no final text) must not leave isLoading stuck at true, and must
+    // not spend the trial credit either — nothing was actually delivered to the user.
+    @Test
+    fun `onSendMessage resets isLoading and does not mark the trial when the Flow completes without emitting`() =
+        runTest {
+            viewModel.intent.onInputChange("hello")
+            coEvery { assistantUseCase("hello", any()) } returns flow { }
+
+            viewModel.intent.onSendMessage()
+
+            assertEquals(false, viewModel.uiState.value.isLoading)
+            coVerify(exactly = 0) { aiTrialRepository.markFreeMessageUsed() }
+        }
+
+    // sdd-017, B-06: a second send while the first one is still in flight must be a no-op.
+    @Test
+    fun `onSendMessage ignores a second call while the first one is still loading`() = runTest {
+        viewModel.intent.onInputChange("hello")
+        coEvery { assistantUseCase("hello", any()) } returns flow { awaitCancellation() }
+
+        viewModel.intent.onSendMessage()
+        viewModel.intent.onInputChange("hello again")
+        viewModel.intent.onSendMessage()
+
+        assertEquals(true, viewModel.uiState.value.isLoading)
+        assertEquals(1, viewModel.uiState.value.messages.size)
+        coVerify(exactly = 1) { assistantUseCase(any(), any()) }
     }
 }

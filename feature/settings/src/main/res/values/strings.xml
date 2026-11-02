@@ -81,6 +81,7 @@
     <string name="settings_ai_tier_3_desc">Use external paid models (Claude, GPT, etc.) with your own API key. Requires Pro.</string>
     <string name="settings_ai_label_custom_api_key">API Key (BYOK)</string>
     <string name="settings_ai_placeholder_custom_api_key">Enter your API key (sk-…</string>
+    <string name="settings_ai_byok_key_required_error">Enter your API key, or switch to another level</string>
     <string name="settings_ai_pro_badge">PRO</string>
     <string name="settings_ai_upgrade_prompt">Upgrade to Pro to unlock specific models and custom API keys.</string>
     <string name="settings_ai_button_upgrade">Upgrade to Pro</string>

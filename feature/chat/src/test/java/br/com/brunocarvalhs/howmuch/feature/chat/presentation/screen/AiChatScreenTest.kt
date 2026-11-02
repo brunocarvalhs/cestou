@@ -1,7 +1,10 @@
 package br.com.brunocarvalhs.howmuch.feature.chat.presentation.screen
 
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -134,5 +137,36 @@ class AiChatScreenTest {
         composeTestRule.onNodeWithContentDescription(voiceDescription).performClick()
 
         composeTestRule.onNodeWithContentDescription(voiceDescription).assertExists()
+    }
+
+    // sdd-017, B-06: a response in flight must disable the send button, not just the gate.
+    @Test
+    fun `disables the send button while a response is loading`() {
+        composeTestRule.setContent {
+            CestouTheme {
+                AiChatScreen(
+                    state = AiChatUiState(input = "how much did I spend?", isLoading = true),
+                    intent = AiChatIntent(),
+                    isSendEnabled = true,
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag("ai_chat_send_button").assertIsNotEnabled()
+    }
+
+    @Test
+    fun `enables the send button when not loading and the trial gate allows it`() {
+        composeTestRule.setContent {
+            CestouTheme {
+                AiChatScreen(
+                    state = AiChatUiState(input = "how much did I spend?", isLoading = false),
+                    intent = AiChatIntent(),
+                    isSendEnabled = true,
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag("ai_chat_send_button").assertIsEnabled()
     }
 }
