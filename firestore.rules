@@ -313,6 +313,29 @@ service cloud.firestore {
         return isSignedIn() && resource.data.get('userId', '') == uid();
       }
 
+      function listById(id) {
+        return get(/databases/$(database)/documents/shopping/$(id)).data;
+      }
+
+      // `shoppingId` and `senderId` are optional so a client from before they existed can
+      // still create a notification. When `shoppingId` is present, both the writer and the
+      // recipient must be members of that list, so a notification can only travel between
+      // people who actually share it. `get()` on a missing list errors, which denies the write.
+      function validShoppingRef(data) {
+        return !('shoppingId' in data) || (
+          data.shoppingId is string
+          && data.shoppingId.size() > 0
+          && data.shoppingId.size() <= 128
+          && uid() in members(listById(data.shoppingId))
+          && data.userId in members(listById(data.shoppingId))
+        );
+      }
+
+      // A sender can only claim to be themselves.
+      function validSender(data) {
+        return !('senderId' in data) || data.senderId == uid();
+      }
+
       // READ: recipient only. observeNotifications queries
       // whereEqualTo("userId", uid), which matches this rule exactly, so no
       // other user's notification feed is reachable.
@@ -325,15 +348,16 @@ service cloud.firestore {
       // `isRead` to false so a notification cannot be delivered pre-dismissed.
       // Size caps keep this from being used as free storage for arbitrary blobs.
       //
-      // OPEN ISSUE (AD-009): NotificationModel has no `senderId`, so these rules
-      // cannot verify that the writer shares a list with the recipient. Any
-      // signed-in user who knows a uid can therefore send that user a well-formed
-      // notification. Closing that requires a schema change (senderId +
-      // shoppingId, then verify both uids against the list's members) — recorded
-      // as a follow-up rather than guessed at here.
+      // PARTIALLY CLOSED (AD-009): `shoppingId` and `senderId` now exist and, when
+      // `shoppingId` is sent, writer and recipient are verified against the list's
+      // members (validShoppingRef). They are still OPTIONAL so older clients keep
+      // working, which means a client that simply omits `shoppingId` can still send
+      // a well-formed notification to any uid it knows. Making both fields required
+      // is the follow-up, once the app that sends them is the only one in use.
       allow create: if isSignedIn()
                     && request.resource.data.keys().hasOnly(
-                         ['id', 'userId', 'title', 'message', 'type', 'isRead', 'timestamp'])
+                         ['id', 'userId', 'title', 'message', 'type', 'isRead', 'timestamp',
+                          'shoppingId', 'senderId'])
                     && request.resource.data.keys().hasAll(
                          ['id', 'userId', 'title', 'message', 'type', 'isRead', 'timestamp'])
                     && request.resource.data.id == notificationId
@@ -345,7 +369,9 @@ service cloud.firestore {
                     && request.resource.data.message.size() <= 500
                     && request.resource.data.type in ['list_joined', 'list_finished']
                     && request.resource.data.isRead == false
-                    && request.resource.data.timestamp is int;
+                    && request.resource.data.timestamp is int
+                    && validSender(request.resource.data)
+                    && validShoppingRef(request.resource.data);
 
       // UPDATE: the recipient may only flip isRead to true — the exact payload
       // NotificationRepositoryImpl.markAsRead sends. Nobody can rewrite the title
