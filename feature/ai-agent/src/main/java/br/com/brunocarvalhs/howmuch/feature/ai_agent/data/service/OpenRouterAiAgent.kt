@@ -1,13 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 import br.com.brunocarvalhs.howmuch.core.ai.BuildConfig
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
-import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
-import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
-import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
-import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.ChatRequest
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.ChatResponse
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.FunctionCall
@@ -15,9 +9,6 @@ import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.Message
 import com.google.ai.client.generativeai.type.Content
 import com.google.ai.client.generativeai.type.TextPart
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -25,9 +16,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import timber.log.Timber
@@ -38,34 +27,20 @@ import timber.log.Timber
  */
 internal class OpenRouterAiAgent(
     dependencies: AiAgentDependencies,
+    private val httpClientFactory: OpenRouterHttpClientFactory,
     private val model: String = BuildConfig.OPEN_ROUTER_MODEL,
     private val apiKey: String = BuildConfig.OPEN_ROUTER_API_KEY
-) : AiAgent {
+) : BaseAgent(dependencies) {
 
-    private val session: AiSession = dependencies.session
-    private val registry: AgentRegistry = dependencies.registry
-    private val crashReporter: CrashReporter = dependencies.crashReporter
-    private val systemPrompt: String = dependencies.systemPrompt
-    private val subscriptionRepository: SubscriptionRepository = dependencies.subscriptionRepository
+    override val providerTag: String = "openrouter"
+    override val modelLabel: String get() = model
 
     private val json = Json {
         ignoreUnknownKeys = true
         coerceInputValues = true
     }
 
-    private val client = HttpClient(OkHttp) {
-        install(ContentNegotiation) {
-            json(json)
-        }
-        // Free-tier OpenRouter models can take a while to respond (routing through "auto",
-        // cold-starting a provider, etc.) — the engine's short default timeout was causing
-        // real requests to be cut off as SocketTimeoutException before they finished.
-        install(HttpTimeout) {
-            requestTimeoutMillis = REQUEST_TIMEOUT_MS
-            socketTimeoutMillis = REQUEST_TIMEOUT_MS
-            connectTimeoutMillis = CONNECT_TIMEOUT_MS
-        }
-    }
+    private val client: HttpClient by lazy { httpClientFactory.create(json) }
 
     override suspend fun sendMessage(
         prompt: String,
@@ -99,7 +74,7 @@ internal class OpenRouterAiAgent(
                 messages.add(assistantMessage)
 
                 assistantMessage.toolCalls?.forEach { toolCall ->
-                    val result = executeToolCall(toolCall.function, meta)
+                    val result = toToolCallContent(toolCall.function, meta)
 
                     messages.add(Message(
                         role = "tool",
@@ -125,7 +100,7 @@ internal class OpenRouterAiAgent(
             crashReporter.recordException(
                 e,
                 extras = mapOf(
-                    "provider" to "openrouter",
+                    "provider" to providerTag,
                     "model" to model
                 )
             )
@@ -190,54 +165,19 @@ internal class OpenRouterAiAgent(
     }
 
     /**
-     * Dispatch chokepoint (AD-010): resolves [functionCall] against [registry], gates it behind
-     * the Pro subscription when [br.com.brunocarvalhs.howmuch.core.ai.contract.AgentAction.requiresPro]
-     * is set, and otherwise executes it. Extracted out of [sendMessage]'s tool-call loop so the
-     * gate is directly unit-testable without spinning up the full HTTP round-trip.
+     * Adapta a tool call do formato OpenAI-compatible do OpenRouter para o formato de
+     * [BaseAgent.executeAction] (AD-010) e devolve o texto já pronto para a mensagem de role
+     * `"tool"`. Não executa nada por si só — quem executa é [BaseAgent.executeAction].
+     * `internal` (não `private`) para continuar diretamente testável, como já era antes desta
+     * extração (sdd-026, A-03) — ver [OpenRouterAiAgentGatingTest].
      */
-    internal suspend fun executeToolCall(functionCall: FunctionCall, meta: Map<String, Any?>): String {
-        val action = registry.find(functionCall.name)
-        return if (action != null && action.requiresPro && !isPro()) {
-            "Essa ação é exclusiva do plano Pro."
-        } else if (action != null) {
-            try {
-                // Marcado antes de executar, não depois: mesmo uma execução que termina em
-                // exceção pode ter mutação parcial (sdd-012) — conservador de propósito.
-                session.toolExecutedThisTurn = true
-                val args = parseFunctionCallArguments(json, functionCall.arguments)
-                action.execute(args, session, meta).toToolFeedback()
-            } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
-                Timber.tag(TAG).e(
-                    e,
-                    "Erro executando a função '%s' com args=%s",
-                    functionCall.name,
-                    functionCall.arguments
-                )
-                crashReporter.recordException(
-                    e,
-                    extras = mapOf(
-                        "provider" to "openrouter",
-                        "model" to model,
-                        "function" to functionCall.name
-                    )
-                )
-                "Erro na execução da ação: ${e.message}"
-            }
-        } else {
-            Timber.tag(TAG).w("Ação '%s' não encontrada no registry", functionCall.name)
-            "Erro: Ação '${functionCall.name}' não encontrada"
-        }
+    internal suspend fun toToolCallContent(functionCall: FunctionCall, meta: Map<String, Any?>): String {
+        val arguments = parseFunctionCallArguments(json, functionCall.arguments)
+        return executeAction(functionCall.name, arguments, meta)
     }
-
-    /** Point-in-time read of the current entitlement (AD-010); the gate only needs "right now". */
-    private suspend fun isPro(): Boolean =
-        subscriptionRepository.observeStatus().first() == SubscriptionStatus.PRO
 
     companion object {
         private const val TAG = "OpenRouterAiAgent"
-        private const val REQUEST_TIMEOUT_MS = 45_000L
-        private const val CONNECT_TIMEOUT_MS = 15_000L
         // Omitting max_tokens lets OpenRouter default to the routed model's own max output
         // (up to 65535 on some), which "auto"/free-tier accounts often can't afford —
         // observed as a real 402 "requires more credits" on this exact request shape. A chat
