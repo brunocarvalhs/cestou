@@ -29,7 +29,7 @@ podendo separar `functionCall` de `functionResponse` ou abrir com um turno que n
 (B-34). O histórico de IA é um **singleton `@Singleton`** (`AiAgentModule.kt:21-27,30-38`) nunca
 limpo (B-11).
 
-**Itens do backlog:** B-07, B-08, B-09, B-10, B-11, B-33, B-34 (`specs/sdd-001-auditoria-geral/tasks.md:51-55,77-78`).
+**Itens do backlog:** B-07, B-08, B-09, B-10, B-11, B-33, B-34 (`.specs/sdd-001-auditoria-geral/tasks.md:51-55,77-78`).
 
 ## 2. Escopo
 
@@ -58,7 +58,7 @@ limpo (B-11).
 - Remoção de tools (B-15, B-16 ficam para `sdd-007-ai-chat-gate`).
 - Externalizar `SystemPrompts.kt` para `strings.xml`/multilíngue e qualquer outro texto já
   hardcoded pt-BR fora do que esta tarefa toca — isso é o item **F-07**
-  (`specs/sdd-001-auditoria-geral/tasks.md:90`), uma SDD própria, não esta.
+  (`.specs/sdd-001-auditoria-geral/tasks.md:90`), uma SDD própria, não esta.
 - A mensagem de "atingi o limite de tentativas" (novo texto do `MAX_TOOL_ROUNDS`) fica como
   literal pt-BR no agente, no mesmo padrão (e mesma dívida, rastreada por F-07) de
   `SystemPrompts.kt` — não cria um novo módulo de recursos Android em `:feature:ai-agent` só para

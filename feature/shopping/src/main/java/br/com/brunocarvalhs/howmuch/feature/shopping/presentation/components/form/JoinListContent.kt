@@ -79,7 +79,9 @@ internal fun JoinListContent(
             isError = error != null,
             supportingText = if (error != null) {
                 { Text(error.asString(context), color = MaterialTheme.colorScheme.error) }
-            } else null
+            } else {
+                null
+            }
         )
 
         if (isLoading) {

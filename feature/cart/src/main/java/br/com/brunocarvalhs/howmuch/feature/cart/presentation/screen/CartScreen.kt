@@ -323,7 +323,6 @@ internal fun CartScreen(
     }
 }
 
-
 private val previewShopping = Shopping(
     id = "1",
     title = "Compras do mês",

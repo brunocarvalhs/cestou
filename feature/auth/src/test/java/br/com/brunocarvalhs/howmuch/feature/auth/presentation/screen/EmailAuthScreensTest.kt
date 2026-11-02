@@ -39,7 +39,10 @@ class EmailAuthScreensTest {
     val composeTestRule = createComposeRule()
 
     private val validSignUp = EmailSignUpUiState(
-        givenName = "Ana", familyName = "Silva", email = "ana@test.com", password = "12345678"
+        givenName = "Ana",
+        familyName = "Silva",
+        email = "ana@test.com",
+        password = "12345678"
     )
 
     // region sign up
@@ -52,8 +55,11 @@ class EmailAuthScreensTest {
 
         listOf("signup_given_name_field", "signup_family_name_field", "signup_email_field", "signup_password_field")
             .forEach { composeTestRule.onNodeWithTag(it).assertExists() }
-        assertEquals(0, composeTestRule.onAllNodesWithText("optional", substring = true, ignoreCase = true)
-            .fetchSemanticsNodes().size)
+        assertEquals(
+            0,
+            composeTestRule.onAllNodesWithText("optional", substring = true, ignoreCase = true)
+                .fetchSemanticsNodes().size
+        )
     }
 
     @Test
@@ -154,7 +160,9 @@ class EmailAuthScreensTest {
             CestouTheme {
                 EmailSignInScreen(
                     state = EmailSignInUiState(
-                        email = "ana@test.com", password = "x", formError = EmailAuthError.INVALID_CREDENTIALS
+                        email = "ana@test.com",
+                        password = "x",
+                        formError = EmailAuthError.INVALID_CREDENTIALS
                     ),
                     intent = EmailSignInIntent(),
                     onForgotPassword = { forgotWith = it },

@@ -2,7 +2,7 @@
 
 > Registro das decisões de arquitetura citadas no código (`AD-0xx` em comentários de `.kt` e em `firestore.rules`). Este arquivo preserva o texto original da seção "Decisions" de `.specs/STATE.md`, removido no branch `chore/sdd` (commit `ddf8fb57`). O texto está em inglês porque é transcrito sem edição, para não alterar o raciocínio registrado. O histórico completo continua em `git show develop:.specs/STATE.md`.
 >
-> **Referências históricas:** caminhos citados abaixo dentro de `.specs/` (por exemplo `MVP-ROADMAP.md` e `.specs/features/g10-cross-feature-decoupling/`) não existem mais na árvore atual. Consulte-os no histórico do git (`git show develop:<caminho>`).
+> **Referências históricas:** caminhos citados abaixo dentro de `.specs/` (por exemplo `MVP-ROADMAP.md` e `.specs/features/g10-cross-feature-decoupling/`) referem-se ao diretório `.specs/` pré-`chore/sdd`, removido no commit `ddf8fb57`, e não existem mais na árvore atual — consulte-os no histórico do git (`git show develop:<caminho>`). O `.specs/` atual na árvore é a renomeação do antigo `specs/` do fluxo SDD (ver `AGENTS.md` §8) e tem conteúdo não relacionado a este.
 >
 > **G5:** item do antigo roadmap (`.specs/MVP-ROADMAP.md`) — regras do Firestore, em especial para escrita em `notifications`. É a motivação da AD-009.
 >

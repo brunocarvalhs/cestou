@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.common.BuildConfig
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
-import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiModelRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository

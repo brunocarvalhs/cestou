@@ -14,7 +14,7 @@
 
 Várias escritas em `feature:shopping`, `feature:cart` e `feature:products` reaproveitam o documento inteiro (`Shopping` completo) a partir de snapshots potencialmente desatualizados, ou usam o método errado (`update` em vez de `save`) para documentos que ainda não existem. Isso perde edições concorrentes (B-04), impede remover o orçamento (B-05), quebra a duplicação de listas (B-02) e pode apagar um produto ao movê-lo (B-17). A exclusão de conta pode deixar listas órfãs se a leitura falhar (B-25).
 
-**Itens do backlog:** B-02, B-03, B-04, B-05, B-17, B-25 (`specs/sdd-001-auditoria-geral/tasks.md` §2.2).
+**Itens do backlog:** B-02, B-03, B-04, B-05, B-17, B-25 (`.specs/sdd-001-auditoria-geral/tasks.md` §2.2).
 
 **O que mudou desde que `sdd-002` foi implementado** (verificado lendo o código atual, não o plano antigo):
 

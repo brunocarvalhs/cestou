@@ -30,8 +30,11 @@ class Encryptor @Inject constructor() {
     ): Map<String, Any?> {
         Timber.tag(TAG).d("--> ENCRYPT MAP | Excluded: %s", excludedKeys)
         return inputMap.filterValues { it != null }.mapValues { (key, value) ->
-            if (key in excludedKeys) value
-            else encryptValue(value)
+            if (key in excludedKeys) {
+                value
+            } else {
+                encryptValue(value)
+            }
         }.also {
             Timber.tag(TAG).d("<-- SUCCESS ENCRYPT MAP")
         }
@@ -57,8 +60,11 @@ class Encryptor @Inject constructor() {
     ): Map<String, Any?> {
         Timber.tag(TAG).d("--> DECRYPT MAP | Excluded: %s", excludedKeys)
         return encodedMap.mapValues { (key, value) ->
-            if (key in excludedKeys) value
-            else decryptValue(value)
+            if (key in excludedKeys) {
+                value
+            } else {
+                decryptValue(value)
+            }
         }.also {
             Timber.tag(TAG).d("<-- SUCCESS DECRYPT MAP")
         }
@@ -126,8 +132,11 @@ class Encryptor @Inject constructor() {
     private fun JsonElement.toAny(): Any? = when (this) {
         is JsonNull -> null
         is JsonPrimitive -> {
-            if (isString) content
-            else booleanOrNull ?: intOrNull ?: longOrNull ?: doubleOrNull ?: content
+            if (isString) {
+                content
+            } else {
+                booleanOrNull ?: intOrNull ?: longOrNull ?: doubleOrNull ?: content
+            }
         }
 
         is JsonArray -> map { it.toAny() }
