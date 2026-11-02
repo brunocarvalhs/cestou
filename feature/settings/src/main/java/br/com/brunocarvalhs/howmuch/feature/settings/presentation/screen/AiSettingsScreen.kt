@@ -35,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -58,23 +59,30 @@ internal fun AiSettingsScreen(
     var model by remember(state.aiModel) { mutableStateOf(state.aiModel) }
     var customApiKey by remember(state.customApiKey) { mutableStateOf(state.customApiKey) }
     var creativity by remember(state.creativityLevel) { mutableFloatStateOf(state.creativityLevel) }
+    // Blocks leaving the screen with tier=CUSTOM_BYOK and a blank key: without this,
+    // AiAgentFactoryImpl falls back to the shared app key silently, in the user's name
+    // (sdd-017, B-15). Checked right before every exit point instead of in the ViewModel,
+    // since both exit points below call onUpdateAiSettings + onBack unconditionally and
+    // synchronously, with no way to await the (async) save result first.
+    var byokKeyError by remember { mutableStateOf(false) }
 
     val isPro = state.subscriptionStatus == SubscriptionStatus.PRO
+
+    fun trySave(onSaved: () -> Unit) {
+        if (tier == AiConfigTier.CUSTOM_BYOK && customApiKey.isBlank()) {
+            byokKeyError = true
+            return
+        }
+        intent.onUpdateAiSettings(tier, model, creativity, customApiKey.ifEmpty { null })
+        onSaved()
+    }
 
     Scaffold(
         modifier = modifier,
         topBar = {
             SettingsHeader(
                 title = stringResource(R.string.settings_section_ai),
-                onBack = {
-                    intent.onUpdateAiSettings(
-                        tier,
-                        model,
-                        creativity,
-                        customApiKey.ifEmpty { null }
-                    )
-                    intent.onBack()
-                }
+                onBack = { trySave(onSaved = intent.onBack) }
             )
         }
     ) { paddingValues ->
@@ -143,7 +151,11 @@ internal fun AiSettingsScreen(
                 if (tier == AiConfigTier.CUSTOM_BYOK && isPro) {
                     Tier3Content(
                         apiKey = customApiKey,
-                        onApiKeyChange = { customApiKey = it }
+                        onApiKeyChange = {
+                            customApiKey = it
+                            byokKeyError = false
+                        },
+                        isError = byokKeyError
                     )
                 }
             }
@@ -164,16 +176,10 @@ internal fun AiSettingsScreen(
             )
 
             Button(
-                onClick = {
-                    intent.onUpdateAiSettings(
-                        tier,
-                        model,
-                        creativity,
-                        customApiKey.ifEmpty { null }
-                    )
-                    intent.onBack()
-                },
-                modifier = Modifier.fillMaxWidth()
+                onClick = { trySave(onSaved = intent.onBack) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("ai_settings_save_button")
             ) {
                 Text(text = stringResource(R.string.settings_ai_button_save))
             }
@@ -239,6 +245,7 @@ private fun Tier2Content(
 private fun Tier3Content(
     apiKey: String,
     onApiKeyChange: (String) -> Unit,
+    isError: Boolean,
     modifier: Modifier = Modifier
 ) {
     Spacer(modifier = Modifier.height(8.dp))
@@ -249,7 +256,20 @@ private fun Tier3Content(
         placeholder = { Text(stringResource(R.string.settings_ai_placeholder_custom_api_key)) },
         visualTransformation = PasswordVisualTransformation(),
         singleLine = true,
-        modifier = modifier.fillMaxWidth()
+        isError = isError,
+        supportingText = if (isError) {
+            {
+                Text(
+                    text = stringResource(R.string.settings_ai_byok_key_required_error),
+                    modifier = Modifier.testTag("ai_settings_byok_key_error")
+                )
+            }
+        } else {
+            null
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag("ai_settings_byok_key_field")
     )
 }
 
