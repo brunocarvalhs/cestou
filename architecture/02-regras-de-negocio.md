@@ -38,7 +38,7 @@ Entitlement reduzido a dois estados, sem dados de compra (`core/domain/.../model
 | 3.1 | Listas de compras (feature shopping) | Gate PRO aplicado na navegação; o `isPro` vem do `SubscriptionRepository`. | `feature/shopping/presentation/viewmodel/ShoppingSubscriptionGateViewModel.kt`; `feature/shopping/navigation/ShoppingGraph.kt` |
 | 3.2 | Carrinho | Mesmo padrão de gate PRO. | `feature/cart/presentation/viewmodel/CartSubscriptionGateViewModel.kt`; `feature/cart/navigation/CartGraph.kt` |
 | 3.3 | Chat com IA | PRO: mensagens ilimitadas. FREE: **uma** mensagem gratuita, controlada por `AiTrialRepository`. Enviar fica bloqueado quando não é PRO e a mensagem gratuita já foi usada. | `feature/chat/.../ChatAiGateViewModel.kt` |
-| 3.4 | Ações de IA marcadas com `requiresPro` | Se a ação exige PRO e o usuário não é PRO, a ação não é executada. | `feature/ai_agent/data/service/GeminiAiAgent.kt` (~linha 134); `OpenRouterAiAgent.kt` (~linha 176) |
+| 3.4 | Ações de IA marcadas com `requiresPro` | Se a ação exige PRO e o usuário não é PRO, a ação não é executada. | `feature/ai_agent/data/service/GeminiAgent.kt` (~linha 134); `OpenRouterAgent.kt` (~linha 176) |
 | 3.5 | Tela de assinatura | Mostra o estado PRO e o botão de assinar quando é FREE. | `feature/subscription/presentation/screen/PaywallScreen.kt`; `feature/profile/presentation/screen/ProfileScreen.kt` |
 
 ## 4. Conta, perfil e configurações

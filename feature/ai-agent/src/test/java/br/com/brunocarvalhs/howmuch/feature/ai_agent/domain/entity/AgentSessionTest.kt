@@ -4,18 +4,18 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class AiAgentSessionTest {
+class AgentSessionTest {
 
     @Test
     fun `toolExecutedThisTurn starts false`() {
-        val session = AiAgentSession()
+        val session = AgentSession()
 
         assertFalse(session.toolExecutedThisTurn)
     }
 
     @Test
     fun `toolExecutedThisTurn is mutable and independent of history`() {
-        val session = AiAgentSession()
+        val session = AgentSession()
 
         session.toolExecutedThisTurn = true
 
@@ -25,7 +25,7 @@ class AiAgentSessionTest {
 
     @Test
     fun `clearHistory clears history without touching toolExecutedThisTurn`() {
-        val session = AiAgentSession()
+        val session = AgentSession()
         session.toolExecutedThisTurn = true
         session.history.add(com.google.ai.client.generativeai.type.Content(role = "user", parts = emptyList()))
 

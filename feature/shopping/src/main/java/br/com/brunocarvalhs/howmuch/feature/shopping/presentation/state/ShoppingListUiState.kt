@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state
 
 import androidx.compose.runtime.Stable
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
@@ -18,7 +18,7 @@ internal data class ShoppingListUiState(
     val isLoading: Boolean = false,
     val isCreateSheetVisible: Boolean = false,
     val error: UiText? = null
-) : AiAgentContext {
+) : AgentContext {
     override fun toMetadata(): Map<String, Any?> =
         mapOf(
             "shopping_lists" to list.map { it.id },

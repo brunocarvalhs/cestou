@@ -3,16 +3,16 @@
   <ManuallySuppressedIssues/>
   <CurrentIssues>
     <ID>InstanceOfCheckForException:BaseAgent.kt$BaseAgent$e is CancellationException</ID>
-    <ID>InstanceOfCheckForException:GeminiAiAgent.kt$GeminiAiAgent$e is kotlinx.coroutines.CancellationException</ID>
-    <ID>InstanceOfCheckForException:OpenRouterAiAgent.kt$OpenRouterAiAgent$e is kotlinx.coroutines.CancellationException</ID>
-    <ID>PackageName:AiAgentDependencies.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageName:AiAgentFactoryImpl.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageName:AiAgentFactoryImplTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>InstanceOfCheckForException:GeminiAgent.kt$GeminiAgent$e is kotlinx.coroutines.CancellationException</ID>
+    <ID>InstanceOfCheckForException:OpenRouterAgent.kt$OpenRouterAgent$e is kotlinx.coroutines.CancellationException</ID>
+    <ID>PackageName:AgentDependencies.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:AgentFactoryImpl.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:AgentFactoryImplTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:AiAgentLimits.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageName:AiAgentModule.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.di</ID>
-    <ID>PackageName:AiAgentOrchestrator.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.orchestrator</ID>
-    <ID>PackageName:AiAgentSession.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity</ID>
-    <ID>PackageName:AiAgentSessionTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity</ID>
+    <ID>PackageName:AgentModule.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.di</ID>
+    <ID>PackageName:AgentOrchestrator.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.orchestrator</ID>
+    <ID>PackageName:AgentSession.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity</ID>
+    <ID>PackageName:AgentSessionTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity</ID>
     <ID>PackageName:AiProviderUnavailableException.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.exception</ID>
     <ID>PackageName:BaseAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:ChatModelsTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model</ID>
@@ -22,21 +22,21 @@
     <ID>PackageName:ConversationHistory.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:ConversationHistoryTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:FakeAgentAction.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageName:FallbackAiAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageName:FallbackAiAgentTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:FallbackAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:FallbackAgentTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:FunctionCall.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model</ID>
     <ID>PackageName:FunctionDeclaration.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model</ID>
-    <ID>PackageName:GeminiAiAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageName:GeminiAiAgentGatingTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageName:GeminiAiAgentTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:GeminiAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:GeminiAgentGatingTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:GeminiAgentTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:GeminiModelFactory.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:GeminiModelFactoryImplTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:Message.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model</ID>
-    <ID>PackageName:NoAiProviderAvailableAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageName:NoAiProviderAvailableAgentTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageName:OpenRouterAiAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageName:OpenRouterAiAgentGatingTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageName:OpenRouterAiAgentTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:NoProviderAvailableAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:NoProviderAvailableAgentTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:OpenRouterAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:OpenRouterAgentGatingTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:OpenRouterAgentTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:OpenRouterHttpClientFactory.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:OpenRouterHttpClientFactoryImplTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:OpenRouterMapping.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
@@ -47,14 +47,14 @@
     <ID>PackageName:ToolCall.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model</ID>
     <ID>PackageName:ToolFeedback.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:ToolFeedbackTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageNaming:AiAgentDependencies.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageNaming:AiAgentFactoryImpl.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageNaming:AiAgentFactoryImplTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:AgentDependencies.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:AgentFactoryImpl.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:AgentFactoryImplTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageNaming:AiAgentLimits.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageNaming:AiAgentModule.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.di</ID>
-    <ID>PackageNaming:AiAgentOrchestrator.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.orchestrator</ID>
-    <ID>PackageNaming:AiAgentSession.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity</ID>
-    <ID>PackageNaming:AiAgentSessionTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity</ID>
+    <ID>PackageNaming:AgentModule.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.di</ID>
+    <ID>PackageNaming:AgentOrchestrator.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.orchestrator</ID>
+    <ID>PackageNaming:AgentSession.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity</ID>
+    <ID>PackageNaming:AgentSessionTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity</ID>
     <ID>PackageNaming:AiProviderUnavailableException.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.exception</ID>
     <ID>PackageNaming:BaseAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageNaming:ChatModelsTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model</ID>
@@ -64,21 +64,21 @@
     <ID>PackageNaming:ConversationHistory.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageNaming:ConversationHistoryTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageNaming:FakeAgentAction.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageNaming:FallbackAiAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageNaming:FallbackAiAgentTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:FallbackAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:FallbackAgentTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageNaming:FunctionCall.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model</ID>
     <ID>PackageNaming:FunctionDeclaration.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model</ID>
-    <ID>PackageNaming:GeminiAiAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageNaming:GeminiAiAgentGatingTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageNaming:GeminiAiAgentTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:GeminiAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:GeminiAgentGatingTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:GeminiAgentTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageNaming:GeminiModelFactory.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageNaming:GeminiModelFactoryImplTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageNaming:Message.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model</ID>
-    <ID>PackageNaming:NoAiProviderAvailableAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageNaming:NoAiProviderAvailableAgentTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageNaming:OpenRouterAiAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageNaming:OpenRouterAiAgentGatingTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>PackageNaming:OpenRouterAiAgentTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:NoProviderAvailableAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:NoProviderAvailableAgentTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:OpenRouterAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:OpenRouterAgentGatingTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:OpenRouterAgentTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageNaming:OpenRouterHttpClientFactory.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageNaming:OpenRouterHttpClientFactoryImplTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageNaming:OpenRouterMapping.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
@@ -89,10 +89,10 @@
     <ID>PackageNaming:ToolCall.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model</ID>
     <ID>PackageNaming:ToolFeedback.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageNaming:ToolFeedbackTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
-    <ID>SwallowedException:AiAgentFactoryImplTest.kt$e: NoSuchFieldException</ID>
+    <ID>SwallowedException:AgentFactoryImplTest.kt$e: NoSuchFieldException</ID>
     <ID>TooGenericExceptionCaught:BaseAgent.kt$BaseAgent$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:GeminiAiAgent.kt$GeminiAiAgent$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:OpenRouterAiAgent.kt$OpenRouterAiAgent$e: Exception</ID>
-    <ID>TooGenericExceptionThrown:FallbackAiAgentTest.kt$FallbackAiAgentTest$throw RuntimeException("boom")</ID>
+    <ID>TooGenericExceptionCaught:GeminiAgent.kt$GeminiAgent$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:OpenRouterAgent.kt$OpenRouterAgent$e: Exception</ID>
+    <ID>TooGenericExceptionThrown:FallbackAgentTest.kt$FallbackAgentTest$throw RuntimeException("boom")</ID>
   </CurrentIssues>
 </SmellBaseline>

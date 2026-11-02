@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
+import br.com.brunocarvalhs.howmuch.core.ai.contract.Agent
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -13,13 +13,13 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class FallbackAiAgentTest {
+class FallbackAgentTest {
 
-    private val primary = mockk<AiAgent>()
-    private val secondary = mockk<AiAgent>()
-    private val context = mockk<AiAgentContext>()
+    private val primary = mockk<Agent>()
+    private val secondary = mockk<Agent>()
+    private val context = mockk<AgentContext>()
     private val session = mockk<AiSession>(relaxed = true)
-    private val agent = FallbackAiAgent(primary, secondary, session)
+    private val agent = FallbackAgent(primary, secondary, session)
 
     @Test
     fun `sendMessage emits from primary when it succeeds`() = runTest {

@@ -15,8 +15,8 @@ Pedido do usuário: gerar o plano do `sdd-017-ai-agent-safety` priorizando **B-0
 Este plano também cobre os demais itens já atribuídos ao SDD-017 no roadmap (`.specs/tasks.txt`, `.specs/sdd-001-auditoria-geral/tasks.md` §3): **B-05**, **B-06**, **C-02**, **C-03**, **B-09**, **B-15** — todos revalidados linha a linha nesta sessão de planejamento, com evidência atual de `HEAD` (branch `fix/crashlytics-top-crashes`).
 
 **Achado adicional desta investigação (corrige o diagnóstico de causa-raiz de `sdd-023`):** `sdd-023-auditoria-logica-producao/tasks.md` §2.1 apontava a ausência de `userId` no metadata da tool (`AiChatUiState.toMetadata()`, linhas 19-22) como bloqueio estrutural para corrigir B-02/B-10. Investigação mais profunda mostra que:
-- `AiSession.userId` (`core/ai/.../contract/AiSession.kt:10`) existe, mas é preenchido **uma única vez**, no momento em que o Hilt resolve o `@Singleton` `AiAgentSession` (`AiAgentModule.kt:32-38`: `authService.currentUser?.id` lido na criação do singleton) — não é um valor observado live, então confiar nele para uma checagem de permissão seria uma segunda classe de bug (usuário stale após troca de sessão).
-- O caminho correto já tem precedente direto no mesmo pacote: `ShoppingCreateUseCase` (`feature/shopping/.../domain/usecase/ShoppingCreateUseCase.kt:35,43`) já injeta `AuthService` diretamente no use case e lê `authService.getOrCreateUserId()`/`currentUser` **no momento da execução**, não via `AiSession`/metadata. A correção de B-02/B-10 segue exatamente esse padrão já estabelecido — nenhuma mudança é necessária em `core:ai` (`AiSession`, `AiAgentContext`, `AgentAction`).
+- `AiSession.userId` (`core/ai/.../contract/AiSession.kt:10`) existe, mas é preenchido **uma única vez**, no momento em que o Hilt resolve o `@Singleton` `AgentSession` (`AgentModule.kt:32-38`: `authService.currentUser?.id` lido na criação do singleton) — não é um valor observado live, então confiar nele para uma checagem de permissão seria uma segunda classe de bug (usuário stale após troca de sessão).
+- O caminho correto já tem precedente direto no mesmo pacote: `ShoppingCreateUseCase` (`feature/shopping/.../domain/usecase/ShoppingCreateUseCase.kt:35,43`) já injeta `AuthService` diretamente no use case e lê `authService.getOrCreateUserId()`/`currentUser` **no momento da execução**, não via `AiSession`/metadata. A correção de B-02/B-10 segue exatamente esse padrão já estabelecido — nenhuma mudança é necessária em `core:ai` (`AiSession`, `AgentContext`, `AgentAction`).
 
 Rastreabilidade:
 - `feature/shopping/.../domain/usecase/ShoppingUpdateUseCase.kt:1-61`
@@ -26,10 +26,10 @@ Rastreabilidade:
 - `feature/shopping/.../presentation/viewmodel/ShoppingListViewModel.kt:96-109,168-191` (checagem OWNER já existente no caminho de UI, usada como referência de estilo)
 - `feature/chat/.../presentation/viewmodel/AiChatViewModel.kt:146-189`
 - `feature/chat/.../presentation/screen/AiChatScreen.kt:251-305`
-- `feature/ai-agent/.../data/service/GeminiAiAgent.kt:115`, `OpenRouterAiAgent.kt:117-120`
+- `feature/ai-agent/.../data/service/GeminiAgent.kt:115`, `OpenRouterAgent.kt:117-120`
 - `feature/products/.../domain/usecase/PriceComparisonUseCase.kt:1-43`
 - `feature/products/.../di/ProductAgentModule.kt:42-44`
-- `feature/ai-agent/.../data/service/AiAgentFactoryImpl.kt:35-42,62-66`
+- `feature/ai-agent/.../data/service/AgentFactoryImpl.kt:35-42,62-66`
 - `feature/settings/.../presentation/screen/AiSettingsScreen.kt:70-77,166-180`
 - `.specs/sdd-001-auditoria-geral/tasks.md` §2.1-2.2 (B-02, B-05, B-06, B-09, B-10, C-02, C-03)
 - `.specs/sdd-023-auditoria-logica-producao/tasks.md` §2.1-2.2 (B-02, B-10 reclassificado P0, B-15)
@@ -47,16 +47,16 @@ Rastreabilidade:
 - **B-06 (P1):** impedir múltiplos envios concorrentes a partir do botão de enviar/microfone e de `sendMessage()`.
 - **C-02 (P1):** garantir que `isLoading` sempre retorna a `false`, mesmo se o Flow do assistente completar sem emitir nenhuma resposta.
 - **B-09 (P2):** remover a tool `compare_prices` (`PriceComparisonUseCase`) do registry — dados fictícios apresentados como reais.
-- **B-15 (P2):** impedir que a tela de Configurações de IA salve/saia com tier BYOK selecionado e chave em branco, para que `AiAgentFactoryImpl` nunca mais caia silenciosamente na chave compartilhada em nome do usuário.
+- **B-15 (P2):** impedir que a tela de Configurações de IA salve/saia com tier BYOK selecionado e chave em branco, para que `AgentFactoryImpl` nunca mais caia silenciosamente na chave compartilhada em nome do usuário.
 - Correção de visibilidade (`internal`) de `ShoppingMultiDeleteUseCase`, hoje `public` sem nenhum consumidor fora do módulo (desvio de AGENTS.md §5 encontrado de forma incidental ao tocar no arquivo).
 - Testes unitários/instrumentados para todos os itens acima.
 
 **Exclui:**
 - Publicação de `firestore.rules` (D-01, `sdd-001`) — a correção aqui é só na camada de aplicação; sem as regras publicadas, um cliente modificado ainda poderia repetir a escrita direto no Firestore. Fica registrado como risco residual (seção 8), não como bloqueio deste SDD.
-- Qualquer mudança em `AiSession`, `AiAgentContext` ou no contrato `AgentAction` de `core:ai` — não são necessárias (ver nota de causa-raiz na seção 1).
+- Qualquer mudança em `AiSession`, `AgentContext` ou no contrato `AgentAction` de `core:ai` — não são necessárias (ver nota de causa-raiz na seção 1).
 - B-03, B-04, B-07, B-08, B-11, B-12, B-13, B-14, B-16, B-17, C-04, D-01, D-02 — atribuídos a SDD-018/019/020 por `.specs/sdd-023-auditoria-logica-producao/tasks.md` §3.
 - Implementação real de comparação de preços (fica para um SDD futuro, se houver integração com serviço real de cotação).
-- Mudança no mecanismo de fallback BYOK→chave compartilhada dentro de `AiAgentFactoryImpl` em si — a correção atua na origem (impedir salvar/entrar nesse estado pela UI), não no fallback (ver "Perguntas em Aberto" para a alternativa considerada e descartada).
+- Mudança no mecanismo de fallback BYOK→chave compartilhada dentro de `AgentFactoryImpl` em si — a correção atua na origem (impedir salvar/entrar nesse estado pela UI), não no fallback (ver "Perguntas em Aberto" para a alternativa considerada e descartada).
 
 ---
 
@@ -69,7 +69,7 @@ Rastreabilidade:
   - `feature/settings` — `presentation/screen/AiSettingsScreen.kt` (validação local, sem tocar ViewModel/UseCase — ver justificativa na seção 9).
 - **Padrão aplicado:** Clean Architecture + MVI, sem novas camadas. Os dois use cases de `feature/shopping` passam a injetar `AuthService` (`core:domain`), exatamente como `ShoppingCreateUseCase` já faz — nenhum novo tipo de dependência entre módulos.
 - **Novos arquivos:** nenhum. Todas as mudanças são em arquivos existentes; `PriceComparisonUseCase.kt` e seu teste são **removidos**, não criados.
-- **Injeção via Hilt:** `ShoppingUpdateUseCase`/`ShoppingMultiDeleteUseCase` continuam `@Singleton @Inject constructor`, só ganham um parâmetro (`AuthService`) já disponível no grafo de `feature/shopping` (usado por `ShoppingCreateUseCase` no mesmo módulo). A remoção do `@Binds @IntoSet` de `PriceComparisonUseCase` em `ProductAgentModule.kt:42-44` tira a classe do `Set<AgentActionUseCase<*>>` injetado em `CestouApplication.kt:16`, que é o que hoje força sua auto-instanciação e autorregistro (`AgentActionUseCase.init { AgentRegistry.register(this) }`, `core/ai/.../base/AgentActionUseCase.kt:33-38`) — sem o binding, a tool nunca é construída e desaparece de `AgentRegistry.getAll()`, que é a lista usada por `GeminiAiAgent`/`OpenRouterAiAgent` para declarar `FunctionDeclaration`s ao modelo.
+- **Injeção via Hilt:** `ShoppingUpdateUseCase`/`ShoppingMultiDeleteUseCase` continuam `@Singleton @Inject constructor`, só ganham um parâmetro (`AuthService`) já disponível no grafo de `feature/shopping` (usado por `ShoppingCreateUseCase` no mesmo módulo). A remoção do `@Binds @IntoSet` de `PriceComparisonUseCase` em `ProductAgentModule.kt:42-44` tira a classe do `Set<AgentActionUseCase<*>>` injetado em `CestouApplication.kt:16`, que é o que hoje força sua auto-instanciação e autorregistro (`AgentActionUseCase.init { AgentRegistry.register(this) }`, `core/ai/.../base/AgentActionUseCase.kt:33-38`) — sem o binding, a tool nunca é construída e desaparece de `AgentRegistry.getAll()`, que é a lista usada por `GeminiAgent`/`OpenRouterAgent` para declarar `FunctionDeclaration`s ao modelo.
 
 ### Diagrama ASCII — B-02/B-10 (chokepoint de permissão)
 
@@ -79,7 +79,7 @@ Rastreabilidade:
 └───────────────────────────────────┬───────────────────────────────────┘
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│ GeminiAiAgent.executeFunctionCall / OpenRouterAiAgent.executeToolCall│
+│ GeminiAgent.executeFunctionCall / OpenRouterAgent.executeToolCall│
 │  (chokepoint de dispatch, AD-010 — só gating de Pro hoje)            │
 └───────────────────────────────────┬───────────────────────────────────┘
                                     ▼
@@ -200,7 +200,7 @@ private fun sendMessage() {
 | `ShoppingUpdateUseCase` (construtor) | `(repository: ShoppingRepository)` | `(repository: ShoppingRepository, authService: AuthService)` | `internal` (sem mudança) | Classe já era `internal`; só consumida via Hilt dentro do módulo. Teste em `src/test` precisa ser atualizado para o novo construtor (não é contrato público entre módulos). |
 | `ShoppingMultiDeleteUseCase` (construtor + classe) | `class ... (repository: ShoppingRepository)` (`public`) | `internal class ... (repository: ShoppingRepository, authService: AuthService)` | `public` → `internal` | Confirmado via busca (`grep -rln "ShoppingMultiDeleteUseCase"`) que não há nenhum consumidor fora de `feature/shopping` — `public` era desvio de AGENTS.md §5, não um contrato intencional. |
 | `PriceComparisonUseCase` | existe, registrado | **removido** (classe, binding em `ProductAgentModule.kt:42-44`, teste) | — | Tool nunca teve dado real; `requiresPro`/`id` eram só metadados internos do registry, não contrato consumido por outro módulo. |
-| `AiChatUiState`, `AiAgentContext`, `AiSession`, `AgentAction` | inalterados | inalterados | — | Nenhuma mudança necessária (ver nota de causa-raiz, seção 1). |
+| `AiChatUiState`, `AgentContext`, `AiSession`, `AgentAction` | inalterados | inalterados | — | Nenhuma mudança necessária (ver nota de causa-raiz, seção 1). |
 
 Nenhum novo endpoint, coleção Firestore, evento de Analytics ou remote-config é introduzido. Nenhum `NavKey` é alterado.
 
@@ -225,8 +225,8 @@ Nenhum novo endpoint, coleção Firestore, evento de Analytics ou remote-config 
 
 - **Performance:** nenhuma allocação ou I/O adicional relevante — a checagem de permissão é um lookup O(1) em `Map` já carregado (`shopping.roles`), sem nova leitura de rede (`repository.getById` já era chamado antes da mudança). Nenhuma nova coroutine/dispatcher introduzido.
 - **Feature toggles:** nenhum necessário — comportamento correto não deve ser opcional; ver risco residual de dados de `roles` legados na seção 8.
-- **Observabilidade:** nenhum evento de Analytics novo é proposto. Decisão deliberada: `AgentActionUseCase`s vivem em `domain/usecase/` (domínio puro, AGENTS.md §2) e `AnalyticsTracker` é infraestrutura transversal (`core:analytics`) — nenhum outro use case de IA hoje injeta `AnalyticsTracker`, e abrir essa exceção aqui violaria a separação de camadas só para instrumentar uma negação esperada de regra de negócio (`BusinessRuleException`, por definição "não necessariamente um bug a investigar" — `core/domain/.../exception/BusinessRuleException.kt:6-8`). Exceções genuínas continuam cobertas pelo `crashReporter.recordException` já existente no catch do chokepoint de dispatch (`GeminiAiAgent.kt:172-179`).
-- **Compatibilidade:** `minSdk 28` inalterado. `:wear` não é afetado — `ShoppingUpdateUseCase`/`ShoppingMultiDeleteUseCase` pertencem a `feature:shopping` (não compilado no `:wear`); `AiChatViewModel` é compilado no `:wear` (comentário em `AiAgentModule.kt`... na verdade em `ChatAiGateViewModel.kt:9-11`), mas as mudanças propostas usam apenas tipos já presentes no `:wear` (`AiTrialRepository`, `Flow.onCompletion`), sem novas dependências de módulo.
+- **Observabilidade:** nenhum evento de Analytics novo é proposto. Decisão deliberada: `AgentActionUseCase`s vivem em `domain/usecase/` (domínio puro, AGENTS.md §2) e `AnalyticsTracker` é infraestrutura transversal (`core:analytics`) — nenhum outro use case de IA hoje injeta `AnalyticsTracker`, e abrir essa exceção aqui violaria a separação de camadas só para instrumentar uma negação esperada de regra de negócio (`BusinessRuleException`, por definição "não necessariamente um bug a investigar" — `core/domain/.../exception/BusinessRuleException.kt:6-8`). Exceções genuínas continuam cobertas pelo `crashReporter.recordException` já existente no catch do chokepoint de dispatch (`GeminiAgent.kt:172-179`).
+- **Compatibilidade:** `minSdk 28` inalterado. `:wear` não é afetado — `ShoppingUpdateUseCase`/`ShoppingMultiDeleteUseCase` pertencem a `feature:shopping` (não compilado no `:wear`); `AiChatViewModel` é compilado no `:wear` (comentário em `AgentModule.kt`... na verdade em `ChatAiGateViewModel.kt:9-11`), mas as mudanças propostas usam apenas tipos já presentes no `:wear` (`AiTrialRepository`, `Flow.onCompletion`), sem novas dependências de módulo.
 
 ---
 
@@ -268,7 +268,7 @@ Nenhum novo endpoint, coleção Firestore, evento de Analytics ou remote-config 
 Nenhuma bloqueante. Duas decisões de design foram tomadas durante o planejamento (não bloqueantes, registradas para rastreabilidade):
 
 - [x] **Onde validar B-15 (BYOK em branco)?** Decidido: validação local no Composable `AiSettingsScreen`, não no `AiSettingsViewModel`/`UpdateAiSettingsUseCase`. Motivo: tanto o botão "Salvar" (linha 166-180) quanto o botão de voltar na topbar (linha 70-77) chamam `intent.onUpdateAiSettings(...)` seguido **imediatamente** de `intent.onBack()`/navegação, de forma incondicional e sem aguardar confirmação do ViewModel (que roda em `viewModelScope.launch`, assíncrono). Colocar a validação só no ViewModel exigiria introduzir um canal de evento "pode navegar" (ex.: `SharedFlow` de confirmação) para sincronizar a navegação com o resultado assíncrono — escopo desproporcional para impedir um campo de texto em branco. A validação local (`tier == CUSTOM_BYOK && customApiKey.isBlank()`) é síncrona, resolve o cenário de falha documentado por completo, e é consistente com o fato de já existir estado local (`remember { mutableStateOf(...) }`) para os três campos editáveis na mesma tela.
-- [x] **Corrigir também o fallback silencioso dentro de `AiAgentFactoryImpl`?** Decidido: não neste SDD. Com a validação da UI em vigor, o estado "tier BYOK + chave em branco" não é mais alcançável pelo fluxo normal do app; adicionar uma segunda defesa dentro da factory (ex.: log/crash report se esse estado for alcançado) é um nice-to-have de defesa-em-profundidade, não uma correção do bug documentado — pode entrar em um SDD de hardening futuro se o item for priorizado.
+- [x] **Corrigir também o fallback silencioso dentro de `AgentFactoryImpl`?** Decidido: não neste SDD. Com a validação da UI em vigor, o estado "tier BYOK + chave em branco" não é mais alcançável pelo fluxo normal do app; adicionar uma segunda defesa dentro da factory (ex.: log/crash report se esse estado for alcançado) é um nice-to-have de defesa-em-profundidade, não uma correção do bug documentado — pode entrar em um SDD de hardening futuro se o item for priorizado.
 
 ## 10. Checklist de Conformidade
 - [x] Decisões citam `arquivo:linha` (e `architecture/05-decisoes-arquiteturais.md` AD-010, quando aplicável).

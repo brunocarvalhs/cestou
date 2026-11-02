@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 /**
  * Isola a construção do [GenerativeModel] do SDK do Gemini atrás de uma interface injetável, para
- * que [GeminiAiAgent] seja testável sem precisar de uma instância real do SDK (sdd-026, A-03) —
+ * que [GeminiAgent] seja testável sem precisar de uma instância real do SDK (sdd-026, A-03) —
  * antes, o client era montado inline dentro do próprio agente, o que o excluía do gate de
  * cobertura do Kover (`howmuch.kover.gradle.kts`).
  */

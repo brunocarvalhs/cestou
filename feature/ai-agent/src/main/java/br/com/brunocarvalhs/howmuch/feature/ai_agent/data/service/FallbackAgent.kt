@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
+import br.com.brunocarvalhs.howmuch.core.ai.contract.Agent
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -10,15 +10,15 @@ import timber.log.Timber
 /**
  * Agente de resiliência que tenta usar um agente primário e, em caso de erro, recorre ao secundário.
  */
-internal class FallbackAiAgent(
-    private val primary: AiAgent,
-    private val secondary: AiAgent,
+internal class FallbackAgent(
+    private val primary: Agent,
+    private val secondary: Agent,
     private val session: AiSession
-) : AiAgent {
+) : Agent {
 
     override suspend fun sendMessage(
         prompt: String,
-        context: AiAgentContext
+        context: AgentContext
     ): Flow<String> {
         return primary.sendMessage(prompt, context)
             .catch { error ->

@@ -1,8 +1,8 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 /**
- * Teto de rodadas de tool call por turno, compartilhado por [GeminiAiAgent] e
- * [OpenRouterAiAgent]. Sem isso, um modelo gratuito fraco que repete a mesma tool call trava o
+ * Teto de rodadas de tool call por turno, compartilhado por [GeminiAgent] e
+ * [OpenRouterAgent]. Sem isso, um modelo gratuito fraco que repete a mesma tool call trava o
  * chat em loop sem fim (sdd-006, B-10).
  */
 internal const val MAX_TOOL_ROUNDS = 5

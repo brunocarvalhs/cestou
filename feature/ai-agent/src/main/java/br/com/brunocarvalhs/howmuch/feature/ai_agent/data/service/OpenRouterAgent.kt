@@ -1,7 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 import br.com.brunocarvalhs.howmuch.core.ai.BuildConfig
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.ChatRequest
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.ChatResponse
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.FunctionCall
@@ -25,8 +25,8 @@ import timber.log.Timber
  * Implementação do Agente utilizando a API do OpenRouter.
  * Suporta múltiplos modelos (como GPT-4, Claude, etc) e Function Calling.
  */
-internal class OpenRouterAiAgent(
-    dependencies: AiAgentDependencies,
+internal class OpenRouterAgent(
+    dependencies: AgentDependencies,
     private val httpClientFactory: OpenRouterHttpClientFactory,
     private val model: String = BuildConfig.OPEN_ROUTER_MODEL,
     private val apiKey: String = BuildConfig.OPEN_ROUTER_API_KEY
@@ -44,10 +44,10 @@ internal class OpenRouterAiAgent(
 
     override suspend fun sendMessage(
         prompt: String,
-        context: AiAgentContext
+        context: AgentContext
     ): Flow<String> = flow {
         val meta = context.toMetadata()
-        // Zera no início da tentativa: FallbackAiAgent lê este sinal só depois que esta chamada
+        // Zera no início da tentativa: FallbackAgent lê este sinal só depois que esta chamada
         // falha, então precisa refletir só o que aconteceu *nesta* tentativa (sdd-012).
         session.toolExecutedThisTurn = false
 
@@ -109,7 +109,7 @@ internal class OpenRouterAiAgent(
                 )
             )
             // Relança em vez de emitir um texto amigável — ver o mesmo comentário em
-            // GeminiAiAgent.sendMessage (sdd-006, B-08).
+            // GeminiAgent.sendMessage (sdd-006, B-08).
             throw e
         }
     }
@@ -173,7 +173,7 @@ internal class OpenRouterAiAgent(
      * [BaseAgent.executeAction] (AD-010) e devolve o texto já pronto para a mensagem de role
      * `"tool"`. Não executa nada por si só — quem executa é [BaseAgent.executeAction].
      * `internal` (não `private`) para continuar diretamente testável, como já era antes desta
-     * extração (sdd-026, A-03) — ver [OpenRouterAiAgentGatingTest].
+     * extração (sdd-026, A-03) — ver [OpenRouterAgentGatingTest].
      */
     internal suspend fun toToolCallContent(functionCall: FunctionCall, meta: Map<String, Any?>): String {
         val arguments = parseFunctionCallArguments(json, functionCall.arguments)
@@ -181,7 +181,7 @@ internal class OpenRouterAiAgent(
     }
 
     companion object {
-        private const val TAG = "OpenRouterAiAgent"
+        private const val TAG = "OpenRouterAgent"
 
         // Omitting max_tokens lets OpenRouter default to the routed model's own max output
         // (up to 65535 on some), which "auto"/free-tier accounts often can't afford —

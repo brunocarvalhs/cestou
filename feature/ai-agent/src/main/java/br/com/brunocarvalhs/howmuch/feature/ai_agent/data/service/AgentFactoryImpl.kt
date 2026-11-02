@@ -1,8 +1,8 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 import br.com.brunocarvalhs.howmuch.core.ai.BuildConfig
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
+import br.com.brunocarvalhs.howmuch.core.ai.contract.Agent
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentFactory
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
@@ -13,18 +13,18 @@ import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagServic
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.RemoteVariableService
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.RemoteVariableKeys
-import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AiAgentSession
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AgentSession
 import javax.inject.Inject
 
 /**
- * Factory para criação de instâncias de AiAgent baseadas nas configurações do usuário.
+ * Factory para criação de instâncias de Agent baseadas nas configurações do usuário.
  *
  * Cada provider pode ser desligado remotamente (por versão, se necessário) via
  * [FeatureFlagKeys.AI_GEMINI_ENABLED]/[FeatureFlagKeys.AI_OPENROUTER_ENABLED] — útil para
  * cortar um provider com bug em produção sem publicar uma nova versão do app.
  */
-internal class AiAgentFactoryImpl @Inject constructor(
-    private val session: AiAgentSession,
+internal class AgentFactoryImpl @Inject constructor(
+    private val session: AgentSession,
     private val registry: AgentRegistry,
     private val featureFlagService: FeatureFlagService,
     private val remoteVariableService: RemoteVariableService,
@@ -32,9 +32,9 @@ internal class AiAgentFactoryImpl @Inject constructor(
     private val subscriptionRepository: SubscriptionRepository,
     private val geminiModelFactory: GeminiModelFactory,
     private val openRouterHttpClientFactory: OpenRouterHttpClientFactory
-) : AiAgentFactory {
+) : AgentFactory {
 
-    override fun create(settings: AppSettings): AiAgent {
+    override fun create(settings: AppSettings): Agent {
         val customKey = settings.customApiKey?.takeIf {
             settings.aiConfigTier == AiConfigTier.CUSTOM_BYOK && it.isNotBlank()
         }
@@ -50,14 +50,14 @@ internal class AiAgentFactoryImpl @Inject constructor(
         // applies to whichever provider they actually selected (settings.aiProvider) — the
         // other provider here only exists as a fallback and keeps its BuildConfig default,
         // since the picked model id isn't guaranteed to be valid for it.
-        val dependencies = AiAgentDependencies(
+        val dependencies = AgentDependencies(
             session = session,
             crashReporter = crashReporter,
             subscriptionRepository = subscriptionRepository,
             registry = registry,
             systemPrompt = systemPrompt
         )
-        val gemini = GeminiAiAgent(
+        val gemini = GeminiAgent(
             dependencies = dependencies,
             modelFactory = geminiModelFactory,
             modelName = resolveModel(settings, provider = AiProvider.GEMINI, default = BuildConfig.GEMINI_AGENT),
@@ -68,7 +68,7 @@ internal class AiAgentFactoryImpl @Inject constructor(
         } else {
             resolveRemoteString(RemoteVariableKeys.OPEN_ROUTER_API_KEY, BuildConfig.OPEN_ROUTER_API_KEY)
         }
-        val openRouter = OpenRouterAiAgent(
+        val openRouter = OpenRouterAgent(
             dependencies = dependencies,
             httpClientFactory = openRouterHttpClientFactory,
             model = resolveModel(settings, provider = AiProvider.OPENROUTER, default = BuildConfig.OPEN_ROUTER_MODEL),
@@ -97,22 +97,22 @@ internal class AiAgentFactoryImpl @Inject constructor(
     /**
      * [provider] só decide a ORDEM de preferência entre os dois SDKs, não se há retentativa: se
      * os dois estiverem disponíveis, a escolha explícita do usuário continua indo primeiro, mas
-     * sempre envolta em [FallbackAiAgent] — sem isso, uma falha de transporte no provider
+     * sempre envolta em [FallbackAgent] — sem isso, uma falha de transporte no provider
      * explicitamente escolhido nunca tentaria o outro (sdd-006, B-08). Antes desta correção, só o
      * branch `else` (hoje inalcançável depois do fix de B-07, que fazia quase todo modelo cair
      * aqui por acidente) usava fallback; os branches explícitos só cobriam feature flag desligada.
      */
-    private fun selectAgent(provider: AiProvider, gemini: AiAgent?, openRouter: AiAgent?): AiAgent {
+    private fun selectAgent(provider: AiProvider, gemini: Agent?, openRouter: Agent?): Agent {
         val (primary, secondary) = when (provider) {
             AiProvider.GEMINI -> gemini to openRouter
             AiProvider.OPENROUTER -> openRouter to gemini
             AiProvider.AUTO -> openRouter to gemini
         }
         return when {
-            primary != null && secondary != null -> FallbackAiAgent(primary, secondary, session)
+            primary != null && secondary != null -> FallbackAgent(primary, secondary, session)
             primary != null -> primary
             secondary != null -> secondary
-            else -> NoAiProviderAvailableAgent
+            else -> NoProviderAvailableAgent
         }
     }
 }

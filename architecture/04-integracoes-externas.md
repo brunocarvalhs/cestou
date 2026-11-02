@@ -38,8 +38,8 @@ Implementação da entrada por código: `feature/shopping/domain/usecase/Shoppin
 
 **Onde a chave está exposta:**
 - **No APK:** as chaves vêm do `.env` no build (`app/build.gradle.kts`, `feature/ai-agent/build.gradle.kts`, via `propertiesFileName = ".env"`) e são gravadas no `BuildConfig` (`BuildConfig.GEMINI_API_KEY`, `BuildConfig.OPEN_ROUTER_API_KEY`). Qualquer pessoa que decompilar um APK obtém esses valores, independentemente do Remote Config.
-- **Em tempo de execução:** o Remote Config sobrepõe o valor do `BuildConfig` quando não está vazio (`AiAgentFactoryImpl.kt`, `ProductRepositoryImpl.kt`, `RecipeRepositoryImpl.kt`). O valor remoto também chega ao aparelho.
-- **Na rede:** a chave do OpenRouter é enviada do aparelho no header `Authorization: Bearer ...` (`OpenRouterAiAgent.kt`, ~linha 150), direto ao provedor.
+- **Em tempo de execução:** o Remote Config sobrepõe o valor do `BuildConfig` quando não está vazio (`AgentFactoryImpl.kt`, `ProductRepositoryImpl.kt`, `RecipeRepositoryImpl.kt`). O valor remoto também chega ao aparelho.
+- **Na rede:** a chave do OpenRouter é enviada do aparelho no header `Authorization: Bearer ...` (`OpenRouterAgent.kt`, ~linha 150), direto ao provedor.
 
 **Consequência da troca remota:** trocar a chave no Remote Config só afeta quem recebe o novo valor. APKs antigos continuam com a chave embutida no `BuildConfig` até que ela seja revogada no provedor. Assim, o objetivo de trocar sem rollout é parcialmente atingido: a rotação funciona, mas a chave antiga permanece válida até ser revogada.
 
@@ -50,9 +50,9 @@ Implementação da entrada por código: `feature/shopping/domain/usecase/Shoppin
 
 ## 4. Provedores de IA
 
-- **OpenRouter:** `feature/ai_agent/data/service/OpenRouterAiAgent.kt`, mapeamento em `OpenRouterMapping.kt`. Ligado pela flag `ai_openrouter_enabled`.
-- **Gemini:** `feature/ai_agent/data/service/GeminiAiAgent.kt`. Ligado pela flag `ai_gemini_enabled`.
-- **Fábrica e seleção:** `feature/ai_agent/data/service/AiAgentFactoryImpl.kt`.
+- **OpenRouter:** `feature/ai_agent/data/service/OpenRouterAgent.kt`, mapeamento em `OpenRouterMapping.kt`. Ligado pela flag `ai_openrouter_enabled`.
+- **Gemini:** `feature/ai_agent/data/service/GeminiAgent.kt`. Ligado pela flag `ai_gemini_enabled`.
+- **Fábrica e seleção:** `feature/ai_agent/data/service/AgentFactoryImpl.kt`.
 - **Erros:** mensagens em `AiErrorMessages.kt`; indisponibilidade do provedor gera `AiProviderUnavailableException`.
 - **Histórico:** `ConversationHistory.kt`.
 - **Ferramentas:** ações de negócio expostas ao modelo por `@AiAgentAction` (`core/ai`), executadas via `AgentActionUseCase`.

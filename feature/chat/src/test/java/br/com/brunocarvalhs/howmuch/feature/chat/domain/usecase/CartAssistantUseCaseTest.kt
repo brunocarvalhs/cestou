@@ -1,8 +1,8 @@
 package br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase
 
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgent
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentContext
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AiAgentFactory
+import br.com.brunocarvalhs.howmuch.core.ai.contract.Agent
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentFactory
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiProvider
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
@@ -17,15 +17,15 @@ import org.junit.Test
 
 class CartAssistantUseCaseTest {
 
-    private val agentFactory = mockk<AiAgentFactory>()
+    private val agentFactory = mockk<AgentFactory>()
     private val settingsRepository = mockk<SettingsRepository>()
     private val useCase = CartAssistantUseCase(agentFactory, settingsRepository)
 
     @Test
     fun `invoke creates the agent from current settings and forwards the prompt`() = runTest {
         val settings = AppSettings(aiProvider = AiProvider.GEMINI)
-        val context = mockk<AiAgentContext>()
-        val agent = mockk<AiAgent>()
+        val context = mockk<AgentContext>()
+        val agent = mockk<Agent>()
         every { settingsRepository.getSettings() } returns flowOf(settings)
         every { agentFactory.create(settings) } returns agent
         coEvery { agent.sendMessage("hello", context) } returns flowOf("hi there")

@@ -70,7 +70,7 @@ Arquivo: `User.kt`. Contém `enum class Role { OWNER, EDITOR }`. Demais campos: 
 | `Recipe` | products | `feature/products/domain/model/Recipe.kt` |
 | `CredentialRules` | auth | `feature/auth/domain/model/CredentialRules.kt` |
 | `EmailAuthError` | auth | `feature/auth/domain/model/EmailAuthError.kt` |
-| `AiAgentSession` | ai-agent | `feature/ai_agent/domain/entity/AiAgentSession.kt` |
+| `AgentSession` | ai-agent | `feature/ai_agent/domain/entity/AgentSession.kt` |
 | `AiProviderUnavailableException` | ai-agent | `feature/ai_agent/domain/exception/AiProviderUnavailableException.kt` |
 
 ## 3. Contratos de IA (`:core:ai`)
