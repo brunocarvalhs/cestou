@@ -9,7 +9,7 @@ Execute a partir da raiz do repositório.
 | Comando | Descrição | Quando usar |
 |---|---|---|
 | `./gradlew lintDebug` | Lint Android da variante debug. | Antes de commit/PR. |
-| `./gradlew detekt` | Análise estática Kotlin (config em `config/detekt/detekt.yml`). | Antes de commit/PR. |
+| `./gradlew detekt` | Análise estática Kotlin (config em `buildSrc/config/detekt/detekt.yml`). | Antes de commit/PR. |
 | `./gradlew testDebug` | Testes unitários de todos os módulos. | Antes de commit/PR. |
 | `./gradlew koverVerify koverVerifyLayout` | Verifica cobertura mínima (80%). | Antes de PR que altera lógica. |
 | `./gradlew :app:connectedDebugAndroidTest :core:ui:connectedDebugAndroidTest :feature:settings:connectedDebugAndroidTest` | Testes instrumentados (exigem emulador/dispositivo). | Mudanças em UI/fluxos cobertos. |
@@ -66,11 +66,11 @@ feature/
 ├── chat/ cart/ ai-agent/ subscription/
     └── src/main/java/br/com/brunocarvalhs/howmuch/feature/<nome>/
 wear/                     Wear OS standalone
-config/detekt/detekt.yml  regras Detekt
+buildSrc/config/detekt/detekt.yml  regras Detekt
 gradle/libs.versions.toml versões centrais
 .github/                  pipelines, PR template, danger
 .agents/skills/           skills de automação (SDD + Android)
-specs/                    artefatos SDD versionados
+.specs/                   artefatos SDD versionados
 architecture/             documentação de arquitetura (01-05) — fonte para o SDD
 docs/                     site estático (GitHub Pages) e textos legais — NÃO é documentação de arquitetura
 ```
@@ -91,7 +91,7 @@ docs/                     site estático (GitHub Pages) e textos legais — NÃO
 
 Aplica-se a mudanças em modelos, interfaces de repositório, enums, contratos de IA/remote-config e rotas (`NavKey`) expostos entre módulos:
 
-1. Validar a necessidade no código (usos atuais via busca) e na especificação em `specs/`.
+1. Validar a necessidade no código (usos atuais via busca) e na especificação em `.specs/`.
 2. Marcar explicitamente como `public` e justificar por que não pode ser `internal`.
 3. Adicionar/atualizar testes unitários.
 4. Atualizar a documentação de integrações afetadas (ex.: `core:ai`, `core:remote-config`).
@@ -113,9 +113,9 @@ Aplica-se a mudanças em modelos, interfaces de repositório, enums, contratos d
 ## 8. Fluxo de Trabalho com SDD
 
 ```
-1. Escreva a tarefa em `specs/tasks.txt`.
+1. Escreva a tarefa em `.specs/tasks.txt`.
 2. Gere o plano técnico com a skill `code-planner`.
-   → Produz `specs/<feature-id>/tasks.md` (10 seções).
+   → Produz `.specs/<feature-id>/tasks.md` (10 seções).
    → Ambiguidade bloqueante ⇒ `status: blocked` + "Perguntas em Aberto".
 3. Revise o plano com um maintainer.
 4. Implemente com a skill `code-implementer` (só com `status: ready`).
@@ -125,14 +125,14 @@ Aplica-se a mudanças em modelos, interfaces de repositório, enums, contratos d
 6. (Opcional, só se pedido) Abra o PR com a skill `open-pull-request`.
 ```
 
-> `specs/` é versionado. Não use `.specs/` (legado, removido) nem `docs/specs/` para entrada de tarefas.
+> `.specs/` é versionado (apesar do prefixo `.`, não é rascunho oculto). Não use `specs/` nem `docs/specs/` para entrada de tarefas.
 
 ## 9. Skills de Automação
 
 | Skill | Quando usar |
 |---|---|
 | `code-planner` | Planejar qualquer tarefa não trivial, antes de codar. |
-| `code-implementer` | Implementar a partir de `specs/<feature-id>/tasks.md` com `status: ready`. |
+| `code-implementer` | Implementar a partir de `.specs/<feature-id>/tasks.md` com `status: ready`. |
 | `code-reviewer` | Revisar antes de commit/PR. |
 | `android-architecture` | Dúvidas sobre onde criar arquivos, camadas, padrões e visibilidade. |
 | `open-pull-request` | **Só quando explicitamente invocada.** |
@@ -148,7 +148,7 @@ Skills de domínio já existentes em `.agents/skills/` (ex.: `feature-architectu
 - Não alterar contratos públicos sem registro no release e bump de versão quando aplicável.
 - Não executar `rm -rf`, `git reset --hard`, `git push -f` ou reescrita de histórico sem confirmação explícita.
 - Não carregar `open-pull-request` automaticamente.
-- Não versionar `specs/` como rascunho oculto: os planos SDD são públicos no repositório.
+- Não versionar `.specs/` como rascunho oculto: os planos SDD são públicos no repositório, apesar do prefixo `.`.
 
 ## 11. Dependências Externas
 
@@ -164,7 +164,7 @@ Versões centrais em `gradle/libs.versions.toml`. Principais:
 | Credential Manager / Google ID | Login | `core:auth`, `feature:auth` |
 | Google Play Billing | Assinatura | `core:billing`, `feature:subscription` |
 | OpenRouter / Gemini | Assistente de IA | `core:ai`, `feature:ai-agent`, `feature:chat` |
-| Detekt, Kover, Konsist | Qualidade e cobertura | `config/detekt`, `buildSrc` |
+| Detekt, Kover, Konsist | Qualidade e cobertura | `buildSrc/config/detekt`, `buildSrc` |
 
 ## 12. Contexto do Projeto
 
