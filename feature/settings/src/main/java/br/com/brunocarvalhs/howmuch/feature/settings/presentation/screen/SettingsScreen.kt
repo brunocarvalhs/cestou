@@ -110,7 +110,17 @@ private fun SettingsSectionHeader(
         modifier = modifier
             .clickable(onClick = onClick)
             .semantics {
-                if (expanded) collapse { onClick(); true } else expand { onClick(); true }
+                if (expanded) {
+                    collapse {
+                        onClick()
+                        true
+                    }
+                } else {
+                    expand {
+                        onClick()
+                        true
+                    }
+                }
             },
         leadingContent = {
             Icon(

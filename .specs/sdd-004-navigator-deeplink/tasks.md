@@ -16,7 +16,7 @@ Além disso, o deep link só é lido uma vez, via `LaunchedEffect(intent)` no co
 
 O `Navigator` já expõe um acessor nulo-seguro, `navControllerOrNull` (`Navigator.kt:19-20`, cobertura em `NavigatorTest.kt:40-49`), mas `navigate()`/`goBack()` ainda usam a propriedade que lança (`Navigator.kt:45-55`) — ou seja, a base para tolerar "não vinculado" já existe e só precisa ser usada nesses dois métodos.
 
-**Itens do backlog:** C-01, B-30 (`specs/sdd-001-auditoria-geral/tasks.md:34,74,91`).
+**Itens do backlog:** C-01, B-30 (`.specs/sdd-001-auditoria-geral/tasks.md:34,74,91`).
 
 ## 2. Escopo
 

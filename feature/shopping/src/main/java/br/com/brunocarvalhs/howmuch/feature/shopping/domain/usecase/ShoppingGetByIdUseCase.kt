@@ -3,7 +3,6 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentAction
 import br.com.brunocarvalhs.howmuch.core.ai.annotation.AiAgentParameter
 import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentAction
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getString
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
@@ -23,7 +22,7 @@ import javax.inject.Singleton
 @Singleton
 class ShoppingGetByIdUseCase @Inject constructor(
     private val repository: ShoppingRepository
-): AgentActionUseCase<Shopping>() {
+) : AgentActionUseCase<Shopping>() {
     suspend operator fun invoke(id: String): Result<Shopping> = runCatching {
         repository.getById(id) ?: throw Exception("Shopping not found")
     }

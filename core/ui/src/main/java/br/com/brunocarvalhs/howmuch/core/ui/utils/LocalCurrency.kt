@@ -4,7 +4,7 @@ import androidx.compose.runtime.compositionLocalOf
 import java.util.Currency
 import java.util.Locale
 
-val LocalCurrency = compositionLocalOf { 
+val LocalCurrency = compositionLocalOf {
     try {
         Currency.getInstance(Locale.getDefault()).currencyCode
     } catch (_: Exception) {

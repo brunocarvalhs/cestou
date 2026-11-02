@@ -68,7 +68,7 @@ internal fun NotificationSettingsScreen(
 
             ListItem(
                 modifier = Modifier.clickable(enabled = state.notificationsEnabled) { showTimePicker = true },
-                headlineContent = { 
+                headlineContent = {
                     Text(
                         text = stringResource(R.string.settings_notifications_reminder_time),
                         color = if (state.notificationsEnabled) {
@@ -78,7 +78,7 @@ internal fun NotificationSettingsScreen(
                         }
                     )
                 },
-                supportingContent = { 
+                supportingContent = {
                     Text(
                         text = state.reminderTime,
                         color = if (state.notificationsEnabled) {
@@ -117,11 +117,11 @@ internal fun NotificationSettingsScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
                 TimePicker(state = timePickerState)
-                
+
                 Spacer(modifier = Modifier.height(32.dp))
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)

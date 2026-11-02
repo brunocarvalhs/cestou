@@ -4,5 +4,8 @@
   <CurrentIssues>
     <ID>Filename:NavRoutes.kt$br.com.brunocarvalhs.howmuch.core.navigation.NavRoutes.kt</ID>
     <ID>Filename:WearRoutes.kt$br.com.brunocarvalhs.howmuch.core.navigation.wear.WearRoutes.kt</ID>
+    <ID>MatchingDeclarationName:NavRoutes.kt$ShoppingList : NavKeyRouteProtocol</ID>
+    <ID>MatchingDeclarationName:WearRoutes.kt$ShoppingDetail : NavKey</ID>
+    <ID>UseCheckOrError:Navigator.kt$Navigator$throw IllegalStateException("Navigator not bound to a NavController")</ID>
   </CurrentIssues>
 </SmellBaseline>

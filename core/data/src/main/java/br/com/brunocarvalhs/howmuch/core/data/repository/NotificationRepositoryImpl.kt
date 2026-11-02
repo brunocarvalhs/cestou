@@ -42,7 +42,8 @@ class NotificationRepositoryImpl @Inject constructor(
                 endpoint = "$ENDPOINT/$notificationId",
                 method = NetworkService.Method.PUT,
                 payload = mapOf("isRead" to true)
-            ), response = Boolean::class
+            ),
+            response = Boolean::class
         )
         Unit
     }
@@ -64,8 +65,11 @@ class NotificationRepositoryImpl @Inject constructor(
         )
         networkService.make(
             request = NetworkService.NetworkRequest(
-                endpoint = ENDPOINT, method = NetworkService.Method.POST, payload = model.toMap()
-            ), response = String::class
+                endpoint = ENDPOINT,
+                method = NetworkService.Method.POST,
+                payload = model.toMap()
+            ),
+            response = String::class
         )
         Unit
     }

@@ -36,7 +36,7 @@ internal fun NavGraphBuilder.authGraph(
     composable<Welcome> {
         val viewModel: WelcomeViewModel = hiltViewModel()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        
+
         FirebaseAuthScreen(
             configuration = viewModel.authConfig.invoke(),
             onSignInSuccess = { _ ->
@@ -46,7 +46,6 @@ internal fun NavGraphBuilder.authGraph(
                 viewModel.intent.onSignInFailure(exception)
             },
             onSignInCancelled = {
-
             },
             customMethodPickerLayout = { _, onProviderSelected ->
                 WelcomeScreen(

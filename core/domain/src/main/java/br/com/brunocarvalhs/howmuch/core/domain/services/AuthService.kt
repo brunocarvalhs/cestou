@@ -9,6 +9,7 @@ interface AuthService {
     suspend fun getOrCreateUserId(): AuthenticatedUser
     suspend fun signOut(): Result<Unit>
     suspend fun updateUserId(userId: String)
+
     /**
      * Fails with [br.com.brunocarvalhs.howmuch.core.domain.exception.RecentLoginRequiredException]
      * when Firebase demands a fresh sign-in first.

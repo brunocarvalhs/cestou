@@ -6,7 +6,7 @@ A fonte de verdade é o `AGENTS.md` na raiz do repositório. Leia-o antes de qua
 
 - App Android 100% Kotlin, Jetpack Compose (Material 3), Navigation 3 tipada, Hilt, Clean Architecture + MVI.
 - Módulos: `:app`, `:core:*`, `:feature:*`, `:wear`. Features têm `domain/`, `data/`, `presentation/`, `navigation/`, `di/`.
-- Antes de codar tarefa não trivial: escreva em `specs/tasks.txt` e gere o plano com a skill `code-planner`. Implemente só com `status: ready` (skill `code-implementer`).
+- Antes de codar tarefa não trivial: escreva em `.specs/tasks.txt` e gere o plano com a skill `code-planner`. Implemente só com `status: ready` (skill `code-implementer`).
 - Validação antes de commit: `./gradlew lintDebug`, `./gradlew detekt`, `./gradlew testDebug`.
 - Cobertura mínima de 85% (`./gradlew koverVerify koverVerifyLayout`).
 

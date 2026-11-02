@@ -36,7 +36,7 @@ class ShoppingGetDetailsUseCase @Inject constructor(
         return runCatching {
             val shopping = shoppingRepository.getById(shoppingId)
                 ?: throw Exception("Lista de compras não encontrada")
-            
+
             val products = productsUseCase(shoppingId).first()
 
             mapOf(
@@ -44,7 +44,7 @@ class ShoppingGetDetailsUseCase @Inject constructor(
                 "description" to shopping.description,
                 "budget" to shopping.budget,
                 "totalSpent" to products.sumOf { it.total },
-                "products" to products.map { 
+                "products" to products.map {
                     mapOf(
                         "name" to it.name,
                         "quantity" to it.quantity,

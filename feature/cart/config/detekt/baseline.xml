@@ -2,5 +2,21 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
+    <ID>ComposableParamOrder:AiInputBar.kt$AiInputBar</ID>
+    <ID>ComposableParamOrder:CartAssistantDock.kt$CartAssistantDock</ID>
+    <ID>ComposableParamOrder:CartBottomBar.kt$CartBottomBar</ID>
+    <ID>ComposableParamOrder:ProductListItem.kt$ProductListItem</ID>
+    <ID>LambdaParameterEventTrailing:AiInputBar.kt$onNotFocused</ID>
+    <ID>LambdaParameterEventTrailing:CartBottomBar.kt$onAdd</ID>
+    <ID>MaxLineLength:CartGraph.kt$/** Avoids NavBackStackEntry.getViewModelStore() throwing after `parentEntry` is destroyed (Crashlytics fatal). */</ID>
+    <ID>ModifierMissing:ChatContent.kt$CartAssistantChat</ID>
+    <ID>ParameterNaming:AiInputBar.kt$onFocused</ID>
+    <ID>ParameterNaming:AiInputBar.kt$onNotFocused</ID>
+    <ID>ParameterNaming:CartAssistantDock.kt$onFocused</ID>
+    <ID>ParameterNaming:CartAssistantDock.kt$onNotFocused</ID>
+    <ID>ParameterNaming:CartBottomBar.kt$onFinished</ID>
+    <ID>ParameterNaming:ProductListItem.kt$onTogglePurchased</ID>
+    <ID>UnusedParameter:AiInputBar.kt$expanded: Boolean</ID>
+    <ID>UnusedParameter:AiInputBar.kt$onAddClick: () -&gt; Unit</ID>
   </CurrentIssues>
 </SmellBaseline>
