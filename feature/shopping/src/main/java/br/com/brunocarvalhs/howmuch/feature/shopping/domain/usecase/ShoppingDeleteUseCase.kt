@@ -21,7 +21,7 @@ import javax.inject.Singleton
 @Singleton
 class ShoppingDeleteUseCase @Inject constructor(
     private val repository: ShoppingRepository
-): AgentActionUseCase<Unit>() {
+) : AgentActionUseCase<Unit>() {
 
     suspend operator fun invoke(id: String): Result<Unit> = runCatching {
         val shopping = repository.getById(id) ?: throw Exception("Shopping not found")

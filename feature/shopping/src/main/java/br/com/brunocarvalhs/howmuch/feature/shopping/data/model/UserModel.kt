@@ -16,7 +16,6 @@ internal data class UserModel(
         )
     }
 
-
     companion object {
         fun fromMap(map: Map<String, Any?>): UserModel {
             return UserModel(

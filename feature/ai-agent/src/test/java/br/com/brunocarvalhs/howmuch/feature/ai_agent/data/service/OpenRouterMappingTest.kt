@@ -7,8 +7,6 @@ import br.com.brunocarvalhs.howmuch.core.ai.utils.getString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
@@ -125,7 +123,10 @@ class OpenRouterMappingTest {
 
     // --- parseFunctionCallArguments ---
 
-    private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
 
     // Regression for the "Serializer for class 'Any' is not found" crash.
     @Test

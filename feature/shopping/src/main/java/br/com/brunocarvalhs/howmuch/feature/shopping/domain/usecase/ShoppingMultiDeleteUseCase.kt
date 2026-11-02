@@ -25,7 +25,7 @@ import javax.inject.Singleton
 internal class ShoppingMultiDeleteUseCase @Inject constructor(
     private val repository: ShoppingRepository,
     private val authService: AuthService
-): AgentActionUseCase<Unit>() {
+) : AgentActionUseCase<Unit>() {
 
     suspend operator fun invoke(id: String): Result<Unit> = runCatching {
         val shopping = repository.getById(id) ?: throw Exception("Shopping not found")

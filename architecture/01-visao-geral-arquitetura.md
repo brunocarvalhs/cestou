@@ -69,4 +69,4 @@ ViewModel (presentation) ──► UseCase (domain) ──► Repository (interf
 
 - `README.md` menciona um `FeatureInitializer` que orquestra as features. Esse nome **não existe** no código (busca em `*.kt` sem resultado). Verificar a inicialização real em `app/` antes de citá-la.
 - Os módulos Gradle usam hífen (`:core:remote-config`), mas os pacotes Kotlin usam `remoteconfig` (`core/remote-config/src/main/java/.../core/remoteconfig`). Isto é intencional em Kotlin, mas vale lembrar ao procurar arquivos.
-- `AGENTS.md` e as skills citavam `architecture/01-04` como inexistente; a partir deste documento eles passam a existir (ver `specs/sdd-000-setup-sdd/tasks.md`).
+- `AGENTS.md` e as skills citavam `architecture/01-04` como inexistente; a partir deste documento eles passam a existir (ver `.specs/sdd-000-setup-sdd/tasks.md`).

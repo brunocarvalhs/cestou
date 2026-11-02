@@ -1,6 +1,6 @@
 ---
 name: code-planner
-description: Gera o plano técnico SDD (specs/<feature-id>/tasks.md) para tarefas não triviais do Cestou, antes de qualquer implementação. Use quando o usuário pedir para planejar, especificar ou desenhar uma feature, fix ou refactor.
+description: Gera o plano técnico SDD (.specs/<feature-id>/tasks.md) para tarefas não triviais do Cestou, antes de qualquer implementação. Use quando o usuário pedir para planejar, especificar ou desenhar uma feature, fix ou refactor.
 ---
 
 # Code Planner (SDD)
@@ -22,17 +22,17 @@ Persona: tech lead sênior Android (Kotlin, Compose, Hilt, Clean Architecture + 
 
 ## Entrada e saída
 
-- **Entrada:** `specs/tasks.txt` ou o pedido direto do usuário.
-- **Saída:** `specs/<feature-id>/tasks.md`. Sugestão de ID: `sdd-<NNN>-<slug>`.
+- **Entrada:** `.specs/tasks.txt` ou o pedido direto do usuário.
+- **Saída:** `.specs/<feature-id>/tasks.md`. Sugestão de ID: `sdd-<NNN>-<slug>`.
 - Se o arquivo já existir, sobrescreva **avisando o usuário**.
 
 ## Fontes a ler
 
-1. `specs/tasks.txt`, `AGENTS.md`, `.github/copilot-instructions.md`.
+1. `.specs/tasks.txt`, `AGENTS.md`, `.github/copilot-instructions.md`.
 2. Código dos módulos afetados (features: `domain/`, `data/`, `presentation/`, `navigation/`, `di/`).
 3. `architecture/01-05` — leitura parcial do código. Cada regra cita o arquivo de origem; se a área não estiver documentada, cite o código e registre a lacuna em "Perguntas em Aberto" como não bloqueante, salvo se a lacuna afetar a decisão.
 
-## Template obrigatório de `specs/<feature-id>/tasks.md`
+## Template obrigatório de `.specs/<feature-id>/tasks.md`
 
 ```markdown
 # Task: <título curto e imperativo>
@@ -47,7 +47,7 @@ Persona: tech lead sênior Android (Kotlin, Compose, Hilt, Clean Architecture + 
 
 ## 1. Contexto e Motivação
 - Problema/necessidade em até 5 linhas.
-- Referência ao pedido (`specs/tasks.txt` ou trecho do usuário).
+- Referência ao pedido (`.specs/tasks.txt` ou trecho do usuário).
 - Rastreabilidade: arquivos e linhas relevantes (`arquivo:linha`).
 
 ## 2. Escopo

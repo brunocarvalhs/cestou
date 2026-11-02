@@ -42,11 +42,13 @@ internal class ShoppingSettingsViewModel @Inject constructor(
     private fun observeSettings() {
         settingsRepository.getSettings()
             .onEach { settings ->
-                _uiState.update { it.copy(
-                    defaultListId = settings.defaultListId,
-                    sortingMode = settings.sortingMode,
-                    remindersEnabled = settings.remindersEnabled
-                ) }
+                _uiState.update {
+                    it.copy(
+                        defaultListId = settings.defaultListId,
+                        sortingMode = settings.sortingMode,
+                        remindersEnabled = settings.remindersEnabled
+                    )
+                }
             }
             .launchIn(viewModelScope)
     }

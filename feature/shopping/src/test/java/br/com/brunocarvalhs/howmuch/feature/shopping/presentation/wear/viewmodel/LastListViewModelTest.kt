@@ -20,8 +20,14 @@ class LastListViewModelTest {
     private val viewModel = LastListViewModel(store, repository)
 
     private fun list(id: String, createdAt: Long, status: Shopping.Status = Shopping.Status.NEW) = Shopping(
-        id = id, title = id, description = "", price = 0.0, status = status,
-        users = emptyList(), roles = emptyMap(), createdAt = createdAt
+        id = id,
+        title = id,
+        description = "",
+        price = 0.0,
+        status = status,
+        users = emptyList(),
+        roles = emptyMap(),
+        createdAt = createdAt
     )
 
     @Test

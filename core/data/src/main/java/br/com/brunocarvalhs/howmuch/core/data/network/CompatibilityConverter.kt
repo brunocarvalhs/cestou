@@ -22,7 +22,7 @@ class CompatibilityConverter @Inject constructor() {
         is Iterable<*> -> JsonArray(data.map { toJsonElement(it) })
         is Map<*, *> -> {
             val keys = data.keys.mapNotNull { it?.toString() }
-            
+
             val isNumericIndexed = keys.isNotEmpty() && keys.all { it.toIntOrNull() != null }
             val valuesAreObjects = data.values.all { it is Map<*, *> }
 

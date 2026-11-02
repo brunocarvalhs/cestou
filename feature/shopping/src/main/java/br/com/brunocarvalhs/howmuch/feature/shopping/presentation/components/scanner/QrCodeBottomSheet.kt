@@ -128,7 +128,7 @@ fun QrCodeBottomSheet(
             Surface(
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(12.dp),
-                onClick = { 
+                onClick = {
                     scope.launch {
                         clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("token", token)))
                     }

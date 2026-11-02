@@ -12,10 +12,10 @@
 
 Pedido do usuário: revisar o app inteiro e identificar preditivamente **bugs de lógica** (não crashes de framework, não features faltantes, não infra) que podem corromper dados, conceder/negar acesso indevidamente ou produzir comportamento incorreto em produção.
 
-Já existia uma auditoria geral de 2026-10-31 (`specs/sdd-001-auditoria-geral/tasks.md`), cuja seção 2.2 ("Bugs de Lógica e Integridade de Dados — B") cobria `feature/shopping`, `feature/cart`, `feature/products`, `core/data`, `core/billing`, `feature/chat`. Desde então:
+Já existia uma auditoria geral de 2026-10-31 (`.specs/sdd-001-auditoria-geral/tasks.md`), cuja seção 2.2 ("Bugs de Lógica e Integridade de Dados — B") cobria `feature/shopping`, `feature/cart`, `feature/products`, `core/data`, `core/billing`, `feature/chat`. Desde então:
 - `B-01`/`C-01` (billing) foram corrigidos no commit `55f2869a` (sdd-016-billing-hardening).
 - Os crashes do Crashlytics (CartGraph lifecycle, WorkManager init) foram corrigidos no commit `3b9e3609` (sdd-022), HEAD atual da branch `fix/crashlytics-top-crashes`.
-- `sdd-017-ai-agent-safety`, `sdd-018-firestore-resilience`, `sdd-019-shopping-rules-collaboration`, `sdd-020-cart-budget-ux` (referenciados em `specs/tasks.txt`) **ainda não foram implementados** — nenhuma pasta `specs/sdd-01[7-9]*` ou `sdd-020*` existe no repositório.
+- `sdd-017-ai-agent-safety`, `sdd-018-firestore-resilience`, `sdd-019-shopping-rules-collaboration`, `sdd-020-cart-budget-ux` (referenciados em `.specs/tasks.txt`) **ainda não foram implementados** — nenhuma pasta `.specs/sdd-01[7-9]*` ou `sdd-020*` existe no repositório.
 
 Este documento: (1) **revalida linha a linha** cada item B/C ainda não corrigido contra o código atual; (2) varre módulos com cobertura fraca ou nula nas auditorias anteriores — `core/ai`, `feature/ai-agent`, `core/remote-config`, `core/auth`, `feature/auth`, `feature/profile`, `feature/settings`, `core/navigation`, `wear/`, `app/`; (3) consolida uma lista única priorizada para os SDDs de implementação já planejados.
 
@@ -70,7 +70,7 @@ Metodologia: 4 revisões paralelas e independentes do código em `HEAD` (branch 
 
 ## 3. Ordem de Execução Recomendada (Próximos SDDs)
 
-Atualiza o roadmap de `specs/tasks.txt` com a reclassificação de severidade (B-10 → P0) e os itens novos (B-14 a B-17):
+Atualiza o roadmap de `.specs/tasks.txt` com a reclassificação de severidade (B-10 → P0) e os itens novos (B-14 a B-17):
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -155,7 +155,7 @@ Nenhum contrato é alterado diretamente neste documento de auditoria. Nota de at
 Nenhuma bloqueante para a publicação deste diagnóstico. Não bloqueante: validar B-17 em runtime antes de priorizá-lo (ver seção 6).
 
 ## 10. Checklist de Conformidade
-- [x] Decisões citam `arquivo:linha` (e `specs/sdd-001-auditoria-geral` como origem, quando aplicável).
+- [x] Decisões citam `arquivo:linha` (e `.specs/sdd-001-auditoria-geral` como origem, quando aplicável).
 - [x] Nenhum código de produção escrito (apenas diagnóstico).
 - [x] Seção 6 preenchida de forma substantiva.
 - [x] Nenhuma mudança em símbolo público proposta diretamente (apenas nota de atenção para o SDD-017).

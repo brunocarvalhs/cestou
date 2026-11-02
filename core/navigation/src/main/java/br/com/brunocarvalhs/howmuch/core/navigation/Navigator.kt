@@ -76,7 +76,7 @@ class Navigator {
 
 @Composable
 fun rememberNavigator(navController: NavController = rememberNavController()): Navigator {
-    return remember(navController) { 
-        Navigator().apply { bind(navController) } 
+    return remember(navController) {
+        Navigator().apply { bind(navController) }
     }
 }

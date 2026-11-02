@@ -14,7 +14,7 @@ Várias operações lançam exceções não tratadas ao encontrar dados inválid
 
 Revalidado no código em 2026-10-27 (este plano substitui a versão anterior do mesmo arquivo — ver nota no rodapé). `ShoppingReminderScheduler` já resolve o parse seguro internamente (`parseTime`, linhas 55-59); o item C-02 é sobre reaproveitar essa lógica na tela, que ainda usa `toInt()` direto.
 
-**Itens do backlog (`specs/sdd-001-auditoria-geral/tasks.md:35-39`):** C-02, C-03, C-04, C-05, C-06.
+**Itens do backlog (`.specs/sdd-001-auditoria-geral/tasks.md:35-39`):** C-02, C-03, C-04, C-05, C-06.
 
 ## 2. Escopo
 

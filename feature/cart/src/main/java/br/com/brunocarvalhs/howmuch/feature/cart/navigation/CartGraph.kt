@@ -69,6 +69,7 @@ private fun NavGraphBuilder.cartDestination(
         val parentEntry = remember(backStackEntry) {
             navigator.navController.getBackStackEntry<CartFlow>()
         }
+
         /** Avoids NavBackStackEntry.getViewModelStore() throwing after `parentEntry` is destroyed (Crashlytics fatal). */
         val parentEntryLifecycleState by parentEntry.lifecycle.currentStateAsState()
         if (parentEntryLifecycleState == Lifecycle.State.DESTROYED) return@composable
@@ -115,6 +116,7 @@ private fun NavGraphBuilder.finishPurchaseDestination(navigator: Navigator) {
         val parentEntry = remember(backStackEntry) {
             navigator.navController.getBackStackEntry<CartFlow>()
         }
+
         /** Avoids NavBackStackEntry.getViewModelStore() throwing after `parentEntry` is destroyed (Crashlytics fatal). */
         val parentEntryLifecycleState by parentEntry.lifecycle.currentStateAsState()
         if (parentEntryLifecycleState == Lifecycle.State.DESTROYED) return@dialog
@@ -144,7 +146,8 @@ private fun NavGraphBuilder.finishPurchaseDestination(navigator: Navigator) {
                     )
                 }
                 SnackbarHost(
-                    hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter)
+                    hostState = snackbarHostState,
+                    modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }
         }
@@ -213,6 +216,7 @@ private fun NavGraphBuilder.productHistoryDestination(navigator: Navigator) {
         val parentEntry = remember(backStackEntry) {
             navigator.navController.getBackStackEntry<CartFlow>()
         }
+
         /** Avoids NavBackStackEntry.getViewModelStore() throwing after `parentEntry` is destroyed (Crashlytics fatal). */
         val parentEntryLifecycleState by parentEntry.lifecycle.currentStateAsState()
         if (parentEntryLifecycleState == Lifecycle.State.DESTROYED) return@dialog
@@ -240,6 +244,7 @@ private fun NavGraphBuilder.shareOptionsDestination(navigator: Navigator) {
         val parentEntry = remember(backStackEntry) {
             navigator.navController.getBackStackEntry<CartFlow>()
         }
+
         /** Avoids NavBackStackEntry.getViewModelStore() throwing after `parentEntry` is destroyed (Crashlytics fatal). */
         val parentEntryLifecycleState by parentEntry.lifecycle.currentStateAsState()
         if (parentEntryLifecycleState == Lifecycle.State.DESTROYED) return@dialog

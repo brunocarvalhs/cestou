@@ -116,7 +116,8 @@ class SettingsViewModel @Inject internal constructor(
                 )
             }
         },
-        onToggleSection = { sectionId -> toggleSection(sectionId) })
+        onToggleSection = { sectionId -> toggleSection(sectionId) }
+    )
 
     init {
         analyticsTracker.trackScreenView(screenName = "settings", screenClass = "SettingsViewModel")
@@ -160,7 +161,8 @@ class SettingsViewModel @Inject internal constructor(
     private fun buildGeneralSection(settings: AppSettings) = SettingSection(
         id = SECTION_ID_GENERAL,
         title = UiText.StringResource(R.string.settings_section_general),
-        icon = Icons.Outlined.Tune, items = listOf(
+        icon = Icons.Outlined.Tune,
+        items = listOf(
             SettingItem(
                 title = UiText.StringResource(R.string.settings_item_theme),
                 subtitle = when (settings.themeMode) {
@@ -170,7 +172,8 @@ class SettingsViewModel @Inject internal constructor(
                 },
                 icon = Icons.Outlined.DarkMode,
                 route = ThemeSettings
-            ), SettingItem(
+            ),
+            SettingItem(
                 title = UiText.StringResource(R.string.settings_item_language),
                 subtitle = when (settings.language) {
                     "pt-BR" -> UiText.StringResource(R.string.settings_language_pt)
@@ -180,7 +183,8 @@ class SettingsViewModel @Inject internal constructor(
                 },
                 icon = Icons.Outlined.Language,
                 route = LanguageSettings
-            ), SettingItem(
+            ),
+            SettingItem(
                 title = UiText.StringResource(R.string.settings_item_currency),
                 subtitle = when (settings.currency) {
                     "BRL" -> UiText.StringResource(R.string.settings_currency_brl)
@@ -197,7 +201,8 @@ class SettingsViewModel @Inject internal constructor(
     private fun buildAiSection(settings: AppSettings) = SettingSection(
         id = SECTION_ID_AI,
         title = UiText.StringResource(R.string.settings_section_ai),
-        icon = Icons.Outlined.SmartToy, items = listOf(
+        icon = Icons.Outlined.SmartToy,
+        items = listOf(
             SettingItem(
                 title = UiText.StringResource(R.string.settings_item_ai_model),
                 subtitle = UiText.DynamicString(settings.aiModel),
@@ -218,13 +223,16 @@ class SettingsViewModel @Inject internal constructor(
                     subtitle = settings.defaultListId?.let { UiText.DynamicString(it) }
                         ?: UiText.StringResource(R.string.settings_shopping_none_selected),
                     icon = Icons.Outlined.ShoppingCart,
-                    route = ShoppingSettings),
-            ))
+                    route = ShoppingSettings
+                ),
+            )
+        )
 
     private fun buildDataSection() = SettingSection(
         id = SECTION_ID_DATA,
         title = UiText.StringResource(R.string.settings_section_data),
-        icon = Icons.Outlined.Storage, items = listOf(
+        icon = Icons.Outlined.Storage,
+        items = listOf(
             SettingItem(
                 title = UiText.StringResource(R.string.settings_item_delete_all),
                 subtitle = UiText.StringResource(R.string.settings_item_delete_all_desc),
@@ -237,7 +245,8 @@ class SettingsViewModel @Inject internal constructor(
     private fun buildNotificationsSection(settings: AppSettings) = SettingSection(
         id = SECTION_ID_NOTIFICATIONS,
         title = UiText.StringResource(R.string.settings_section_notifications),
-        icon = Icons.Outlined.NotificationsActive, items = listOf(
+        icon = Icons.Outlined.NotificationsActive,
+        items = listOf(
             SettingItem(
                 title = UiText.StringResource(R.string.settings_item_notifications),
                 subtitle = if (settings.notificationsEnabled) {
@@ -254,23 +263,27 @@ class SettingsViewModel @Inject internal constructor(
     private fun buildSupportSection() = SettingSection(
         id = SECTION_ID_SUPPORT,
         title = UiText.StringResource(R.string.settings_section_support),
-        icon = Icons.Outlined.SupportAgent, items = listOf(
+        icon = Icons.Outlined.SupportAgent,
+        items = listOf(
             SettingItem(
                 title = UiText.StringResource(R.string.settings_item_contact),
                 subtitle = UiText.DynamicString(SUPPORT_EMAIL),
                 icon = Icons.Outlined.Email,
                 route = SupportContact
-            ), SettingItem(
+            ),
+            SettingItem(
                 title = UiText.StringResource(R.string.settings_item_bug_report),
                 subtitle = UiText.StringResource(R.string.settings_item_bug_report_desc),
                 icon = Icons.Outlined.BugReport,
                 route = SupportBugReport
-            ), SettingItem(
+            ),
+            SettingItem(
                 title = UiText.StringResource(R.string.settings_item_feedback),
                 subtitle = UiText.StringResource(R.string.settings_item_feedback_desc),
                 icon = Icons.Outlined.Lightbulb,
                 route = SupportFeedback
-            ), SettingItem(
+            ),
+            SettingItem(
                 title = UiText.StringResource(R.string.settings_item_rate),
                 subtitle = UiText.StringResource(R.string.settings_item_rate_desc),
                 icon = Icons.Outlined.StarOutline,
@@ -282,25 +295,30 @@ class SettingsViewModel @Inject internal constructor(
     private fun buildAboutSection() = SettingSection(
         id = SECTION_ID_ABOUT,
         title = UiText.StringResource(R.string.settings_section_about),
-        icon = Icons.Outlined.Info, items = listOf(
+        icon = Icons.Outlined.Info,
+        items = listOf(
             SettingItem(
                 title = UiText.StringResource(R.string.settings_item_terms),
                 icon = Icons.Outlined.Description,
                 route = TermsOfUse
-            ), SettingItem(
+            ),
+            SettingItem(
                 title = UiText.StringResource(R.string.settings_item_privacy),
                 icon = Icons.Outlined.Policy,
                 route = PrivacyPolicy
-            ), SettingItem(
+            ),
+            SettingItem(
                 title = UiText.StringResource(R.string.settings_item_licenses),
                 icon = Icons.Outlined.Code,
                 route = OpenSourceLicenses
-            ), SettingItem(
+            ),
+            SettingItem(
                 title = UiText.StringResource(R.string.settings_item_release_notes),
                 subtitle = UiText.StringResource(R.string.settings_item_release_notes_desc),
                 icon = Icons.Outlined.NewReleases,
                 route = ReleaseNotes
-            ), SettingItem(
+            ),
+            SettingItem(
                 title = UiText.StringResource(R.string.settings_item_version),
                 subtitle = UiText.DynamicString(appVersionProvider.versionName()),
                 icon = Icons.Outlined.Info,

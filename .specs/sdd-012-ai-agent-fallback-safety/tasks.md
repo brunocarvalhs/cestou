@@ -43,7 +43,7 @@ para `MAX_TOOL_ROUNDS`/relançamento de transporte.
   wrapper — a classificação de rede/genérica em `AiChatViewModel` continua funcionando sem
   mudança lá).
 - `AiAgentFactoryImpl.selectAgent` passa `session` para `FallbackAiAgent`.
-- Atualizar `specs/sdd-006-ai-agent-reliability/tasks.md` (§3 e §4) para documentar
+- Atualizar `.specs/sdd-006-ai-agent-reliability/tasks.md` (§3 e §4) para documentar
   `AiSession.clearHistory()` como contrato público já existente, com a justificativa real
   (classpath do SDK do Gemini não chega a `:feature:chat`/`:app`).
 
@@ -108,7 +108,7 @@ Nenhuma mudança é breaking: `AiSession` ganha campo aditivo; nenhuma assinatur
 | # | Regra atual | Comportamento após a mudança | Origem |
 |---|---|---|---|
 | 1 | `FallbackAiAgent` tenta o secundário para qualquer falha do primário, mesmo após uma tool já ter executado | Só tenta o secundário se nenhuma tool executou nesta tentativa do primário | `FallbackAiAgent.kt:17-24`; critério de aceitação do sdd-006 §6 |
-| 2 | `AiSession.clearHistory()` existe no código sem registro em nenhum `tasks.md` | Documentado em `specs/sdd-006-ai-agent-reliability/tasks.md` §3/§4 | `core/ai/.../AiSession.kt:12-18` |
+| 2 | `AiSession.clearHistory()` existe no código sem registro em nenhum `tasks.md` | Documentado em `.specs/sdd-006-ai-agent-reliability/tasks.md` §3/§4 | `core/ai/.../AiSession.kt:12-18` |
 
 ## 6. Critérios de Aceitação
 
@@ -120,7 +120,7 @@ Nenhuma mudança é breaking: `AiSession` ganha campo aditivo; nenhuma assinatur
 - `toolExecutedThisTurn` é resetado no início de cada `sendMessage`, nunca "vaza" de um turno
   para o outro (duas chamadas sequenciais ao mesmo agente, a segunda sem tool, não deve herdar
   `true` da primeira).
-- `specs/sdd-006-ai-agent-reliability/tasks.md` passa a citar `AiSession.clearHistory()`
+- `.specs/sdd-006-ai-agent-reliability/tasks.md` passa a citar `AiSession.clearHistory()`
   explicitamente em §3 (diagrama) e §4 (tabela de contratos).
 
 ## 7. Plano de Testes

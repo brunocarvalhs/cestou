@@ -134,7 +134,7 @@ class ArchitectureTest {
 
     private val KoFileDeclaration.packageName get() = packagee?.name.orEmpty()
 
-    private fun KoFileDeclaration.path() = "${packageName.removePrefix("$ROOT.")}.${name}"
+    private fun KoFileDeclaration.path() = "${packageName.removePrefix("$ROOT.")}.$name"
 
     @Suppress("MaximumLineLength") // Known-violation lists are data, one entry per line.
     private companion object {

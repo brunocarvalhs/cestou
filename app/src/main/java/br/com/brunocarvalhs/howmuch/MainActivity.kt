@@ -45,7 +45,6 @@ import br.com.brunocarvalhs.howmuch.feature.auth.navigation.CompleteName
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.Welcome
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.isAuthFlow
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint

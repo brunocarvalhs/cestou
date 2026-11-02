@@ -2,6 +2,10 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>TooManyFunctions:FirebaseRemoteConfigServiceTest.kt$FirebaseRemoteConfigServiceTest</ID>
+    <ID>MaxLineLength:RemoteConfigKeys.kt$FeatureFlagKeys$*</ID>
+    <ID>MaxLineLength:RemoteConfigKeys.kt$RemoteVariableKeys$*</ID>
+    <ID>ReturnCount:FirebaseRemoteConfigService.kt$FirebaseRemoteConfigService$override fun isEnabled(key: String, default: Boolean): Boolean</ID>
+    <ID>ReturnCount:FirebaseRemoteConfigService.kt$FirebaseRemoteConfigService$private fun FeatureFlagConfig.isEnabledForVersion(currentVersion: String): Boolean</ID>
+    <ID>TooGenericExceptionCaught:FirebaseRemoteConfigService.kt$FirebaseRemoteConfigService$e: Exception</ID>
   </CurrentIssues>
 </SmellBaseline>

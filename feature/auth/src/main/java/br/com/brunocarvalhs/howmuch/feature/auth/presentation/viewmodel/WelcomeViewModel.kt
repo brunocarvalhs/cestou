@@ -52,12 +52,13 @@ internal class WelcomeViewModel @Inject constructor(
     }
 
     private fun onSignInFailure(exception: Exception) {
-
         analyticsTracker.trackEvent(
             AnalyticsEvents.AUTH_SIGN_IN_FAILED,
             mapOf(
-                AnalyticsParams.REASON to (exception.message
-                    ?: exception::class.simpleName.orEmpty())
+                AnalyticsParams.REASON to (
+                    exception.message
+                        ?: exception::class.simpleName.orEmpty()
+                    )
             )
         )
     }

@@ -13,7 +13,7 @@ import javax.inject.Inject
 )
 class ShoppingGetAllUseCase @Inject constructor(
     private val repository: ShoppingRepository
-): AgentActionUseCase<List<Shopping>>() {
+) : AgentActionUseCase<List<Shopping>>() {
     suspend operator fun invoke(): Result<List<Shopping>> = runCatching {
         repository.getAll()
     }

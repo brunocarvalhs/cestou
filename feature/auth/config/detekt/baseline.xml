@@ -2,5 +2,15 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
+    <ID>LambdaParameterEventTrailing:WelcomeScreen.kt$onClick</ID>
+    <ID>MultipleEmitters:AuthFormComponents.kt$PersonNameFields</ID>
+    <ID>ParameterNaming:AuthFormComponents.kt$onFamilyNameDone</ID>
+    <ID>ParameterNaming:AuthFormComponents.kt$onFamilyNameFocusLost</ID>
+    <ID>ParameterNaming:AuthFormComponents.kt$onGivenNameFocusLost</ID>
+    <ID>ParameterNaming:CustomMethodPicker.kt$onEmailSelected</ID>
+    <ID>ParameterNaming:CustomMethodPicker.kt$onProviderSelected</ID>
+    <ID>TooGenericExceptionCaught:EmailAuthRepositoryImpl.kt$EmailAuthRepositoryImpl$e: Exception</ID>
+    <ID>UnusedParameter:LinkPhoneWearScreen.kt$viewModel: PairingViewModel</ID>
+    <ID>UnusedParameter:WelcomeScreen.kt$modifier: Modifier = Modifier</ID>
   </CurrentIssues>
 </SmellBaseline>

@@ -50,7 +50,7 @@ class ShoppingMapperTest {
     @Test
     fun `toDomain should map model to domain entity`() {
         val result = model.toDomain()
-        
+
         assertEquals(domain.id, result.id)
         assertEquals(domain.title, result.title)
         assertEquals(domain.description, result.description)
@@ -70,7 +70,7 @@ class ShoppingMapperTest {
     @Test
     fun `toModel should map domain entity to model`() {
         val result = domain.toModel()
-        
+
         assertEquals(model.id, result.id)
         assertEquals(model.title, result.title)
         assertEquals(model.description, result.description)

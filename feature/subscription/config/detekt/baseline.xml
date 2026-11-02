@@ -1,5 +1,9 @@
 <?xml version="1.0" ?>
 <SmellBaseline>
   <ManuallySuppressedIssues/>
-  <CurrentIssues/>
+  <CurrentIssues>
+    <ID>MatchingDeclarationName:SubscriptionBenefits.kt$SubscriptionBenefit</ID>
+    <ID>ModifierMissing:ManageSubscriptionScreen.kt$ManageSubscriptionScreen</ID>
+    <ID>ModifierMissing:PaywallScreen.kt$PaywallScreen</ID>
+  </CurrentIssues>
 </SmellBaseline>

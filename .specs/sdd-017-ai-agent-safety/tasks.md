@@ -10,9 +10,9 @@
 
 ## 1. Contexto e Motivação
 
-Pedido do usuário: gerar o plano do `sdd-017-ai-agent-safety` priorizando **B-02** e **B-10**, ambos reclassificados como **P0** em `specs/sdd-023-auditoria-logica-producao/tasks.md` §2.1 — qualquer colaborador de uma lista (até um membro sem papel de edição) pode, só pedindo no chat, apagar a lista inteira ou zerar `users`/`roles` de outro dono, porque nenhum dos dois use cases expostos como tool de IA valida o papel (`role`) de quem está pedindo.
+Pedido do usuário: gerar o plano do `sdd-017-ai-agent-safety` priorizando **B-02** e **B-10**, ambos reclassificados como **P0** em `.specs/sdd-023-auditoria-logica-producao/tasks.md` §2.1 — qualquer colaborador de uma lista (até um membro sem papel de edição) pode, só pedindo no chat, apagar a lista inteira ou zerar `users`/`roles` de outro dono, porque nenhum dos dois use cases expostos como tool de IA valida o papel (`role`) de quem está pedindo.
 
-Este plano também cobre os demais itens já atribuídos ao SDD-017 no roadmap (`specs/tasks.txt`, `specs/sdd-001-auditoria-geral/tasks.md` §3): **B-05**, **B-06**, **C-02**, **C-03**, **B-09**, **B-15** — todos revalidados linha a linha nesta sessão de planejamento, com evidência atual de `HEAD` (branch `fix/crashlytics-top-crashes`).
+Este plano também cobre os demais itens já atribuídos ao SDD-017 no roadmap (`.specs/tasks.txt`, `.specs/sdd-001-auditoria-geral/tasks.md` §3): **B-05**, **B-06**, **C-02**, **C-03**, **B-09**, **B-15** — todos revalidados linha a linha nesta sessão de planejamento, com evidência atual de `HEAD` (branch `fix/crashlytics-top-crashes`).
 
 **Achado adicional desta investigação (corrige o diagnóstico de causa-raiz de `sdd-023`):** `sdd-023-auditoria-logica-producao/tasks.md` §2.1 apontava a ausência de `userId` no metadata da tool (`AiChatUiState.toMetadata()`, linhas 19-22) como bloqueio estrutural para corrigir B-02/B-10. Investigação mais profunda mostra que:
 - `AiSession.userId` (`core/ai/.../contract/AiSession.kt:10`) existe, mas é preenchido **uma única vez**, no momento em que o Hilt resolve o `@Singleton` `AiAgentSession` (`AiAgentModule.kt:32-38`: `authService.currentUser?.id` lido na criação do singleton) — não é um valor observado live, então confiar nele para uma checagem de permissão seria uma segunda classe de bug (usuário stale após troca de sessão).
@@ -31,8 +31,8 @@ Rastreabilidade:
 - `feature/products/.../di/ProductAgentModule.kt:42-44`
 - `feature/ai-agent/.../data/service/AiAgentFactoryImpl.kt:35-42,62-66`
 - `feature/settings/.../presentation/screen/AiSettingsScreen.kt:70-77,166-180`
-- `specs/sdd-001-auditoria-geral/tasks.md` §2.1-2.2 (B-02, B-05, B-06, B-09, B-10, C-02, C-03)
-- `specs/sdd-023-auditoria-logica-producao/tasks.md` §2.1-2.2 (B-02, B-10 reclassificado P0, B-15)
+- `.specs/sdd-001-auditoria-geral/tasks.md` §2.1-2.2 (B-02, B-05, B-06, B-09, B-10, C-02, C-03)
+- `.specs/sdd-023-auditoria-logica-producao/tasks.md` §2.1-2.2 (B-02, B-10 reclassificado P0, B-15)
 - `architecture/05-decisoes-arquiteturais.md` AD-010 (chokepoint de gating Pro já usado como modelo de dispatch)
 
 ---
@@ -54,7 +54,7 @@ Rastreabilidade:
 **Exclui:**
 - Publicação de `firestore.rules` (D-01, `sdd-001`) — a correção aqui é só na camada de aplicação; sem as regras publicadas, um cliente modificado ainda poderia repetir a escrita direto no Firestore. Fica registrado como risco residual (seção 8), não como bloqueio deste SDD.
 - Qualquer mudança em `AiSession`, `AiAgentContext` ou no contrato `AgentAction` de `core:ai` — não são necessárias (ver nota de causa-raiz na seção 1).
-- B-03, B-04, B-07, B-08, B-11, B-12, B-13, B-14, B-16, B-17, C-04, D-01, D-02 — atribuídos a SDD-018/019/020 por `specs/sdd-023-auditoria-logica-producao/tasks.md` §3.
+- B-03, B-04, B-07, B-08, B-11, B-12, B-13, B-14, B-16, B-17, C-04, D-01, D-02 — atribuídos a SDD-018/019/020 por `.specs/sdd-023-auditoria-logica-producao/tasks.md` §3.
 - Implementação real de comparação de preços (fica para um SDD futuro, se houver integração com serviço real de cotação).
 - Mudança no mecanismo de fallback BYOK→chave compartilhada dentro de `AiAgentFactoryImpl` em si — a correção atua na origem (impedir salvar/entrar nesse estado pela UI), não no fallback (ver "Perguntas em Aberto" para a alternativa considerada e descartada).
 

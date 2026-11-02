@@ -39,7 +39,10 @@ class ProductComponentsTest {
             CestouTheme {
                 ProductForm(
                     uiState = ProductFormUiState(
-                        name = "Arroz Branco 5kg", quantity = "2", price = "2590", category = "Mercearia"
+                        name = "Arroz Branco 5kg",
+                        quantity = "2",
+                        price = "2590",
+                        category = "Mercearia"
                     ),
                     shoppingTitle = "Compras"
                 )

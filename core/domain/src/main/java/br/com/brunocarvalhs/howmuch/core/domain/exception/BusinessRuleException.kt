@@ -1,6 +1,5 @@
 package br.com.brunocarvalhs.howmuch.core.domain.exception
 
-
 /**
  * Base para violações de regra de negócio esperadas (ex: usuário sem permissão, estado
  * inválido para a ação) — diferente de um erro técnico inesperado, é algo que a UI deve

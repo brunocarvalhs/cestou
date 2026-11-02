@@ -9,7 +9,7 @@
 - **Impacto público (módulo):** none
 
 ## 1. Contexto e Motivação
-Atualmente, o repositório de faturamento Google Play (`PlayBillingSubscriptionRepository`) apresenta três vulnerabilidades críticas diagnosticadas na auditoria geral (`specs/sdd-001-auditoria-geral/tasks.md`):
+Atualmente, o repositório de faturamento Google Play (`PlayBillingSubscriptionRepository`) apresenta três vulnerabilidades críticas diagnosticadas na auditoria geral (`.specs/sdd-001-auditoria-geral/tasks.md`):
 1. **B-01 (P0):** Quando `queryPurchasesAsync` falha (ex.: erro transitório de rede, `SERVICE_UNAVAILABLE` ou falha temporária no IPC da Play Store), a lista de compras retornada é vazia e o repositório invoca cegamente `handlePurchases(emptyList())`, rebaixando imediatamente um assinante PRO ativo para o plano `FREE` (`PlayBillingSubscriptionRepository.kt:95-106`).
 2. **C-01 (P1):** A função de conexão `connect()` suspende sem timeout através de `suspendCancellableCoroutine` (`PlayBillingSubscriptionRepository.kt:180-192`). Se o processo do Play Services travar ou o callback IPC não responder, a coroutine fica bloqueada para sempre, travando qualquer chamada que dependa de `ensureConnected()`. Além disso, chamadas concorrentes a `startConnection` disparam `IllegalStateException`.
 3. **F-05 (P2):** O refresh das assinaturas só é invocado na inicialização da `PaywallViewModel` (`PaywallViewModel.kt:40`). Não há sincronização automática no ciclo de vida do app (`onResume`), de modo que alterações de status feitas na Play Store ou restaurações de compras não são refletidas durante o uso regular.
@@ -18,7 +18,7 @@ Referências:
 - `core/billing/src/main/java/br/com/brunocarvalhs/howmuch/core/billing/PlayBillingSubscriptionRepository.kt:49-214`
 - `core/domain/src/main/java/br/com/brunocarvalhs/howmuch/core/domain/repository/SubscriptionRepository.kt:14-16`
 - `architecture/05-decisoes-arquiteturais.md` (AD-010)
-- `specs/sdd-001-auditoria-geral/tasks.md` (Itens B-01, C-01, F-05)
+- `.specs/sdd-001-auditoria-geral/tasks.md` (Itens B-01, C-01, F-05)
 
 ## 2. Escopo
 - **Inclui:**
