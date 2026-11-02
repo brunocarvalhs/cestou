@@ -5,6 +5,10 @@ import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.AiAgentFactoryImpl
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.GeminiModelFactory
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.GeminiModelFactoryImpl
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.OpenRouterHttpClientFactory
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.OpenRouterHttpClientFactoryImpl
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AiAgentSession
 import dagger.Binds
 import dagger.Module
@@ -25,6 +29,14 @@ internal abstract class AiAgentModule {
     @Binds
     @Singleton
     abstract fun bindAiSession(impl: AiAgentSession): AiSession
+
+    @Binds
+    @Singleton
+    abstract fun bindGeminiModelFactory(impl: GeminiModelFactoryImpl): GeminiModelFactory
+
+    @Binds
+    @Singleton
+    abstract fun bindOpenRouterHttpClientFactory(impl: OpenRouterHttpClientFactoryImpl): OpenRouterHttpClientFactory
 
     companion object {
         @Provides
