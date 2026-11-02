@@ -11,7 +11,7 @@ Execute a partir da raiz do repositório.
 | `./gradlew lintDebug` | Lint Android da variante debug. | Antes de commit/PR. |
 | `./gradlew detekt` | Análise estática Kotlin (config em `config/detekt/detekt.yml`). | Antes de commit/PR. |
 | `./gradlew testDebug` | Testes unitários de todos os módulos. | Antes de commit/PR. |
-| `./gradlew koverVerify koverVerifyLayout` | Verifica cobertura mínima (80%). | Antes de PR que altera lógica. |
+| `./gradlew koverVerify koverVerifyLayout` | Verifica cobertura mínima (85%). | Antes de PR que altera lógica. |
 | `./gradlew :app:connectedDebugAndroidTest :core:ui:connectedDebugAndroidTest :feature:settings:connectedDebugAndroidTest` | Testes instrumentados (exigem emulador/dispositivo). | Mudanças em UI/fluxos cobertos. |
 | Abrir o projeto no Android Studio + *Sync Project* | Setup inicial e após mudanças em Gradle/versões. | Primeira vez ou mudança em `libs.versions.toml`. |
 
