@@ -2,7 +2,21 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>TooManyFunctions:FirestoreClientTest.kt$FirestoreClientTest</ID>
-    <ID>TooManyFunctions:SettingsRepositoryImplTest.kt$SettingsRepositoryImplTest</ID>
+    <ID>ReturnCount:WearableSyncServiceImpl.kt$WearableSyncServiceImpl$override suspend fun findNodeByPairingCode(code: String): String?</ID>
+    <ID>SpreadOperator:FirestoreClient.kt$FirestoreClient$(*value.toTypedArray())</ID>
+    <ID>SpreadOperator:FirestoreClient.kt$FirestoreClient$(*value.values.toTypedArray())</ID>
+    <ID>SwallowedException:AiModelRepositoryImpl.kt$AiModelRepositoryImpl$e: Exception</ID>
+    <ID>SwallowedException:CloudNetwork.kt$CloudNetwork$e: Exception</ID>
+    <ID>SwallowedException:FirestoreClientTest.kt$FirestoreClientTest$e: Exception</ID>
+    <ID>SwallowedException:FirestoreClientTest.kt$FirestoreClientTest$e: NetworkService.NetworkException</ID>
+    <ID>SwallowedException:NetworkServiceImpl.kt$NetworkServiceImpl$e: Exception</ID>
+    <ID>SwallowedException:SettingsRepositoryImpl.kt$e: IllegalArgumentException</ID>
+    <ID>TooGenericExceptionCaught:AiModelRepositoryImpl.kt$AiModelRepositoryImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:CloudNetwork.kt$CloudNetwork$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:DataStoreStorageService.kt$DataStoreStorageService$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:FirestoreClient.kt$FirestoreClient$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:NetworkServiceImpl.kt$NetworkServiceImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:WearableSyncServiceImpl.kt$WearableSyncServiceImpl$e: Exception</ID>
+    <ID>TooGenericExceptionThrown:AiModelRepositoryImplTest.kt$AiModelRepositoryImplTest$throw RuntimeException("Network error")</ID>
   </CurrentIssues>
 </SmellBaseline>

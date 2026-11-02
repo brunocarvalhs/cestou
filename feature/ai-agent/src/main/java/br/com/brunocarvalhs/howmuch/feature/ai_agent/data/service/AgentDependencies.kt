@@ -14,6 +14,6 @@ internal data class AgentDependencies(
     val session: AiSession,
     val crashReporter: CrashReporter,
     val subscriptionRepository: SubscriptionRepository,
-    val registry: AgentRegistry = AgentRegistry,
+    val registry: AgentRegistry,
     val systemPrompt: String = SystemPrompts.CESTOU_ASSISTANT
 )

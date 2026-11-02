@@ -25,5 +25,4 @@ fun CestouTopBar(
 @Preview
 @Composable
 private fun TopBarPreview() {
-
 }

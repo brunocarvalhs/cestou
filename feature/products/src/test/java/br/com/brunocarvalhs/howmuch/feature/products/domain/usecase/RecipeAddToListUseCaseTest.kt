@@ -3,8 +3,6 @@ package br.com.brunocarvalhs.howmuch.feature.products.domain.usecase
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.feature.products.domain.model.Recipe
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.RecipeRepository
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.RecipeAddToListUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

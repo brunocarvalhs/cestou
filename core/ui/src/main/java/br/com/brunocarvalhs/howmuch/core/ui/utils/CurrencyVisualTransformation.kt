@@ -18,7 +18,7 @@ class CurrencyVisualTransformation(
 
     override fun filter(text: AnnotatedString): TransformedText {
         val digits = text.text.filter { it.isDigit() }
-        
+
         val number = if (digits.isEmpty()) 0.0 else digits.toDouble() / CURRENCY_DIVISOR
         val format = NumberFormat.getCurrencyInstance(locale).apply {
             minimumFractionDigits = 2
@@ -27,7 +27,7 @@ class CurrencyVisualTransformation(
                 currency = java.util.Currency.getInstance(currencyCode)
             } catch (_: Exception) {}
         }
-        
+
         val formatted = format.format(number)
             .replace(format.currency?.symbol ?: "", "")
             .trim()

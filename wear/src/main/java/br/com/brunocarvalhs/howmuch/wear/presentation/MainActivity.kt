@@ -13,7 +13,6 @@ import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.LinkPhone
-import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingCode
 import br.com.brunocarvalhs.howmuch.wear.presentation.theme.CestouTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject

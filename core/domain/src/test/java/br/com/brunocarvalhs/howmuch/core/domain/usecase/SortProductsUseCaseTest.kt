@@ -17,7 +17,7 @@ class SortProductsUseCaseTest {
     @Test
     fun `when sorting mode is NAME, should sort alphabetically`() {
         val result = useCase(products, "NAME")
-        
+
         assertEquals("Abacaxi", result[0].name)
         assertEquals("Banana", result[1].name)
         assertEquals("Leite", result[2].name)
@@ -26,10 +26,10 @@ class SortProductsUseCaseTest {
     @Test
     fun `when sorting mode is DEFAULT, should sort by purchased status then category then name`() {
         val result = useCase(products, "DEFAULT")
-        
+
         // Non-purchased items first
         assertEquals("Abacaxi", result[0].name) // category Frutas, name Abacaxi
-        assertEquals("Leite", result[1].name)    // category Laticínios
-        assertEquals("Banana", result[2].name)   // Purchased = true is last
+        assertEquals("Leite", result[1].name) // category Laticínios
+        assertEquals("Banana", result[2].name) // Purchased = true is last
     }
 }
