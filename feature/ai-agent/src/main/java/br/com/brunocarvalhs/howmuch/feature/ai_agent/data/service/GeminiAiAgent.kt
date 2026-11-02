@@ -119,7 +119,6 @@ internal class GeminiAiAgent(
                 session.history.addAll(chat.history)
                 session.history.trimToRecentHistory()
             }
-
         } catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException) throw e
             Timber.tag(TAG).e(e, "Erro na comunicação com Gemini (model=%s)", modelName)

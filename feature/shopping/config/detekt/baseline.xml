@@ -2,6 +2,35 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>TooManyFunctions:ShoppingRepositoryImplTest.kt$ShoppingRepositoryImplTest</ID>
+    <ID>ComposableParamOrder:ShoppingItem.kt$ShoppingItem</ID>
+    <ID>ModifierMissing:ShoppingItem.kt$ShoppingStatusBadge</ID>
+    <ID>ModifierNotUsedAtRoot:ShoppingScreen.kt$modifier = modifier .fillMaxSize() .padding(padding)</ID>
+    <ID>ModifierWithoutDefault:ShoppingDetailScreen.kt$modifier</ID>
+    <ID>ParameterNaming:QrCodeScanner.kt$onTokenScanned</ID>
+    <ID>ParameterNaming:ShoppingFilterChips.kt$onFilterSelected</ID>
+    <ID>TooGenericExceptionCaught:ShoppingRepositoryImpl.kt$ShoppingRepositoryImpl$e: Exception</ID>
+    <ID>TooGenericExceptionThrown:ShoppingDeleteUseCase.kt$ShoppingDeleteUseCase$throw Exception("Shopping ID is required")</ID>
+    <ID>TooGenericExceptionThrown:ShoppingDeleteUseCase.kt$ShoppingDeleteUseCase$throw Exception("Shopping not found")</ID>
+    <ID>TooGenericExceptionThrown:ShoppingGetByIdUseCase.kt$ShoppingGetByIdUseCase$throw Exception("Shopping ID is required")</ID>
+    <ID>TooGenericExceptionThrown:ShoppingGetByIdUseCase.kt$ShoppingGetByIdUseCase$throw Exception("Shopping not found")</ID>
+    <ID>TooGenericExceptionThrown:ShoppingGetDetailsUseCase.kt$ShoppingGetDetailsUseCase$throw Exception("Lista de compras não encontrada")</ID>
+    <ID>TooGenericExceptionThrown:ShoppingMultiDeleteUseCase.kt$ShoppingMultiDeleteUseCase$throw Exception("Shopping ID is required")</ID>
+    <ID>TooGenericExceptionThrown:ShoppingMultiDeleteUseCase.kt$ShoppingMultiDeleteUseCase$throw Exception("Shopping not found")</ID>
+    <ID>TooGenericExceptionThrown:ShoppingReopenUseCase.kt$ShoppingReopenUseCase$throw Exception("Shopping ID is required")</ID>
+    <ID>TooGenericExceptionThrown:ShoppingReopenUseCase.kt$ShoppingReopenUseCase$throw Exception("Shopping not found")</ID>
+    <ID>TooGenericExceptionThrown:ShoppingUpdateUseCase.kt$ShoppingUpdateUseCase$throw Exception("Shopping ID is required")</ID>
+    <ID>TooGenericExceptionThrown:ShoppingUpdateUseCase.kt$ShoppingUpdateUseCase$throw Exception("Shopping list not found")</ID>
+    <ID>UnusedParameter:ShoppingHeader.kt$onAdd: () -&gt; Unit = {}</ID>
+    <ID>UnusedParameter:ShoppingHeader.kt$onJoin: () -&gt; Unit = {}</ID>
+    <ID>UnusedParameter:ShoppingHeader.kt$onNotificationClick: () -&gt; Unit = {}</ID>
+    <ID>UnusedParameter:ShoppingHeader.kt$onSettingsClick: () -&gt; Unit = {}</ID>
+    <ID>UnusedParameter:ShoppingScreen.kt$uiState: ShoppingListUiState</ID>
+    <ID>UnusedParameter:ShoppingScreen.kt$windowSizeClass: WindowSizeClass</ID>
+    <ID>UnusedParameter:ShoppingSummaryCard.kt$completedLists: Int</ID>
+    <ID>UnusedParameter:ShoppingSummaryCard.kt$totalBudget: Double = 0.0</ID>
+    <ID>UnusedParameter:ShoppingSummaryCard.kt$totalLists: Int</ID>
+    <ID>UnusedPrivateProperty:ShoppingListViewModel.kt$ShoppingListViewModel$private var closeConfirmation = false</ID>
+    <ID>UseCheckOrError:ShoppingRepositoryImpl.kt$ShoppingRepositoryImpl$throw IllegalStateException("Failed to delete share code $code")</ID>
+    <ID>UseCheckOrError:ShoppingRepositoryImpl.kt$ShoppingRepositoryImpl$throw IllegalStateException("Failed to leave shopping $shoppingId")</ID>
   </CurrentIssues>
 </SmellBaseline>

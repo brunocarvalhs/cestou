@@ -81,7 +81,10 @@ internal class OpenRouterAiAgent(
             val tools = buildOpenRouterTools(registry.getAll())
 
             var currentRequest = ChatRequest(
-                model = model, messages = messages, tools = tools, maxTokens = MAX_RESPONSE_TOKENS
+                model = model,
+                messages = messages,
+                tools = tools,
+                maxTokens = MAX_RESPONSE_TOKENS
             )
             var response: ChatResponse = executeRequest(currentRequest)
             var rounds = 0
@@ -101,11 +104,13 @@ internal class OpenRouterAiAgent(
                 assistantMessage.toolCalls?.forEach { toolCall ->
                     val result = executeToolCall(toolCall.function, meta)
 
-                    messages.add(Message(
-                        role = "tool",
-                        toolCallId = toolCall.id,
-                        content = result
-                    ))
+                    messages.add(
+                        Message(
+                            role = "tool",
+                            toolCallId = toolCall.id,
+                            content = result
+                        )
+                    )
                 }
 
                 currentRequest = ChatRequest(
@@ -118,7 +123,6 @@ internal class OpenRouterAiAgent(
                 emit(text)
                 recordTurnInHistory(prompt, text)
             }
-
         } catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException) throw e
             Timber.tag(TAG).e(e, "Erro na comunicação com OpenRouter (model=%s)", model)
@@ -238,6 +242,7 @@ internal class OpenRouterAiAgent(
         private const val TAG = "OpenRouterAiAgent"
         private const val REQUEST_TIMEOUT_MS = 45_000L
         private const val CONNECT_TIMEOUT_MS = 15_000L
+
         // Omitting max_tokens lets OpenRouter default to the routed model's own max output
         // (up to 65535 on some), which "auto"/free-tier accounts often can't afford —
         // observed as a real 402 "requires more credits" on this exact request shape. A chat

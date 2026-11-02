@@ -9,6 +9,7 @@ package br.com.brunocarvalhs.howmuch.core.common.wearable
 object WearablePaths {
     const val PAIRING_VERIFY = "/pairing/verify"
     const val PAIRING_CONFIRM = "/pairing/confirm"
+
     /** Payload: [encodeAuthPair]. The watch signs in to Firebase with the token (AD-009). */
     const val AUTH_PAIR = "/auth/pair"
 

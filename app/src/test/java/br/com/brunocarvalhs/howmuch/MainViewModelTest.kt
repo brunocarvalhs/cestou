@@ -189,7 +189,10 @@ class MainViewModelTest {
     fun `saves the users profile for a signed-in user with a name, without the e-mail`() {
         viewModel(
             currentUser = AuthenticatedUser(
-                id = "u1", email = "ana@test.com", displayName = "Ana Silva", photoUrl = "http://x/y.png"
+                id = "u1",
+                email = "ana@test.com",
+                displayName = "Ana Silva",
+                photoUrl = "http://x/y.png"
             )
         )
 

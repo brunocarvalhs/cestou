@@ -51,4 +51,3 @@ internal fun ChatSession.toModel(): ChatSessionModel =
         updatedAtEpochMillis = updatedAtEpochMillis,
         messageCount = messageCount
     )
-

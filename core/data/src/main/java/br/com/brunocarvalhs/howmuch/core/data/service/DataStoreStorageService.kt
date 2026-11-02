@@ -68,8 +68,10 @@ class DataStoreStorageService @Inject constructor(
                 raw as T
             } else {
                 @Suppress("UNCHECKED_CAST")
-                val serializer = (valueType?.let { json.serializersModule.serializer(it) }
-                    ?: type.serializer()) as KSerializer<T>
+                val serializer = (
+                    valueType?.let { json.serializersModule.serializer(it) }
+                        ?: type.serializer()
+                    ) as KSerializer<T>
                 json.decodeFromString(serializer, raw)
             }
         } catch (e: Exception) {
