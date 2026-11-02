@@ -185,7 +185,15 @@ coverage:
 # `./gradlew <command>` step like the checks[] matrix runs. Gated only on
 # stage 1 (lint) passing, same as coverage - runs in parallel with stage 2.
 instrumented_tests:
-  enabled: true
+  # Disabled: the hosted emulator has repeatedly hit "Failed to find
+  # ColorBuffer" / "Failed to bind to texture: invalid color buffer" mid-run
+  # (never a real assertion failure) across #243, #244, #245, #246 - a GPU/EGL
+  # state issue with the emulator under swiftshader on these runners.
+  # Explicitly pinning emulator-options (-gpu swiftshader_indirect, trimmed
+  # audio/camera/snapshot I/O) did not fix it either. Disabled rather than
+  # leaving this gate permanently red; run these tests locally with the
+  # command below (needs a real emulator/device) until this is revisited.
+  enabled: false
   display_name: "\U0001F4F1 Instrumented Tests (UI)"
   api_level: 34
   target: "google_apis"
