@@ -182,6 +182,7 @@ internal class OpenRouterAiAgent(
 
     companion object {
         private const val TAG = "OpenRouterAiAgent"
+
         // Omitting max_tokens lets OpenRouter default to the routed model's own max output
         // (up to 65535 on some), which "auto"/free-tier accounts often can't afford —
         // observed as a real 402 "requires more credits" on this exact request shape. A chat

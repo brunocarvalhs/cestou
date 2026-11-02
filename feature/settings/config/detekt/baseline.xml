@@ -5,9 +5,9 @@
     <ID>ComposableParamOrder:SettingsScreen.kt$SettingsItem</ID>
     <ID>ForbiddenComment:ShoppingReminderWorker.kt$ShoppingReminderWorker$// TODO: swap for a dedicated monochrome notification icon asset.</ID>
     <ID>ImplicitDefaultLocale:NotificationSettingsScreen.kt$String.format("%02d:%02d", timePickerState.hour, timePickerState.minute)</ID>
-    <ID>MultipleEmitters:AiSettingsScreen.kt$Tier2Content</ID>
-    <ID>MultipleEmitters:AiSettingsScreen.kt$Tier3Content</ID>
-    <ID>ParameterNaming:AiSettingsScreen.kt$onModelSelected</ID>
+    <ID>MultipleEmitters:AiTier2Content.kt$AiTier2Content</ID>
+    <ID>MultipleEmitters:AiTier3Content.kt$AiTier3Content</ID>
+    <ID>ParameterNaming:AiTier2Content.kt$onModelSelected</ID>
     <ID>ReturnCount:DeleteAccountUseCase.kt$DeleteAccountUseCase$suspend operator fun invoke(): Result&lt;Unit&gt;</ID>
     <ID>TooGenericExceptionCaught:ShoppingReminderWorker.kt$ShoppingReminderWorker$e: Exception</ID>
   </CurrentIssues>
