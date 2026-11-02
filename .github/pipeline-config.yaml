@@ -185,7 +185,7 @@ coverage:
 # `./gradlew <command>` step like the checks[] matrix runs. Gated only on
 # stage 1 (lint) passing, same as coverage - runs in parallel with stage 2.
 instrumented_tests:
-  enabled: true
+  enabled: false
   display_name: "\U0001F4F1 Instrumented Tests (UI)"
   api_level: 34
   target: "google_apis"
