@@ -11,7 +11,6 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import java.time.Clock
 import javax.inject.Named
 
 @Module
@@ -23,9 +22,6 @@ abstract class ShoppingModule {
     abstract fun bindShoppingNavGraph(impl: ShoppingNavGraph): FeatureNavGraph
 
     companion object {
-        @Provides
-        fun provideClock(): Clock = Clock.systemDefaultZone()
-
         @Provides
         @Named(SPENDING_IO_DISPATCHER)
         fun provideSpendingIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
