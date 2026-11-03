@@ -33,5 +33,5 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
     implementation(libs.kotlinx.coroutines.play.services)
-    implementation("com.firebaseui:firebase-ui-auth:10.0.0-beta05")
+    implementation("com.firebaseui:firebase-ui-auth:10.0.0")
 }
