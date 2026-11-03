@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 * chore(infra): delete Realtime Database instance (legacy v1.x data, irrecoverable)
+* feat(shopping): add History tab with purchases grouped by month, a trend card carousel and the purchases of the selected month (sdd-029)
+* feat(shopping): add spending analysis screen with total cost per month, top categories ranking and the month's purchases, opened from History (sdd-031)
+* feat(core): add optional `Shopping.finishedAt` (additive), stamped when a list is finished (finish sheet, quick-finish and AI agent) and cleared on reopen. Lists finished before this release have no `finishedAt` and appear in the month they were created, which may differ from the month of the purchase
+* feat(navigation): add `History` and `SpendingInsights` routes
 
 ## [2.2.1] - 2026-10-16
 

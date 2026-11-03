@@ -51,6 +51,14 @@ object AnalyticsEvents {
     const val PAYWALL_SUBSCRIBE_CLICKED = "paywall_subscribe_clicked"
     const val PAYWALL_PURCHASE_FAILED = "paywall_purchase_failed"
     const val MANAGE_SUBSCRIPTION_PLAY_STORE_OPENED = "manage_subscription_play_store_opened"
+
+    // History and spending insights never carry amounts, establishments or category names.
+    const val HISTORY_VIEWED = "history_viewed"
+    const val HISTORY_MONTH_SELECTED = "history_month_selected"
+    const val HISTORY_PURCHASE_OPENED = "history_purchase_opened"
+    const val SPENDING_INSIGHTS_VIEWED = "spending_insights_viewed"
+    const val SPENDING_INSIGHTS_MONTH_SELECTED = "spending_insights_month_selected"
+    const val SPENDING_INSIGHTS_LIST_OPENED = "spending_insights_list_opened"
 }
 
 /**
@@ -74,4 +82,7 @@ object AnalyticsParams {
     const val SOURCE = "source"
     const val SECTION_ID = "section_id"
     const val EXPANDED = "expanded"
+
+    /** Month as `yyyy-MM`. */
+    const val MONTH = "month"
 }

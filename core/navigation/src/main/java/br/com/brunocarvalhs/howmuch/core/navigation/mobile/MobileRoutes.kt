@@ -18,6 +18,18 @@ data object Profile : NavKey, RouteProtocol {
     override val routeType: RouteType = RouteType.PROTECTED
 }
 
+/** Bottom-bar tab listing finished purchases grouped by month (sdd-029). */
+@Serializable
+data object History : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}
+
+/** Monthly spending chart and category ranking, opened from [History] (sdd-031). */
+@Serializable
+data object SpendingInsights : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}
+
 @Serializable
 data class JoinList(val token: String? = null) : NavKey
 

@@ -154,4 +154,33 @@
     </plurals>
     <string name="notifications_error_list_unavailable">Esta lista ya no está disponible.</string>
     <string name="notifications_error_mark_read">No se pudo actualizar la notificación. Inténtalo de nuevo.</string>
+    <!-- History and spending insights (sdd-029, sdd-031) -->
+    <string name="history_title">Historial</string>
+    <string name="history_month_purchases">Compras de %1$s</string>
+    <string name="history_see_analysis">Ver análisis</string>
+    <string name="history_empty_title">Aún no hay compras finalizadas</string>
+    <string name="history_empty_hint">Finaliza una lista de compras y aparecerá aquí.</string>
+    <string name="history_error">No se pudo cargar tu historial.</string>
+    <string name="history_retry">Reintentar</string>
+    <string name="history_month_description">%1$s, %2$s</string>
+    <string name="history_month_description_selected">%1$s, %2$s, seleccionado</string>
+    <string name="history_purchase_subtitle">%1$s · %2$s</string>
+    <string name="insights_title">Análisis de gastos</string>
+    <string name="insights_total_per_month">Gasto total por mes</string>
+    <string name="insights_top_categories">Dónde más gastaste en %1$s</string>
+    <string name="insights_category_others">Otros</string>
+    <string name="insights_purchases_of">Compras de %1$s</string>
+    <string name="insights_empty_title">Finaliza una compra para ver tu análisis</string>
+    <string name="insights_empty_hint">Tu gasto mensual y las categorías principales aparecerán aquí.</string>
+    <string name="insights_error">No se pudo cargar tu análisis.</string>
+    <string name="insights_categories_error">No se pudieron cargar las categorías.</string>
+    <string name="insights_retry">Reintentar</string>
+    <string name="insights_categories_footer">Basado en los artículos con precio</string>
+    <string name="insights_categories_empty">No hay artículos con precio en este mes.</string>
+    <string name="insights_category_description">%1$s, %2$s, %3$s del total</string>
+    <string name="insights_back">Volver</string>
+    <plurals name="history_people">
+        <item quantity="one">%d persona</item>
+        <item quantity="other">%d personas</item>
+    </plurals>
 </resources>
