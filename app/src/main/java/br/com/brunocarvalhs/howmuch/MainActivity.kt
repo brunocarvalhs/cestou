@@ -37,8 +37,10 @@ import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.isProtectedRoute
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouBottomNavigation
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.CompleteName
@@ -160,13 +162,13 @@ class MainActivity : AppCompatActivity() {
 
             // AiChat's shoppingId here is a throwaway placeholder: rootRoutes only matches by
             // route::class (see hasRoute/isProtectedRoute below), never by field value.
-            val rootRoutes = remember { listOf(ShoppingList, AiChat(shoppingId = ""), Profile) }
+            val rootRoutes = remember { listOf(ShoppingList, History, AiChat(shoppingId = ""), Profile) }
 
             val currentRoute = rootRoutes.find { route ->
                 currentDestination?.hierarchy?.any { it.hasRoute(route::class) } == true
             }
 
-            val isOnProtectedRoute = currentDestination?.isProtectedRoute(rootRoutes) == true
+            val isOnProtectedRoute = currentDestination?.isProtectedRoute(rootRoutes + SpendingInsights) == true
 
             LaunchedEffect(isOnProtectedRoute, isAuthenticated) {
                 if (!isAuthenticated && isOnProtectedRoute) {

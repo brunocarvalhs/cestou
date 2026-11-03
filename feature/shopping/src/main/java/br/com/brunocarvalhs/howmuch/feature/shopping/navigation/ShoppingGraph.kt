@@ -30,23 +30,29 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.EditShoppingContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.JoinListContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.scanner.QrCodeBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.scanner.QrCodeScanner
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.HistoryScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.NotificationsScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.ShoppingScreen
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.SpendingInsightsScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.EditShoppingViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.HistoryViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.JoinListViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.NotificationsViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ScannerViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingListViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingSubscriptionGateViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.SpendingInsightsViewModel
 
 private const val SCANNER_MAX_HEIGHT_FRACTION = 0.8f
 private const val PAYWALL_SOURCE_QR_CODE = "shopping_qr_code"
@@ -77,6 +83,20 @@ fun NavGraphBuilder.shoppingGraph(
             state = uiState,
             intent = viewModel.intent
         )
+    }
+
+    composable<History> {
+        val viewModel: HistoryViewModel = hiltViewModel()
+        viewModel.setNavigator(navigator)
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        HistoryScreen(state = uiState, intent = viewModel.intent)
+    }
+
+    composable<SpendingInsights> {
+        val viewModel: SpendingInsightsViewModel = hiltViewModel()
+        viewModel.setNavigator(navigator)
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        SpendingInsightsScreen(state = uiState, intent = viewModel.intent)
     }
 
     shoppingEditDialog(navigator)
