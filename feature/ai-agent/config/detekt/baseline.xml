@@ -5,6 +5,16 @@
     <ID>InstanceOfCheckForException:BaseAgent.kt$BaseAgent$e is CancellationException</ID>
     <ID>InstanceOfCheckForException:GeminiAgent.kt$GeminiAgent$e is kotlinx.coroutines.CancellationException</ID>
     <ID>InstanceOfCheckForException:OpenRouterAgent.kt$OpenRouterAgent$e is kotlinx.coroutines.CancellationException</ID>
+    <ID>PackageName:ToolNote.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:ToolMemoTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:OpenRouterAgentMemoryTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:ToolNote.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:ToolMemoTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:OpenRouterAgentMemoryTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:HistoryMessages.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:HistoryMessagesTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:HistoryMessages.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:HistoryMessagesTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:AgentDependencies.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:AgentFactoryImpl.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:AgentFactoryImplTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
@@ -19,7 +29,7 @@
     <ID>PackageName:ChatRequest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model</ID>
     <ID>PackageName:ChatResponse.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model</ID>
     <ID>PackageName:Choice.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model</ID>
-    <ID>PackageName:ConversationHistory.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageName:ConversationHistory.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity</ID>
     <ID>PackageName:ConversationHistoryTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:FakeAgentAction.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageName:FallbackAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
@@ -61,7 +71,7 @@
     <ID>PackageNaming:ChatRequest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model</ID>
     <ID>PackageNaming:ChatResponse.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model</ID>
     <ID>PackageNaming:Choice.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model</ID>
-    <ID>PackageNaming:ConversationHistory.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
+    <ID>PackageNaming:ConversationHistory.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity</ID>
     <ID>PackageNaming:ConversationHistoryTest.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageNaming:FakeAgentAction.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>
     <ID>PackageNaming:FallbackAgent.kt$package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service</ID>

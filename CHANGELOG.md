@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+* fix(ui): bottom sheets now share one background, `colorScheme.background`, so the drag handle no longer shows a different colour from the content (sdd-035)
+* feat(ui): add `CestouModalBottomSheet` in `core:ui` (additive) and `ShareOptionsBottomSheet` gains an optional `modifier` (additive) (sdd-035)
+* fix(chat): the native back button and the scrim now close the AI chat sheet while a conversation is active; before, the sheet stayed stuck on screen (sdd-035)
+* fix(chat): the AI answer is no longer cancelled when the chat is closed; the turn runs on an application scope and the answer (or the error) is saved to the history. Reopening the chat waits for the pending answer, a chat without list or session now gets one before the first send, and signing out cancels pending turns (sdd-035)
+* feat(chat): `AiChatViewModel` gains `@ChatBackgroundScope` and `ChatTurnTracker` constructor parameters (additive, internal wiring through Hilt) (sdd-035)
 * chore(infra): delete Realtime Database instance (legacy v1.x data, irrecoverable)
 * feat(shopping): add History tab with purchases grouped by month, a trend card carousel and the purchases of the selected month (sdd-029)
 * feat(shopping): add spending analysis screen with total cost per month, top categories ranking and the month's purchases, opened from History (sdd-031)

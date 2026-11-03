@@ -5,6 +5,7 @@ import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.R
+import br.com.brunocarvalhs.howmuch.feature.chat.data.service.ChatTurnTrackerImpl
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.SpeechToTextManager
@@ -13,8 +14,10 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
@@ -47,7 +50,9 @@ class AiChatViewModelReliabilityTest {
         every { errorMessage } returns MutableStateFlow(null)
     }
 
-    private val aiSession = mockk<AiSession>(relaxed = true)
+    private val aiSession = mockk<AiSession>(relaxed = true) {
+        every { activeAction } returns MutableStateFlow(null)
+    }
     private val context = mockk<Context> {
         every { getString(R.string.ai_chat_error_network) } returns "network error"
         every { getString(R.string.ai_chat_error_generic) } returns "generic error"
@@ -67,7 +72,9 @@ class AiChatViewModelReliabilityTest {
             speechToTextManager,
             mockk(relaxed = true),
             mockk(relaxed = true),
-            context
+            context,
+            CoroutineScope(SupervisorJob() + testDispatcher),
+            ChatTurnTrackerImpl()
         )
     }
 
@@ -120,7 +127,7 @@ class AiChatViewModelReliabilityTest {
 
         viewModel.intent.onSendMessage()
 
-        coVerify { chatHistoryRepository.save("list1", viewModel.uiState.value.messages) }
+        coVerify { chatHistoryRepository.saveSession(any(), viewModel.uiState.value.messages, "list1", null) }
         assertTrue(viewModel.uiState.value.messages.last().text.isNotBlank())
     }
 
