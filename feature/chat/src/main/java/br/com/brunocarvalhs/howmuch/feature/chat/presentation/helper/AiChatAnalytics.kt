@@ -8,6 +8,9 @@ import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.analytics.service.FirstTimeEventTracker
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiTurnInfo
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.ReasonChip
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.Vote
 import java.io.IOException
 import kotlin.time.TimeMark
 
@@ -71,6 +74,23 @@ internal class AiChatAnalytics(
                 AnalyticsParams.TOOL_CALLS to session.toolCallsThisTurn,
                 AnalyticsParams.FALLBACK_USED to session.fallbackUsedThisTurn
             )
+        )
+    }
+
+    /**
+     * Polegar numa resposta. O toque no 👎 sai sem `reason`; o chip que vem depois repete o evento
+     * com `reason`, então o total de 👎 é a contagem sem `reason` e os motivos são o detalhe.
+     * Nunca leva o texto da resposta.
+     */
+    fun messageVoted(vote: Vote, turn: AiTurnInfo?, reason: ReasonChip? = null) {
+        analyticsTracker.trackEvent(
+            AnalyticsEvents.AI_MESSAGE_FEEDBACK,
+            buildMap {
+                put(AnalyticsParams.VALUE, vote.value)
+                put(AnalyticsParams.PROVIDER, turn?.provider ?: PROVIDER_NONE)
+                put(AnalyticsParams.TOOL_CALLS, turn?.toolCalls ?: 0)
+                reason?.let { put(AnalyticsParams.REASON, it.value) }
+            }
         )
     }
 

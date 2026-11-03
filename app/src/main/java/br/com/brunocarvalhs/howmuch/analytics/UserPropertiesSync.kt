@@ -128,7 +128,8 @@ internal class UserPropertiesSync @Inject constructor(
             AnalyticsUserProperties.AI_PROVIDER,
             AnalyticsUserProperties.NOTIFICATIONS_ENABLED,
             AnalyticsUserProperties.REMINDERS_ENABLED,
-            AnalyticsUserProperties.SORTING_MODE
+            AnalyticsUserProperties.SORTING_MODE,
+            AnalyticsUserProperties.NPS_CLASS
         ).forEach { analyticsTracker.setUserProperty(it, null) }
     }
 
