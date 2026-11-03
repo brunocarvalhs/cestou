@@ -20,6 +20,9 @@ object FeatureFlagKeys {
 
     /** Pairing (and so signing in) a watch from the phone. Default on. */
     const val WEAR_LOGIN_ENABLED = "wear_login_enabled"
+
+    /** Kill-switch do evento `ui_action` (cliques); os demais eventos de analytics seguem. Default on. */
+    const val ANALYTICS_UI_ACTIONS_ENABLED = "feat_analytics_ui_actions"
 }
 
 /**

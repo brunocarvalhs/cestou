@@ -31,12 +31,14 @@ internal class ScannerViewModel @Inject constructor(
 
     val intent = ScannerIntent(
         onTokenScanned = { token -> onTokenScanned(token) },
-        onDismiss = { _navigator?.goBack() }
+        onDismiss = {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.DIALOG_DISMISSED,
+                mapOf(AnalyticsParams.ELEMENT_ID to "scanner.dismiss")
+            )
+            _navigator?.goBack()
+        }
     )
-
-    init {
-        analyticsTracker.trackScreenView(screenName = "shopping_join_scanner", screenClass = "ScannerViewModel")
-    }
 
     fun setNavigator(navigator: Navigator) {
         _navigator = navigator
@@ -65,7 +67,7 @@ internal class ScannerViewModel @Inject constructor(
                         AnalyticsEvents.SHOPPING_LIST_JOIN_FAILED,
                         mapOf(
                             AnalyticsParams.JOIN_METHOD to JOIN_METHOD_QR_SCAN,
-                            AnalyticsParams.REASON to (error.message ?: error::class.simpleName.orEmpty())
+                            AnalyticsParams.REASON to error::class.simpleName.orEmpty()
                         )
                     )
                     // Allow retrying with a different/re-aligned code after a failed join.

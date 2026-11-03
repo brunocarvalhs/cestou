@@ -4,9 +4,12 @@ import android.content.Intent
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.analytics.AppUsageTracker
+import br.com.brunocarvalhs.howmuch.analytics.UserPropertiesSync
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
@@ -39,11 +42,14 @@ internal class MainViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val analyticsTracker: AnalyticsTracker,
     private val wearableSyncService: WearableSyncService,
-    private val aiSession: AiSession
+    private val aiSession: AiSession,
+    private val userPropertiesSync: UserPropertiesSync,
+    private val appUsageTracker: AppUsageTracker
 ) : ViewModel() {
 
     init {
         analyticsTracker.trackEvent(AnalyticsEvents.APP_OPEN)
+        userPropertiesSync.start(viewModelScope)
         syncUserProfile()
         signOutWatchOnSignOut()
     }
@@ -146,12 +152,18 @@ internal class MainViewModel @Inject constructor(
      */
     val pendingJoinToken: StateFlow<String?> = savedStateHandle.getStateFlow(KEY_PENDING_JOIN_TOKEN, null)
 
+    /** A Activity reporta ida e volta do app; a ViewModel decide o que é sessão. */
+    fun onForeground() = appUsageTracker.onForeground()
+
+    fun onBackground() = appUsageTracker.onBackground()
+
     /** Reads an invite token out of [intent], if it is one, and holds it for [consumePendingJoinToken]. */
     fun onDeepLink(intent: Intent) {
         if (intent.action != Intent.ACTION_VIEW) return
         val data = intent.data ?: return
         if (!InviteLink.matches(data)) return
         val token = InviteLink.tokenFrom(data) ?: return
+        analyticsTracker.trackEvent(AnalyticsEvents.DEEP_LINK_OPENED, mapOf(AnalyticsParams.SOURCE to "invite"))
         savedStateHandle[KEY_PENDING_JOIN_TOKEN] = token
     }
 

@@ -57,7 +57,9 @@ class SpendingInsightsViewModelTest {
     }
 
     private fun viewModel() =
-        SpendingInsightsViewModel(observeMonthly, categorySpending, analytics).also { it.setNavigator(navigator) }
+        SpendingInsightsViewModel(observeMonthly, categorySpending, analytics, mockk(relaxed = true)).also {
+            it.setNavigator(navigator)
+        }
 
     @Test
     fun `starts loading before the first emission`() {
@@ -77,7 +79,7 @@ class SpendingInsightsViewModelTest {
         assertEquals(listOf("n1", "n2"), state.purchases.map { it.shopping.id })
         assertEquals(ProductCategory.CARNES, state.categories.single().category)
         assertFalse(state.categoriesLoading)
-        verify { analytics.trackScreenView("spending_insights", "SpendingInsightsViewModel") }
+        verify(exactly = 0) { analytics.trackScreenView(any(), any()) }
     }
 
     @Test

@@ -93,7 +93,8 @@ class ShoppingListViewModelQuickActionsTest {
         settingsRepository,
         observeUnreadNotificationsCount,
         authService,
-        analyticsTracker
+        analyticsTracker,
+        mockk(relaxed = true)
     )
 
     @Test

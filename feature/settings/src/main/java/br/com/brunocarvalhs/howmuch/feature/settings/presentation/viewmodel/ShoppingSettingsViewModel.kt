@@ -2,6 +2,9 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateShoppingPreferencesUseCase
@@ -20,7 +23,8 @@ import javax.inject.Inject
 @HiltViewModel
 internal class ShoppingSettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
-    private val updateShoppingPreferencesUseCase: UpdateShoppingPreferencesUseCase
+    private val updateShoppingPreferencesUseCase: UpdateShoppingPreferencesUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ShoppingSettingsUiState())
@@ -56,6 +60,10 @@ internal class ShoppingSettingsViewModel @Inject constructor(
     private fun updateShoppingPreferences(defaultListId: String?, sortingMode: String, remindersEnabled: Boolean) {
         viewModelScope.launch {
             updateShoppingPreferencesUseCase(defaultListId, sortingMode, remindersEnabled)
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.SETTINGS_SHOPPING_CHANGED,
+                mapOf(AnalyticsParams.ENABLED to remindersEnabled, AnalyticsParams.VALUE to sortingMode.lowercase())
+            )
         }
     }
 

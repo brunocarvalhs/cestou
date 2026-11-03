@@ -4,6 +4,8 @@ import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
+import br.com.brunocarvalhs.howmuch.analytics.AppUsageTracker
+import br.com.brunocarvalhs.howmuch.analytics.UserPropertiesSync
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
@@ -49,6 +51,8 @@ class MainViewModelTest {
         coEvery { saveProfile(any()) } returns Result.success(Unit)
     }
     private val aiSession = mockk<AiSession>(relaxed = true)
+    private val userPropertiesSync = mockk<UserPropertiesSync>(relaxed = true)
+    private val appUsageTracker = mockk<AppUsageTracker>(relaxed = true)
 
     @Before
     fun setup() {
@@ -77,7 +81,9 @@ class MainViewModelTest {
             userRepository,
             analyticsTracker,
             wearableSyncService,
-            aiSession
+            aiSession,
+            userPropertiesSync,
+            appUsageTracker
         )
     }
 
@@ -304,4 +310,22 @@ class MainViewModelTest {
     }
 
     // endregion
+
+    @Test
+    fun `starting the app starts the user properties sync`() {
+        viewModel(currentUser = null)
+
+        verify { userPropertiesSync.start(any()) }
+    }
+
+    @Test
+    fun `foreground and background are forwarded to the usage tracker`() {
+        val vm = viewModel(currentUser = null)
+
+        vm.onForeground()
+        vm.onBackground()
+
+        verify { appUsageTracker.onForeground() }
+        verify { appUsageTracker.onBackground() }
+    }
 }

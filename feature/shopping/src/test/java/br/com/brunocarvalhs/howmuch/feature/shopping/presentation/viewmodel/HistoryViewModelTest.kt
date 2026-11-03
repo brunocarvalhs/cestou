@@ -49,7 +49,11 @@ class HistoryViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel() = HistoryViewModel(observeHistory, analytics).also { it.setNavigator(navigator) }
+    private fun viewModel() = HistoryViewModel(
+        observeHistory,
+        analytics,
+        mockk(relaxed = true)
+    ).also { it.setNavigator(navigator) }
 
     @Test
     fun `starts loading before the first emission`() {
@@ -171,7 +175,7 @@ class HistoryViewModelTest {
         viewModel()
         source.tryEmit(listOf(sep, nov))
 
-        verify { analytics.trackScreenView("history", "HistoryViewModel") }
+        verify(exactly = 0) { analytics.trackScreenView(any(), any()) }
         verify(exactly = 1) { analytics.trackEvent(AnalyticsEvents.HISTORY_VIEWED, mapOf("items_count" to 3)) }
     }
 }

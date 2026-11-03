@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.extensions.orEmpty
@@ -68,13 +70,20 @@ internal class CartViewModel @Inject constructor(
     val intent = CartIntent(
         onRefresh = { /* Handled by observe */ },
         onToggleProductPicker = {
+            analyticsTracker.trackAction(AnalyticsElements.CART_ADD_PRODUCT, shoppingParams())
             _uiState.value.shopping?.let {
                 _navigator?.navigate(ProductPickerRoute(it))
             }
         },
-        onShareShopping = { _navigator?.navigate(ShareOptionsRoute) },
+        onShareShopping = {
+            analyticsTracker.trackAction(AnalyticsElements.CART_SHARE, shoppingParams())
+            _navigator?.navigate(ShareOptionsRoute)
+        },
         onDeleteProduct = { product -> deleteProduct(product) },
-        onEditProduct = { product -> _navigator?.navigate(EditItemRoute(product, shopping.id)) },
+        onEditProduct = { product ->
+            analyticsTracker.trackAction(AnalyticsElements.CART_EDIT_PRODUCT, shoppingParams())
+            _navigator?.navigate(EditItemRoute(product, shopping.id))
+        },
         onUpdateQuantity = { product, quantity -> updateQuantity(product, quantity) },
         onTogglePurchased = { product, isPurchased -> togglePurchased(product, isPurchased) },
         onToggleFinishPurchaseSheet = {
@@ -85,13 +94,18 @@ internal class CartViewModel @Inject constructor(
             _navigator?.navigate(FinishPurchaseRoute)
         },
         onClearPurchased = { clearPurchased() },
-        onShowShareOptions = { _navigator?.navigate(ShareOptionsRoute) },
+        onShowShareOptions = {
+            analyticsTracker.trackEvent(AnalyticsEvents.CART_SHARE_OPTIONS_OPENED, shoppingParams())
+            _navigator?.navigate(ShareOptionsRoute)
+        },
         onMoveProduct = { product, targetId -> moveProduct(product, targetId) },
-        onShowProductHistory = { product -> _navigator?.navigate(ProductHistoryRoute(product)) }
+        onShowProductHistory = { product ->
+            analyticsTracker.trackEvent(AnalyticsEvents.CART_PRODUCT_HISTORY_OPENED, shoppingParams())
+            _navigator?.navigate(ProductHistoryRoute(product))
+        }
     )
 
     init {
-        analyticsTracker.trackScreenView(screenName = "cart", screenClass = "CartViewModel")
         observeData()
     }
 
@@ -160,9 +174,12 @@ internal class CartViewModel @Inject constructor(
         }
     }
 
+    private fun shoppingParams() = mapOf(AnalyticsParams.SHOPPING_ID to shopping.id)
+
     private fun clearPurchased() {
         viewModelScope.launch {
             clearPurchasedUseCase(shopping.id)
+            analyticsTracker.trackEvent(AnalyticsEvents.CART_PURCHASED_CLEARED, shoppingParams())
         }
     }
 
@@ -176,13 +193,22 @@ internal class CartViewModel @Inject constructor(
             } else {
                 viewModelScope.launch {
                     useCase.update(product.copy(isPurchased = true), shopping.id)
+                    trackPurchasedToggled(purchased = true)
                 }
             }
         } else {
             viewModelScope.launch {
                 useCase.update(product.copy(isPurchased = false), shopping.id)
+                trackPurchasedToggled(purchased = false)
             }
         }
+    }
+
+    private fun trackPurchasedToggled(purchased: Boolean) {
+        analyticsTracker.trackEvent(
+            AnalyticsEvents.PRODUCT_PURCHASED_TOGGLED,
+            shoppingParams() + (AnalyticsParams.ENABLED to purchased)
+        )
     }
 
     private fun deleteProduct(product: Product) {
@@ -198,6 +224,7 @@ internal class CartViewModel @Inject constructor(
     private fun moveProduct(product: Product, targetId: String) {
         viewModelScope.launch {
             useCase.move(product, shopping.id, targetId)
+            analyticsTracker.trackEvent(AnalyticsEvents.PRODUCT_MOVED, shoppingParams())
         }
     }
 
@@ -208,6 +235,7 @@ internal class CartViewModel @Inject constructor(
         }
         viewModelScope.launch {
             useCase.update(product.copy(quantity = quantity), shopping.id)
+            analyticsTracker.trackEvent(AnalyticsEvents.PRODUCT_QUANTITY_CHANGED, shoppingParams())
         }
     }
 }

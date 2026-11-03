@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
@@ -26,6 +27,7 @@ class NotificationSettingsViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val settingsRepository = mockk<SettingsRepository>()
+    private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val updateNotificationSettingsUseCase = mockk<UpdateNotificationSettingsUseCase>(relaxed = true)
     private val navigator = mockk<Navigator>(relaxed = true)
 
@@ -43,7 +45,7 @@ class NotificationSettingsViewModelTest {
 
     @Test
     fun `init loads notification settings from the repository`() {
-        val vm = NotificationSettingsViewModel(settingsRepository, updateNotificationSettingsUseCase)
+        val vm = NotificationSettingsViewModel(settingsRepository, updateNotificationSettingsUseCase, analyticsTracker)
 
         assertEquals(true, vm.uiState.value.notificationsEnabled)
         assertEquals("09:00", vm.uiState.value.reminderTime)
@@ -52,7 +54,7 @@ class NotificationSettingsViewModelTest {
     @Test
     fun `onUpdateNotificationSettings forwards to the use case`() = runTest {
         coEvery { updateNotificationSettingsUseCase(false, "20:00") } returns Unit
-        val vm = NotificationSettingsViewModel(settingsRepository, updateNotificationSettingsUseCase)
+        val vm = NotificationSettingsViewModel(settingsRepository, updateNotificationSettingsUseCase, analyticsTracker)
 
         vm.intent.onUpdateNotificationSettings(false, "20:00")
 
@@ -61,7 +63,7 @@ class NotificationSettingsViewModelTest {
 
     @Test
     fun `onBack navigates back`() {
-        val vm = NotificationSettingsViewModel(settingsRepository, updateNotificationSettingsUseCase)
+        val vm = NotificationSettingsViewModel(settingsRepository, updateNotificationSettingsUseCase, analyticsTracker)
         vm.setNavigator(navigator)
 
         vm.intent.onBack()

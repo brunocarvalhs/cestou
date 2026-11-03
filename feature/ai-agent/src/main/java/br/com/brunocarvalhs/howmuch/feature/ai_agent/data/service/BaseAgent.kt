@@ -3,12 +3,17 @@ package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 import br.com.brunocarvalhs.howmuch.core.ai.contract.Agent
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 /**
  * Base compartilhada pelos providers de IA ([GeminiAgent], [OpenRouterAgent]). Extrai o
@@ -23,6 +28,7 @@ internal abstract class BaseAgent(
     protected val session: AiSession = dependencies.session
     protected val registry: AgentRegistry = dependencies.registry
     protected val crashReporter: CrashReporter = dependencies.crashReporter
+    private val analyticsTracker: AnalyticsTracker = dependencies.analyticsTracker
     protected val systemPrompt: String = dependencies.systemPrompt
     private val subscriptionRepository: SubscriptionRepository = dependencies.subscriptionRepository
 
@@ -49,19 +55,28 @@ internal abstract class BaseAgent(
     ): String {
         val action = registry.find(actionName)
         return if (action != null && action.requiresPro && !isPro()) {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.AI_TOOL_BLOCKED_PRO,
+                mapOf(AnalyticsParams.ACTION_ID to action.id)
+            )
             "Essa ação é exclusiva do plano Pro."
         } else if (action != null) {
             try {
                 // Marcado antes de executar, não depois: mesmo uma execução que termina em
                 // exceção pode ter mutação parcial (sdd-012) — conservador de propósito.
                 session.toolExecutedThisTurn = true
-                action.execute(
+                session.toolCallsThisTurn++
+                val startedAt = TimeSource.Monotonic.markNow()
+                val result = action.execute(
                     arguments = arguments,
                     session = session,
                     metadata = meta
-                ).toToolFeedback()
+                )
+                trackTool(action.id, success = result.isSuccess, startedAt)
+                result.toToolFeedback()
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
+                trackTool(action.id, success = false, startedAt = null)
                 Timber.tag(logTag).e(e, "Erro executando a função '%s' com args=%s", actionName, arguments)
                 crashReporter.recordException(
                     e,
@@ -77,6 +92,22 @@ internal abstract class BaseAgent(
             Timber.tag(logTag).w("Ação '%s' não encontrada no registry", actionName)
             "Erro: Ação '$actionName' não encontrada"
         }
+    }
+
+    /**
+     * [startedAt] é nulo na falha porque a exceção pode vir antes de a ação começar a medir;
+     * só o `action_id` (nome fixo da ação registrada) é enviado, nunca os argumentos.
+     */
+    private fun trackTool(actionId: String, success: Boolean, startedAt: TimeMark?) {
+        analyticsTracker.trackEvent(
+            AnalyticsEvents.AI_TOOL_EXECUTED,
+            buildMap {
+                put(AnalyticsParams.ACTION_ID, actionId)
+                put(AnalyticsParams.SUCCESS, success)
+                put(AnalyticsParams.PROVIDER, providerTag)
+                startedAt?.let { put(AnalyticsParams.DURATION_MS, it.elapsedNow().inWholeMilliseconds) }
+            }
+        )
     }
 
     /** Point-in-time read of the current entitlement (AD-010); the gate only needs "right now". */

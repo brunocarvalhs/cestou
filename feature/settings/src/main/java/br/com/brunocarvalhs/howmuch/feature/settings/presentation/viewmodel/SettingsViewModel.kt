@@ -25,6 +25,8 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.common.contract.AppVersionProvider
@@ -94,10 +96,19 @@ class SettingsViewModel @Inject internal constructor(
     private var _navigator: Navigator? = null
 
     val intent = SettingsIntent(
-        onNavigate = { route -> _navigator?.navigate(route) },
+        onNavigate = { route ->
+            analyticsTracker.trackAction(AnalyticsElements.SETTINGS_NAVIGATE)
+            _navigator?.navigate(route)
+        },
         onBack = { _navigator?.goBack() },
-        onSendEmail = { subject -> context.openEmail(SUPPORT_EMAIL, subject) },
-        onOpenUrl = { url -> context.openBrowser(url) },
+        onSendEmail = { subject ->
+            analyticsTracker.trackAction(AnalyticsElements.SETTINGS_SEND_EMAIL)
+            context.openEmail(SUPPORT_EMAIL, subject)
+        },
+        onOpenUrl = { url ->
+            analyticsTracker.trackAction(AnalyticsElements.SETTINGS_OPEN_URL)
+            context.openBrowser(url)
+        },
         onUpdateLanguage = { language ->
             viewModelScope.launch {
                 updateLanguageUseCase(language)
@@ -120,7 +131,6 @@ class SettingsViewModel @Inject internal constructor(
     )
 
     init {
-        analyticsTracker.trackScreenView(screenName = "settings", screenClass = "SettingsViewModel")
         observeSettings()
     }
 
