@@ -10,7 +10,7 @@ ASISTENTE DE IA
 Pide ayuda al asistente para armar tu lista, resuelve dudas sobre lo que ya tienes en ella, o pide sugerencias de lo que podrías estar olvidando.
 
 COMPARTE Y COLABORA EN TIEMPO REAL
-Invita a otras personas a una lista con un código o código QR. Todos ven los cambios al instante, y los miembros reciben un aviso cuando la lista se edita o se finaliza.
+Invita a otras personas a una lista con un código o código QR. Todos ven los cambios al instante, y la campana de notificaciones te avisa cuando alguien se une a una de tus listas o la finaliza.
 
 CONTROLA TUS GASTOS
 Consulta el total gastado por lista, define un presupuesto y recibe un aviso si lo superas, y revisa tu historial de compras una vez finalizada la lista.

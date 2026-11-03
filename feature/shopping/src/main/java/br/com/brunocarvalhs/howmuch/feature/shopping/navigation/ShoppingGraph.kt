@@ -29,6 +29,7 @@ import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
@@ -69,6 +70,7 @@ fun NavGraphBuilder.shoppingGraph(
     composable<Notifications> {
         val viewModel: NotificationsViewModel = hiltViewModel()
         viewModel.onBack = { navigator.goBack() }
+        viewModel.onOpenShopping = { navigator.navigate(CartFlow(it)) }
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
         NotificationsScreen(

@@ -152,7 +152,12 @@
     recipient-only (matching `whereEqualTo("userId", uid)`), creation is pinned to the exact
     `NotificationModel` shape with the two real `type` values, `isRead == false` and size caps so
     the collection cannot be used as arbitrary storage, updates may only flip `isRead` to true, and
-    deletes are denied because no code path deletes.
+    deletes are denied because no code path deletes. sdd-028 added two OPTIONAL fields,
+    `shoppingId` and `senderId`: `senderId` must equal the writer's uid, and when `shoppingId` is
+    sent both the writer and the recipient must be members of that list. They stay optional so
+    older clients keep working, which leaves one gap: a client that omits `shoppingId` can still
+    notify any uid it knows. Making both required is the follow-up. Publish `firestore.rules`
+    BEFORE the app that sends the new fields (extra keys are rejected by the previous rules).
   - **catch-all `if false`** — explicit so a collection added by a future feature fails loudly in
     development instead of silently inheriting a broader rule.
 - **Trade-off / known breakage on deploy**:

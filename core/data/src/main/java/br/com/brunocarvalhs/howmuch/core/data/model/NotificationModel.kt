@@ -12,5 +12,7 @@ data class NotificationModel(
     val message: String,
     val type: String,
     val isRead: Boolean,
-    val timestamp: Long
+    val timestamp: Long,
+    val shoppingId: String? = null,
+    val senderId: String? = null
 )

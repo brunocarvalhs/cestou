@@ -4,6 +4,7 @@ import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationOrigin
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
@@ -85,8 +86,16 @@ class FinishPurchaseViewModelTest {
 
         viewModel.onFinishPurchase(shopping, price = PRICE, establishment = "Mercado X")
 
-        coVerify { notificationRepository.notify("u2", any(), any(), "list_finished") }
-        coVerify(exactly = 0) { notificationRepository.notify("u1", any(), any(), any()) }
+        coVerify {
+            notificationRepository.notify(
+                "u2",
+                any(),
+                any(),
+                "list_finished",
+                NotificationOrigin(shoppingId = "list1", senderId = "u1")
+            )
+        }
+        coVerify(exactly = 0) { notificationRepository.notify("u1", any(), any(), any(), any()) }
     }
 
     @Test
@@ -96,7 +105,7 @@ class FinishPurchaseViewModelTest {
         viewModel.onFinishPurchase(shopping, price = PRICE, establishment = "Mercado X")
 
         verify(exactly = 0) { navigator.goBack() }
-        coVerify(exactly = 0) { notificationRepository.notify(any(), any(), any(), any()) }
+        coVerify(exactly = 0) { notificationRepository.notify(any(), any(), any(), any(), any()) }
         assertEquals(false, viewModel.uiState.value.isLoading)
         val error = viewModel.uiState.value.error
         assertTrue(error is UiText.StringResource)

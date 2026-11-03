@@ -16,10 +16,12 @@ import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.exception.OwnershipRequiredException
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ObserveUnreadNotificationsCountUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingCreateUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDeleteUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDuplicateUseCase
@@ -51,6 +53,7 @@ internal class ShoppingListViewModel @Inject constructor(
     private val shareShoppingUseCase: ShareShoppingUseCase,
     private val shoppingReopenUseCase: ShoppingReopenUseCase,
     private val settingsRepository: SettingsRepository,
+    private val observeUnreadNotificationsCount: ObserveUnreadNotificationsCountUseCase,
     private val authService: AuthService,
     private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
@@ -113,6 +116,13 @@ internal class ShoppingListViewModel @Inject constructor(
             handleShoppingAction(ShoppingAction.Reopen(shopping))
         },
         onShowJoinDialog = { _navigator?.navigate(JoinList()) },
+        onNotificationsClick = {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.NOTIFICATIONS_OPENED,
+                mapOf(AnalyticsParams.UNREAD_COUNT to _uiState.value.unreadNotifications)
+            )
+            _navigator?.navigate(Notifications)
+        },
         onMove = { from, to -> moveShopping(from, to) },
         onShowCreateSheet = { visible -> _uiState.update { it.copy(isCreateSheetVisible = visible) } },
         onCreateConfirmed = { title, description, emoji ->
@@ -154,6 +164,11 @@ internal class ShoppingListViewModel @Inject constructor(
             repository.observeAll().collect { list ->
                 _uiState.update { it.copy(list = StableList(list), isLoading = false) }
                 applyFilters()
+            }
+        }
+        viewModelScope.launch {
+            observeUnreadNotificationsCount().collect { count ->
+                _uiState.update { it.copy(unreadNotifications = count) }
             }
         }
         viewModelScope.launch {

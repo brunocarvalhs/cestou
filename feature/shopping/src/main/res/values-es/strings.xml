@@ -126,4 +126,32 @@
     <string name="shopping_wear_tile_label">Lista actual</string>
     <string name="shopping_wear_tile_empty">Abre una lista en el reloj</string>
     <string name="shopping_wear_tile_signed_out">Vincula con el teléfono</string>
+
+    <!-- Notifications -->
+    <plurals name="shopping_notifications_bell_unread">
+        <item quantity="one">Notificaciones, %d sin leer</item>
+        <item quantity="other">Notificaciones, %d sin leer</item>
+    </plurals>
+    <string name="notifications_badge_overflow">%1$d+</string>
+    <string name="notifications_filter_all">Todas</string>
+    <string name="notifications_filter_lists">Listas</string>
+    <string name="notifications_section_today">Hoy</string>
+    <string name="notifications_section_yesterday">Ayer</string>
+    <string name="notifications_section_earlier">Anteriores</string>
+    <string name="notifications_mark_all_read">Marcar leídas</string>
+    <string name="notifications_unread_indicator">Sin leer</string>
+    <string name="notifications_empty_title">Sin notificaciones</string>
+    <string name="notifications_empty_message">Los avisos de tus listas compartidas aparecen aquí.</string>
+    <string name="notifications_empty_filtered_message">No hay notificaciones en este filtro.</string>
+    <string name="notifications_time_now">ahora</string>
+    <plurals name="notifications_time_minutes_ago">
+        <item quantity="one">hace %d min</item>
+        <item quantity="other">hace %d min</item>
+    </plurals>
+    <plurals name="notifications_time_hours_ago">
+        <item quantity="one">hace %d h</item>
+        <item quantity="other">hace %d h</item>
+    </plurals>
+    <string name="notifications_error_list_unavailable">Esta lista ya no está disponible.</string>
+    <string name="notifications_error_mark_read">No se pudo actualizar la notificación. Inténtalo de nuevo.</string>
 </resources>

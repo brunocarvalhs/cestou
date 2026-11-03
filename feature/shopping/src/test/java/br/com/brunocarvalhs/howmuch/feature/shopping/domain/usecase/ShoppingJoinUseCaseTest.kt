@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationOrigin
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
@@ -52,7 +53,13 @@ class ShoppingJoinUseCaseTest {
             repository.getById("list1")
         }
         coVerify {
-            notificationRepository.notify("owner1", "New member", "null joined Weekly Groceries", "list_joined")
+            notificationRepository.notify(
+                "owner1",
+                "New member",
+                "null joined Weekly Groceries",
+                "list_joined",
+                NotificationOrigin(shoppingId = "list1", senderId = "u1")
+            )
         }
     }
 

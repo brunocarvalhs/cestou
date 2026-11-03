@@ -10,7 +10,7 @@ AI ASSISTANT
 Ask the built-in assistant to help build your list, answer questions about what's already in it, or suggest what you might be forgetting.
 
 SHARE AND COLLABORATE IN REAL TIME
-Invite people to a list with a code or QR code. Everyone sees changes instantly, and members get notified when the list is edited or finished.
+Invite people to a list with a code or QR code. Everyone sees changes instantly, and the notification bell tells you when someone joins one of your lists or finishes it.
 
 TRACK YOUR SPENDING
 See your total spent per list, set a budget and get warned if you go over it, and review your purchase history once a list is finished.
