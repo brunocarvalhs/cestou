@@ -183,6 +183,12 @@ class AiChatViewModel @Inject constructor(
 - Chamada de IA que nunca retorna mantém o turno (e o `awaitIdleTurns` de novos chats) preso; depende dos timeouts de rede dos clientes, ainda não verificados (Q7).
 - Validação manual (Maestro, light e dark) e `:core:ui:connectedDebugAndroidTest` pendentes: sem dispositivo na implementação.
 
+## 8.2 Escopo adicional entregue no mesmo commit (sessão paralela)
+Trabalho feito por outra sessão no mesmo working tree e incluído por decisão do usuário, porque `AiChatViewModel`, `AiChatScreen` e seus testes têm mudanças das duas frentes e não compilam separados:
+- **Gate de confirmação para ações irreversíveis** (`AgentAction.requiresConfirmation`, `AiSession.requestConfirmation`/`consumeConfirmation`/`beginTurn`, evento `ai_tool_confirmation_requested`): é a Fase 0 do `.specs/sdd-032-ai-agent-acesso-total-app/tasks.md` (gate de confirmação no chokepoint).
+- **Memória da conversa ao reabrir** (`AiSession.restoreHistory`, `AiHistoryTurn`), **texto de andamento no loading** (`AiSession.activeAction`, `AiActionLabels`, 7 strings em pt-BR, en e es) e **`CestouAiLoader`** em `core:ui`: sem plano próprio; documentados no `CHANGELOG.md` e em `architecture/04-integracoes-externas.md`. O sdd-032 continua `blocked` por suas decisões de produto (§9 dele); esta entrega não as resolve.
+- Ponto fraco conhecido do gate: a aprovação é "o turno seguinte", não o conteúdo da resposta do usuário.
+
 ## 9. Perguntas em Aberto (bloqueantes)
 Nenhuma bloqueante. Decisões já registradas: Q1 validação manual; Q2 dialogs fora.
 - [x] Q3 (resolvida pelo usuário): a resposta da IA nunca é cancelada pelo fechamento; roda desacoplada em segundo plano. O voltar fecha o modal normalmente.
