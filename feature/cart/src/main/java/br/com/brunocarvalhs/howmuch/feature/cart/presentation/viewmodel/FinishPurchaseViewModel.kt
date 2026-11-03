@@ -7,6 +7,7 @@ import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationOrigin
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
@@ -98,7 +99,13 @@ internal class FinishPurchaseViewModel @Inject constructor(
             shopping.title
         )
         shopping.users.filter { it != actorId }.forEach { memberId ->
-            notificationRepository.notify(memberId, title, message, TYPE_LIST_FINISHED)
+            notificationRepository.notify(
+                userId = memberId,
+                title = title,
+                message = message,
+                type = TYPE_LIST_FINISHED,
+                origin = NotificationOrigin(shoppingId = shopping.id, senderId = actorId)
+            )
         }
     }
 }

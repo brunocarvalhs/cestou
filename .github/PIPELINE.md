@@ -35,6 +35,26 @@ The following secrets must be configured in your GitHub repository (`Settings > 
 
 ---
 
+## 🔥 Firestore Rules
+
+`firestore.rules` is **not** deployed by any workflow here: publish it by hand with
+`firebase deploy --only firestore:rules` from a maintainer machine.
+
+- **Order matters when the rules and the app change together.** Publish the rules *first* when the
+  app starts sending new fields (the previous rules reject unknown keys, so every write from the new
+  app would fail until they are live). Rules that only get stricter go *after* the app is in use.
+- `firestore-rules.yml` runs `firestore-tests/rules.test.mjs` against the local Firestore emulator on
+  every pull request that touches `firestore.rules`, `firestore-tests/` or `firebase.json`. It never
+  talks to the real project. To run it locally:
+
+  ```
+  cd firestore-tests
+  npm install --no-save @firebase/rules-unit-testing firebase
+  firebase emulators:exec --only firestore --project demo-cestou "node rules.test.mjs"
+  ```
+
+---
+
 ## 🛠️ Infrastructure Maintenance
 
 - **Danger JS**: Rules are dynamically loaded from `pipeline-config.yaml`. If you need to add a new naming convention or architectural rule, update the `danger.rules` section in the YAML.
