@@ -8,4 +8,8 @@
     <string name="error_not_found">Item not found.</string>
     <string name="error_permission_denied">You don\'t have permission to access this.</string>
     <string name="error_unknown">Something went wrong. Please try again.</string>
+
+    <!-- Campaign push (FCM) -->
+    <string name="push_channel_id" translatable="false">campaigns</string>
+    <string name="push_channel_name">News and offers</string>
 </resources>

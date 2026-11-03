@@ -6,6 +6,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.Notification
 internal object NotificationTypes {
     const val LIST_JOINED = "list_joined"
     const val LIST_FINISHED = "list_finished"
+    const val CAMPAIGN = "campaign"
 
     val LIST_TYPES = setOf(LIST_JOINED, LIST_FINISHED)
 }

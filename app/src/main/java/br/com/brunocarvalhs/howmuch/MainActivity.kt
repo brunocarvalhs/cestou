@@ -91,6 +91,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun consumeDeepLinkIntent() {
         viewModel.onDeepLink(intent)
+        viewModel.onPushIntent(intent)
         setIntent(Intent())
     }
 

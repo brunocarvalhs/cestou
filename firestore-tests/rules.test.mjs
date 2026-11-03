@@ -326,6 +326,25 @@ await t('recipient may query only the unread notifications', () =>
 await t('other user cannot query the unread feed of the recipient', () =>
   assertFails(getDocs(query(collection(editor(), 'notifications'),
     where('userId', '==', OWNER), where('isRead', '==', false)))));
+await t('a campaign can be saved for yourself', () =>
+  assertSucceeds(setDoc(doc(editor(), 'notifications', 'fcm-c1'), notif('fcm-c1', EDITOR, { type: 'campaign' }))));
+await t('a campaign cannot be addressed to someone else', () =>
+  assertFails(setDoc(doc(editor(), 'notifications', 'fcm-c2'), notif('fcm-c2', OWNER, { type: 'campaign' }))));
+await t('a campaign cannot carry a list or a sender', () => Promise.all([
+  assertFails(setDoc(doc(editor(), 'notifications', 'fcm-c3'),
+    notif('fcm-c3', EDITOR, { type: 'campaign', shoppingId: LIST_ID }))),
+  assertFails(setDoc(doc(editor(), 'notifications', 'fcm-c4'),
+    notif('fcm-c4', EDITOR, { type: 'campaign', senderId: EDITOR }))),
+]));
+await t('a campaign cannot be created already read', () =>
+  assertFails(setDoc(doc(editor(), 'notifications', 'fcm-c5'),
+    notif('fcm-c5', EDITOR, { type: 'campaign', isRead: true }))));
+await t('saving the same campaign id twice is denied (duplicate delivery)', async () => {
+  await assertSucceeds(setDoc(doc(editor(), 'notifications', 'fcm-c6'), notif('fcm-c6', EDITOR, { type: 'campaign' })));
+  await assertFails(setDoc(doc(editor(), 'notifications', 'fcm-c6'), notif('fcm-c6', EDITOR, { type: 'campaign' })));
+});
+await t('a signed-out user cannot save a campaign', () =>
+  assertFails(setDoc(doc(anon(), 'notifications', 'fcm-c7'), notif('fcm-c7', EDITOR, { type: 'campaign' }))));
 await t('id must match the document id', () =>
   assertFails(setDoc(doc(editor(), 'notifications', 'n8'), notif('nope', OWNER))));
 await t('recipient marks as read', () =>

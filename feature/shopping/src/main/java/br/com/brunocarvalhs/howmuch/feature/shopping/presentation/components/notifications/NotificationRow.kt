@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PersonAdd
@@ -106,6 +107,7 @@ private fun TypeIcon(type: NotificationType) {
             imageVector = when (type) {
                 NotificationType.LIST_JOINED -> Icons.Default.PersonAdd
                 NotificationType.LIST_FINISHED -> Icons.Default.CheckCircle
+                NotificationType.CAMPAIGN -> Icons.Default.Campaign
                 NotificationType.OTHER -> Icons.Default.Notifications
             },
             contentDescription = null,

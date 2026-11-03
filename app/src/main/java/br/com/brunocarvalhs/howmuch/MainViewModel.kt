@@ -16,6 +16,9 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.push.PushNotificationHandler
+import br.com.brunocarvalhs.howmuch.push.PushPayloadExtractor
+import br.com.brunocarvalhs.howmuch.push.PushSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -39,7 +42,8 @@ internal class MainViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val analyticsTracker: AnalyticsTracker,
     private val wearableSyncService: WearableSyncService,
-    private val aiSession: AiSession
+    private val aiSession: AiSession,
+    private val pushNotificationHandler: PushNotificationHandler
 ) : ViewModel() {
 
     init {
@@ -153,6 +157,16 @@ internal class MainViewModel @Inject constructor(
         if (!InviteLink.matches(data)) return
         val token = InviteLink.tokenFrom(data) ?: return
         savedStateHandle[KEY_PENDING_JOIN_TOKEN] = token
+    }
+
+    /**
+     * Saves the campaign behind a tapped FCM tray notification. Intents that did not come from FCM
+     * (a normal launch, an invite link) carry no payload and are skipped. Saving is idempotent, so a
+     * redelivered intent after recreation does not duplicate the notification.
+     */
+    fun onPushIntent(intent: Intent) {
+        val payload = PushPayloadExtractor.from(intent) ?: return
+        viewModelScope.launch { pushNotificationHandler.handle(payload, PushSource.TAP) }
     }
 
     /**

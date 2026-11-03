@@ -24,6 +24,9 @@ data class NotificationOrigin(
     val senderId: String
 )
 
+/** Result of [NotificationRepository.save]: a second write to an existing id is not an error. */
+enum class SaveResult { Saved, AlreadySaved }
+
 interface NotificationRepository {
     fun observeNotifications(userId: String): Flow<List<Notification>>
 
@@ -33,6 +36,12 @@ interface NotificationRepository {
 
     /** Marks every id as read; a failure on one id does not stop the others, and is reported in the result. */
     suspend fun markAllAsRead(notificationIds: List<String>): Result<Unit>
+
+    /**
+     * Writes [notification] under its own id. The id is the idempotency key: when that document
+     * already exists the result is [SaveResult.AlreadySaved], not a failure.
+     */
+    suspend fun save(notification: Notification): Result<SaveResult>
     suspend fun notify(
         userId: String,
         title: String,
