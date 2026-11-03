@@ -40,10 +40,6 @@ class ManageSubscriptionViewModel @Inject constructor(
     )
 
     init {
-        analyticsTracker.trackScreenView(
-            screenName = "manage_subscription",
-            screenClass = "ManageSubscriptionViewModel"
-        )
         loadPrice()
     }
 

@@ -29,6 +29,7 @@ object AnalyticsEvents {
     const val PRODUCT_PHOTO_SCAN_PERFORMED = "product_photo_scan_performed"
     const val PRODUCT_PHOTO_SCAN_FAILED = "product_photo_scan_failed"
 
+    // Mantém o nome histórico (sem prefixo "ai_message_") para não quebrar as Explorations do GA.
     const val AI_CHAT_MESSAGE_SENT = "ai_chat_message_sent"
 
     const val NOTIFICATIONS_OPENED = "notifications_opened"
@@ -59,6 +60,88 @@ object AnalyticsEvents {
     const val SPENDING_INSIGHTS_VIEWED = "spending_insights_viewed"
     const val SPENDING_INSIGHTS_MONTH_SELECTED = "spending_insights_month_selected"
     const val SPENDING_INSIGHTS_LIST_OPENED = "spending_insights_list_opened"
+
+    /** Quais controles o cliente realmente usa em cada tela (ver `trackAction`). */
+    const val UI_ACTION = "ui_action"
+
+    /** Onde o cliente hesita ou desiste: voltou, dispensou dialog ou sheet sem concluir. */
+    const val BACK_PRESSED = "back_pressed"
+    const val DIALOG_DISMISSED = "dialog_dismissed"
+    const val TAB_SELECTED = "tab_selected"
+
+    /** Onde as operações falham para o cliente sem ele reclamar. */
+    const val OPERATION_FAILED = "operation_failed"
+
+    /** Ciclo de vida: frequência e duração das sessões. */
+    const val APP_FOREGROUND = "app_foreground"
+    const val APP_BACKGROUND = "app_background"
+    const val DEEP_LINK_OPENED = "deep_link_opened"
+
+    /** Retenção: em quantos dias o cliente volta. */
+    const val RETURNED_AFTER_DAYS = "returned_after_days"
+
+    /** Ativação: quanto tempo leva até o primeiro valor. */
+    const val FIRST_LIST_CREATED = "first_list_created"
+    const val FIRST_PRODUCT_ADDED = "first_product_added"
+    const val FIRST_PURCHASE_COMPLETED = "first_purchase_completed"
+
+    /** Descoberta: quais recursos o cliente chegou a usar pelo menos uma vez. */
+    const val FEATURE_FIRST_USED = "feature_first_used"
+
+    /** O que o cliente muda na lista e nos produtos depois de criar. */
+    const val SHOPPING_LIST_UPDATED = "shopping_list_updated"
+    const val SHOPPING_LIST_OPENED = "shopping_list_opened"
+
+    /** Abriu o seletor de produto e saiu sem adicionar nada: onde a ativação trava. */
+    const val PRODUCT_ADD_ABANDONED = "product_add_abandoned"
+
+    const val PRODUCT_UPDATED = "product_updated"
+    const val PRODUCT_PURCHASED_TOGGLED = "product_purchased_toggled"
+    const val PRODUCT_MOVED = "product_moved"
+    const val PRODUCT_QUANTITY_CHANGED = "product_quantity_changed"
+    const val CART_PURCHASED_CLEARED = "cart_purchased_cleared"
+    const val CART_SHARE_OPTIONS_OPENED = "cart_share_options_opened"
+    const val CART_PRODUCT_HISTORY_OPENED = "cart_product_history_opened"
+
+    /** Contas: método usado para entrar ou criar a conta. */
+    const val LOGIN = "login"
+    const val SIGN_UP = "sign_up"
+    const val PASSWORD_RESET_REQUESTED = "password_reset_requested"
+    const val PROFILE_NAME_COMPLETED = "profile_name_completed"
+    const val ACCOUNT_DELETED = "account_deleted"
+    const val DATA_CLEARED = "data_cleared"
+
+    /** Busca: o que o cliente procura. */
+    const val SEARCH = "search"
+
+    /** Funil de conversão em assinatura; `paywall_dismissed` leva `duration_ms` (leu ou fugiu na hora). */
+    const val PAYWALL_VIEWED = "paywall_viewed"
+    const val PAYWALL_DISMISSED = "paywall_dismissed"
+    const val PLAN_CHANGED = "plan_changed"
+    const val SUBSCRIPTION_STARTED = "subscription_started"
+
+    /** Configurações e privacidade. */
+    const val SETTINGS_THEME_CHANGED = "settings_theme_changed"
+    const val SETTINGS_AI_CHANGED = "settings_ai_changed"
+    const val SETTINGS_NOTIFICATIONS_TOGGLED = "settings_notifications_toggled"
+    const val SETTINGS_SHOPPING_CHANGED = "settings_shopping_changed"
+    const val ANALYTICS_CONSENT_CHANGED = "analytics_consent_changed"
+
+    /** Uso fora do app: quais funções os assistentes do sistema chamam (`action_id` = nome da função). */
+    const val APP_FUNCTION_INVOKED = "app_function_invoked"
+
+    /** IA: de abrir o chat à resposta, voz, sessões e execução de ferramentas. */
+    const val AI_CHAT_OPENED = "ai_chat_opened"
+    const val AI_RESPONSE_RECEIVED = "ai_response_received"
+    const val AI_RESPONSE_FAILED = "ai_response_failed"
+    const val AI_TOOL_EXECUTED = "ai_tool_executed"
+    const val AI_TOOL_BLOCKED_PRO = "ai_tool_blocked_pro"
+    const val AI_PROVIDER_FALLBACK = "ai_provider_fallback"
+    const val AI_VOICE_INPUT_STARTED = "ai_chat_voice_input_started"
+    const val AI_VOICE_INPUT_FAILED = "ai_voice_input_failed"
+    const val AI_SESSION_CREATED = "ai_chat_session_created"
+    const val AI_SESSION_SELECTED = "ai_session_selected"
+    const val AI_TRIAL_MESSAGE_USED = "ai_trial_message_used"
 }
 
 /**
@@ -85,4 +168,29 @@ object AnalyticsParams {
 
     /** Month as `yyyy-MM`. */
     const val MONTH = "month"
+
+    const val ELEMENT_ID = "element_id"
+    const val ENTITY = "entity"
+    const val METHOD = "method"
+    const val OPERATION = "operation"
+    const val ERROR_TYPE = "error_type"
+    const val FEATURE = "feature"
+    const val PROVIDER = "provider"
+    const val ACTION_ID = "action_id"
+    const val INPUT_METHOD = "input_method"
+    const val LATENCY_MS = "latency_ms"
+    const val DURATION_MS = "duration_ms"
+    const val SUCCESS = "success"
+    const val LENGTH_BUCKET = "length_bucket"
+    const val TOOL_CALLS = "tool_calls"
+    const val FALLBACK_USED = "fallback_used"
+    const val SESSION_SECONDS = "session_seconds"
+    const val DAYS = "days"
+    const val TRIGGER = "trigger"
+    const val FROM = "from"
+    const val TO = "to"
+    const val ENABLED = "enabled"
+    const val VALUE = "value"
+    const val HAS_CUSTOM_KEY = "has_custom_key"
+    const val SECONDS_SINCE_SIGNUP = "seconds_since_signup"
 }

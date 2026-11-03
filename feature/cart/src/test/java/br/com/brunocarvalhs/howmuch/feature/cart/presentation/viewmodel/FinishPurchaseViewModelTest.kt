@@ -40,7 +40,14 @@ class FinishPurchaseViewModelTest {
     private val navigator = mockk<Navigator>(relaxed = true)
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val viewModel =
-        FinishPurchaseViewModel(context, repository, authService, notificationRepository, analyticsTracker)
+        FinishPurchaseViewModel(
+            context,
+            repository,
+            authService,
+            notificationRepository,
+            analyticsTracker,
+            mockk(relaxed = true)
+        )
 
     private val shopping = Shopping(
         id = "list1",

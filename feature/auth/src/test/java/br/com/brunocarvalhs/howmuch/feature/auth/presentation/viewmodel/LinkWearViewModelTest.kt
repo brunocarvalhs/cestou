@@ -1,6 +1,10 @@
 package br.com.brunocarvalhs.howmuch.feature.auth.presentation.viewmodel
 
 import android.content.Context
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
@@ -29,6 +33,7 @@ class LinkWearViewModelTest {
         every { currentUser } returns AuthenticatedUser(id = "user-1", email = "bruno@test.com")
     }
     private val googleIdTokenProvider = mockk<GoogleIdTokenProvider>()
+    private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val featureFlagService = mockk<FeatureFlagService> {
         every { isEnabled(any(), any()) } returns true
     }
@@ -53,7 +58,8 @@ class LinkWearViewModelTest {
         wearableSyncService,
         authService,
         googleIdTokenProvider,
-        featureFlagService
+        featureFlagService,
+        analyticsTracker
     ).apply {
         intent.onCodeChange("123456")
         intent.onLinkClick(context)
@@ -67,6 +73,12 @@ class LinkWearViewModelTest {
 
         assertTrue(viewModel.uiState.value.isSuccess)
         coVerify { wearableSyncService.sendAuthPairToNode("node-1", "user-1", "id-token") }
+        io.mockk.verify {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.UI_ACTION,
+                mapOf(AnalyticsParams.ELEMENT_ID to AnalyticsElements.WEAR_LINK_CODE_SUBMIT)
+            )
+        }
     }
 
     @Test

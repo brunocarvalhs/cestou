@@ -4,6 +4,7 @@ internal data class DataSettingsIntent(
     val onClearCache: () -> Unit = {},
     val onDeleteAllData: () -> Unit = {},
     val onDeleteAccount: () -> Unit = {},
+    val onToggleAnalytics: (Boolean) -> Unit = {},
     val onReauthConfirmed: () -> Unit = {},
     val onReauthDismissed: () -> Unit = {},
     val onBack: () -> Unit = {},

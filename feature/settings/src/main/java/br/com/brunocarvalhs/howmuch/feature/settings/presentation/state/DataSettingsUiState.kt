@@ -6,5 +6,6 @@ import androidx.compose.runtime.Stable
 internal data class DataSettingsUiState(
     val isLoading: Boolean = false,
     val message: String? = null,
-    val reauthRequired: Boolean = false
+    val reauthRequired: Boolean = false,
+    val analyticsEnabled: Boolean = true
 )

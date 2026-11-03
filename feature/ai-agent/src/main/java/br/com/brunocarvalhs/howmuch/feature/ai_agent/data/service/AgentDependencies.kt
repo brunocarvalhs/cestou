@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
 
@@ -15,5 +16,6 @@ internal data class AgentDependencies(
     val crashReporter: CrashReporter,
     val subscriptionRepository: SubscriptionRepository,
     val registry: AgentRegistry,
+    val analyticsTracker: AnalyticsTracker,
     val systemPrompt: String = SystemPrompts.CESTOU_ASSISTANT
 )

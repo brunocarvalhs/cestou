@@ -98,11 +98,11 @@ class CartViewModelTest {
     }
 
     @Test
-    fun `init reads the shopping list from the route and tracks screen_view`() {
+    fun `init reads the shopping list from the route`() {
         val vm = viewModel()
 
         assertEquals(shopping, vm.uiState.value.shopping)
-        verify { analyticsTracker.trackScreenView("cart", "CartViewModel") }
+        verify(exactly = 0) { analyticsTracker.trackScreenView(any(), any()) }
     }
 
     @Test

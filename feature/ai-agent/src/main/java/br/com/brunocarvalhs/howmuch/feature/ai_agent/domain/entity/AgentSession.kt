@@ -17,6 +17,9 @@ data class AgentSession(
     // Fora do construtor de propósito: é um sinal transiente por tentativa de sendMessage, não
     // um dado de identidade da sessão — não deve entrar em equals/hashCode/copy (sdd-012).
     override var toolExecutedThisTurn: Boolean = false
+    override var providerUsed: String? = null
+    override var toolCallsThisTurn: Int = 0
+    override var fallbackUsedThisTurn: Boolean = false
 
     override fun clearHistory() {
         history.clear()
