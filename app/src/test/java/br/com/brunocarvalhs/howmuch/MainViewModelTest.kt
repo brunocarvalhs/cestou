@@ -22,7 +22,6 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
-import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -268,6 +267,46 @@ class MainViewModelTest {
             every { action } returns Intent.ACTION_VIEW
             every { data } returns uri
         }
+    }
+
+    private fun chatIntent(sessionId: String?): Intent {
+        val uri = mockk<Uri> {
+            every { scheme } returns "cestou"
+            every { host } returns "chat"
+            every { pathSegments } returns listOfNotNull(sessionId)
+        }
+        return mockk {
+            every { action } returns Intent.ACTION_VIEW
+            every { data } returns uri
+        }
+    }
+
+    @Test
+    fun `onDeepLink keeps the AI chat session from a notification tap`() {
+        val vm = viewModel()
+
+        vm.onDeepLink(chatIntent("session-1"))
+
+        assertEquals("session-1", vm.pendingAiChatSession.value)
+    }
+
+    @Test
+    fun `the AI chat session is consumed only once`() {
+        val vm = viewModel()
+        vm.onDeepLink(chatIntent("session-1"))
+
+        assertEquals("session-1", vm.consumePendingAiChatSession())
+        assertNull(vm.consumePendingAiChatSession())
+        assertNull(vm.pendingAiChatSession.value)
+    }
+
+    @Test
+    fun `a chat link without an id leaves no pending AI chat`() {
+        val vm = viewModel()
+
+        vm.onDeepLink(chatIntent(null))
+
+        assertNull(vm.pendingAiChatSession.value)
     }
 
     @Test

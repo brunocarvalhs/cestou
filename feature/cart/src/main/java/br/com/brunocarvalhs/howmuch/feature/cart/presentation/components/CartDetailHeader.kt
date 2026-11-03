@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,53 +42,56 @@ internal fun CartDetailHeader(
     description: String = "",
     onBack: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null,
+    footer: @Composable () -> Unit = {},
     actions: @Composable (RowScope.() -> Unit) = {}
 ) {
-    LargeTopAppBar(
-        scrollBehavior = scrollBehavior,
-        modifier = modifier,
-        title = {
-            Row {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(Color(HEADER_ICON_BACKGROUND)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (iconUrl != null) {
-                        AsyncImage(
-                            model = iconUrl,
-                            contentDescription = null,
-                            modifier = Modifier.size(32.dp)
-                        )
-                    } else {
-                        Text(
-                            text = emoji ?: Shopping.DEFAULT_EMOJI,
-                            style = MaterialTheme.typography.headlineSmall
-                        )
+    Column(modifier = modifier) {
+        LargeTopAppBar(
+            scrollBehavior = scrollBehavior,
+            title = {
+                Row {
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color(HEADER_ICON_BACKGROUND)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (iconUrl != null) {
+                            AsyncImage(
+                                model = iconUrl,
+                                contentDescription = null,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        } else {
+                            Text(
+                                text = emoji ?: Shopping.DEFAULT_EMOJI,
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(title, style = MaterialTheme.typography.titleLarge)
+                        if (description.isNotBlank()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(description, style = MaterialTheme.typography.bodyMedium)
+                        }
                     }
                 }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text(title, style = MaterialTheme.typography.titleLarge)
-                    if (description.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(description, style = MaterialTheme.typography.bodyMedium)
-                    }
+            },
+            navigationIcon = {
+                IconButton(onClick = onBack, modifier = Modifier.testTag("cart_back_button")) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(CoreR.string.content_description_back),
+                    )
                 }
-            }
-        },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(CoreR.string.content_description_back),
-                )
-            }
-        },
-        actions = actions
-    )
+            },
+            actions = actions
+        )
+        footer()
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

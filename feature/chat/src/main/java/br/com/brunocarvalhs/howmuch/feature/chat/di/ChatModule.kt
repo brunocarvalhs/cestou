@@ -10,8 +10,10 @@ import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
 import br.com.brunocarvalhs.howmuch.feature.chat.ChatNavGraph
 import br.com.brunocarvalhs.howmuch.feature.chat.data.repository.ChatHistoryRepositoryImpl
+import br.com.brunocarvalhs.howmuch.feature.chat.data.service.AiTurnBackgroundImpl
 import br.com.brunocarvalhs.howmuch.feature.chat.data.service.ChatTurnTrackerImpl
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.AiTurnBackground
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
 import dagger.Binds
 import dagger.Module
@@ -48,6 +50,9 @@ internal abstract class ChatModule {
 
     @Binds
     abstract fun bindChatTurnTracker(impl: ChatTurnTrackerImpl): ChatTurnTracker
+
+    @Binds
+    abstract fun bindAiTurnBackground(impl: AiTurnBackgroundImpl): AiTurnBackground
 
     companion object {
         @Provides

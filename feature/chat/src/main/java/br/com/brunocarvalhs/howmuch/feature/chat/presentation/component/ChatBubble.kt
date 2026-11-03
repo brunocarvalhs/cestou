@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.chat.presentation.component
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,9 +34,19 @@ private fun Instant.toTimeLabel(): String = timeFormatter.format(this)
 private const val BUBBLE_MAX_WIDTH_DP = 280
 private const val BUBBLE_CORNER_RADIUS_DP = 18
 private const val BUBBLE_TAIL_RADIUS_DP = 4
+private const val FOOTER_GAP_DP = 8
+private const val TIME_GAP_DP = 4
 
+/**
+ * Bolha de uma mensagem. [footer] é desenhado dentro da bolha, abaixo do texto e acima da hora; é por
+ * onde a avaliação (polegar para cima e para baixo) entra na resposta da IA, em vez de ficar solta
+ * fora dela.
+ */
 @Composable
-internal fun ChatBubble(message: ChatMessage) {
+internal fun ChatBubble(
+    message: ChatMessage,
+    footer: (@Composable ColumnScope.() -> Unit)? = null,
+) {
     val isUser = message.sender == ChatMessage.Sender.USER
     val bubbleColor = if (isUser) {
         MaterialTheme.colorScheme.primary
@@ -80,7 +91,11 @@ internal fun ChatBubble(message: ChatMessage) {
                         list = MaterialTheme.typography.bodyMedium,
                     ),
                 )
-                Spacer(modifier = Modifier.height(2.dp))
+                if (footer != null) {
+                    Spacer(modifier = Modifier.height(FOOTER_GAP_DP.dp))
+                    footer()
+                }
+                Spacer(modifier = Modifier.height(TIME_GAP_DP.dp))
                 Text(
                     text = message.createdAt.toTimeLabel(),
                     color = textColor.copy(alpha = 0.7f),

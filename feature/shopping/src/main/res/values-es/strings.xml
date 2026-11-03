@@ -183,4 +183,5 @@
         <item quantity="one">%d persona</item>
         <item quantity="other">%d personas</item>
     </plurals>
+    <string name="shopping_monthly_goal_title">Meta del mes</string>
 </resources>

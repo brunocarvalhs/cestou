@@ -27,6 +27,12 @@ object FeatureFlagKeys {
     /** Kill-switch de todas as pesquisas de satisfação e do polegar do chat (sdd-034). Default on. */
     const val FEEDBACK_ENABLED = "feat_feedback_enabled"
 
+    /**
+     * Kill-switch do cartão da meta mensal, da linha de orçamento da lista e dos avisos de gasto
+     * (sdd-036). Default on.
+     */
+    const val BUDGET_ALERTS_ENABLED = "feat_budget_alerts_enabled"
+
     /** Permite pedir a avaliação na Play Store (In-App Review). Default on. */
     const val FEEDBACK_STORE_REVIEW_ENABLED = "feedback_store_review_enabled"
 }

@@ -1,0 +1,118 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Products - add, category, camera step, purchase, edit and delete
+tags:
+  - products
+---
+- runFlow: ../subflows/ensure_logged_in.yaml
+- runFlow: ../subflows/answer_feedback_survey.yaml
+- runFlow: ../subflows/cleanup_lists.yaml
+- evalScript: ${output.listName = 'maestro-' + Date.now()}
+- runFlow:
+    file: ../subflows/create_list.yaml
+    env:
+      LIST_NAME: ${output.listName}
+
+# Formulário de produto: campos, seletor de categoria e botão de câmera
+- tapOn:
+    id: cart_add_product_button
+- assertVisible:
+    id: product_form_name_field
+- assertVisible:
+    id: product_form_quantity_field
+- assertVisible:
+    id: product_form_price_field
+- assertVisible:
+    id: product_form_save
+- assertVisible:
+    id: product_form_camera_button
+- tapOn:
+    id: product_form_category_picker
+- assertVisible:
+    id: category_option_HORTIFRUTI
+- tapOn:
+    id: category_option_HORTIFRUTI
+
+# Passo da câmera abre e volta sem tirar foto
+- tapOn:
+    id: product_form_camera_button
+- waitForAnimationToEnd:
+    timeout: 4000
+- tapOn:
+    id: product_header_back
+- assertVisible:
+    id: product_form_name_field
+
+# Adiciona o produto
+- tapOn:
+    id: product_form_name_field
+- inputText: Maca
+- tapOn:
+    id: product_form_price_field
+- inputText: "450"
+- hideKeyboard
+- tapOn:
+    id: product_form_save
+- waitForAnimationToEnd:
+    timeout: 4000
+- runFlow:
+    when:
+      visible:
+        id: product_form_name_field
+    commands:
+      - back
+- assertVisible:
+    id: cart_product_item
+
+# Marca como comprado e desmarca
+- tapOn:
+    id: cart_product_checkbox
+- waitForAnimationToEnd:
+    timeout: 1500
+- tapOn:
+    id: cart_product_checkbox
+
+# Editar com toque longo
+- longPressOn:
+    id: cart_product_item
+- assertVisible:
+    id: edit_item_name_field
+- assertVisible:
+    id: edit_item_price_field
+- assertVisible:
+    id: edit_item_quantity_field
+- tapOn:
+    id: edit_item_price_field
+- eraseText: 10
+- inputText: "900"
+- hideKeyboard
+- tapOn:
+    id: edit_item_save
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Menu da lista: limpar comprados
+- tapOn:
+    id: cart_more_button
+- assertVisible:
+    id: cart_menu_edit
+- assertVisible:
+    id: cart_menu_clear_purchased
+- back
+
+# Excluir deslizando
+- swipe:
+    from:
+      id: cart_product_item
+    direction: LEFT
+- waitForAnimationToEnd:
+    timeout: 3000
+- assertNotVisible:
+    id: cart_product_item
+
+# Limpeza
+- tapOn:
+    id: cart_back_button
+- runFlow:
+    file: ../subflows/delete_list.yaml
+    env:
+      LIST_NAME: ${output.listName}

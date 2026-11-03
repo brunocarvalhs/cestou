@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.feature.chat.R
@@ -32,6 +33,7 @@ internal fun AiChatUpgradeBanner(onClick: () -> Unit) {
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 4.dp)
             .clip(RoundedCornerShape(16.dp))
+            .testTag("ai_chat_upgrade_banner")
             .clickable(onClick = onClick),
         color = MaterialTheme.colorScheme.errorContainer.copy(alpha = UPGRADE_BANNER_BG_ALPHA),
     ) {
