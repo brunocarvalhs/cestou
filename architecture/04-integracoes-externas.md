@@ -57,6 +57,10 @@ Implementação da entrada por código: `feature/shopping/domain/usecase/Shoppin
 - **Histórico:** `ConversationHistory.kt`.
 - **Ferramentas:** ações de negócio expostas ao modelo por `@AiAgentAction` (`core/ai`), executadas via `AgentActionUseCase`.
 - **Gate de assinatura:** ações com `requiresPro` só rodam para usuários PRO (ver `02-regras-de-negocio.md`, seção 3).
+- **Gate de confirmação:** ações com `AgentAction.requiresConfirmation` (apagar listas, limpar comprados) não rodam na primeira chamada. `BaseAgent` registra o pedido em `AiSession.requestConfirmation` e devolve ao modelo que nada foi executado; só uma chamada igual, em turno posterior (`AiSession.beginTurn` marca cada mensagem do usuário), é executada (`consumeConfirmation`). O pedido gera `ai_tool_confirmation_requested`. Limite conhecido: a aprovação é o turno seguinte, não o texto da resposta, e depende de o modelo perguntar antes de repetir.
+- **Memória da conversa:** `AiSession.restoreHistory` recebe `AiHistoryTurn` (tipo de `core:ai`, sem depender do SDK do Gemini) ao reabrir uma conversa gravada; `ConversationHistory.kt` limita o que volta ao modelo.
+- **Andamento na tela:** `AiSession.activeAction` expõe a ação em execução e `feature/chat` a traduz em texto (`AiActionLabels.kt`).
+- **Turno em segundo plano:** o chat roda cada turno num scope de aplicação (`@ChatBackgroundScope`) rastreado por `ChatTurnTracker`; fechar a tela não cancela a chamada e o logout cancela os turnos pendentes.
 
 ## 5. Google Play Billing
 
