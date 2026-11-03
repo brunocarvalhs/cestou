@@ -1,0 +1,40 @@
+appId: br.com.brunocarvalhs.howmuch
+name: AI chat - request keeps running with the app in the background
+tags:
+  - chat
+  - notifications
+---
+# Manda um pedido à IA e leva o app para segundo plano. O aviso em si vive na bandeja do sistema,
+# fora do alcance dos testTag, então a conferência da notificação é feita por fora
+# (adb shell dumpsys notification) e aqui só se garante que o app sobrevive e reabre no chat.
+- runFlow: ../subflows/ensure_logged_in.yaml
+
+- tapOn:
+    id: home_ai_button
+- extendedWaitUntil:
+    visible:
+      id: ai_chat_input
+    timeout: 15000
+- tapOn:
+    id: ai_chat_input
+- inputText: Quanto custa um pacote de arroz
+- tapOn:
+    id: ai_chat_send_button
+
+# Segundo plano logo após enviar, antes da resposta chegar
+- pressKey: home
+- waitForAnimationToEnd:
+    timeout: 20000
+
+# Reabre sem limpar estado: o app segue vivo e o chat mantém a mensagem enviada
+- launchApp:
+    clearState: false
+    stopApp: false
+- extendedWaitUntil:
+    visible:
+      id: ai_chat_input
+    timeout: 15000
+- tapOn:
+    id: ai_chat_close_button
+- assertVisible:
+    id: home_create_fab

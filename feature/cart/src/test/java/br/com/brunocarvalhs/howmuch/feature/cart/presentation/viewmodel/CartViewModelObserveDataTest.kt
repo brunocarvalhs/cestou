@@ -3,9 +3,11 @@ package br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.domain.budget.MonthlySpendingCalculator
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.repository.MonthlyGoalRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
@@ -14,6 +16,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.usecase.ShoppingClearPurchasedUs
 import br.com.brunocarvalhs.howmuch.core.domain.usecase.SortProductsUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -68,6 +71,12 @@ class CartViewModelObserveDataTest {
     private val sortProductsUseCase = mockk<SortProductsUseCase>()
     private val userRepository = mockk<UserRepository>()
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
+    private val monthlyGoalRepository = mockk<MonthlyGoalRepository> {
+        every { observeGoal() } returns flowOf(null)
+    }
+    private val featureFlags = mockk<FeatureFlagService> {
+        every { isEnabled(any(), any()) } returns true
+    }
     private val navigator = mockk<Navigator>(relaxed = true)
 
     private val shopping = Shopping(
@@ -104,7 +113,10 @@ class CartViewModelObserveDataTest {
             settingsRepository,
             sortProductsUseCase,
             userRepository,
-            analyticsTracker
+            analyticsTracker,
+            monthlyGoalRepository,
+            MonthlySpendingCalculator(),
+            featureFlags
         )
         vm.setNavigator(navigator)
         return vm

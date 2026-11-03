@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -73,7 +74,7 @@ internal fun JoinListContent(
                 if (it.length <= 20) token = it
             },
             label = { Text(stringResource(R.string.shopping_management_label_token)) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("join_list_code_field"),
             placeholder = { Text(stringResource(R.string.shopping_management_placeholder_token)) },
             singleLine = true,
             isError = error != null,
@@ -93,7 +94,8 @@ internal fun JoinListContent(
             enabled = token.isNotBlank() && !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(56.dp)
+                .testTag("join_list_confirm"),
             shape = MaterialTheme.shapes.medium
         ) {
             Text(stringResource(R.string.shopping_management_button_join))
@@ -101,7 +103,7 @@ internal fun JoinListContent(
 
         TextButton(
             onClick = onScan,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().testTag("join_list_scan")
         ) {
             Icon(Icons.Default.QrCodeScanner, contentDescription = null)
             Spacer(Modifier.width(8.dp))
@@ -110,7 +112,7 @@ internal fun JoinListContent(
 
         OutlinedButton(
             onClick = onDismiss,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().testTag("join_list_cancel")
         ) {
             Text(stringResource(br.com.brunocarvalhs.howmuch.core.ui.R.string.action_cancel))
         }

@@ -1,0 +1,98 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Budget - monthly goal in settings, Home card and list lines
+tags:
+  - budget
+---
+# Define a meta mensal (conta de teste), confere o cartão da Home e a linha do mês na lista, e
+# remove a meta ao final para não deixar a conta alterada. Só testTag; a meta vai para a conta.
+- runFlow: ../subflows/ensure_logged_in.yaml
+- runFlow: ../subflows/answer_feedback_survey.yaml
+- runFlow: ../subflows/cleanup_lists.yaml
+- evalScript: ${output.listName = 'maestro-' + Date.now()}
+
+# Meta em Configurações > Compras
+- tapOn:
+    id: bottom_nav_Profile
+- scrollUntilVisible:
+    element:
+      id: settings_section_header_shopping
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_section_header_shopping
+- scrollUntilVisible:
+    element:
+      id: settings_item_shopping_0
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_item_shopping_0
+- tapOn:
+    id: settings_monthly_goal_field
+- inputText: "100000"
+- hideKeyboard
+- tapOn:
+    id: shopping_settings_save
+- waitForAnimationToEnd:
+    timeout: 2000
+- runFlow:
+    when:
+      visible:
+        id: shopping_settings_save
+    commands:
+      - back
+- tapOn:
+    id: bottom_nav_ShoppingList
+
+# Cartão da meta na Home
+- extendedWaitUntil:
+    visible:
+      id: home_monthly_goal_card
+    timeout: 15000
+
+# Linha do mês na lista (a meta vale para qualquer lista)
+- runFlow:
+    file: ../subflows/create_list.yaml
+    env:
+      LIST_NAME: ${output.listName}
+- extendedWaitUntil:
+    visible:
+      id: cart_month_progress
+    timeout: 10000
+- tapOn:
+    id: cart_back_button
+
+# Remove a meta: o cartão some
+- tapOn:
+    id: bottom_nav_Profile
+- scrollUntilVisible:
+    element:
+      id: settings_item_shopping_0
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_item_shopping_0
+- tapOn:
+    id: settings_monthly_goal_field
+- eraseText: 20
+- hideKeyboard
+- tapOn:
+    id: shopping_settings_save
+- waitForAnimationToEnd:
+    timeout: 2000
+- runFlow:
+    when:
+      visible:
+        id: shopping_settings_save
+    commands:
+      - back
+- tapOn:
+    id: bottom_nav_ShoppingList
+- assertNotVisible:
+    id: home_monthly_goal_card
+
+# Limpeza
+- runFlow:
+    file: ../subflows/delete_list.yaml
+    env:
+      LIST_NAME: ${output.listName}

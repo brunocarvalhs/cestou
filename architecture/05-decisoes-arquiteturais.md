@@ -108,6 +108,7 @@
   | `/shopping/{id}/products/{id}` | `ProductRepositoryImpl` | inherits the parent list's membership |
   | `/users/{uid}` | `UserRepositoryImpl` | own document; readable by other signed-in users |
   | `/users/{uid}/common-products/{id}` | `CommonProductRepositoryImpl` | strictly private |
+  | `/users/{uid}/preferences/{id}` | `MonthlyGoalRepositoryImpl` | strictly private (monthly spending goal) |
   | `/notifications/{id}` | `NotificationRepositoryImpl` | recipient reads; any signed-in user may create one addressed to someone else |
 
 - **Rule-by-rule reasoning**:
