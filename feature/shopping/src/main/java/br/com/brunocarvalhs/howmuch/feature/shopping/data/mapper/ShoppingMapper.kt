@@ -18,7 +18,8 @@ internal fun ShoppingModel.toDomain(): Shopping = Shopping(
     budget = budget,
     position = position,
     emoji = emoji,
-    establishment = establishment
+    establishment = establishment,
+    finishedAt = finishedAt
 )
 
 internal fun Shopping.toModel(): ShoppingModel = ShoppingModel(
@@ -36,5 +37,6 @@ internal fun Shopping.toModel(): ShoppingModel = ShoppingModel(
     budget = budget,
     position = position,
     emoji = emoji,
-    establishment = establishment
+    establishment = establishment,
+    finishedAt = finishedAt
 )

@@ -34,7 +34,18 @@ internal class ShoppingUpdateUseCase @Inject constructor(
     suspend operator fun invoke(
         id: String,
         fields: Map<String, Any?>
-    ): Result<Unit> = repository.updateFields(id, fields)
+    ): Result<Unit> = repository.updateFields(id, withFinishedAt(fields))
+
+    /**
+     * Every path that moves a list to FINISH (quick-finish on the list row and the AI agent) goes
+     * through here, so the finish date is stamped in one place instead of per caller (sdd-029).
+     */
+    private fun withFinishedAt(fields: Map<String, Any?>): Map<String, Any?> =
+        if (fields["status"] == Shopping.Status.FINISH.name && "finishedAt" !in fields) {
+            fields + ("finishedAt" to System.currentTimeMillis())
+        } else {
+            fields
+        }
 
     override suspend fun execute(
         arguments: Map<String, Any?>,
