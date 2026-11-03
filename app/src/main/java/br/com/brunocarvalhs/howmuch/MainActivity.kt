@@ -243,7 +243,11 @@ class MainActivity : AppCompatActivity() {
             LaunchedEffect(pendingAiChat, isAuthenticated, requiresName) {
                 val sessionId = pendingAiChat
                 if (sessionId != null && isAuthenticated && !requiresName) {
-                    navigator.navigate(AiChat(sessionId = sessionId))
+                    /** Se um chat já está aberto (app voltou de segundo plano nele), troca em vez de empilhar outro. */
+                    navigator.navigate(AiChat(sessionId = sessionId)) {
+                        popUpTo<AiChat> { inclusive = true }
+                        launchSingleTop = true
+                    }
                     viewModel.consumePendingAiChatSession()
                 }
             }
