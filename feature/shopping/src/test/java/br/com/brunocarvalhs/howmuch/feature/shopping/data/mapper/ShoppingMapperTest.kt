@@ -86,4 +86,12 @@ class ShoppingMapperTest {
         assertEquals(model.position, result.position)
         assertEquals(model.establishment, result.establishment)
     }
+
+    @Test
+    fun `finishedAt survives the domain to model round trip`() {
+        val finished = domain.copy(status = Shopping.Status.FINISH, finishedAt = 1_700_000_000_000L)
+
+        assertEquals(finished, finished.toModel().toDomain())
+        assertEquals(null, domain.toModel().finishedAt)
+    }
 }

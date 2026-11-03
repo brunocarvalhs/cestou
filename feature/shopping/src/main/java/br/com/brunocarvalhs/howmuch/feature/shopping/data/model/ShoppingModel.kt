@@ -19,7 +19,8 @@ internal data class ShoppingModel(
     val budget: Double? = null,
     val position: Int = 0,
     val emoji: String = Shopping.DEFAULT_EMOJI,
-    val establishment: String? = null
+    val establishment: String? = null,
+    val finishedAt: Long? = null
 ) {
     fun toMap(): Map<String, Any?> {
         return mapOf(
@@ -37,7 +38,8 @@ internal data class ShoppingModel(
             "budget" to budget,
             "position" to position,
             "emoji" to emoji,
-            "establishment" to establishment
+            "establishment" to establishment,
+            "finishedAt" to finishedAt
         )
     }
 }
