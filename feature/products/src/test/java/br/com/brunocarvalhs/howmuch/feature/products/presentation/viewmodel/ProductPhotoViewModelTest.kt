@@ -6,7 +6,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
@@ -14,6 +16,7 @@ import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.domain.exception.ImageUnreadableException
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductAnalyzeImageUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.helper.ProductAddSession
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -55,7 +58,15 @@ class ProductPhotoViewModelTest {
 
     private fun viewModel(): ProductPhotoViewModel {
         val savedStateHandle = SavedStateHandle(mapOf("shopping" to navJson.encodeToString(shopping)))
-        return ProductPhotoViewModel(context, savedStateHandle, analyzeImageUseCase, saveUseCase, analyticsTracker)
+        return ProductPhotoViewModel(
+            context,
+            savedStateHandle,
+            analyzeImageUseCase,
+            saveUseCase,
+            analyticsTracker,
+            mockk(relaxed = true),
+            ProductAddSession()
+        )
     }
 
     @Before
@@ -76,6 +87,12 @@ class ProductPhotoViewModelTest {
 
         assertNull(vm.uiState.value.capturedImageUri)
         assertEquals(emptyList<Product>(), vm.uiState.value.analysisResult)
+        verify {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.UI_ACTION,
+                mapOf(AnalyticsParams.ELEMENT_ID to AnalyticsElements.PRODUCT_PHOTO_RETAKE)
+            )
+        }
     }
 
     @Test

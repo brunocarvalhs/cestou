@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackError
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
@@ -40,14 +43,19 @@ internal class EditShoppingViewModel @Inject constructor(
 
     val intent = EditShoppingIntent(
         onUpdate = { shopping -> update(shopping) },
-        onShareToken = { id -> shareToken(id) },
-        onCancel = { _navigator?.goBack() },
+        onShareToken = { id ->
+            analyticsTracker.trackAction(AnalyticsElements.EDIT_SHOPPING_SHARE_TOKEN)
+            shareToken(id)
+        },
+        onCancel = {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.DIALOG_DISMISSED,
+                mapOf(AnalyticsParams.ELEMENT_ID to "edit_shopping.cancel")
+            )
+            _navigator?.goBack()
+        },
         onErrorShown = { _uiState.update { it.copy(error = null) } }
     )
-
-    init {
-        analyticsTracker.trackScreenView(screenName = "shopping_edit", screenClass = "EditShoppingViewModel")
-    }
 
     fun setNavigator(navigator: Navigator) {
         _navigator = navigator
@@ -68,10 +76,15 @@ internal class EditShoppingViewModel @Inject constructor(
             shoppingUpdateUseCase(shopping.id, fields)
                 .onSuccess {
                     trackBudgetChangeIfNeeded(shopping)
+                    analyticsTracker.trackEvent(
+                        AnalyticsEvents.SHOPPING_LIST_UPDATED,
+                        mapOf(AnalyticsParams.SHOPPING_ID to shopping.id)
+                    )
                     _uiState.update { it.copy(isLoading = false) }
                     _navigator?.goBack()
                 }
                 .onFailure { error ->
+                    analyticsTracker.trackError("update_shopping", error)
                     _uiState.update { it.copy(isLoading = false, error = error.message) }
                 }
         }

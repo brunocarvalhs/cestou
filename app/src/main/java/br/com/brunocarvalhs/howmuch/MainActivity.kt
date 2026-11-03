@@ -31,6 +31,7 @@ import androidx.navigation.compose.DialogNavigator
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import br.com.brunocarvalhs.howmuch.analytics.ScreenTracker
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
@@ -58,6 +59,9 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var navigator: Navigator
 
+    @Inject
+    internal lateinit var screenTracker: ScreenTracker
+
     private val viewModel: MainViewModel by viewModels()
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
@@ -69,6 +73,17 @@ class MainActivity : AppCompatActivity() {
         setContent {
             CestouApp(windowSizeClass = calculateWindowSizeClass(this))
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        viewModel.onForeground()
+    }
+
+    /** Rotação e troca de tema recriam a Activity sem o app ir para segundo plano. */
+    override fun onStop() {
+        super.onStop()
+        if (!isChangingConfigurations) viewModel.onBackground()
     }
 
     /**
@@ -135,6 +150,14 @@ class MainActivity : AppCompatActivity() {
             }
 
             val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+            /**
+             * Usa a entrada atual do back stack (dialogs inclusos), não a `screenBackStackEntry`
+             * abaixo, que ignora dialogs só para o layout da barra inferior.
+             */
+            LaunchedEffect(navBackStackEntry) {
+                navBackStackEntry?.let { screenTracker.onDestinationChanged(it.id, it.destination) }
+            }
 
             var screenBackStackEntry by remember { mutableStateOf(navBackStackEntry) }
             LaunchedEffect(navBackStackEntry) {
@@ -214,6 +237,7 @@ class MainActivity : AppCompatActivity() {
                         photoUrl = photoUrl,
                         visible = currentRoute != null && currentRoute !is AiChat,
                         onNavigate = { route ->
+                            screenTracker.onTabSelected(route)
                             navigator.navigate(route) {
                                 popUpTo(navController.graph.startDestinationId) {
                                     saveState = true

@@ -6,6 +6,9 @@ import androidx.appfunctions.AppFunctionSerializable
 import androidx.appfunctions.AppFunctionService
 import androidx.appfunctions.service.AppFunction
 import androidx.appfunctions.service.AppFunctionEntryPoint
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.feature.products.domain.repository.RecipeRepository
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSearchUseCase
@@ -55,6 +58,9 @@ data class RecipeSummary(
 abstract class BaseCestouAppFunctionService : AppFunctionService() {
 
     @Inject
+    internal lateinit var analyticsTracker: AnalyticsTracker
+
+    @Inject
     internal lateinit var shoppingCreateUseCase: ShoppingCreateUseCase
 
     @Inject
@@ -75,6 +81,10 @@ abstract class BaseCestouAppFunctionService : AppFunctionService() {
     @Inject
     internal lateinit var recipeRepository: RecipeRepository
 
+    private fun trackInvoked(function: String) {
+        analyticsTracker.trackEvent(AnalyticsEvents.APP_FUNCTION_INVOKED, mapOf(AnalyticsParams.ACTION_ID to function))
+    }
+
     /**
      * Cria uma nova lista de compras.
      *
@@ -87,6 +97,7 @@ abstract class BaseCestouAppFunctionService : AppFunctionService() {
         title: String,
         description: String?,
     ): ShoppingListSummary {
+        trackInvoked("createShoppingList")
         val shopping = shoppingCreateUseCase(title = title, description = description)
             .getOrElse { throw IllegalStateException("Falha ao criar a lista: ${it.message}") }
         return ShoppingListSummary(
@@ -103,6 +114,7 @@ abstract class BaseCestouAppFunctionService : AppFunctionService() {
      */
     @AppFunction(isDescribedByKDoc = true)
     suspend fun getAllShoppingLists(): List<ShoppingListSummary> {
+        trackInvoked("getAllShoppingLists")
         val shoppingLists = shoppingGetAllUseCase()
             .getOrElse { throw IllegalStateException("Falha ao buscar as listas: ${it.message}") }
         return shoppingLists.map {
@@ -118,6 +130,7 @@ abstract class BaseCestouAppFunctionService : AppFunctionService() {
      */
     @AppFunction(isDescribedByKDoc = true)
     suspend fun searchProducts(query: String): List<ProductSummary> {
+        trackInvoked("searchProducts")
         val products = productSearchUseCase(query)
             .getOrElse { throw IllegalStateException("Falha ao buscar produtos: ${it.message}") }
         return products.map {
@@ -138,6 +151,7 @@ abstract class BaseCestouAppFunctionService : AppFunctionService() {
         quantity: Double,
         shoppingId: String,
     ) {
+        trackInvoked("saveProductToCart")
         productSaveUseCase(name = name, quantity = quantity, shoppingId = shoppingId)
             .getOrElse { throw IllegalStateException("Falha ao adicionar o produto: ${it.message}") }
     }
@@ -150,6 +164,7 @@ abstract class BaseCestouAppFunctionService : AppFunctionService() {
      */
     @AppFunction(isDescribedByKDoc = true)
     suspend fun searchRecipes(query: String): List<RecipeSummary> {
+        trackInvoked("searchRecipes")
         val recipes = recipeSearchUseCase(query)
             .getOrElse { throw IllegalStateException("Falha ao buscar receitas: ${it.message}") }
         return recipes.map {
@@ -168,6 +183,7 @@ abstract class BaseCestouAppFunctionService : AppFunctionService() {
         recipeId: String,
         shoppingId: String,
     ) {
+        trackInvoked("addRecipeIngredientsToList")
         val recipe = recipeRepository.getRecipeById(recipeId)
             .getOrElse { throw IllegalStateException("Falha ao buscar a receita: ${it.message}") }
             ?: throw AppFunctionElementNotFoundException("Receita não encontrada para o id informado")

@@ -141,7 +141,8 @@ class AgentFactoryImplTest {
         crashReporter,
         subscriptionRepository,
         geminiModelFactory,
-        openRouterHttpClientFactory
+        openRouterHttpClientFactory,
+        mockk(relaxed = true)
     )
 
     @Test

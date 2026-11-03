@@ -3,6 +3,9 @@ package br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiHistoryIntent
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiHistoryUiState
@@ -23,7 +26,6 @@ class AiHistoryViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     init {
-        analyticsTracker.trackScreenView(screenName = "ai_chat_history", screenClass = "AiHistoryViewModel")
         loadSessions()
     }
 
@@ -42,10 +44,12 @@ class AiHistoryViewModel @Inject constructor(
     }
 
     private fun selectSession(sessionId: String) {
+        analyticsTracker.trackEvent(AnalyticsEvents.AI_SESSION_SELECTED)
         _uiState.update { it.copy(selectedSessionId = sessionId) }
     }
 
     private fun deleteSession(sessionId: String) {
+        analyticsTracker.trackAction(AnalyticsElements.AI_HISTORY_DELETE_SESSION)
         viewModelScope.launch {
             chatHistoryRepository.deleteSession(sessionId)
             loadSessions()
@@ -55,7 +59,7 @@ class AiHistoryViewModel @Inject constructor(
     private fun createNewChat() {
         viewModelScope.launch {
             val newSession = chatHistoryRepository.createNewSession()
-            analyticsTracker.trackEvent("ai_chat_session_created")
+            analyticsTracker.trackEvent(AnalyticsEvents.AI_SESSION_CREATED)
             selectSession(newSession.id)
         }
     }

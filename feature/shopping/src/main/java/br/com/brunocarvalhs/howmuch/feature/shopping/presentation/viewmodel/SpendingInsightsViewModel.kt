@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
+import br.com.brunocarvalhs.howmuch.core.analytics.service.FirstTimeEventTracker
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
@@ -35,11 +36,14 @@ import kotlin.math.abs
 
 private const val TOTAL_TOLERANCE = 0.01
 
+private const val FEATURE_INSIGHTS = "spending_insights"
+
 @HiltViewModel
 internal class SpendingInsightsViewModel @Inject constructor(
     private val observeMonthlySpending: ObserveMonthlySpendingUseCase,
     private val getCategorySpending: GetCategorySpendingUseCase,
-    private val analyticsTracker: AnalyticsTracker
+    private val analyticsTracker: AnalyticsTracker,
+    private val firstTimeEventTracker: FirstTimeEventTracker
 ) : ViewModel() {
 
     private var navigator: Navigator? = null
@@ -67,10 +71,7 @@ internal class SpendingInsightsViewModel @Inject constructor(
     )
 
     init {
-        analyticsTracker.trackScreenView(
-            screenName = "spending_insights",
-            screenClass = "SpendingInsightsViewModel"
-        )
+        firstTimeEventTracker.trackFeatureFirstUsed(FEATURE_INSIGHTS)
         observeMonths()
         observeCategories()
     }

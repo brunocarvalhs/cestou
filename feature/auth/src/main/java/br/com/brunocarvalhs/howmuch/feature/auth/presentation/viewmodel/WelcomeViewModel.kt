@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.usecase.UpdateLanguageUseCase
@@ -33,6 +35,9 @@ internal class WelcomeViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     val intent = WelcomeIntent(
+        onSignInSuccess = {
+            analyticsTracker.trackEvent(AnalyticsEvents.LOGIN, mapOf(AnalyticsParams.METHOD to "social"))
+        },
         onSignInFailure = { exception ->
             onSignInFailure(exception)
         },
@@ -41,11 +46,8 @@ internal class WelcomeViewModel @Inject constructor(
         }
     )
 
-    init {
-        analyticsTracker.trackScreenView(screenName = "welcome", screenClass = "WelcomeViewModel")
-    }
-
     private fun updateLanguage(languageCode: String) {
+        analyticsTracker.trackAction(AnalyticsElements.WELCOME_LANGUAGE)
         viewModelScope.launch {
             updateLanguageUseCase(languageCode)
         }
@@ -55,10 +57,7 @@ internal class WelcomeViewModel @Inject constructor(
         analyticsTracker.trackEvent(
             AnalyticsEvents.AUTH_SIGN_IN_FAILED,
             mapOf(
-                AnalyticsParams.REASON to (
-                    exception.message
-                        ?: exception::class.simpleName.orEmpty()
-                    )
+                AnalyticsParams.REASON to exception::class.simpleName.orEmpty()
             )
         )
     }

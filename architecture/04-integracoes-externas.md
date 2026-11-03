@@ -78,6 +78,9 @@ Implementação da entrada por código: `feature/shopping/domain/usecase/Shoppin
 
 - Firebase Analytics, Crashlytics e Performance Monitoring (citados em `README.md`; confirmar a configuração em `core:analytics` antes de planejar eventos).
 - Logs de desenvolvimento via Timber.
+- `core:analytics` (sdd-033): `AnalyticsTracker` -> `FirebaseAnalyticsTracker` valida nomes e limites do Firebase (`util/AnalyticsSanitizer.kt`). Kill-switch remoto `feat_analytics_ui_actions` (Remote Config) desliga só o `ui_action`; opt-out do usuário em Configurações > Dados aplicado por `UserPropertiesSync` a partir de `AppSettings.analyticsEnabled`. Eventos em `model/AnalyticsEvents.kt`, telas em `AnalyticsScreen`, controles em `AnalyticsElements`, user properties em `AnalyticsUserProperties`.
+- Telas: `app/.../analytics/ScreenTracker.kt` reporta `screen_view` a cada destino, a partir de `FeatureNavGraph.screenNames`; ViewModels não reportam tela (regra em `ArchitectureTest`). O `screen_view` automático da Activity está desligado no `AndroidManifest.xml`.
+- Identificação: `UserPropertiesSync` define `user_id` (UID do Firebase Auth) e as user properties; com `AppSettings.analyticsEnabled = false` desliga a coleta e limpa identificação. E-mail e nome nunca vão para o Analytics (termos do Google).
 
 ## 9. Pendências deste documento
 

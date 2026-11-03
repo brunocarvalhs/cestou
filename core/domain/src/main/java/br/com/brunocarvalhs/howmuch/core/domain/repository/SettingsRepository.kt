@@ -18,6 +18,7 @@ interface SettingsRepository {
     suspend fun updateShoppingPreferences(defaultListId: String?, sortingMode: String, remindersEnabled: Boolean)
     suspend fun updateLanguage(language: String)
     suspend fun updateCurrency(currency: String)
+    suspend fun updateAnalyticsEnabled(enabled: Boolean)
     suspend fun clearCache()
     suspend fun deleteAllData()
 }

@@ -15,6 +15,7 @@ android {
 
 dependencies {
     implementation(project(":core:domain"))
+    implementation(project(":core:analytics"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.runtime)

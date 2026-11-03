@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:domain"))
     implementation(project(":core:ai"))
+    implementation(project(":core:analytics"))
     implementation(project(":core:remote-config"))
 
     implementation(libs.timber)

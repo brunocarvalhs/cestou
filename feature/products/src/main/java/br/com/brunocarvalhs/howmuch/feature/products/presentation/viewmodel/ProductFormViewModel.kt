@@ -8,6 +8,7 @@ import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
+import br.com.brunocarvalhs.howmuch.core.analytics.service.FirstTimeEventTracker
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.ui.entity.ProductCategory
@@ -15,6 +16,7 @@ import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductDuplicateCheckUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.helper.ProductAddSession
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.intent.ProductFormIntent
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.state.ProductFormUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,13 +44,19 @@ internal class ProductFormViewModel @Inject constructor(
     private val productSaveUseCase: ProductSaveUseCase,
     private val productDuplicateCheckUseCase: ProductDuplicateCheckUseCase,
     private val userRepository: UserRepository,
-    private val analyticsTracker: AnalyticsTracker
+    private val analyticsTracker: AnalyticsTracker,
+    private val firstTimeEventTracker: FirstTimeEventTracker,
+    private val addSession: ProductAddSession
 ) : ViewModel() {
 
     private val shopping = savedStateHandle.toRoute<ProductPickerRoute>(ProductPickerRoute.typeMap).shopping
 
     private val _uiState = MutableStateFlow(ProductFormUiState())
     val uiState = _uiState.asStateFlow()
+
+    init {
+        addSession.onOpened()
+    }
 
     val intent = ProductFormIntent(
         onNameChange = { name ->
@@ -105,6 +113,7 @@ internal class ProductFormViewModel @Inject constructor(
             val result = productSaveUseCase(product, shopping.id)
 
             if (result.isSuccess) {
+                addSession.onProductAdded()
                 analyticsTracker.trackEvent(
                     AnalyticsEvents.PRODUCT_ADDED,
                     mapOf(
@@ -112,6 +121,7 @@ internal class ProductFormViewModel @Inject constructor(
                         AnalyticsParams.SOURCE to SOURCE_FORM
                     )
                 )
+                firstTimeEventTracker.trackOnce(AnalyticsEvents.FIRST_PRODUCT_ADDED)
             }
 
             _uiState.update {
@@ -126,6 +136,18 @@ internal class ProductFormViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    override fun onCleared() {
+        reportAbandonment()
+    }
+
+    internal fun reportAbandonment() {
+        if (!addSession.onClosedAbandoned()) return
+        analyticsTracker.trackEvent(
+            AnalyticsEvents.PRODUCT_ADD_ABANDONED,
+            mapOf(AnalyticsParams.SHOPPING_ID to shopping.id, AnalyticsParams.SOURCE to SOURCE_FORM)
+        )
     }
 
     private suspend fun duplicateWarningMessage(addedByUserId: String?, name: String): String {

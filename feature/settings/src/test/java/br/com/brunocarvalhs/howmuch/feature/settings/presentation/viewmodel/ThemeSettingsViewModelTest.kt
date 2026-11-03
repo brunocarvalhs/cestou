@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
@@ -27,6 +28,7 @@ class ThemeSettingsViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val settingsRepository = mockk<SettingsRepository>()
+    private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val updateThemeUseCase = mockk<UpdateThemeUseCase>(relaxed = true)
     private val navigator = mockk<Navigator>(relaxed = true)
 
@@ -43,7 +45,7 @@ class ThemeSettingsViewModelTest {
 
     @Test
     fun `init loads the current theme from the repository`() {
-        val vm = ThemeSettingsViewModel(settingsRepository, updateThemeUseCase)
+        val vm = ThemeSettingsViewModel(settingsRepository, updateThemeUseCase, analyticsTracker)
 
         assertEquals(ThemeMode.DARK, vm.uiState.value.themeMode)
     }
@@ -51,7 +53,7 @@ class ThemeSettingsViewModelTest {
     @Test
     fun `onUpdateTheme forwards to the use case`() = runTest {
         coEvery { updateThemeUseCase(ThemeMode.LIGHT) } returns Result.success(Unit)
-        val vm = ThemeSettingsViewModel(settingsRepository, updateThemeUseCase)
+        val vm = ThemeSettingsViewModel(settingsRepository, updateThemeUseCase, analyticsTracker)
 
         vm.intent.onUpdateTheme(ThemeMode.LIGHT)
 
@@ -60,7 +62,7 @@ class ThemeSettingsViewModelTest {
 
     @Test
     fun `onBack navigates back`() {
-        val vm = ThemeSettingsViewModel(settingsRepository, updateThemeUseCase)
+        val vm = ThemeSettingsViewModel(settingsRepository, updateThemeUseCase, analyticsTracker)
         vm.setNavigator(navigator)
 
         vm.intent.onBack()

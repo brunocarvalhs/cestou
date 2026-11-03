@@ -26,4 +26,16 @@ interface AiSession {
      * (sdd-012). Cada agente concreto zera este sinal no início do próprio `sendMessage`.
      */
     var toolExecutedThisTurn: Boolean
+
+    /**
+     * Tag do provider (`"gemini"`, `"openrouter"`) que atendeu a tentativa de `sendMessage` mais
+     * recente; só telemetria, para saber qual agente o cliente realmente usa.
+     */
+    var providerUsed: String?
+
+    /** Quantas tools foram despachadas na tentativa em curso (zerado no início de cada tentativa). */
+    var toolCallsThisTurn: Int
+
+    /** `true` quando o provider secundário respondeu no lugar do primário; quem envia zera antes. */
+    var fallbackUsedThisTurn: Boolean
 }

@@ -307,4 +307,29 @@ class SettingsRepositoryImplTest {
         assertTrue(fake.isEmpty())
         verify { cacheDir.deleteRecursively() }
     }
+
+    @Test
+    fun `updateAnalyticsEnabled stores the flag`() = runTest {
+        val fake = mockEdit()
+
+        repository.updateAnalyticsEnabled(false)
+
+        assertEquals(false, fake[booleanPreferencesKey("analytics_enabled")])
+    }
+
+    @Test
+    fun `deleteAllData keeps the analytics opt-out`() = runTest {
+        val fake = mockEdit(
+            initial = mutablePreferencesOf(
+                stringPreferencesKey("language") to "en",
+                booleanPreferencesKey("analytics_enabled") to false
+            )
+        )
+        every { context.cacheDir } returns mockk<File>(relaxed = true)
+
+        repository.deleteAllData()
+
+        assertEquals(false, fake[booleanPreferencesKey("analytics_enabled")])
+        assertEquals(null, fake[stringPreferencesKey("language")])
+    }
 }

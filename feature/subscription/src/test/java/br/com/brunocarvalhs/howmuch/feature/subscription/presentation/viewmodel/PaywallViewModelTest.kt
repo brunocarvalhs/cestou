@@ -2,6 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.subscription.presentation.viewmodel
 
 import android.app.Activity
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.billing.PlayBillingSubscriptionRepository
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import com.android.billingclient.api.BillingClient
@@ -9,6 +11,7 @@ import com.android.billingclient.api.BillingResult
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -100,5 +103,33 @@ class PaywallViewModelTest {
         viewModel.intent.onSubscribeClick(activity)
 
         assertNull(viewModel.uiState.value.errorMessage)
+    }
+
+    @Test
+    fun `leaving without subscribing reports paywall_dismissed with the source and time spent`() {
+        val viewModel = viewModel()
+        viewModel.setSource("ai_gate")
+
+        viewModel.reportDismissal()
+
+        verify {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.PAYWALL_DISMISSED,
+                match { it[AnalyticsParams.SOURCE] == "ai_gate" && (it[AnalyticsParams.DURATION_MS] as Long) >= 0 }
+            )
+        }
+    }
+
+    @Test
+    fun `leaving after subscribing does not report paywall_dismissed`() = runTest {
+        val activity = mockk<Activity>()
+        val ok = mockk<BillingResult> { every { responseCode } returns BillingClient.BillingResponseCode.OK }
+        coEvery { billingRepository.purchase(activity) } returns ok
+        val viewModel = viewModel()
+        viewModel.intent.onSubscribeClick(activity)
+
+        viewModel.reportDismissal()
+
+        verify(exactly = 0) { analyticsTracker.trackEvent(AnalyticsEvents.PAYWALL_DISMISSED, any()) }
     }
 }

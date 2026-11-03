@@ -5,13 +5,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
-import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
+import br.com.brunocarvalhs.howmuch.core.analytics.service.FirstTimeEventTracker
 import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.AiChatAnalytics
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.SpeechToTextManager
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.VoiceFailure
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatIntent
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiChatUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,6 +28,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
 import javax.inject.Inject
+import kotlin.time.TimeSource
 
 @HiltViewModel
 class AiChatViewModel @Inject constructor(
@@ -33,14 +38,19 @@ class AiChatViewModel @Inject constructor(
     private val aiTrialRepository: AiTrialRepository,
     private val aiSession: AiSession,
     private val speechToTextManager: SpeechToTextManager,
+    private val firstTimeEventTracker: FirstTimeEventTracker,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AiChatUiState())
     val uiState = _uiState.asStateFlow()
 
+    /** Verdadeiro quando o texto a enviar veio do reconhecimento de voz, para o `input_method`. */
+    private var inputFromVoice = false
+
+    private val telemetry = AiChatAnalytics(analyticsTracker, firstTimeEventTracker)
+
     init {
-        analyticsTracker.trackScreenView(screenName = "ai_chat", screenClass = "AiChatViewModel")
         observeSpeechRecognizer()
     }
 
@@ -77,6 +87,7 @@ class AiChatViewModel @Inject constructor(
     }
 
     private fun toggleHistory() {
+        telemetry.historyToggled()
         _uiState.update { state ->
             val newShow = !state.showHistory
             state.copy(showHistory = newShow)
@@ -84,6 +95,7 @@ class AiChatViewModel @Inject constructor(
     }
 
     private fun selectHistoryItem(id: String) {
+        analyticsTracker.trackAction(AnalyticsElements.AI_CHAT_SELECT_HISTORY)
         _uiState.update { it.copy(showHistory = false) }
         loadSession(id)
     }
@@ -104,6 +116,7 @@ class AiChatViewModel @Inject constructor(
         viewModelScope.launch {
             speechToTextManager.errorMessage.collect { error ->
                 if (!error.isNullOrBlank()) {
+                    telemetry.voiceFailed(VoiceFailure.RECOGNITION)
                     _uiState.update { it.copy(voiceErrorMessage = error, isRecording = false) }
                 }
             }
@@ -111,12 +124,13 @@ class AiChatViewModel @Inject constructor(
     }
 
     private fun startVoiceInput() {
-        analyticsTracker.trackEvent("ai_chat_voice_input_started")
+        telemetry.voiceStarted()
         if (speechToTextManager.isRecognitionAvailable()) {
             _uiState.update { it.copy(isRecording = true, voiceErrorMessage = null) }
             speechToTextManager.clearResult()
             speechToTextManager.startListening()
         } else {
+            telemetry.voiceFailed(VoiceFailure.UNSUPPORTED)
             _uiState.update {
                 it.copy(
                     voiceErrorMessage = context.getString(R.string.ai_chat_voice_not_supported),
@@ -141,6 +155,7 @@ class AiChatViewModel @Inject constructor(
     }
 
     private fun handleVoiceResult(text: String) {
+        inputFromVoice = true
         _uiState.update { it.copy(input = text) }
     }
 
@@ -151,7 +166,10 @@ class AiChatViewModel @Inject constructor(
         // side backstop (sdd-017, B-06).
         if (text.isBlank() || _uiState.value.isLoading) return
 
-        analyticsTracker.trackEvent(AnalyticsEvents.AI_CHAT_MESSAGE_SENT)
+        telemetry.messageSent(text.length, inputFromVoice, !_uiState.value.shoppingId.isNullOrBlank())
+        inputFromVoice = false
+        val sentAt = TimeSource.Monotonic.markNow()
+        aiSession.fallbackUsedThisTurn = false
 
         val userMessage = ChatMessage(text = text, sender = ChatMessage.Sender.USER)
         _uiState.update {
@@ -174,6 +192,7 @@ class AiChatViewModel @Inject constructor(
                     // completes without emitting anything (sdd-017, C-02).
                     .onCompletion { _uiState.update { it.copy(isLoading = false) } }
                     .collect { response ->
+                        if (!receivedAny) telemetry.responseReceived(sentAt, response.length, aiSession)
                         receivedAny = true
                         val assistantMessage = ChatMessage(text = response, sender = ChatMessage.Sender.ASSISTANT)
                         _uiState.update {
@@ -184,9 +203,13 @@ class AiChatViewModel @Inject constructor(
                         }
                         persistHistory()
                     }
-                if (receivedAny) aiTrialRepository.markFreeMessageUsed()
+                if (receivedAny) {
+                    aiTrialRepository.markFreeMessageUsed()
+                    telemetry.trialMessageUsed()
+                }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
+                telemetry.responseFailed(e)
                 val errorText = if (e is IOException) {
                     context.getString(R.string.ai_chat_error_network)
                 } else {

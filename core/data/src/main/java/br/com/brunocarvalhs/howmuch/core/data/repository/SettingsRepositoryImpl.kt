@@ -41,6 +41,18 @@ private object PreferencesKeys {
     val REMINDERS_ENABLED = booleanPreferencesKey("reminders_enabled")
     val LANGUAGE = stringPreferencesKey("language")
     val CURRENCY = stringPreferencesKey("currency")
+    val ANALYTICS_ENABLED = booleanPreferencesKey("analytics_enabled")
+}
+
+/**
+ * Um `ai_model` salvo que não está mais no catálogo atual é de uma versão antiga do app (único
+ * jeito de escolher um modelo é o dropdown em AiSettingsScreen, não há texto livre) -
+ * tipicamente "openrouter/auto", que nunca foi de graça (é o Auto Router pago do OpenRouter) e
+ * por isso sempre batia 402 pra quem nunca trocou o modelo manualmente.
+ */
+private fun Preferences.resolveStoredAiModel(): String {
+    val storedModel = this[PreferencesKeys.AI_MODEL]
+    return if (storedModel.isNullOrBlank() || storedModel == "openrouter/auto") DEFAULT_AI_MODEL else storedModel
 }
 
 private fun Preferences.toAppSettings(): AppSettings {
@@ -54,16 +66,7 @@ private fun Preferences.toAppSettings(): AppSettings {
     } catch (e: IllegalArgumentException) {
         AiConfigTier.DEFAULT
     }
-    // Um `ai_model` salvo que não está mais no catálogo atual é de uma versão antiga do app
-    // (único jeito de escolher um modelo é o dropdown em AiSettingsScreen, não há texto livre) —
-    // tipicamente "openrouter/auto", que nunca foi de graça (é o Auto Router pago do
-    // OpenRouter) e por isso sempre batia 402 pra quem nunca trocou o modelo manualmente.
-    val storedModel = this[PreferencesKeys.AI_MODEL]
-    val aiModel = if (storedModel.isNullOrBlank() || storedModel == "openrouter/auto") {
-        DEFAULT_AI_MODEL
-    } else {
-        storedModel
-    }
+    val aiModel = resolveStoredAiModel()
 
     return AppSettings(
         themeMode = themeMode,
@@ -78,7 +81,8 @@ private fun Preferences.toAppSettings(): AppSettings {
         sortingMode = this[PreferencesKeys.SORTING_MODE] ?: "CATEGORY",
         remindersEnabled = this[PreferencesKeys.REMINDERS_ENABLED] ?: false,
         language = this[PreferencesKeys.LANGUAGE] ?: "pt-BR",
-        currency = this[PreferencesKeys.CURRENCY] ?: "BRL"
+        currency = this[PreferencesKeys.CURRENCY] ?: "BRL",
+        analyticsEnabled = this[PreferencesKeys.ANALYTICS_ENABLED] ?: true
     )
 }
 
@@ -187,13 +191,25 @@ internal class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateAnalyticsEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ANALYTICS_ENABLED] = enabled
+        }
+    }
+
     override suspend fun clearCache() {
         context.cacheDir.deleteRecursively()
     }
 
     override suspend fun deleteAllData() {
         dataStore.edit { preferences ->
+            /**
+             * A escolha de privacidade sobrevive ao "apagar tudo": quem desligou o Analytics não
+             * pode voltar a ser rastreado só por ter limpado os dados do app.
+             */
+            val analyticsEnabled = preferences[PreferencesKeys.ANALYTICS_ENABLED]
             preferences.clear()
+            analyticsEnabled?.let { preferences[PreferencesKeys.ANALYTICS_ENABLED] = it }
         }
         clearCache()
     }

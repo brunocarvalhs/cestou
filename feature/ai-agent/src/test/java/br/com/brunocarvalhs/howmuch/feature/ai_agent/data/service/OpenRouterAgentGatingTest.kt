@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
@@ -26,6 +27,7 @@ class OpenRouterAgentGatingTest {
     private val registry = mockk<AgentRegistry>()
     private val subscriptionRepository = mockk<SubscriptionRepository>()
     private val session = mockk<AiSession>(relaxed = true)
+    private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
 
     private fun agentWithStatus(status: SubscriptionStatus): OpenRouterAgent {
         every { subscriptionRepository.observeStatus() } returns flowOf(status)
@@ -34,7 +36,8 @@ class OpenRouterAgentGatingTest {
                 session = session,
                 crashReporter = mockk<CrashReporter>(relaxed = true),
                 subscriptionRepository = subscriptionRepository,
-                registry = registry
+                registry = registry,
+                analyticsTracker = analyticsTracker
             ),
             httpClientFactory = mockk(relaxed = true)
         )

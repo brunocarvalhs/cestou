@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
@@ -39,6 +40,7 @@ class AiSettingsViewModelTest {
         every { observeStatus() } returns flowOf(SubscriptionStatus.FREE)
     }
     private val updateAiSettingsUseCase = mockk<UpdateAiSettingsUseCase>(relaxed = true)
+    private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val navigator = mockk<Navigator>(relaxed = true)
 
     @Before
@@ -55,7 +57,8 @@ class AiSettingsViewModelTest {
         settingsRepository = settingsRepository,
         aiModelRepository = aiModelRepository,
         subscriptionRepository = subscriptionRepository,
-        updateAiSettingsUseCase = updateAiSettingsUseCase
+        updateAiSettingsUseCase = updateAiSettingsUseCase,
+        analyticsTracker = analyticsTracker
     )
 
     @Test

@@ -1,5 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.auth.presentation.viewmodel
 
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.feature.auth.domain.model.EmailAuthError
 import br.com.brunocarvalhs.howmuch.feature.auth.domain.model.EmailAuthException
 import br.com.brunocarvalhs.howmuch.feature.auth.domain.repository.EmailAuthRepository
@@ -7,6 +9,7 @@ import br.com.brunocarvalhs.howmuch.feature.auth.presentation.state.EmailFieldEr
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -29,6 +32,7 @@ import org.junit.Test
 class PasswordResetViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
+    private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val repository = mockk<EmailAuthRepository> {
         coEvery { sendPasswordReset(any()) } returns Result.success(Unit)
     }
@@ -44,7 +48,17 @@ class PasswordResetViewModelTest {
     }
 
     private fun viewModel(prefilledEmail: String = "") =
-        PasswordResetViewModel(repository).apply { start(prefilledEmail) }
+        PasswordResetViewModel(repository, analyticsTracker).apply { start(prefilledEmail) }
+
+    @Test
+    fun `a sent reset tracks password_reset_requested`() = runTest(dispatcher) {
+        val vm = viewModel("ana@test.com")
+
+        vm.intent.onSubmit()
+        runCurrent()
+
+        verify { analyticsTracker.trackEvent(AnalyticsEvents.PASSWORD_RESET_REQUESTED) }
+    }
 
     @Test
     fun `prefills the e-mail typed on the sign-in screen`() {

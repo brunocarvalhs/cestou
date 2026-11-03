@@ -3,8 +3,11 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
+import br.com.brunocarvalhs.howmuch.core.analytics.service.FirstTimeEventTracker
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
@@ -27,10 +30,13 @@ import timber.log.Timber
 import java.time.YearMonth
 import javax.inject.Inject
 
+private const val FEATURE_HISTORY = "history"
+
 @HiltViewModel
 internal class HistoryViewModel @Inject constructor(
     private val observeHistory: ObserveHistoryUseCase,
-    private val analyticsTracker: AnalyticsTracker
+    private val analyticsTracker: AnalyticsTracker,
+    private val firstTimeEventTracker: FirstTimeEventTracker
 ) : ViewModel() {
 
     private var navigator: Navigator? = null
@@ -49,12 +55,15 @@ internal class HistoryViewModel @Inject constructor(
             )
             navigator?.navigate(CartFlow(purchase.shopping))
         },
-        onSeeAnalysis = { navigator?.navigate(SpendingInsights) },
+        onSeeAnalysis = {
+            analyticsTracker.trackAction(AnalyticsElements.HISTORY_SEE_ANALYSIS)
+            navigator?.navigate(SpendingInsights)
+        },
         onRetry = ::observe
     )
 
     init {
-        analyticsTracker.trackScreenView(screenName = "history", screenClass = "HistoryViewModel")
+        firstTimeEventTracker.trackFeatureFirstUsed(FEATURE_HISTORY)
         observe()
     }
 

@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackError
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
+import br.com.brunocarvalhs.howmuch.core.analytics.service.FirstTimeEventTracker
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationOrigin
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
@@ -33,17 +35,14 @@ internal class FinishPurchaseViewModel @Inject constructor(
     private val repository: ShoppingRepository,
     private val authService: AuthService,
     private val notificationRepository: NotificationRepository,
-    private val analyticsTracker: AnalyticsTracker
+    private val analyticsTracker: AnalyticsTracker,
+    private val firstTimeEventTracker: FirstTimeEventTracker
 ) : ViewModel() {
 
     private var _navigator: Navigator? = null
 
     private val _uiState = MutableStateFlow(FinishPurchaseUiState())
     val uiState: StateFlow<FinishPurchaseUiState> = _uiState.asStateFlow()
-
-    init {
-        analyticsTracker.trackScreenView(screenName = "cart_finish_purchase", screenClass = "FinishPurchaseViewModel")
-    }
 
     fun setNavigator(navigator: Navigator) {
         _navigator = navigator
@@ -75,10 +74,12 @@ internal class FinishPurchaseViewModel @Inject constructor(
                         AnalyticsParams.AMOUNT to price
                     )
                 )
+                firstTimeEventTracker.trackOnce(AnalyticsEvents.FIRST_PURCHASE_COMPLETED)
                 notifyOtherMembers(shopping)
                 _uiState.update { it.copy(isLoading = false) }
                 _navigator?.goBack()
-            }.onFailure {
+            }.onFailure { error ->
+                analyticsTracker.trackError("finish_purchase", error)
                 _uiState.update {
                     it.copy(
                         isLoading = false,

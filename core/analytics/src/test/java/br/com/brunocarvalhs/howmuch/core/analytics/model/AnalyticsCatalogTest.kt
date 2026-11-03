@@ -1,0 +1,43 @@
+package br.com.brunocarvalhs.howmuch.core.analytics.model
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class AnalyticsCatalogTest {
+
+    private val eventValues = AnalyticsEvents::class.java.declaredFields
+        .filter { it.type == String::class.java && java.lang.reflect.Modifier.isStatic(it.modifiers) }
+        .map { it.apply { isAccessible = true }.get(null) as String }
+
+    @Test
+    fun `event names are unique snake_case and fit the Firebase limit`() {
+        assertEquals(eventValues.size, eventValues.toSet().size)
+        eventValues.forEach { name ->
+            assertTrue("invalid event name: $name", Regex("^[a-z][a-z0-9_]{0,39}$").matches(name))
+        }
+    }
+
+    @Test
+    fun `screen ids are unique and screen classes never name a view model`() {
+        assertEquals(AnalyticsScreen.entries.size, AnalyticsScreen.entries.map { it.id }.toSet().size)
+        AnalyticsScreen.entries.forEach {
+            assertTrue("${it.screenClass} looks like a ViewModel", !it.screenClass.endsWith("ViewModel"))
+        }
+    }
+
+    @Test
+    fun `account age buckets cover every range`() {
+        assertEquals("0-1d", AnalyticsUserProperties.accountAgeBucket(0))
+        assertEquals("2-7d", AnalyticsUserProperties.accountAgeBucket(7))
+        assertEquals("8-30d", AnalyticsUserProperties.accountAgeBucket(30))
+        assertEquals("30d+", AnalyticsUserProperties.accountAgeBucket(31))
+    }
+
+    @Test
+    fun `lists buckets cover every range`() {
+        assertEquals("0", AnalyticsUserProperties.listsBucket(0))
+        assertEquals("1-3", AnalyticsUserProperties.listsBucket(3))
+        assertEquals("4+", AnalyticsUserProperties.listsBucket(4))
+    }
+}

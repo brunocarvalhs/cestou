@@ -50,6 +50,8 @@ internal class OpenRouterAgent(
         // Zera no início da tentativa: FallbackAgent lê este sinal só depois que esta chamada
         // falha, então precisa refletir só o que aconteceu *nesta* tentativa (sdd-012).
         session.toolExecutedThisTurn = false
+        session.toolCallsThisTurn = 0
+        session.providerUsed = providerTag
 
         try {
             val messages = buildInitialMessages(prompt, meta)

@@ -117,7 +117,7 @@ class NotificationsViewModelTest {
         every { authService.currentUser } returns null
         val vm = viewModel()
 
-        verify { analyticsTracker.trackScreenView("notifications", "NotificationsViewModel") }
+        verify(exactly = 0) { analyticsTracker.trackScreenView(any(), any()) }
         assertFalse(vm.uiState.value.isLoading)
     }
 

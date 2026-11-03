@@ -16,5 +16,6 @@ data class AppSettings(
     val sortingMode: String = "CATEGORY",
     val remindersEnabled: Boolean = false,
     val language: String = "pt-BR",
-    val currency: String = "BRL"
+    val currency: String = "BRL",
+    val analyticsEnabled: Boolean = true
 )

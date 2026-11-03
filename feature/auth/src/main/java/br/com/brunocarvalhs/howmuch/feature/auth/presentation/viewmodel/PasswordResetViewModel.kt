@@ -2,6 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.auth.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.feature.auth.domain.model.EmailAuthError
 import br.com.brunocarvalhs.howmuch.feature.auth.domain.model.EmailAuthException
 import br.com.brunocarvalhs.howmuch.feature.auth.domain.repository.EmailAuthRepository
@@ -19,6 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class PasswordResetViewModel @Inject constructor(
     private val repository: EmailAuthRepository,
+    private val analyticsTracker: AnalyticsTracker,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PasswordResetUiState())
@@ -49,6 +52,7 @@ internal class PasswordResetViewModel @Inject constructor(
         viewModelScope.launch {
             repository.sendPasswordReset(state.email.trim())
                 .onSuccess {
+                    analyticsTracker.trackEvent(AnalyticsEvents.PASSWORD_RESET_REQUESTED)
                     _uiState.update { it.copy(isLoading = false, isSent = true) }
                     startResendCountdown()
                 }

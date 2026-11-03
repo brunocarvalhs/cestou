@@ -42,7 +42,7 @@ class ProfileViewModelTest {
     }
 
     @Test
-    fun `init tracks screen_view and merges the Firestore profile into the user state`() {
+    fun `init merges the Firestore profile into the user state`() {
         val user = AuthenticatedUser(id = "u1", email = "old@example.com")
         every { authService.currentUser } returns user
         coEvery { userRepository.getUserProfile("u1") } returns flowOf(
@@ -51,7 +51,7 @@ class ProfileViewModelTest {
 
         val vm = ProfileViewModel(authService, userRepository, analyticsTracker)
 
-        verify { analyticsTracker.trackScreenView("profile", "ProfileViewModel") }
+        verify(exactly = 0) { analyticsTracker.trackScreenView(any(), any()) }
         assertEquals(
             user.copy(displayName = "Ana", photoUrl = "https://example.com/ana.png"),
             vm.uiState.value.user

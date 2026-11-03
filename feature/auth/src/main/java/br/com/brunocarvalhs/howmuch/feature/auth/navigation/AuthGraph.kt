@@ -40,6 +40,7 @@ internal fun NavGraphBuilder.authGraph(
         FirebaseAuthScreen(
             configuration = viewModel.authConfig.invoke(),
             onSignInSuccess = { _ ->
+                viewModel.intent.onSignInSuccess()
                 onAuthSuccess()
             },
             onSignInFailure = { exception ->

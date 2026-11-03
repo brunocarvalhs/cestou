@@ -85,6 +85,8 @@
     <string name="settings_ai_pro_badge">PRO</string>
     <string name="settings_ai_upgrade_prompt">Upgrade to Pro to unlock specific models and custom API keys.</string>
     <string name="settings_ai_button_upgrade">Upgrade to Pro</string>
+    <string name="settings_data_analytics">Usage data</string>
+    <string name="settings_data_analytics_hint">Helps us understand how the app is used to improve it. Turn off to stop sending usage data.</string>
     <string name="settings_data_clear_cache">Clear cache</string>
     <string name="settings_data_clear_cache_hint">Frees up occupied space</string>
     <string name="settings_data_delete_all">Delete all data</string>
