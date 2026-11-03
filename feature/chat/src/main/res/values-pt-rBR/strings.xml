@@ -25,4 +25,11 @@
     <string name="ai_chat_vote_reason_too_slow">Muito lenta</string>
     <string name="ai_chat_vote_reason_did_nothing">Não fez nada</string>
     <string name="ai_chat_vote_reason_other">Outro</string>
+    <string name="ai_chat_activity_thinking">Pensando…</string>
+    <string name="ai_chat_activity_creating_list">Criando sua lista…</string>
+    <string name="ai_chat_activity_adding_items">Adicionando itens à lista…</string>
+    <string name="ai_chat_activity_searching">Pesquisando…</string>
+    <string name="ai_chat_activity_checking_lists">Consultando suas listas…</string>
+    <string name="ai_chat_activity_updating_list">Atualizando a lista…</string>
+    <string name="ai_chat_activity_removing">Removendo itens…</string>
 </resources>

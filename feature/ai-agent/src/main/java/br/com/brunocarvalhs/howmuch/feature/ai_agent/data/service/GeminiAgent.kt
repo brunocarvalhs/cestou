@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 import br.com.brunocarvalhs.howmuch.core.ai.BuildConfig
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.trimToRecentHistory
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.Content
 import com.google.ai.client.generativeai.type.FunctionCallPart
@@ -72,13 +73,13 @@ internal class GeminiAgent(
                 response = chat.sendMessage(toolContent)
             }
 
-            response.text?.trim()?.let {
-                emit(it)
-                // Atualiza o histórico da sessão com o estado atual do chat
-                session.history.clear()
-                session.history.addAll(chat.history)
-                session.history.trimToRecentHistory()
-            }
+            // O histórico é gravado mesmo sem texto final: as ações do turno já foram executadas e
+            // o modelo precisa lembrar delas.
+            val text = response.text?.trim()
+            session.history.clear()
+            session.history.addAll(chat.history)
+            session.history.trimToRecentHistory()
+            text?.let { emit(it) }
         } catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException) throw e
             Timber.tag(TAG).e(e, "Erro na comunicação com Gemini (model=%s)", modelName)

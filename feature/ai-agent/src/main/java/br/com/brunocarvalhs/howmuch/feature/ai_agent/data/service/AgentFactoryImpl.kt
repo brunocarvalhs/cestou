@@ -47,7 +47,8 @@ internal class AgentFactoryImpl @Inject constructor(
         }
         // The behavior prompt is remote so a missed guardrail or scope issue can be tightened
         // instantly for everyone, without waiting on a Play Store rollout.
-        val systemPrompt = resolveRemoteString(RemoteVariableKeys.AI_SYSTEM_PROMPT, SystemPrompts.CESTOU_ASSISTANT)
+        val systemPrompt = resolveRemoteString(RemoteVariableKeys.AI_SYSTEM_PROMPT, SystemPrompts.CESTOU_ASSISTANT) +
+            "\n\n" + SystemPrompts.SAFETY_RULES
         // settings.aiModel is the single model the user picked in AiSettingsScreen; it only
         // applies to whichever provider they actually selected (settings.aiProvider) — the
         // other provider here only exists as a fallback and keeps its BuildConfig default,

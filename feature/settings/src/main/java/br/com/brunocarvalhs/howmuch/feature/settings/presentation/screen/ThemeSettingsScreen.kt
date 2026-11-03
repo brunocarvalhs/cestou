@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.components.SettingsHeader
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.ThemeSettingsIntent
@@ -81,7 +81,7 @@ private fun ThemeBottomSheet(
     onDismiss: () -> Unit,
     onSelect: (ThemeMode) -> Unit
 ) {
-    ModalBottomSheet(
+    CestouModalBottomSheet(
         onDismissRequest = onDismiss
     ) {
         Column(

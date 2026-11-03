@@ -136,6 +136,7 @@ object AnalyticsEvents {
     const val AI_RESPONSE_FAILED = "ai_response_failed"
     const val AI_TOOL_EXECUTED = "ai_tool_executed"
     const val AI_TOOL_BLOCKED_PRO = "ai_tool_blocked_pro"
+    const val AI_TOOL_CONFIRMATION_REQUESTED = "ai_tool_confirmation_requested"
     const val AI_PROVIDER_FALLBACK = "ai_provider_fallback"
     const val AI_VOICE_INPUT_STARTED = "ai_chat_voice_input_started"
     const val AI_VOICE_INPUT_FAILED = "ai_voice_input_failed"

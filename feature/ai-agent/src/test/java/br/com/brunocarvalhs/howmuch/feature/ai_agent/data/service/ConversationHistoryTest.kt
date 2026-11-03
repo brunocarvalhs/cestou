@@ -1,5 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.MAX_HISTORY_ENTRIES
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.trimToRecentHistory
 import com.google.ai.client.generativeai.type.Content
 import com.google.ai.client.generativeai.type.TextPart
 import org.junit.Assert.assertEquals
