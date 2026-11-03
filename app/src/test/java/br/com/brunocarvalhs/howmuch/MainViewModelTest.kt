@@ -16,6 +16,8 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.push.PushNotificationHandler
+import br.com.brunocarvalhs.howmuch.push.PushSource
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -49,6 +51,7 @@ class MainViewModelTest {
         coEvery { saveProfile(any()) } returns Result.success(Unit)
     }
     private val aiSession = mockk<AiSession>(relaxed = true)
+    private val pushNotificationHandler = mockk<PushNotificationHandler>(relaxed = true)
 
     @Before
     fun setup() {
@@ -77,7 +80,8 @@ class MainViewModelTest {
             userRepository,
             analyticsTracker,
             wearableSyncService,
-            aiSession
+            aiSession,
+            pushNotificationHandler
         )
     }
 
@@ -301,6 +305,57 @@ class MainViewModelTest {
         val recreated = viewModel(savedStateHandle = savedStateHandle)
 
         assertEquals("ABC123", recreated.pendingJoinToken.value)
+    }
+
+    // endregion
+
+    // region push
+
+    private fun pushIntent(): Intent {
+        val extras = mockk<android.os.Bundle> {
+            every { getString("google.message_id") } returns "m1"
+            every { containsKey(any()) } returns true
+            every { getString("google.sent_time") } returns null
+            every { getLong("google.sent_time", 0L) } returns 0L
+            every { keySet() } returns setOf("google.message_id", "title", "message")
+            every { getString("title") } returns "T"
+            every { getString("message") } returns "M"
+        }
+        return mockk { every { this@mockk.extras } returns extras }
+    }
+
+    @Test
+    fun `onPushIntent hands a tapped tray notification to the handler once`() {
+        val vm = viewModel()
+
+        vm.onPushIntent(pushIntent())
+
+        coVerify(exactly = 1) {
+            pushNotificationHandler.handle(
+                match { it.messageId == "m1" && it.data == mapOf("title" to "T", "message" to "M") },
+                PushSource.TAP
+            )
+        }
+    }
+
+    @Test
+    fun `onPushIntent ignores an intent that carries no FCM extras`() {
+        val vm = viewModel()
+        val intent = mockk<Intent> { every { extras } returns null }
+
+        vm.onPushIntent(intent)
+
+        coVerify(exactly = 0) { pushNotificationHandler.handle(any(), any()) }
+    }
+
+    @Test
+    fun `onPushIntent does not disturb a pending invite`() {
+        val vm = viewModel()
+        vm.onDeepLink(inviteIntent(token = "ABC123"))
+
+        vm.onPushIntent(mockk<Intent> { every { extras } returns null })
+
+        assertEquals("ABC123", vm.pendingJoinToken.value)
     }
 
     // endregion

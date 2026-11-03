@@ -5,6 +5,7 @@ import androidx.work.Configuration
 import androidx.work.WorkManager
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
+import br.com.brunocarvalhs.howmuch.push.PushChannel
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 import javax.inject.Inject
@@ -20,6 +21,7 @@ class CestouApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        PushChannel.ensureCreated(this)
         Timber.d("🚀 ${agentRegistry.getAll().size} Agentes de IA registrados na inicialização.")
         /**
          * WorkManager's default ContentProvider auto-init is disabled (AndroidManifest.xml)

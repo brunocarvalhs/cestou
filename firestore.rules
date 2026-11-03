@@ -336,6 +336,15 @@ service cloud.firestore {
         return !('senderId' in data) || data.senderId == uid();
       }
 
+      // `campaign` is written by the app itself when a Firebase-console campaign (FCM) reaches
+      // the device, so it is only ever addressed to the writer and never carries a list or a
+      // sender. Without this, any signed-in user could plant an official-looking campaign in
+      // someone else's feed.
+      function validCampaign(data) {
+        return data.type != 'campaign'
+          || (data.userId == uid() && !('shoppingId' in data) && !('senderId' in data));
+      }
+
       // READ: recipient only. observeNotifications queries
       // whereEqualTo("userId", uid), which matches this rule exactly, so no
       // other user's notification feed is reachable.
@@ -367,11 +376,12 @@ service cloud.firestore {
                     && request.resource.data.title.size() <= 200
                     && request.resource.data.message is string
                     && request.resource.data.message.size() <= 500
-                    && request.resource.data.type in ['list_joined', 'list_finished']
+                    && request.resource.data.type in ['list_joined', 'list_finished', 'campaign']
                     && request.resource.data.isRead == false
                     && request.resource.data.timestamp is int
                     && validSender(request.resource.data)
-                    && validShoppingRef(request.resource.data);
+                    && validShoppingRef(request.resource.data)
+                    && validCampaign(request.resource.data);
 
       // UPDATE: the recipient may only flip isRead to true — the exact payload
       // NotificationRepositoryImpl.markAsRead sends. Nobody can rewrite the title

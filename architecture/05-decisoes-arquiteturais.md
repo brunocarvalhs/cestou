@@ -156,7 +156,7 @@
     `shoppingId` and `senderId`: `senderId` must equal the writer's uid, and when `shoppingId` is
     sent both the writer and the recipient must be members of that list. They stay optional so
     older clients keep working, which leaves one gap: a client that omits `shoppingId` can still
-    notify any uid it knows. Making both required is the follow-up. Publish `firestore.rules`
+    notify any uid it knows. Making both required is the follow-up. sdd-030 added the `campaign` type (Firebase-console campaigns received through FCM and saved by the app itself): it is only accepted when `userId` is the writer's own uid and without `shoppingId`/`senderId`, so nobody can plant a campaign in another user's feed. Publish `firestore.rules`
     BEFORE the app that sends the new fields (extra keys are rejected by the previous rules).
   - **catch-all `if false`** — explicit so a collection added by a future feature fails loudly in
     development instead of silently inheriting a broader rule.

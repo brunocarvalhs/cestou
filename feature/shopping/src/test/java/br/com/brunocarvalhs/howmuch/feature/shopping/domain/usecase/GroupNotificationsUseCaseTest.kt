@@ -129,4 +129,15 @@ class GroupNotificationsUseCaseTest {
 
         assertEquals(NotificationSectionKey.TODAY, groups.single().key)
     }
+
+    @Test
+    fun `campaigns show in all but not in lists`() {
+        val items = listOf(notification("camp", now, "campaign"), notification("joined", now.minusMinutes(1)))
+
+        val all = useCase(items, NotificationFilter.ALL).single().notifications.map { it.id }
+        val lists = useCase(items, NotificationFilter.LISTS).single().notifications.map { it.id }
+
+        assertEquals(listOf("camp", "joined"), all)
+        assertEquals(listOf("joined"), lists)
+    }
 }

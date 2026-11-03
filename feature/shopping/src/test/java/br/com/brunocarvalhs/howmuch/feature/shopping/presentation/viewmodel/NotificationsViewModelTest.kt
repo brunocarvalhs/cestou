@@ -425,6 +425,33 @@ class NotificationsViewModelTest {
         assertEquals("15m", vm.uiState.value.sections.single().items.single().relativeTime)
     }
 
+    @Test
+    fun `a campaign is typed as CAMPAIGN`() {
+        val vm = viewModel(notification("c1", type = "campaign").copy(shoppingId = null, senderId = null))
+
+        assertEquals(NotificationType.CAMPAIGN, vm.uiState.value.sections.single().items.single().type)
+    }
+
+    @Test
+    fun `tapping a campaign only marks it read and is tracked as a campaign`() = runTest {
+        coEvery { notificationRepository.markAsRead("c1") } returns Result.success(Unit)
+        val vm = viewModel(notification("c1", type = "campaign").copy(shoppingId = null, senderId = null))
+        var opened: Shopping? = null
+        vm.onOpenShopping = { opened = it }
+
+        vm.intent.onNotificationClick("c1")
+
+        coVerify { notificationRepository.markAsRead("c1") }
+        coVerify(exactly = 0) { shoppingGetByIdUseCase(any()) }
+        assertNull(opened)
+        verify {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.NOTIFICATION_CLICKED,
+                mapOf(AnalyticsParams.NOTIFICATION_TYPE to "campaign")
+            )
+        }
+    }
+
     private class MutableClock(private var current: Instant, private val zoneId: ZoneId) : Clock() {
         fun advanceBy(duration: Duration) {
             current = current.plus(duration)

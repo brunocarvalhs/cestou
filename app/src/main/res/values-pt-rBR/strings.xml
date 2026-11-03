@@ -8,4 +8,7 @@
     <string name="error_not_found">Item não encontrado.</string>
     <string name="error_permission_denied">Você não tem permissão para acessar isto.</string>
     <string name="error_unknown">Algo deu errado. Tente novamente.</string>
+
+    <!-- Campaign push (FCM) -->
+    <string name="push_channel_name">Novidades e ofertas</string>
 </resources>

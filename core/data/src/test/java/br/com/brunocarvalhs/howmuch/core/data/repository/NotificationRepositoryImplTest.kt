@@ -2,7 +2,9 @@ package br.com.brunocarvalhs.howmuch.core.data.repository
 
 import app.cash.turbine.test
 import br.com.brunocarvalhs.howmuch.core.data.model.NotificationModel
+import br.com.brunocarvalhs.howmuch.core.domain.repository.Notification
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationOrigin
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SaveResult
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -305,6 +307,40 @@ class NotificationRepositoryImplTest {
         coEvery { networkService.make<String>(any(), any(), any()) } throws CancellationException("cancelled")
 
         val outcome = runCatching { repository.notify("u2", "t", "m", "list_joined") }
+
+        assertTrue(outcome.exceptionOrNull() is CancellationException)
+    }
+
+    private fun campaign() = Notification(
+        id = "fcm-1",
+        userId = "u1",
+        title = "t",
+        message = "m",
+        type = "campaign",
+        isRead = false,
+        timestamp = 5L
+    )
+
+    @Test
+    fun `save posts the notification under its own id`() = runTest {
+        val request = slot<NetworkService.NetworkRequest>()
+        coEvery { networkService.make<String>(capture(request), any(), any()) } returns "fcm-1"
+
+        val result = repository.save(campaign())
+
+        assertEquals(SaveResult.Saved, result.getOrNull())
+        assertEquals(NetworkService.Method.POST, request.captured.method)
+        assertEquals("notifications", request.captured.endpoint)
+        assertEquals("fcm-1", request.captured.payload?.get("id"))
+        assertEquals("campaign", request.captured.payload?.get("type"))
+        assertFalse(request.captured.payload!!.containsKey("shoppingId"))
+    }
+
+    @Test
+    fun `save keeps a cancelled coroutine cancelled`() = runTest {
+        coEvery { networkService.make<String>(any(), any(), any()) } throws CancellationException("cancelled")
+
+        val outcome = runCatching { repository.save(campaign()) }
 
         assertTrue(outcome.exceptionOrNull() is CancellationException)
     }
