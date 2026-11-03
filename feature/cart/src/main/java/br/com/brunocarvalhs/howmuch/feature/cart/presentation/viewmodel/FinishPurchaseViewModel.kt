@@ -56,7 +56,7 @@ internal class FinishPurchaseViewModel @Inject constructor(
     fun onFinishPurchase(shopping: Shopping, price: Double, establishment: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            // Partial write: status/price/establishment only. `description` is never touched here
+            // Partial write: status/price/establishment/finishedAt only. `description` is never touched here
             // (it used to be overwritten with the establishment name) and no other member's
             // concurrent edit to this list is clobbered.
             repository.updateFields(
@@ -64,7 +64,8 @@ internal class FinishPurchaseViewModel @Inject constructor(
                 mapOf(
                     "status" to Shopping.Status.FINISH.name,
                     "price" to price,
-                    "establishment" to establishment
+                    "establishment" to establishment,
+                    "finishedAt" to System.currentTimeMillis()
                 )
             ).onSuccess {
                 analyticsTracker.trackEvent(

@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
+import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -25,14 +26,19 @@ class ShoppingReopenUseCaseTest {
         roles = emptyMap()
     )
 
+    private val reopenFields = mapOf(
+        "status" to "IN_PROGRESS",
+        "finishedAt" to NetworkService.FieldOp.Delete
+    )
+
     @Test
-    fun `invoke writes only the status field as IN_PROGRESS`() = runTest {
+    fun `invoke moves to IN_PROGRESS and clears finishedAt`() = runTest {
         coEvery { repository.updateFields(any(), any()) } returns Result.success(Unit)
 
         val result = useCase(finished)
 
         assertTrue(result.isSuccess)
-        coVerify { repository.updateFields("list1", mapOf("status" to "IN_PROGRESS")) }
+        coVerify { repository.updateFields("list1", reopenFields) }
     }
 
     @Test
@@ -43,7 +49,7 @@ class ShoppingReopenUseCaseTest {
         val result = useCase.execute(mapOf("shopping_id" to "list1"), mockk(relaxed = true), emptyMap())
 
         assertTrue(result.isSuccess)
-        coVerify { repository.updateFields("list1", mapOf("status" to "IN_PROGRESS")) }
+        coVerify { repository.updateFields("list1", reopenFields) }
     }
 
     @Test

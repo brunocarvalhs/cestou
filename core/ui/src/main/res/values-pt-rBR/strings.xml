@@ -18,6 +18,7 @@
 
     <!-- Navigation -->
     <string name="nav_lists">Listas</string>
+    <string name="nav_history">Histórico</string>
     <string name="nav_ai_chat">IA Chat</string>
     <string name="nav_profile">Perfil</string>
 

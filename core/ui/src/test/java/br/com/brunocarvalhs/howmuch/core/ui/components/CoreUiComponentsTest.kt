@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.longClick
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
@@ -15,6 +17,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.R
 import br.com.brunocarvalhs.howmuch.core.ui.components.scanner.QRCodeOverlay
@@ -54,6 +57,20 @@ class CoreUiComponentsTest {
     }
 
     @Test
+    fun `bottom navigation has Lists, History and Profile and selects History`() {
+        var navigated: Any? = null
+        composeTestRule.setContent {
+            CestouTheme {
+                CestouBottomNavigation(currentRoute = History, onNavigate = { navigated = it })
+            }
+        }
+        composeTestRule.onNodeWithTag("bottom_nav_ShoppingList").assertExists()
+        composeTestRule.onNodeWithTag("bottom_nav_Profile").assertExists()
+        composeTestRule.onNodeWithTag("bottom_nav_History").assertIsSelected().performClick()
+        assertEquals(History, navigated)
+    }
+
+    @Test
     fun `bottom navigation renders hidden`() {
         composeTestRule.setContent {
             CestouTheme { CestouBottomNavigation(currentRoute = "x", onNavigate = {}, visible = false) }
@@ -65,9 +82,11 @@ class CoreUiComponentsTest {
     fun `bottom navigation includes default items`() {
         val items = listOf(
             BottomNavItem.Lists,
+            BottomNavItem.HistoryItem,
             BottomNavItem.ProfileItem
         )
-        assertEquals(2, items.size)
+        assertEquals(3, items.size)
+        assertEquals(R.string.nav_history, BottomNavItem.HistoryItem.titleRes)
         assertEquals(R.string.nav_lists, BottomNavItem.Lists.titleRes)
     }
 

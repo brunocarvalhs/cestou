@@ -10,7 +10,9 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -135,6 +137,42 @@ class ShoppingUpdateUseCaseTest {
     }
 
     @Test
+    fun `execute stamps finishedAt when the status becomes FINISH, even in lowercase`() = runTest {
+        coEvery { repository.getById("list1") } returns shopping
+        val fields = slot<Map<String, Any?>>()
+        coEvery { repository.updateFields("list1", capture(fields)) } returns Result.success(Unit)
+        val before = System.currentTimeMillis()
+
+        useCase.execute(
+            arguments = mapOf("shopping_id" to "list1", "status" to "finish"),
+            session = mockk(relaxed = true),
+            metadata = emptyMap()
+        )
+
+        assertEquals("FINISH", fields.captured["status"])
+        assertTrue((fields.captured["finishedAt"] as Long) >= before)
+    }
+
+    @Test
+    fun `invoke stamps finishedAt for the quick-finish write`() = runTest {
+        val fields = slot<Map<String, Any?>>()
+        coEvery { repository.updateFields("list1", capture(fields)) } returns Result.success(Unit)
+
+        useCase("list1", mapOf("status" to "FINISH"))
+
+        assertEquals(setOf("status", "finishedAt"), fields.captured.keys)
+    }
+
+    @Test
+    fun `invoke does not stamp finishedAt for other statuses`() = runTest {
+        coEvery { repository.updateFields(any(), any()) } returns Result.success(Unit)
+
+        useCase("list1", mapOf("status" to "IN_PROGRESS"))
+
+        coVerify { repository.updateFields("list1", mapOf("status" to "IN_PROGRESS")) }
+    }
+
+    @Test
     fun `execute allows changing users and roles when caller is the owner`() = runTest {
         coEvery { repository.getById("list1") } returns shopping
         coEvery { repository.updateFields(any(), any()) } returns Result.success(Unit)
@@ -165,7 +203,8 @@ class ShoppingUpdateUseCaseTest {
     @Test
     fun `execute accepts a lowercase status from the LLM`() = runTest {
         coEvery { repository.getById("list1") } returns shopping
-        coEvery { repository.updateFields(any(), any()) } returns Result.success(Unit)
+        val fields = slot<Map<String, Any?>>()
+        coEvery { repository.updateFields("list1", capture(fields)) } returns Result.success(Unit)
 
         val result = useCase.execute(
             arguments = mapOf("shopping_id" to "list1", "status" to "finish"),
@@ -174,7 +213,7 @@ class ShoppingUpdateUseCaseTest {
         )
 
         assertTrue(result.isSuccess)
-        coVerify { repository.updateFields("list1", mapOf("status" to Shopping.Status.FINISH.name)) }
+        assertEquals(Shopping.Status.FINISH.name, fields.captured["status"])
     }
 }
 

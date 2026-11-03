@@ -15,6 +15,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -63,18 +64,19 @@ class FinishPurchaseViewModelTest {
     }
 
     @Test
-    fun `onFinishPurchase writes only status, price and establishment, then goes back`() = runTest {
+    fun `onFinishPurchase writes only status, price, establishment and finishedAt, then goes back`() = runTest {
         every { authService.currentUser } returns AuthenticatedUser(id = "u1", displayName = "Ana")
-        coEvery { repository.updateFields(any(), any()) } returns Result.success(Unit)
+        val fields = slot<Map<String, Any?>>()
+        coEvery { repository.updateFields("list1", capture(fields)) } returns Result.success(Unit)
+        val before = System.currentTimeMillis()
 
         viewModel.onFinishPurchase(shopping, price = PRICE, establishment = "Mercado X")
 
-        coVerify {
-            repository.updateFields(
-                "list1",
-                mapOf("status" to "FINISH", "price" to PRICE, "establishment" to "Mercado X")
-            )
-        }
+        assertEquals(setOf("status", "price", "establishment", "finishedAt"), fields.captured.keys)
+        assertEquals("FINISH", fields.captured["status"])
+        assertEquals(PRICE, fields.captured["price"])
+        assertEquals("Mercado X", fields.captured["establishment"])
+        assertTrue((fields.captured["finishedAt"] as Long) >= before)
         verify { navigator.goBack() }
         assertEquals(false, viewModel.uiState.value.isLoading)
     }
