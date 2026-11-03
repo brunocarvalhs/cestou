@@ -7,6 +7,16 @@
 * feat(shopping): add spending analysis screen with total cost per month, top categories ranking and the month's purchases, opened from History (sdd-031)
 * feat(core): add optional `Shopping.finishedAt` (additive), stamped when a list is finished (finish sheet, quick-finish and AI agent) and cleared on reopen. Lists finished before this release have no `finishedAt` and appear in the month they were created, which may differ from the month of the purchase
 * feat(navigation): add `History` and `SpendingInsights` routes
+* feat(analytics): report `screen_view` from a single `ScreenTracker` using the screen's name and Composable class (`screen_class` used to be the ViewModel name); disable the automatic Activity `screen_view` (sdd-033)
+* feat(analytics): add click, create/update/delete/move/toggle, session, retention, search, auth, subscription, settings and error events, plus `ui_action` for relevant controls (sdd-033)
+* feat(analytics): add AI chat events (`ai_response_received` with latency, `ai_response_failed`, `ai_tool_executed`, `ai_tool_blocked_pro`, `ai_provider_fallback`, voice and trial); message content is never sent (sdd-033)
+* feat(analytics): set `user_id` to the Firebase Auth UID and user properties `plan`, `ever_pro`, `ai_trial_used`, `account_age_bucket`, `is_tester`, `lists_bucket`, language, currency, theme, AI provider (no email or name) (sdd-033)
+* feat(analytics): add `paywall_dismissed` (source and time on screen), `product_add_abandoned`, `tab_selected` and `back_pressed` (from/to screen), reported centrally; drop never-emitted `sheet_*`, `product_sorted` and `search_no_results` from the catalog (sdd-033)
+* feat(analytics): `ai_response_received` now carries `provider`, `tool_calls` and `fallback_used`; `ai_provider_fallback` carries `from`; new `app_function_invoked` for system-assistant calls; `AiSession` gains `providerUsed`, `toolCallsThisTurn` and `fallbackUsedThisTurn` (additive) (sdd-033)
+* feat(analytics): `AnalyticsTracker` gains `setCollectionEnabled(enabled)` and `isCollectionEnabled` (additive; the only implementation is `FirebaseAnalyticsTracker`); remote kill-switch `feat_analytics_ui_actions` drops only `ui_action` (sdd-033)
+* fix(analytics): the Analytics opt-out is applied from the settings flow alone, no longer waiting for auth, subscription, trial and lists to emit; failure reasons never carry exception or billing messages (sdd-033)
+* feat(settings): add the Analytics opt-out switch in Settings > Data, kept across "delete all data" (sdd-033)
+* feat(navigation): `FeatureNavGraph.screenNames` (additive, default empty); `AppSettings.analyticsEnabled`, `SettingsRepository.updateAnalyticsEnabled` and `AuthenticatedUser.createdAt` (additive)
 
 ## [2.2.1] - 2026-10-16
 

@@ -2,14 +2,20 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import android.content.Context
 import android.widget.Toast
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.exception.RecentLoginRequiredException
+import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.ClearCacheUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.DeleteAccountUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.DeleteAllDataUseCase
+import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateAnalyticsEnabledUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -17,6 +23,7 @@ import io.mockk.unmockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -37,13 +44,27 @@ class DataSettingsViewModelTest {
     private val deleteAccountUseCase = mockk<DeleteAccountUseCase>()
     private val authService = mockk<AuthService>(relaxed = true)
     private val navigator = mockk<Navigator>(relaxed = true)
-    private val viewModel = DataSettingsViewModel(
-        context,
-        clearCacheUseCase,
-        deleteAllDataUseCase,
-        deleteAccountUseCase,
-        authService
-    )
+    private val settingsRepository = mockk<SettingsRepository> {
+        every { getSettings() } returns flowOf(AppSettings())
+    }
+    private val updateAnalyticsEnabledUseCase = mockk<UpdateAnalyticsEnabledUseCase> {
+        coEvery { this@mockk(any()) } returns Result.success(Unit)
+    }
+    private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
+
+    // Lazy: the ViewModel's init touches viewModelScope, which must bind to the test Main dispatcher.
+    private val viewModel by lazy {
+        DataSettingsViewModel(
+            context,
+            clearCacheUseCase,
+            deleteAllDataUseCase,
+            deleteAccountUseCase,
+            authService,
+            settingsRepository,
+            updateAnalyticsEnabledUseCase,
+            analyticsTracker
+        )
+    }
 
     @Before
     fun setup() {
@@ -133,5 +154,43 @@ class DataSettingsViewModelTest {
 
         assertFalse(viewModel.uiState.value.reauthRequired)
         assertTrue(viewModel.uiState.value.message != null)
+    }
+
+    @Test
+    fun `toggling analytics off tracks the consent change then persists it`() = runTest {
+        viewModel.intent.onToggleAnalytics(false)
+
+        coVerifyOrder {
+            analyticsTracker.trackEvent(AnalyticsEvents.ANALYTICS_CONSENT_CHANGED, mapOf("enabled" to false))
+            updateAnalyticsEnabledUseCase(false)
+        }
+    }
+
+    @Test
+    fun `toggling analytics on re-enables collection before reporting the consent`() = runTest {
+        coEvery { updateAnalyticsEnabledUseCase(true) } returns Result.success(Unit)
+
+        viewModel.intent.onToggleAnalytics(true)
+
+        coVerifyOrder {
+            updateAnalyticsEnabledUseCase(true)
+            analyticsTracker.setCollectionEnabled(true)
+            analyticsTracker.trackEvent(AnalyticsEvents.ANALYTICS_CONSENT_CHANGED, mapOf("enabled" to true))
+        }
+    }
+
+    @Test
+    fun `a failed write does not enable collection nor report consent`() = runTest {
+        coEvery { updateAnalyticsEnabledUseCase(true) } returns Result.failure(java.io.IOException("disk"))
+
+        viewModel.intent.onToggleAnalytics(true)
+
+        verify(exactly = 0) { analyticsTracker.setCollectionEnabled(any()) }
+        verify(exactly = 0) { analyticsTracker.trackEvent(AnalyticsEvents.ANALYTICS_CONSENT_CHANGED, any()) }
+    }
+
+    @Test
+    fun `state mirrors the stored analytics preference`() {
+        assertTrue(viewModel.uiState.value.analyticsEnabled)
     }
 }

@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
@@ -26,6 +27,7 @@ class ShoppingSettingsViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val settingsRepository = mockk<SettingsRepository>()
+    private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val updateShoppingPreferencesUseCase = mockk<UpdateShoppingPreferencesUseCase>(relaxed = true)
     private val navigator = mockk<Navigator>(relaxed = true)
 
@@ -44,7 +46,7 @@ class ShoppingSettingsViewModelTest {
 
     @Test
     fun `init loads shopping preferences from the repository`() {
-        val vm = ShoppingSettingsViewModel(settingsRepository, updateShoppingPreferencesUseCase)
+        val vm = ShoppingSettingsViewModel(settingsRepository, updateShoppingPreferencesUseCase, analyticsTracker)
 
         assertEquals("list1", vm.uiState.value.defaultListId)
         assertEquals("NAME", vm.uiState.value.sortingMode)
@@ -54,7 +56,7 @@ class ShoppingSettingsViewModelTest {
     @Test
     fun `onUpdateShoppingPreferences forwards to the use case`() = runTest {
         coEvery { updateShoppingPreferencesUseCase("list2", "DATE", false) } returns Unit
-        val vm = ShoppingSettingsViewModel(settingsRepository, updateShoppingPreferencesUseCase)
+        val vm = ShoppingSettingsViewModel(settingsRepository, updateShoppingPreferencesUseCase, analyticsTracker)
 
         vm.intent.onUpdateShoppingPreferences("list2", "DATE", false)
 
@@ -63,7 +65,7 @@ class ShoppingSettingsViewModelTest {
 
     @Test
     fun `onBack navigates back`() {
-        val vm = ShoppingSettingsViewModel(settingsRepository, updateShoppingPreferencesUseCase)
+        val vm = ShoppingSettingsViewModel(settingsRepository, updateShoppingPreferencesUseCase, analyticsTracker)
         vm.setNavigator(navigator)
 
         vm.intent.onBack()

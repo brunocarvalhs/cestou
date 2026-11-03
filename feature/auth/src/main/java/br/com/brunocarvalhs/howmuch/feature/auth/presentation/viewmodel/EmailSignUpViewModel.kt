@@ -87,6 +87,7 @@ internal class EmailSignUpViewModel @Inject constructor(
                     // A failure here leaves an account without a name; the app's required-name
                     // gate sends it to the name step, so sign-up still counts as done.
                     authService.updateDisplayName(name.fullName)
+                    analyticsTracker.trackEvent(AnalyticsEvents.SIGN_UP, mapOf(AnalyticsParams.METHOD to SOURCE_EMAIL))
                     _uiState.update { it.copy(isLoading = false, isSuccess = true) }
                 }
                 .onFailure { onSignUpFailed(it) }

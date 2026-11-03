@@ -3,6 +3,8 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
@@ -66,6 +68,7 @@ internal class NotificationsViewModel @Inject constructor(
     val intent = NotificationsIntent(
         onNotificationClick = { openNotification(it) },
         onFilter = { filter ->
+            analyticsTracker.trackAction(AnalyticsElements.NOTIFICATIONS_FILTER)
             _uiState.update { it.copy(filter = filter) }
             publish()
         },
@@ -76,7 +79,6 @@ internal class NotificationsViewModel @Inject constructor(
     )
 
     init {
-        analyticsTracker.trackScreenView(screenName = "notifications", screenClass = "NotificationsViewModel")
         observeNotifications()
     }
 

@@ -3,8 +3,10 @@ package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AgentSession
 import com.google.ai.client.generativeai.Chat
 import com.google.ai.client.generativeai.GenerativeModel
 import io.mockk.coEvery
@@ -13,6 +15,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -25,6 +28,7 @@ class GeminiAgentTest {
 
     private val session = mockk<AiSession>(relaxed = true)
     private val registry = mockk<AgentRegistry>(relaxed = true)
+    private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val crashReporter = mockk<CrashReporter>(relaxed = true)
     private val subscriptionRepository = mockk<SubscriptionRepository>(relaxed = true)
     private val modelFactory = mockk<GeminiModelFactory>()
@@ -35,6 +39,7 @@ class GeminiAgentTest {
             crashReporter = crashReporter,
             subscriptionRepository = subscriptionRepository,
             registry = registry,
+            analyticsTracker = analyticsTracker,
             systemPrompt = "system prompt"
         ),
         modelFactory = modelFactory,
@@ -87,5 +92,34 @@ class GeminiAgentTest {
                 extras = mapOf("provider" to "gemini", "model" to "gemini-test")
             )
         }
+    }
+
+    @Test
+    fun `sendMessage records gemini as the provider and zeroes the tool count of the attempt`() = runTest {
+        val realSession = AgentSession().apply { toolCallsThisTurn = 3 }
+        val generativeModel = mockk<GenerativeModel>(relaxed = true)
+        val chat = mockk<Chat>(relaxed = true)
+        every { modelFactory.create(any(), any(), any(), any()) } returns generativeModel
+        every { generativeModel.startChat(any()) } returns chat
+        coEvery { chat.sendMessage(any<String>()) } throws IllegalStateException("boom")
+        val context = mockk<AgentContext> { every { toMetadata() } returns emptyMap() }
+        val geminiAgent = GeminiAgent(
+            dependencies = AgentDependencies(
+                session = realSession,
+                crashReporter = crashReporter,
+                subscriptionRepository = subscriptionRepository,
+                registry = registry,
+                analyticsTracker = analyticsTracker,
+                systemPrompt = "system prompt"
+            ),
+            modelFactory = modelFactory,
+            modelName = "gemini-test",
+            apiKey = "test-key"
+        )
+
+        runCatching { geminiAgent.sendMessage("oi", context).toList() }
+
+        assertEquals("gemini", realSession.providerUsed)
+        assertEquals(0, realSession.toolCallsThisTurn)
     }
 }

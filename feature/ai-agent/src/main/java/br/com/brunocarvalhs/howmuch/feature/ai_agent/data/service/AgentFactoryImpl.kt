@@ -4,6 +4,7 @@ import br.com.brunocarvalhs.howmuch.core.ai.BuildConfig
 import br.com.brunocarvalhs.howmuch.core.ai.contract.Agent
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentFactory
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiProvider
@@ -31,7 +32,8 @@ internal class AgentFactoryImpl @Inject constructor(
     private val crashReporter: CrashReporter,
     private val subscriptionRepository: SubscriptionRepository,
     private val geminiModelFactory: GeminiModelFactory,
-    private val openRouterHttpClientFactory: OpenRouterHttpClientFactory
+    private val openRouterHttpClientFactory: OpenRouterHttpClientFactory,
+    private val analyticsTracker: AnalyticsTracker
 ) : AgentFactory {
 
     override fun create(settings: AppSettings): Agent {
@@ -55,6 +57,7 @@ internal class AgentFactoryImpl @Inject constructor(
             crashReporter = crashReporter,
             subscriptionRepository = subscriptionRepository,
             registry = registry,
+            analyticsTracker = analyticsTracker,
             systemPrompt = systemPrompt
         )
         val gemini = GeminiAgent(
@@ -109,7 +112,7 @@ internal class AgentFactoryImpl @Inject constructor(
             AiProvider.AUTO -> openRouter to gemini
         }
         return when {
-            primary != null && secondary != null -> FallbackAgent(primary, secondary, session)
+            primary != null && secondary != null -> FallbackAgent(primary, secondary, session, analyticsTracker)
             primary != null -> primary
             secondary != null -> secondary
             else -> NoProviderAvailableAgent

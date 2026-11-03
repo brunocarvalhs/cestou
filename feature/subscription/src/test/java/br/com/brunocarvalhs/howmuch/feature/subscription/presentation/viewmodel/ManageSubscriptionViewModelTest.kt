@@ -53,10 +53,10 @@ class ManageSubscriptionViewModelTest {
     }
 
     @Test
-    fun `tracks screen_view on init`() {
+    fun `leaves the screen_view to ScreenTracker on init`() {
         viewModel()
 
-        verify { analyticsTracker.trackScreenView("manage_subscription", "ManageSubscriptionViewModel") }
+        verify(exactly = 0) { analyticsTracker.trackScreenView(any(), any()) }
     }
 
     @Test
