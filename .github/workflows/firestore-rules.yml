@@ -1,0 +1,47 @@
+name: Firestore Rules
+
+# Standalone on purpose: the main PR pipeline (tests.yml) is Gradle-centric and driven by
+# pipeline-config.yaml, while this check needs Node and the Firestore emulator and only matters when
+# the rules change. It never touches the real Firebase project (demo-cestou is an emulator-only id).
+on:
+  pull_request:
+    paths:
+      - firestore.rules
+      - firestore-tests/**
+      - firebase.json
+      - .github/workflows/firestore-rules.yml
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  rules:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # The Firestore emulator is a Java process.
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install test dependencies
+        working-directory: firestore-tests
+        run: npm install --no-save @firebase/rules-unit-testing firebase firebase-tools
+
+      - name: Run rules tests against the emulator
+        working-directory: firestore-tests
+        run: npx firebase emulators:exec --only firestore --project demo-cestou --config ../firebase.json "node rules.test.mjs"

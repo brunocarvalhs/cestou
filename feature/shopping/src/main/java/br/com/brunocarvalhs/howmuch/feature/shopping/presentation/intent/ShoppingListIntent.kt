@@ -19,6 +19,7 @@ internal data class ShoppingListIntent(
     val onUpdate: (Shopping) -> Unit = {},
     val onReopen: (Shopping) -> Unit = {},
     val onShowJoinDialog: () -> Unit = {},
+    val onNotificationsClick: () -> Unit = {},
     val onMove: (Int, Int) -> Unit = { _, _ -> },
     val onShowCreateSheet: (Boolean) -> Unit = {},
     val onCreateConfirmed: (String, String, String) -> Unit = { _, _, _ -> }

@@ -14,11 +14,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -39,7 +35,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -60,6 +55,7 @@ import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.common.ShoppingEmptyState
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.CreateShoppingContent
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.notifications.NotificationBellButton
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingFilterChips
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingItem
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingItemLoading
@@ -103,7 +99,6 @@ internal fun ShoppingScreen(
     DragAndDropContainer {
         Scaffold(
             topBar = {
-                var menuExpanded by remember { mutableStateOf(false) }
                 TopAppBar(
                     title = {
                         Text(
@@ -123,31 +118,10 @@ internal fun ShoppingScreen(
                                 tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
-                        IconButton(onClick = { menuExpanded = true }) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(
-                                    br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_more_options
-                                ),
-                                tint = MaterialTheme.colorScheme.onBackground
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = menuExpanded,
-                            onDismissRequest = { menuExpanded = false },
-                            containerColor = MaterialTheme.colorScheme.surface
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.shopping_management_notifications_title)) },
-                                onClick = { menuExpanded = false },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.NotificationsNone,
-                                        contentDescription = null
-                                    )
-                                }
-                            )
-                        }
+                        NotificationBellButton(
+                            unreadCount = uiState.unreadNotifications,
+                            onClick = intent.onNotificationsClick
+                        )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.background

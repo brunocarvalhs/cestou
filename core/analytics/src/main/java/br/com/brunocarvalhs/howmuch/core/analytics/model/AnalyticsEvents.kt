@@ -31,6 +31,10 @@ object AnalyticsEvents {
 
     const val AI_CHAT_MESSAGE_SENT = "ai_chat_message_sent"
 
+    const val NOTIFICATIONS_OPENED = "notifications_opened"
+    const val NOTIFICATION_CLICKED = "notification_clicked"
+    const val NOTIFICATIONS_MARK_ALL_READ = "notifications_mark_all_read"
+
     const val SETTINGS_LANGUAGE_CHANGED = "settings_language_changed"
     const val SETTINGS_CURRENCY_CHANGED = "settings_currency_changed"
     const val SETTINGS_SECTION_TOGGLED = "settings_section_toggled"
@@ -65,6 +69,8 @@ object AnalyticsParams {
     const val HAS_BUDGET = "has_budget"
     const val AMOUNT = "amount"
     const val ITEMS_COUNT = "items_count"
+    const val UNREAD_COUNT = "unread_count"
+    const val NOTIFICATION_TYPE = "notification_type"
     const val SOURCE = "source"
     const val SECTION_ID = "section_id"
     const val EXPANDED = "expanded"

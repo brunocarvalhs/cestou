@@ -9,6 +9,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.ShareShoppingUseCase
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ObserveUnreadNotificationsCountUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingCreateUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDeleteUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDuplicateUseCase
@@ -50,6 +51,7 @@ class ShoppingListViewModelQuickActionsTest {
     private val shareShoppingUseCase = mockk<ShareShoppingUseCase>(relaxed = true)
     private val shoppingReopenUseCase = mockk<ShoppingReopenUseCase>(relaxed = true)
     private val settingsRepository = mockk<SettingsRepository>()
+    private val observeUnreadNotificationsCount = mockk<ObserveUnreadNotificationsCountUseCase>()
     private val authService = mockk<AuthService>()
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
 
@@ -68,6 +70,7 @@ class ShoppingListViewModelQuickActionsTest {
         Dispatchers.setMain(testDispatcher)
         every { repository.observeAll() } returns flowOf(listOf(ownedShopping))
         every { settingsRepository.getSettings() } returns flowOf(AppSettings())
+        every { observeUnreadNotificationsCount() } returns flowOf(0)
         every { authService.currentUser } returns AuthenticatedUser(id = "owner-1")
         coEvery { shoppingGetAllUseCase() } returns Result.success(listOf(ownedShopping))
     }
@@ -88,6 +91,7 @@ class ShoppingListViewModelQuickActionsTest {
         shareShoppingUseCase,
         shoppingReopenUseCase,
         settingsRepository,
+        observeUnreadNotificationsCount,
         authService,
         analyticsTracker
     )
