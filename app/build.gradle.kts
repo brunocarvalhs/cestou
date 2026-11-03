@@ -127,6 +127,7 @@ dependencies {
     implementation(project(":feature:ai-agent"))
     implementation(project(":feature:cart"))
     implementation(project(":feature:subscription"))
+    implementation(project(":feature:feedback"))
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)

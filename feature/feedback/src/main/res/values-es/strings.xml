@@ -1,0 +1,25 @@
+<resources>
+    <string name="feedback_nps_question">¿Qué tan probable es que recomiendes Cestou a un amigo?</string>
+    <string name="feedback_nps_low">Nada probable</string>
+    <string name="feedback_nps_high">Muy probable</string>
+    <string name="feedback_nps_option">%1$d de %2$d</string>
+    <string name="feedback_csat_purchase">¿Cómo fue finalizar tu compra?</string>
+    <string name="feedback_csat_ai_chat">¿Cómo fue el asistente de IA?</string>
+    <string name="feedback_csat_photo_scan">¿Cómo fue añadir artículos con una foto?</string>
+    <string name="feedback_csat_generic">¿Cómo fue tu experiencia?</string>
+    <string name="feedback_likert_1">muy mala</string>
+    <string name="feedback_likert_2">mala</string>
+    <string name="feedback_likert_3">neutral</string>
+    <string name="feedback_likert_4">buena</string>
+    <string name="feedback_likert_5">excelente</string>
+    <string name="feedback_likert_option">%1$d de %2$d, %3$s</string>
+    <string name="feedback_likert_low">Muy mala</string>
+    <string name="feedback_likert_high">Excelente</string>
+    <string name="feedback_not_now">Ahora no</string>
+    <string name="feedback_thanks_title">¡Gracias!</string>
+    <string name="feedback_thanks">Tu respuesta nos ayuda a mejorar Cestou.</string>
+    <string name="feedback_thanks_low">Lamentamos que no haya sido buena. ¿Quieres contarnos qué pasó?</string>
+    <string name="feedback_contact">Hablar con nosotros</string>
+    <string name="feedback_contact_subject">Comentarios sobre Cestou</string>
+    <string name="feedback_done">Cerrar</string>
+</resources>

@@ -40,4 +40,14 @@ class AnalyticsCatalogTest {
         assertEquals("1-3", AnalyticsUserProperties.listsBucket(3))
         assertEquals("4+", AnalyticsUserProperties.listsBucket(4))
     }
+
+    @Test
+    fun `nps classes follow the 0-6, 7-8 and 9-10 ranges`() {
+        assertEquals("detractor", AnalyticsUserProperties.npsClass(0))
+        assertEquals("detractor", AnalyticsUserProperties.npsClass(6))
+        assertEquals("passive", AnalyticsUserProperties.npsClass(7))
+        assertEquals("passive", AnalyticsUserProperties.npsClass(8))
+        assertEquals("promoter", AnalyticsUserProperties.npsClass(9))
+        assertEquals("promoter", AnalyticsUserProperties.npsClass(10))
+    }
 }

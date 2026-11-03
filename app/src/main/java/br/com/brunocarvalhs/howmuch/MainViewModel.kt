@@ -14,11 +14,14 @@ import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackMoment
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackPrompt
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -44,7 +47,8 @@ internal class MainViewModel @Inject constructor(
     private val wearableSyncService: WearableSyncService,
     private val aiSession: AiSession,
     private val userPropertiesSync: UserPropertiesSync,
-    private val appUsageTracker: AppUsageTracker
+    private val appUsageTracker: AppUsageTracker,
+    private val feedbackPromptRequester: FeedbackPromptRequester
 ) : ViewModel() {
 
     init {
@@ -153,9 +157,20 @@ internal class MainViewModel @Inject constructor(
     val pendingJoinToken: StateFlow<String?> = savedStateHandle.getStateFlow(KEY_PENDING_JOIN_TOKEN, null)
 
     /** A Activity reporta ida e volta do app; a ViewModel decide o que é sessão. */
-    fun onForeground() = appUsageTracker.onForeground()
+    fun onForeground() {
+        appUsageTracker.onForeground()
+        feedbackPromptRequester.onAppForeground()
+    }
 
     fun onBackground() = appUsageTracker.onBackground()
+
+    /** Pedido de pesquisa aguardando um destino estável (sdd-034); o `:app` só o repassa à navegação. */
+    val pendingFeedback: StateFlow<FeedbackPrompt?> = feedbackPromptRequester.pending
+
+    /** Chegar na tela de listas é o momento do NPS; a política decide se pergunta. */
+    fun onShoppingListReached() = feedbackPromptRequester.onMoment(FeedbackMoment.APP_RELATIONSHIP)
+
+    fun onFeedbackPromptShown(prompt: FeedbackPrompt) = feedbackPromptRequester.consume(prompt)
 
     /** Reads an invite token out of [intent], if it is one, and holds it for [consumePendingJoinToken]. */
     fun onDeepLink(intent: Intent) {

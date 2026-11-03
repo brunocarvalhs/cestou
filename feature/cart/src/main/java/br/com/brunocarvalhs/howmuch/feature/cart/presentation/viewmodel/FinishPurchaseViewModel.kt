@@ -8,11 +8,13 @@ import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackError
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.analytics.service.FirstTimeEventTracker
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackMoment
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationOrigin
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.cart.R
@@ -36,7 +38,8 @@ internal class FinishPurchaseViewModel @Inject constructor(
     private val authService: AuthService,
     private val notificationRepository: NotificationRepository,
     private val analyticsTracker: AnalyticsTracker,
-    private val firstTimeEventTracker: FirstTimeEventTracker
+    private val firstTimeEventTracker: FirstTimeEventTracker,
+    private val feedbackPromptRequester: FeedbackPromptRequester
 ) : ViewModel() {
 
     private var _navigator: Navigator? = null
@@ -75,6 +78,7 @@ internal class FinishPurchaseViewModel @Inject constructor(
                     )
                 )
                 firstTimeEventTracker.trackOnce(AnalyticsEvents.FIRST_PURCHASE_COMPLETED)
+                feedbackPromptRequester.onMoment(FeedbackMoment.PURCHASE_FINISHED)
                 notifyOtherMembers(shopping)
                 _uiState.update { it.copy(isLoading = false) }
                 _navigator?.goBack()

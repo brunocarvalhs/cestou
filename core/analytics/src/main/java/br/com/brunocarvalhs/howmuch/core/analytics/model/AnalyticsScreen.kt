@@ -37,6 +37,9 @@ enum class AnalyticsScreen(val id: String, val screenClass: String) {
 
     PROFILE("profile", "ProfileScreen"),
 
+    FEEDBACK_SURVEY("feedback_survey", "FeedbackSurveyScreen"),
+    STORE_REVIEW("store_review", "StoreReviewHost"),
+
     PAYWALL("paywall", "PaywallScreen"),
     MANAGE_SUBSCRIPTION("manage_subscription", "ManageSubscriptionScreen"),
 
