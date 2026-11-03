@@ -37,5 +37,5 @@ internal data class NotificationItem(
 )
 
 internal enum class NotificationType {
-    LIST_JOINED, LIST_FINISHED, OTHER
+    LIST_JOINED, LIST_FINISHED, CAMPAIGN, OTHER
 }

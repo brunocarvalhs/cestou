@@ -6,9 +6,11 @@ import br.com.brunocarvalhs.howmuch.core.data.model.NotificationModel
 import br.com.brunocarvalhs.howmuch.core.domain.repository.Notification
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationOrigin
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SaveResult
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import br.com.brunocarvalhs.howmuch.core.domain.services.make
 import br.com.brunocarvalhs.howmuch.core.domain.services.observe
+import com.google.firebase.firestore.FirebaseFirestoreException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -78,6 +80,22 @@ class NotificationRepositoryImpl @Inject constructor(
         return results.firstOrNull { it.isFailure } ?: Result.success(Unit)
     }
 
+    override suspend fun save(notification: Notification): Result<SaveResult> = runCatchingCancellable {
+        networkService.make(
+            request = NetworkService.NetworkRequest(
+                endpoint = ENDPOINT,
+                method = NetworkService.Method.POST,
+                payload = notification.toModel().toMap()
+            ),
+            response = String::class
+        )
+        SaveResult.Saved
+    }.recoverCatching { error ->
+        // A second write to an existing id is an update, and the rules only let `isRead` change:
+        // that denial is how "this push was already saved" shows up.
+        if (error.isPermissionDenied()) SaveResult.AlreadySaved else throw error
+    }
+
     override suspend fun notify(
         userId: String,
         title: String,
@@ -120,6 +138,21 @@ class NotificationRepositoryImpl @Inject constructor(
             true
         }
     }
+
+    private fun Throwable.isPermissionDenied(): Boolean = generateSequence(this) { it.cause }
+        .any { it is FirebaseFirestoreException && it.code == FirebaseFirestoreException.Code.PERMISSION_DENIED }
+
+    private fun Notification.toModel() = NotificationModel(
+        id = id,
+        userId = userId,
+        title = title,
+        message = message,
+        type = type,
+        isRead = isRead,
+        timestamp = timestamp,
+        shoppingId = shoppingId,
+        senderId = senderId
+    )
 
     /** Like [runCatching], but a cancelled coroutine stays cancelled instead of becoming a failed [Result]. */
     private inline fun <T> runCatchingCancellable(block: () -> T): Result<T> =

@@ -25,6 +25,20 @@ Estado atual: a entrada por código usa o índice `shortCodes/{code}` (`Shopping
 
 Implementação da entrada por código: `feature/shopping/domain/usecase/ShoppingJoinUseCase.kt` chama `repository.resolveShortCode`.
 
+## 2.1 Firebase Cloud Messaging (campanhas)
+
+- O FCM é usado **só para receber campanhas** enviadas pelo console do Firebase (por app ou segmento). O app não envia push e não guarda token: não há servidor próprio nem Cloud Functions. Código: `app/.../push/` (`CestouMessagingService`, `PushPayloadExtractor`, `PushNotificationHandler`, `PushChannel`) e `core/domain/.../usecase/SavePushNotificationUseCase.kt`.
+- Ao chegar, a campanha vira um documento em `notifications` (`type = campaign`, `id = fcm-<message_id>`, só para o próprio usuário) e aparece no sino, no badge e na tela de Notificações.
+- **Como criar a campanha no console** (Compositor de notificações): preencha título e texto da notificação como de costume **e** acrescente, em "Dados customizados", as chaves abaixo. Com o app em segundo plano ou fechado o sistema desenha a notificação sozinho e o app só recebe os dados customizados, então elas são obrigatórias.
+
+  | Chave | Obrigatória | Observação |
+  |---|---|---|
+  | `title` | sim | título no feed; máximo de 200 caracteres (o excedente é cortado) |
+  | `message` | sim | texto no feed; máximo de 500 caracteres |
+
+- Limitação: em segundo plano ou fechado, a campanha só entra no feed se o usuário **tocar** na notificação (o console envia sempre o bloco "Notificação"; mensagem só de dados exige API/servidor). Em primeiro plano ela entra direto e o badge sobe sem nada na bandeja.
+- `POST_NOTIFICATIONS` (Android 13+) não é pedida em tempo de execução: sem ela a bandeja não mostra a campanha em segundo plano (`sdd-030`, §9.1).
+
 ## 3. Firebase Remote Config
 
 - Flags (`FeatureFlagKeys`): `ai_openrouter_enabled`, `ai_gemini_enabled`, provedores de login e `wear_login_enabled`.

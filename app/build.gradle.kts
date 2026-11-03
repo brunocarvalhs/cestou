@@ -134,6 +134,7 @@ dependencies {
     implementation(libs.firebase.perf)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.messaging)
     implementation(libs.generative.ai)
     implementation(libs.firebase.appcheck.debug)
 

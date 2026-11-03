@@ -35,6 +35,12 @@ object AnalyticsEvents {
     const val NOTIFICATION_CLICKED = "notification_clicked"
     const val NOTIFICATIONS_MARK_ALL_READ = "notifications_mark_all_read"
 
+    // Campaign pushes (FCM). Parameters are the source and an ignore reason only, never the content.
+    const val PUSH_RECEIVED = "push_received"
+    const val PUSH_SAVED = "push_saved"
+    const val PUSH_IGNORED = "push_ignored"
+    const val PUSH_SAVE_FAILED = "push_save_failed"
+
     const val SETTINGS_LANGUAGE_CHANGED = "settings_language_changed"
     const val SETTINGS_CURRENCY_CHANGED = "settings_currency_changed"
     const val SETTINGS_SECTION_TOGGLED = "settings_section_toggled"

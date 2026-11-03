@@ -129,6 +129,7 @@ internal class NotificationsViewModel @Inject constructor(
     private fun typeOf(type: String) = when (type) {
         NotificationTypes.LIST_JOINED -> NotificationType.LIST_JOINED
         NotificationTypes.LIST_FINISHED -> NotificationType.LIST_FINISHED
+        NotificationTypes.CAMPAIGN -> NotificationType.CAMPAIGN
         else -> NotificationType.OTHER
     }
 

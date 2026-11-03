@@ -161,6 +161,7 @@ Versões centrais em `gradle/libs.versions.toml`. Principais:
 | Navigation 3 | Navegação tipada | `core:navigation`, `feature:*/navigation` |
 | Hilt | Injeção de dependência | `di/` de cada módulo |
 | Firebase (Auth, Firestore, Analytics, Crashlytics, Performance) | Backend, telemetria | `core:auth`, `core:data`, `core:analytics` |
+| Firebase Cloud Messaging | Receber campanhas do console (sem servidor próprio) | `:app` (`push/`) |
 | Credential Manager / Google ID | Login | `core:auth`, `feature:auth` |
 | Google Play Billing | Assinatura | `core:billing`, `feature:subscription` |
 | OpenRouter / Gemini | Assistente de IA | `core:ai`, `feature:ai-agent`, `feature:chat` |
