@@ -9,7 +9,9 @@ import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.service.FirstTimeEventTracker
 import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackMoment
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
+import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
@@ -18,6 +20,9 @@ import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.SpeechToTex
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.VoiceFailure
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatIntent
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiChatUiState
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiTurnInfo
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.MessageVote
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.Vote
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -30,6 +35,9 @@ import java.io.IOException
 import javax.inject.Inject
 import kotlin.time.TimeSource
 
+private const val MIN_RESPONSES_FOR_CSAT = 2
+private const val PROVIDER_NONE = "none"
+
 @HiltViewModel
 class AiChatViewModel @Inject constructor(
     private val assistantUseCase: CartAssistantUseCase,
@@ -39,6 +47,7 @@ class AiChatViewModel @Inject constructor(
     private val aiSession: AiSession,
     private val speechToTextManager: SpeechToTextManager,
     private val firstTimeEventTracker: FirstTimeEventTracker,
+    private val feedbackPromptRequester: FeedbackPromptRequester,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -49,6 +58,9 @@ class AiChatViewModel @Inject constructor(
     private var inputFromVoice = false
 
     private val telemetry = AiChatAnalytics(analyticsTracker, firstTimeEventTracker)
+
+    /** Respostas reais do assistente nesta abertura do chat: o CSAT só vale a partir de 2. */
+    private var assistantResponses = 0
 
     init {
         observeSpeechRecognizer()
@@ -63,6 +75,31 @@ class AiChatViewModel @Inject constructor(
         onStopVoiceInput = { stopVoiceInput() },
         onStopVoiceInputAndSend = { stopVoiceInputAndSend() },
         onVoiceResultReceived = { text -> handleVoiceResult(text) },
+        /**
+         * Um voto por mensagem na sessão da tela; votar numa resposta sem turno conhecido usa
+         * `none`/0. O 👎 sai sem `reason`; o chip repete o evento com ele.
+         */
+        onMessageVote = { messageId, vote ->
+            val state = _uiState.value
+            if (state.feedbackEnabled && !state.votes.containsKey(messageId)) {
+                _uiState.update { it.copy(votes = it.votes + (messageId to MessageVote(vote))) }
+                telemetry.messageVoted(vote, state.turns[messageId])
+            }
+        },
+        onMessageVoteReason = { messageId, reason ->
+            val state = _uiState.value
+            val current = state.votes[messageId]
+            if (current?.value == Vote.DOWN && current.reason == null) {
+                _uiState.update { it.copy(votes = it.votes + (messageId to current.copy(reason = reason))) }
+                telemetry.messageVoted(Vote.DOWN, state.turns[messageId], reason)
+            }
+        },
+        /** Fechar o chat é o momento do CSAT; a pesquisa só abre num destino estável. */
+        onClose = {
+            if (assistantResponses >= MIN_RESPONSES_FOR_CSAT) {
+                feedbackPromptRequester.onMoment(FeedbackMoment.AI_CHAT_CLOSED)
+            }
+        },
     )
 
     fun setShoppingContext(shoppingId: String) {
@@ -194,11 +231,16 @@ class AiChatViewModel @Inject constructor(
                     .collect { response ->
                         if (!receivedAny) telemetry.responseReceived(sentAt, response.length, aiSession)
                         receivedAny = true
+                        assistantResponses++
                         val assistantMessage = ChatMessage(text = response, sender = ChatMessage.Sender.ASSISTANT)
+                        val turn = AiTurnInfo(aiSession.providerUsed ?: PROVIDER_NONE, aiSession.toolCallsThisTurn)
+                        val feedbackEnabled = feedbackPromptRequester.isFeedbackEnabled()
                         _uiState.update {
                             it.copy(
                                 messages = it.messages + assistantMessage,
                                 isLoading = false,
+                                turns = it.turns + (assistantMessage.id to turn),
+                                feedbackEnabled = feedbackEnabled,
                             )
                         }
                         persistHistory()
