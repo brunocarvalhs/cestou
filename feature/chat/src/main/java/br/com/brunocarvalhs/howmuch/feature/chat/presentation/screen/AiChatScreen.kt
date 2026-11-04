@@ -177,6 +177,7 @@ fun AiChatScreen(
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = Color.Transparent,
                         ),
+                        title = {},
                         navigationIcon = {
                             IconButton(
                                 onClick = intent.onToggleHistory,
