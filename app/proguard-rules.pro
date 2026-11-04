@@ -45,21 +45,12 @@
 # Hilt usually bundles its own rules, but common overrides include:
 -keep class dagger.hilt.android.internal.managers.** { *; }
 
-# --- Retrofit / Moshi ---
-# Retrofit 2.9.0+ has bundled rules, but if using custom adapters:
--keepclassmembers class * {
-    @com.squareup.moshi.Json *;
-}
-
 # --- Firebase ---
 # -keep class com.google.firebase.** { *; }
 
 # --- Ktor / Generative AI SDK ---
+# Ktor ships its own consumer rules; only the JVM-only classes it references need silencing.
 -dontwarn io.ktor.**
--keep class io.ktor.** { *; }
--keep class io.ktor.client.plugins.contentnegotiation.** { *; }
--keep class io.ktor.serialization.kotlinx.json.** { *; }
--keep interface io.ktor.client.plugins.contentnegotiation.** { *; }
 -keepattributes Signature, InnerClasses, EnclosingMethod
 
 
