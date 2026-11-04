@@ -85,6 +85,8 @@
     <string name="settings_ai_pro_badge">PRO</string>
     <string name="settings_ai_upgrade_prompt">Suscríbete a Pro para desbloquear modelos específicos y claves API personalizadas.</string>
     <string name="settings_ai_button_upgrade">Suscribirse a Pro</string>
+    <string name="settings_data_analytics">Datos de uso</string>
+    <string name="settings_data_analytics_hint">Ayuda a entender cómo se usa la app para mejorarla. Desactívalo para dejar de enviar datos de uso.</string>
     <string name="settings_data_clear_cache">Limpiar caché</string>
     <string name="settings_data_clear_cache_hint">Libera espacio ocupado</string>
     <string name="settings_data_delete_all">Eliminar todos los datos</string>

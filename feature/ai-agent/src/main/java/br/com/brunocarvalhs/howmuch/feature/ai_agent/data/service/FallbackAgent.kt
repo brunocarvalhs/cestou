@@ -3,6 +3,9 @@ package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 import br.com.brunocarvalhs.howmuch.core.ai.contract.Agent
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import timber.log.Timber
@@ -13,7 +16,8 @@ import timber.log.Timber
 internal class FallbackAgent(
     private val primary: Agent,
     private val secondary: Agent,
-    private val session: AiSession
+    private val session: AiSession,
+    private val analyticsTracker: AnalyticsTracker
 ) : Agent {
 
     override suspend fun sendMessage(
@@ -31,6 +35,11 @@ internal class FallbackAgent(
                     throw error
                 }
                 Timber.w(error, "Agente primário falhou, tentando secundário...")
+                analyticsTracker.trackEvent(
+                    AnalyticsEvents.AI_PROVIDER_FALLBACK,
+                    mapOf(AnalyticsParams.FROM to session.providerUsed)
+                )
+                session.fallbackUsedThisTurn = true
                 secondary.sendMessage(prompt, context).collect { emit(it) }
             }
     }

@@ -98,16 +98,17 @@ class ShoppingListViewModelTest {
             settingsRepository,
             observeUnreadNotificationsCount,
             authService,
-            analyticsTracker
+            analyticsTracker,
+            mockk(relaxed = true)
         )
     }
 
     @Test
-    fun `init tracks screen_view and loads the shopping list`() {
+    fun `init loads the shopping list`() {
         val vm = viewModel()
 
         assertEquals(listOf(ownedShopping), vm.uiState.value.filteredList.items)
-        coVerify { analyticsTracker.trackScreenView("shopping_list", "ShoppingListViewModel") }
+        coVerify(exactly = 0) { analyticsTracker.trackScreenView(any(), any()) }
     }
 
     @Test

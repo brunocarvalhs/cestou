@@ -4,7 +4,9 @@ import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.usecase.UpdateLanguageUseCase
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.firebaseui.FirebaseAuthUiConfig
 import io.mockk.coVerify
@@ -44,20 +46,20 @@ class WelcomeViewModelTest {
     }
 
     @Test
-    fun `init tracks a welcome screen_view`() {
+    fun `init leaves the screen_view to ScreenTracker`() {
         WelcomeViewModel(context, authConfig, updateLanguageUseCase, analyticsTracker)
 
-        verify { analyticsTracker.trackScreenView("welcome", "WelcomeViewModel") }
+        verify(exactly = 0) { analyticsTracker.trackScreenView(any(), any()) }
     }
 
     @Test
-    fun `onSignInFailure tracks the failure reason from the exception message`() {
+    fun `onSignInFailure tracks the exception class and never its message`() {
         val vm = WelcomeViewModel(context, authConfig, updateLanguageUseCase, analyticsTracker)
 
         vm.intent.onSignInFailure(IllegalStateException("network error"))
 
         verify {
-            analyticsTracker.trackEvent(AnalyticsEvents.AUTH_SIGN_IN_FAILED, mapOf("reason" to "network error"))
+            analyticsTracker.trackEvent(AnalyticsEvents.AUTH_SIGN_IN_FAILED, mapOf("reason" to "IllegalStateException"))
         }
     }
 
@@ -68,10 +70,16 @@ class WelcomeViewModelTest {
         vm.intent.onLanguageSelected("pt-BR")
 
         coVerify { updateLanguageUseCase("pt-BR") }
+        verify {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.UI_ACTION,
+                mapOf(AnalyticsParams.ELEMENT_ID to AnalyticsElements.WELCOME_LANGUAGE)
+            )
+        }
     }
 
     @Test
-    fun `onSignInFailure falls back to the exception class name when there is no message`() {
+    fun `onSignInFailure tracks the class name when there is no message`() {
         val vm = WelcomeViewModel(context, authConfig, updateLanguageUseCase, analyticsTracker)
 
         vm.intent.onSignInFailure(IllegalStateException())

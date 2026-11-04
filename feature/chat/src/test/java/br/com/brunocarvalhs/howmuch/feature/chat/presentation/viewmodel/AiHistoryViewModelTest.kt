@@ -1,6 +1,9 @@
 package br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel
 
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.model.ChatSession
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import io.mockk.coEvery
@@ -42,7 +45,7 @@ class AiHistoryViewModelTest {
 
     @Test
     fun `init tracks analytics screen view and loads sessions`() {
-        verify { analyticsTracker.trackScreenView("ai_chat_history", "AiHistoryViewModel") }
+        verify(exactly = 0) { analyticsTracker.trackScreenView(any(), any()) }
         assertEquals(1, viewModel.uiState.value.sessions.size)
         assertEquals("s1", viewModel.uiState.value.sessions.first().id)
     }
@@ -59,6 +62,12 @@ class AiHistoryViewModelTest {
         viewModel.intent.onDeleteSession("s1")
 
         coVerify { chatHistoryRepository.deleteSession("s1") }
+        verify {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.UI_ACTION,
+                mapOf(AnalyticsParams.ELEMENT_ID to AnalyticsElements.AI_HISTORY_DELETE_SESSION)
+            )
+        }
     }
 
     @Test

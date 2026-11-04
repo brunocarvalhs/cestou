@@ -65,6 +65,7 @@ class AiChatViewModelReliabilityTest {
             aiTrialRepository,
             aiSession,
             speechToTextManager,
+            mockk(relaxed = true),
             context
         )
     }

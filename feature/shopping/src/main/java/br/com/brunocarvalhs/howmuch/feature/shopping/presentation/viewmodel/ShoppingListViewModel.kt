@@ -3,8 +3,11 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
+import br.com.brunocarvalhs.howmuch.core.analytics.service.FirstTimeEventTracker
 import br.com.brunocarvalhs.howmuch.core.common.extensions.toMonthYearString
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.User
@@ -55,7 +58,8 @@ internal class ShoppingListViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val observeUnreadNotificationsCount: ObserveUnreadNotificationsCountUseCase,
     private val authService: AuthService,
-    private val analyticsTracker: AnalyticsTracker
+    private val analyticsTracker: AnalyticsTracker,
+    private val firstTimeEventTracker: FirstTimeEventTracker
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ShoppingListUiState())
@@ -66,13 +70,21 @@ internal class ShoppingListViewModel @Inject constructor(
 
     val intent = ShoppingListIntent(
         onFetchAll = { fetchAll() },
-        onCreate = { _uiState.update { it.copy(isCreateSheetVisible = true) } },
+        onCreate = {
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_CREATE)
+            _uiState.update { it.copy(isCreateSheetVisible = true) }
+        },
         onOpen = { id ->
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.SHOPPING_LIST_OPENED,
+                mapOf(AnalyticsParams.SHOPPING_ID to id)
+            )
             viewModelScope.launch {
                 shoppingGetByIdUseCase.invoke(id).onSuccess { navigateToProducts(it) }
             }
         },
         onFilter = { value ->
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_FILTER)
             _uiState.update { it.copy(selectedFilter = value) }
             applyFilters()
         },
@@ -81,14 +93,26 @@ internal class ShoppingListViewModel @Inject constructor(
             applyFilters()
         },
         onSearch = { value ->
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.SEARCH,
+                mapOf(AnalyticsParams.QUERY_LENGTH to value.length, AnalyticsParams.SOURCE to "shopping_list")
+            )
             _uiState.update { it.copy(searchQuery = value) }
             applyFilters()
         },
-        onOpenAiChat = { _navigator?.navigate(AiChat(shoppingId = "")) },
+        onOpenAiChat = {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.AI_CHAT_OPENED,
+                mapOf(AnalyticsParams.SOURCE to "shopping_list_fab")
+            )
+            _navigator?.navigate(AiChat(shoppingId = ""))
+        },
         onToggleFavorite = { shopping ->
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_FAVORITE)
             handleShoppingAction(ShoppingAction.ToggleFavorite(shopping))
         },
         onDuplicate = { shopping ->
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_DUPLICATE)
             handleShoppingAction(ShoppingAction.Duplicate(shopping))
         },
         onShare = { shopping ->
@@ -96,6 +120,7 @@ internal class ShoppingListViewModel @Inject constructor(
         },
         onDelete = { id -> handleShoppingAction(ShoppingAction.Delete(id)) },
         onEdit = { shopping ->
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_EDIT)
             val userId = authService.currentUser?.id
             if (shopping.roles[userId] == User.Role.OWNER.name) {
                 _navigator?.navigate(EditShopping(shopping))
@@ -110,12 +135,17 @@ internal class ShoppingListViewModel @Inject constructor(
             }
         },
         onUpdate = { shopping ->
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_FINISH)
             handleShoppingAction(ShoppingAction.Update(shopping))
         },
         onReopen = { shopping ->
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_REOPEN)
             handleShoppingAction(ShoppingAction.Reopen(shopping))
         },
-        onShowJoinDialog = { _navigator?.navigate(JoinList()) },
+        onShowJoinDialog = {
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_JOIN)
+            _navigator?.navigate(JoinList())
+        },
         onNotificationsClick = {
             analyticsTracker.trackEvent(
                 AnalyticsEvents.NOTIFICATIONS_OPENED,
@@ -134,6 +164,7 @@ internal class ShoppingListViewModel @Inject constructor(
                             AnalyticsEvents.SHOPPING_LIST_CREATED,
                             mapOf(AnalyticsParams.SHOPPING_ID to it.id)
                         )
+                        firstTimeEventTracker.trackOnce(AnalyticsEvents.FIRST_LIST_CREATED)
                         navigateToProducts(it)
                     }
                     .onFailure {
@@ -150,7 +181,6 @@ internal class ShoppingListViewModel @Inject constructor(
     )
 
     init {
-        analyticsTracker.trackScreenView(screenName = "shopping_list", screenClass = "ShoppingListViewModel")
         observeData()
     }
 
@@ -292,6 +322,7 @@ internal class ShoppingListViewModel @Inject constructor(
 
         viewModelScope.launch {
             repository.updatePositions(updatedList)
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_MOVE)
         }
     }
 

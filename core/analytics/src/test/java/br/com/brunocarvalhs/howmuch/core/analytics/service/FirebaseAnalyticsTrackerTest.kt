@@ -3,6 +3,7 @@ package br.com.brunocarvalhs.howmuch.core.analytics.service
 import android.os.Bundle
 import br.com.brunocarvalhs.howmuch.core.analytics.exception.AnalyticsException
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
 import com.google.firebase.analytics.FirebaseAnalytics
 import io.mockk.every
 import io.mockk.mockk
@@ -11,6 +12,8 @@ import io.mockk.slot
 import io.mockk.unmockkConstructor
 import io.mockk.verify
 import org.junit.After
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -18,7 +21,10 @@ class FirebaseAnalyticsTrackerTest {
 
     private val analytics = mockk<FirebaseAnalytics>(relaxed = true)
     private val crashReporter = mockk<CrashReporter>(relaxed = true)
-    private val tracker = FirebaseAnalyticsTracker(analytics, crashReporter)
+    private val featureFlags = mockk<FeatureFlagService> {
+        every { isEnabled(any(), any()) } returns true
+    }
+    private val tracker = FirebaseAnalyticsTracker(analytics, crashReporter, featureFlags)
 
     @Before
     fun setup() {
@@ -81,5 +87,70 @@ class FirebaseAnalyticsTrackerTest {
         tracker.setUserProperty("plan", "premium")
 
         verify { analytics.setUserProperty("plan", "premium") }
+    }
+
+    @Test
+    fun `trackEvent drops an invalid event name and reports it`() {
+        tracker.trackEvent("1 invalid-name")
+
+        verify(exactly = 0) { analytics.logEvent(any(), any()) }
+        verify { crashReporter.recordException(any<AnalyticsException>()) }
+    }
+
+    @Test
+    fun `trackEvent drops a reserved firebase prefix`() {
+        tracker.trackEvent("firebase_custom")
+
+        verify(exactly = 0) { analytics.logEvent(any(), any()) }
+    }
+
+    @Test
+    fun `trackEvent truncates string values to 100 characters`() {
+        tracker.trackEvent("event", mapOf("key" to "a".repeat(150)))
+
+        verify { anyConstructed<Bundle>().putString("key", "a".repeat(100)) }
+    }
+
+    @Test
+    fun `trackEvent keeps at most 25 params`() {
+        val params = (1..30).associate { "p$it" to it }
+
+        tracker.trackEvent("event", params)
+
+        verify(exactly = 25) { anyConstructed<Bundle>().putInt(any(), any()) }
+    }
+
+    @Test
+    fun `setCollectionEnabled forwards to FirebaseAnalytics`() {
+        tracker.setCollectionEnabled(false)
+
+        verify { analytics.setAnalyticsCollectionEnabled(false) }
+    }
+
+    @Test
+    fun `setUserProperty truncates the value to 36 characters`() {
+        tracker.setUserProperty("plan", "x".repeat(50))
+
+        verify { analytics.setUserProperty("plan", "x".repeat(36)) }
+    }
+
+    @Test
+    fun `the remote kill-switch drops ui_action but keeps every other event`() {
+        every { featureFlags.isEnabled("feat_analytics_ui_actions", any()) } returns false
+
+        tracker.trackEvent("ui_action", mapOf("element_id" to "cart.share"))
+        tracker.trackEvent("product_added")
+
+        verify(exactly = 0) { analytics.logEvent("ui_action", any()) }
+        verify { analytics.logEvent("product_added", any()) }
+    }
+
+    @Test
+    fun `isCollectionEnabled follows the last setCollectionEnabled`() {
+        assertTrue(tracker.isCollectionEnabled)
+
+        tracker.setCollectionEnabled(false)
+
+        assertFalse(tracker.isCollectionEnabled)
     }
 }

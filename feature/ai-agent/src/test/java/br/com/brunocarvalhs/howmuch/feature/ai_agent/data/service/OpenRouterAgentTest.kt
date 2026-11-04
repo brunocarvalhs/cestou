@@ -3,13 +3,16 @@ package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AgentSession
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -23,6 +26,7 @@ class OpenRouterAgentTest {
 
     private val session = mockk<AiSession>(relaxed = true)
     private val registry = mockk<AgentRegistry>(relaxed = true)
+    private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val crashReporter = mockk<CrashReporter>(relaxed = true)
     private val subscriptionRepository = mockk<SubscriptionRepository>(relaxed = true)
     private val httpClientFactory = mockk<OpenRouterHttpClientFactory>()
@@ -33,6 +37,7 @@ class OpenRouterAgentTest {
             crashReporter = crashReporter,
             subscriptionRepository = subscriptionRepository,
             registry = registry,
+            analyticsTracker = analyticsTracker,
             systemPrompt = "system prompt"
         ),
         httpClientFactory = httpClientFactory,
@@ -56,5 +61,30 @@ class OpenRouterAgentTest {
                 extras = mapOf("provider" to "openrouter", "model" to "openrouter-test-model")
             )
         }
+    }
+
+    @Test
+    fun `sendMessage records openrouter as the provider and zeroes the tool count of the attempt`() = runTest {
+        val realSession = AgentSession().apply { toolCallsThisTurn = 3 }
+        every { httpClientFactory.create(any()) } throws IllegalStateException("boom")
+        val context = mockk<AgentContext> { every { toMetadata() } returns emptyMap() }
+        val openRouterAgent = OpenRouterAgent(
+            dependencies = AgentDependencies(
+                session = realSession,
+                crashReporter = crashReporter,
+                subscriptionRepository = subscriptionRepository,
+                registry = registry,
+                analyticsTracker = analyticsTracker,
+                systemPrompt = "system prompt"
+            ),
+            httpClientFactory = httpClientFactory,
+            model = "openrouter-test-model",
+            apiKey = "test-key"
+        )
+
+        runCatching { openRouterAgent.sendMessage("oi", context).toList() }
+
+        assertEquals("openrouter", realSession.providerUsed)
+        assertEquals(0, realSession.toolCallsThisTurn)
     }
 }
