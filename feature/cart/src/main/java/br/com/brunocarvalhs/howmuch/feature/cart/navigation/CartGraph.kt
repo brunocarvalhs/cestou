@@ -3,7 +3,6 @@ package br.com.brunocarvalhs.howmuch.feature.cart.navigation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -27,6 +26,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
 import br.com.brunocarvalhs.howmuch.core.ui.components.ShareOptionsBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.ConfirmItemContent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.EditItemContent
@@ -132,7 +132,7 @@ private fun NavGraphBuilder.finishPurchaseDestination(navigator: Navigator) {
             }
         }
 
-        ModalBottomSheet(
+        CestouModalBottomSheet(
             onDismissRequest = { navigator.goBack() },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {
@@ -163,7 +163,7 @@ private fun NavGraphBuilder.confirmItemDestination(navigator: Navigator) {
         val viewModel: ConfirmItemViewModel = hiltViewModel()
         viewModel.setNavigator(navigator)
 
-        ModalBottomSheet(
+        CestouModalBottomSheet(
             onDismissRequest = { navigator.goBack() },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {
@@ -186,7 +186,7 @@ private fun NavGraphBuilder.editItemDestination(navigator: Navigator) {
         val viewModel: EditItemViewModel = hiltViewModel()
         viewModel.setNavigator(navigator)
 
-        ModalBottomSheet(
+        CestouModalBottomSheet(
             onDismissRequest = { navigator.goBack() },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {
@@ -225,7 +225,7 @@ private fun NavGraphBuilder.productHistoryDestination(navigator: Navigator) {
         val listViewModel: CartViewModel = hiltViewModel(parentEntry)
         val listUiState by listViewModel.uiState.collectAsStateWithLifecycle()
 
-        ModalBottomSheet(
+        CestouModalBottomSheet(
             onDismissRequest = { navigator.goBack() },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {

@@ -22,6 +22,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -57,6 +58,7 @@ class MainViewModelTest {
     private val aiSession = mockk<AiSession>(relaxed = true)
     private val userPropertiesSync = mockk<UserPropertiesSync>(relaxed = true)
     private val appUsageTracker = mockk<AppUsageTracker>(relaxed = true)
+    private val chatTurnTracker = mockk<ChatTurnTracker>(relaxed = true)
     private val feedbackPending = MutableStateFlow<FeedbackPrompt?>(null)
     private val feedbackPromptRequester = mockk<FeedbackPromptRequester>(relaxed = true) {
         every { pending } returns feedbackPending
@@ -92,7 +94,8 @@ class MainViewModelTest {
             aiSession,
             userPropertiesSync,
             appUsageTracker,
-            feedbackPromptRequester
+            feedbackPromptRequester,
+            chatTurnTracker
         )
     }
 
@@ -121,6 +124,15 @@ class MainViewModelTest {
         authState.value = null
 
         verify(exactly = 1) { aiSession.clearHistory() }
+    }
+
+    @Test
+    fun `signing out cancels the pending AI turns, so a late answer never lands in the next account`() {
+        viewModel(currentUser = AuthenticatedUser(id = "user-1", displayName = "Bruno"))
+
+        authState.value = null
+
+        verify(exactly = 1) { chatTurnTracker.cancelAll() }
     }
 
     @Test

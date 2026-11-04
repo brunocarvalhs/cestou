@@ -6,6 +6,7 @@ import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.ChatRequ
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.ChatResponse
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.FunctionCall
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service.model.Message
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.trimToRecentHistory
 import com.google.ai.client.generativeai.type.Content
 import com.google.ai.client.generativeai.type.TextPart
 import io.ktor.client.HttpClient
@@ -65,30 +66,18 @@ internal class OpenRouterAgent(
             )
             var response: ChatResponse = executeRequest(currentRequest)
             var rounds = 0
+            val toolContents = mutableListOf<Content>()
 
             // Loop para processar Function Calling
             while (response.choices.firstOrNull()?.message?.toolCalls?.isNotEmpty() == true) {
                 if (rounds >= MAX_TOOL_ROUNDS) {
                     emit(TOOL_ROUNDS_EXCEEDED_MESSAGE)
-                    recordTurnInHistory(prompt, TOOL_ROUNDS_EXCEEDED_MESSAGE)
+                    recordTurnInHistory(prompt, TOOL_ROUNDS_EXCEEDED_MESSAGE, toolContents)
                     return@flow
                 }
                 rounds++
 
-                val assistantMessage = response.choices.first().message
-                messages.add(assistantMessage)
-
-                assistantMessage.toolCalls?.forEach { toolCall ->
-                    val result = toToolCallContent(toolCall.function, meta)
-
-                    messages.add(
-                        Message(
-                            role = "tool",
-                            toolCallId = toolCall.id,
-                            content = result
-                        )
-                    )
-                }
+                runToolCalls(response.choices.first().message, messages, meta, toolContents)
 
                 currentRequest = ChatRequest(
                     model = model, messages = messages, tools = tools, maxTokens = MAX_RESPONSE_TOKENS
@@ -96,10 +85,10 @@ internal class OpenRouterAgent(
                 response = executeRequest(currentRequest)
             }
 
-            response.choices.firstOrNull()?.message?.content?.trim()?.let { text ->
-                emit(text)
-                recordTurnInHistory(prompt, text)
-            }
+            // Grava mesmo sem texto final: as ações do turno já foram executadas.
+            val text = response.choices.firstOrNull()?.message?.content?.trim()
+            recordTurnInHistory(prompt, text, toolContents)
+            text?.let { emit(it) }
         } catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException) throw e
             Timber.tag(TAG).e(e, "Erro na comunicação com OpenRouter (model=%s)", model)
@@ -116,6 +105,26 @@ internal class OpenRouterAgent(
         }
     }
 
+    /** Executa as tool calls de uma rodada, devolve os resultados ao modelo e os guarda em [toolContents]. */
+    private suspend fun runToolCalls(
+        assistantMessage: Message,
+        messages: MutableList<Message>,
+        meta: Map<String, Any?>,
+        toolContents: MutableList<Content>
+    ) {
+        messages.add(assistantMessage)
+        val calls = assistantMessage.toolCalls.orEmpty()
+        val results = calls.map { toolCall ->
+            toToolCallContent(toolCall.function, meta).also { result ->
+                messages.add(Message(role = "tool", toolCallId = toolCall.id, content = result))
+            }
+        }
+        toolContents += toolRoundContents(
+            calls.map { it.function.name to parseFunctionCallArguments(json, it.function.arguments) },
+            results
+        )
+    }
+
     /**
      * Converte o histórico e o prompt atual para o formato de mensagens do OpenRouter.
      */
@@ -126,12 +135,7 @@ internal class OpenRouterAgent(
         messages.add(Message(role = "system", content = systemPrompt))
 
         // Converte histórico do session (Gemini Content format) para Message format
-        session.history.forEach { content ->
-            val text = content.parts.filterIsInstance<TextPart>().joinToString(" ") { it.text }
-            if (text.isNotEmpty()) {
-                messages.add(Message(role = openRouterRoleFor(content.role), content = text))
-            }
-        }
+        messages.addAll(session.history.toOpenRouterMessages())
 
         // Adiciona mensagem atual (+ contexto desta conversa, ex: shoppingId atual — colado
         // junto da pergunta em vez de enterrado no fim do system prompt, já que modelos
@@ -140,10 +144,11 @@ internal class OpenRouterAgent(
         return messages
     }
 
-    /** Atualiza o histórico (simplificado para demonstração) com o turno concluído. */
-    private fun recordTurnInHistory(prompt: String, responseText: String) {
+    /** Grava o turno concluído: fala do usuário, ações da rodada (estruturadas) e resposta final. */
+    private fun recordTurnInHistory(prompt: String, responseText: String?, toolContents: List<Content>) {
         session.history.add(Content(role = "user", parts = listOf(TextPart(prompt))))
-        session.history.add(Content(role = "model", parts = listOf(TextPart(responseText))))
+        session.history.addAll(toolContents)
+        responseText?.let { session.history.add(Content(role = "model", parts = listOf(TextPart(it)))) }
         session.history.trimToRecentHistory()
     }
 

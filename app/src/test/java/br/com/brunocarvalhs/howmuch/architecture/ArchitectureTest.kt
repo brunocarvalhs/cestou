@@ -248,7 +248,6 @@ class ArchitectureTest {
             "AiChatIntent.onInputChange",
             "AiChatIntent.onSettings",
             "AiChatIntent.onStopVoiceInput",
-            "AiChatIntent.onStopVoiceInputAndSend",
             "AiChatIntent.onVoiceResultReceived",
             "AiHistoryIntent.onBack",
             "AiSettingsIntent.onBack",

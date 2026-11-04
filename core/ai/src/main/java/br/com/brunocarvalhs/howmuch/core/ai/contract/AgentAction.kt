@@ -17,6 +17,12 @@ interface AgentAction<R> {
      */
     val requiresPro: Boolean get() = false
 
+    /**
+     * Ação irreversível (apagar listas ou itens). O dispatch chokepoint só a executa depois de o
+     * usuário aprovar numa mensagem própria; a IA sozinha não consegue se autorizar.
+     */
+    val requiresConfirmation: Boolean get() = false
+
     suspend fun execute(
         arguments: Map<String, Any?>,
         session: AiSession,

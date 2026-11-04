@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -20,6 +19,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.SurveyKind
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.feedback.R
 import br.com.brunocarvalhs.howmuch.feature.feedback.domain.policy.FEATURE_AI_CHAT
 import br.com.brunocarvalhs.howmuch.feature.feedback.domain.policy.FEATURE_PHOTO_SCAN
@@ -39,7 +39,7 @@ internal fun FeedbackSurveyScreen(
     val kind = state.kind
     if (kind == null || kind == SurveyKind.STORE_REVIEW) return
 
-    ModalBottomSheet(onDismissRequest = intent.onDismiss, modifier = modifier) {
+    CestouModalBottomSheet(onDismissRequest = intent.onDismiss, modifier = modifier) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

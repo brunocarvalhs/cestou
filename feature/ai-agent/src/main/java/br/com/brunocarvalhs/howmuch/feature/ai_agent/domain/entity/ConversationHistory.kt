@@ -1,4 +1,4 @@
-package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
+package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity
 
 import com.google.ai.client.generativeai.type.Content
 
@@ -9,7 +9,7 @@ import com.google.ai.client.generativeai.type.Content
  * to hit a provider-side edge case. The assistant only ever needs recent context to stay
  * coherent; it's not expected to recall a shopping chat from days ago.
  */
-internal const val MAX_HISTORY_ENTRIES = 20
+internal const val MAX_HISTORY_ENTRIES = 30
 
 /**
  * Corta pelo menos até [maxEntries], mas nunca no meio de um turno: avança do corte ingênuo até

@@ -19,5 +19,4 @@ dependencies {
     implementation(libs.markdown.renderer.m3)
 
     implementation(libs.androidx.compose.material.icons.core)
-    implementation(libs.lottie.compose)
 }

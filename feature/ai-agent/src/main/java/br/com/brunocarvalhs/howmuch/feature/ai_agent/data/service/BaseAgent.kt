@@ -60,12 +60,19 @@ internal abstract class BaseAgent(
                 mapOf(AnalyticsParams.ACTION_ID to action.id)
             )
             "Essa ação é exclusiva do plano Pro."
+        } else if (action != null && action.requiresConfirmation && !isApprovedByUser(action.id, arguments)) {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.AI_TOOL_CONFIRMATION_REQUESTED,
+                mapOf(AnalyticsParams.ACTION_ID to action.id)
+            )
+            CONFIRMATION_REQUIRED_MESSAGE
         } else if (action != null) {
             try {
                 // Marcado antes de executar, não depois: mesmo uma execução que termina em
                 // exceção pode ter mutação parcial (sdd-012) — conservador de propósito.
                 session.toolExecutedThisTurn = true
                 session.toolCallsThisTurn++
+                session.setActiveAction(action.id)
                 val startedAt = TimeSource.Monotonic.markNow()
                 val result = action.execute(
                     arguments = arguments,
@@ -87,11 +94,24 @@ internal abstract class BaseAgent(
                     )
                 )
                 "Erro na execução da ação: ${e.message}"
+            } finally {
+                session.setActiveAction(null)
             }
         } else {
             Timber.tag(logTag).w("Ação '%s' não encontrada no registry", actionName)
             "Erro: Ação '$actionName' não encontrada"
         }
+    }
+
+    /**
+     * A primeira chamada só registra o pedido; a execução exige repetir a mesma ação com os
+     * mesmos argumentos num turno posterior, ou seja, depois de o usuário responder.
+     */
+    private fun isApprovedByUser(actionId: String, arguments: Map<String, Any?>): Boolean {
+        val key = actionId + arguments.entries.sortedBy { it.key }.joinToString(prefix = "(", postfix = ")")
+        if (session.consumeConfirmation(key)) return true
+        session.requestConfirmation(key)
+        return false
     }
 
     /**
@@ -113,4 +133,12 @@ internal abstract class BaseAgent(
     /** Point-in-time read of the current entitlement (AD-010); the gate only needs "right now". */
     protected suspend fun isPro(): Boolean =
         subscriptionRepository.observeStatus().first() == SubscriptionStatus.PRO
+
+    private companion object {
+        /** Devolvido ao modelo no lugar do resultado: nada foi executado. */
+        const val CONFIRMATION_REQUIRED_MESSAGE =
+            "NÃO EXECUTADO: esta ação é irreversível e o usuário ainda não autorizou. Diga em " +
+                "linguagem simples o que será apagado e pergunte se ele confirma. Só chame a ação " +
+                "de novo, com os mesmos argumentos, depois que o usuário responder que sim."
+    }
 }

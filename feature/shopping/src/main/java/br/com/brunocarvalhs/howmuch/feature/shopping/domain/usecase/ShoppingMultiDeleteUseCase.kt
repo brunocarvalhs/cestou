@@ -27,6 +27,8 @@ internal class ShoppingMultiDeleteUseCase @Inject constructor(
     private val authService: AuthService
 ) : AgentActionUseCase<Unit>() {
 
+    override val requiresConfirmation: Boolean = true
+
     suspend operator fun invoke(id: String): Result<Unit> = runCatching {
         val shopping = repository.getById(id) ?: throw Exception("Shopping not found")
         // Only the OWNER may delete the whole list — any collaborator could otherwise destroy

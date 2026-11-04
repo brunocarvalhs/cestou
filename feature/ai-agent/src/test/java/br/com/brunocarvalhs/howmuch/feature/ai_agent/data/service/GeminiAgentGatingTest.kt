@@ -12,6 +12,7 @@ import com.google.ai.client.generativeai.type.FunctionCallPart
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import io.mockk.verifyOrder
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -235,5 +236,45 @@ class GeminiAgentGatingTest {
         countingAgent(realSession, SubscriptionStatus.PRO).executeAction("missing", emptyMap(), emptyMap())
 
         assertEquals(0, realSession.toolCallsThisTurn)
+    }
+
+    @Test
+    fun `an irreversible action is not executed until the user confirms`() = runTest {
+        val action = FakeAgentAction(requiresConfirmation = true)
+        every { registry.find("fake_action") } returns action
+        every { session.consumeConfirmation(any()) } returns false
+        val agent = agentWithStatus(SubscriptionStatus.PRO)
+
+        val response = agent.toFunctionResponsePart(FunctionCallPart("fake_action", mapOf("id" to "1")), emptyMap())
+
+        assertTrue(response.response.getString("result").startsWith("NÃO EXECUTADO"))
+        assertFalse(action.executed)
+        verify { session.requestConfirmation(any()) }
+    }
+
+    @Test
+    fun `an irreversible action runs once the user confirmed it in a later turn`() = runTest {
+        val action = FakeAgentAction(requiresConfirmation = true)
+        every { registry.find("fake_action") } returns action
+        every { session.consumeConfirmation(any()) } returns true
+        val agent = agentWithStatus(SubscriptionStatus.PRO)
+
+        agent.toFunctionResponsePart(FunctionCallPart("fake_action", mapOf("id" to "1")), emptyMap())
+
+        assertTrue(action.executed)
+    }
+
+    @Test
+    fun `the running action is published while it executes and cleared after`() = runTest {
+        val action = FakeAgentAction()
+        every { registry.find("fake_action") } returns action
+        val agent = agentWithStatus(SubscriptionStatus.PRO)
+
+        agent.toFunctionResponsePart(FunctionCallPart("fake_action", emptyMap()), emptyMap())
+
+        verifyOrder {
+            session.setActiveAction("fake_action")
+            session.setActiveAction(null)
+        }
     }
 }

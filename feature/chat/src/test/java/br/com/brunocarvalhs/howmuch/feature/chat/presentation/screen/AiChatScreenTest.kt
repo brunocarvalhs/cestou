@@ -31,20 +31,6 @@ class AiChatScreenTest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun `renders the chat title`() {
-        val title = ApplicationProvider.getApplicationContext<android.content.Context>()
-            .getString(R.string.ai_chat_title)
-
-        composeTestRule.setContent {
-            CestouTheme {
-                AiChatScreen(state = AiChatUiState(), intent = AiChatIntent())
-            }
-        }
-
-        composeTestRule.onNodeWithText(title).assertExists()
-    }
-
-    @Test
     fun `renders a sent message`() {
         val state = AiChatUiState(
             messages = listOf(ChatMessage(text = "how much did I spend?", sender = ChatMessage.Sender.USER))

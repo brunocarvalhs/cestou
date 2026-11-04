@@ -17,7 +17,9 @@ data class AiChatUiState(
     val voiceErrorMessage: String? = null,
     val votes: Map<Long, MessageVote> = emptyMap(),
     val turns: Map<Long, AiTurnInfo> = emptyMap(),
-    val feedbackEnabled: Boolean = false
+    val feedbackEnabled: Boolean = false,
+    /** Ação da IA em execução, só para o texto de andamento; nunca vira mensagem. */
+    val activeAction: String? = null
 ) : AgentContext {
     override fun toMetadata(): Map<String, Any?> = mapOf(
         "messages_count" to messages.size,
