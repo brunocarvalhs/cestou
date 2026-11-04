@@ -22,6 +22,8 @@ jobs:
       default_timeout: ${{ steps.config.outputs.default_timeout }}
       app_name: ${{ steps.config.outputs.app_name }}
       package_name: ${{ steps.config.outputs.package_name }}
+      variants: ${{ steps.config.outputs.variants }}
+      target_names: ${{ steps.config.outputs.target_names }}
       aab_pattern: ${{ steps.config.outputs.aab_pattern }}
       keystore_path: ${{ steps.config.outputs.keystore_path }}
       checks_stage_1: ${{ steps.config.outputs.checks_stage_1 }}
@@ -70,6 +72,8 @@ jobs:
           echo "default_timeout=$(yq '.build.default_timeout_minutes' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "app_name=$(yq '.project.name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "package_name=$(yq '.project.package_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "variants=$(yq -o=json '[.build.targets[] as $t | $t.variants[] | select(.name == "release") | select(.enabled) | . + {"target": $t.name, "module": $t.module, "gradle_task": "bundleRelease", "path": ($t.module | sub("^:"; "") + "/build/outputs/bundle/release/*.aab")}]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
+          echo "target_names=$(yq -o=json '[.build.targets[] | select([.variants[] | select(.name == "release") | .enabled] | any) | .name]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
           echo "aab_pattern=$(yq '.paths.aab_release' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "keystore_path=$(yq '.paths.keystore' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "checks_stage_1=$(yq -o=json '[.checks[] | select(.enabled) | select((.stage // 1) == 1)]' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
@@ -229,7 +233,11 @@ jobs:
     if: always() && needs.version.result == 'success' && needs.version.outputs.ship == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
-    name: 📦 Build Bundle (AAB)
+    strategy:
+      fail-fast: false
+      matrix:
+        target_name: ${{ fromJson(needs.prepare.outputs.target_names) }}
+    name: 📦 Build ${{ matrix.target_name }} (all variants)
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
         uses: actions/checkout@v7
@@ -246,10 +254,24 @@ jobs:
           release-keystore: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
 
       - name: ${{ needs.prepare.outputs.step_build_aab }}
+        id: build
         run: |
-          COMMAND=$(yq '.release.command_aab' .github/pipeline-config.yaml)
           chmod +x gradlew
-          $COMMAND
+          PATHS=""
+          while IFS= read -r VARIANT; do
+            MODULE=$(echo "$VARIANT" | jq -r '.module')
+            GRADLE_TASK=$(echo "$VARIANT" | jq -r '.gradle_task')
+            PATH_GLOB=$(echo "$VARIANT" | jq -r '.path')
+            echo "::group::Building $MODULE:$GRADLE_TASK"
+            ./gradlew "$MODULE:$GRADLE_TASK"
+            echo "::endgroup::"
+            PATHS="$PATHS"$'\n'"$PATH_GLOB"
+          done < <(echo '${{ needs.prepare.outputs.variants }}' | jq -c --arg t "${{ matrix.target_name }}" '.[] | select(.target == $t)')
+          {
+            echo 'aab_paths<<AAB_PATHS_EOF'
+            echo "$PATHS"
+            echo 'AAB_PATHS_EOF'
+          } >> "$GITHUB_OUTPUT"
         env:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -259,8 +281,8 @@ jobs:
       - name: ${{ needs.prepare.outputs.step_build_upload_aab }}
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ needs.prepare.outputs.app_name }}-aab
-          path: ${{ needs.prepare.outputs.aab_pattern }}
+          name: ${{ needs.prepare.outputs.app_name }}-${{ matrix.target_name }}
+          path: ${{ steps.build.outputs.aab_paths }}
 
   release:
     runs-on: ubuntu-24.04
@@ -355,7 +377,6 @@ jobs:
       - name: ${{ needs.prepare.outputs.step_deploy_download_aab }}
         uses: actions/download-artifact@v8
         with:
-          name: ${{ needs.prepare.outputs.app_name }}-aab
           path: output/
 
       - name: ${{ needs.prepare.outputs.step_deploy_upload_play }}
