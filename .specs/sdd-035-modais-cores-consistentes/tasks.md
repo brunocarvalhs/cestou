@@ -84,7 +84,7 @@ public fun CestouModalBottomSheet(
 @Qualifier @Retention(AnnotationRetention.BINARY)
 annotation class ChatBackgroundScope            // mesmo padrão de ChatDataStore (ChatModule.kt:21)
 
-interface ChatTurnTracker {                  // public: ver nota abaixo
+internal interface ChatTurnTracker {
     val inFlight: StateFlow<Set<String>>        // chave = sessionId ?: shoppingId
     fun begin(key: String)
     fun end(key: String)
@@ -96,7 +96,6 @@ class AiChatViewModel @Inject constructor(
     private val turnTracker: ChatTurnTracker,
 )
 ```
-- **Ajuste pós-implementação:** `ChatTurnTracker` ficou `public` (e não `internal`): o construtor público do `AiChatViewModel` o expõe e `:app` (`MainViewModel`) o usa para `cancelAll()` no logout, como `ChatHistoryRepository` já é público. A implementação `ChatTurnTrackerImpl` continua `internal`.
 - O construtor do `AiChatViewModel` é público e ganha dois parâmetros: impacto `additive`; os testes que o instanciam (`AiChatViewModelTest.kt`, `AiChatViewModelReliabilityTest.kt`) são atualizados. O qualificador fica público apenas por necessidade do Hilt, como `ChatDataStore`.
 - Sem `NavKey`, repositório, Firestore, remote-config ou evento de Analytics novos. Sem breaking change.
 
@@ -113,8 +112,8 @@ class AiChatViewModel @Inject constructor(
 | 7 | O turno da IA roda em `viewModelScope` e morre ao fechar o chat | Roda no scope de aplicação e só termina por conclusão ou falha da chamada, nunca por fechamento da tela | `AiChatViewModel.kt:~215` |
 | 8 | A persistência da resposta usa `viewModelScope` | Usa o scope de aplicação; a resposta e a mensagem de erro chegam ao histórico mesmo com o chat fechado | `AiChatViewModel.kt:~268` |
 | 9 | `markFreeMessageUsed` e `trialMessageUsed` dependem de a coleta terminar | Executam ao fim do turno desacoplado | `AiChatViewModel.kt:~240-243`, `AiTrialRepositoryImpl.kt:24-30` |
-| 10 | Reabrir o chat limpa o `AiSession` singleton e permite novo envio | Com turno em andamento: `setShoppingContext` abre um chat novo e espera os turnos terminarem antes de limpar o `AiSession` (`awaitIdleTurns`); `loadSession` de conversa com turno pendente mostra `isLoading`, bloqueia envio e recarrega o histórico ao terminar | `AiChatViewModel.kt:~95-112,~190` |
-| 11 | Sem `sessionId`/`shoppingId` nada é persistido | Todo chat novo ganha um `sessionId` (`UUID.randomUUID()`, e não `createNewSession`, que deixaria o título "Nova conversa") antes do primeiro envio, mesmo vindo de uma lista; a persistência usa só `saveSession` (Q4) | `AiChatViewModel.kt:~270-278`, `ChatHistoryRepositoryImpl.kt:105` |
+| 10 | Reabrir o chat limpa o `AiSession` singleton e permite novo envio | Com turno em andamento na mesma chave: não limpa o `AiSession`, mostra `isLoading`, bloqueia envio e recarrega o histórico ao terminar | `AiChatViewModel.kt:~95-112,~190` |
+| 11 | Sem `sessionId`/`shoppingId` nada é persistido | A sessão é criada antes de enviar, para a resposta tardia ter onde ser salva (Q4) | `AiChatViewModel.kt:~270-278`, `ChatHistoryRepositoryImpl.kt:105` |
 
 ## 6. Critérios de Aceitação
 - **Cor:**
@@ -177,17 +176,6 @@ class AiChatViewModel @Inject constructor(
 | Chat tem gesto, inset e altura animada especiais | média | regressão de UX | wrapper repassa todos os parâmetros; teste manual |
 | `onClose()` do CSAT disparado duas vezes | baixa | métrica duplicada | verificar `AiChatViewModel.onClose` ser idempotente |
 | Branch atual tem alterações em andamento (`ChatGraph.kt` etc.) | média | conflito | implementar em branch própria a partir de `develop` |
-
-## 8.1 Pendências registradas na revisão
-- `ChatHistoryRepository.load(shoppingId)` e `save(shoppingId, ...)` ficaram sem uso em produção (o chat grava só por `saveSession`). Mantidos: removê-los altera contrato público e exige registro no release (AGENTS.md §6). Candidatos a limpeza em tarefa própria.
-- Chamada de IA que nunca retorna mantém o turno (e o `awaitIdleTurns` de novos chats) preso; depende dos timeouts de rede dos clientes, ainda não verificados (Q7).
-- Validação manual (Maestro, light e dark) e `:core:ui:connectedDebugAndroidTest` pendentes: sem dispositivo na implementação.
-
-## 8.2 Escopo adicional entregue no mesmo commit (sessão paralela)
-Trabalho feito por outra sessão no mesmo working tree e incluído por decisão do usuário, porque `AiChatViewModel`, `AiChatScreen` e seus testes têm mudanças das duas frentes e não compilam separados:
-- **Gate de confirmação para ações irreversíveis** (`AgentAction.requiresConfirmation`, `AiSession.requestConfirmation`/`consumeConfirmation`/`beginTurn`, evento `ai_tool_confirmation_requested`): é a Fase 0 do `.specs/sdd-032-ai-agent-acesso-total-app/tasks.md` (gate de confirmação no chokepoint).
-- **Memória da conversa ao reabrir** (`AiSession.restoreHistory`, `AiHistoryTurn`), **texto de andamento no loading** (`AiSession.activeAction`, `AiActionLabels`, 7 strings em pt-BR, en e es) e **`CestouAiLoader`** em `core:ui`: sem plano próprio; documentados no `CHANGELOG.md` e em `architecture/04-integracoes-externas.md`. O sdd-032 continua `blocked` por suas decisões de produto (§9 dele); esta entrega não as resolve.
-- Ponto fraco conhecido do gate: a aprovação é "o turno seguinte", não o conteúdo da resposta do usuário.
 
 ## 9. Perguntas em Aberto (bloqueantes)
 Nenhuma bloqueante. Decisões já registradas: Q1 validação manual; Q2 dialogs fora.
