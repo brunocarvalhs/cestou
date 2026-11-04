@@ -177,7 +177,6 @@ fun AiChatScreen(
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = Color.Transparent,
                         ),
-                        title = { Text(text = stringResource(R.string.ai_chat_title)) },
                         navigationIcon = {
                             IconButton(
                                 onClick = intent.onToggleHistory,
