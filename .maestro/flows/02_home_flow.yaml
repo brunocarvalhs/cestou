@@ -1,0 +1,78 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Home - search, filters, join dialog and bottom navigation
+tags:
+  - lists
+---
+- runFlow: ../subflows/ensure_logged_in.yaml
+
+# Elementos da Home
+- assertVisible:
+    id: home_search_field
+- assertVisible:
+    id: home_ai_button
+- assertVisible:
+    id: home_join_button
+- assertVisible:
+    id: notifications_bell
+- assertVisible:
+    id: home_create_fab
+
+# Filtros
+- tapOn:
+    id: home_filter_FAVORITES
+- tapOn:
+    id: home_filter_OPEN
+- tapOn:
+    id: home_filter_GROUP
+- tapOn:
+    id: home_filter_FINISHED
+- tapOn:
+    id: home_filter_ALL
+
+# Busca: digita, limpa pelo botão de fechar
+- tapOn:
+    id: home_search_field
+- inputText: zzz-sem-resultado
+- assertVisible:
+    id: home_search_clear
+- tapOn:
+    id: home_search_clear
+- assertNotVisible:
+    id: home_search_clear
+- hideKeyboard
+
+# Entrar em uma lista: abre o dialog, valida o código inválido e cancela
+- tapOn:
+    id: home_join_button
+- assertVisible:
+    id: join_list_code_field
+- assertVisible:
+    id: join_list_scan
+- assertVisible:
+    id: join_list_cancel
+- tapOn:
+    id: join_list_code_field
+- inputText: CODIGOINVALIDO1
+- hideKeyboard
+- tapOn:
+    id: join_list_confirm
+- waitForAnimationToEnd:
+    timeout: 5000
+- tapOn:
+    id: join_list_cancel
+- assertVisible:
+    id: home_create_fab
+
+# Navegação inferior
+- tapOn:
+    id: bottom_nav_History
+- assertVisible:
+    id: history_screen
+- tapOn:
+    id: bottom_nav_Profile
+- assertVisible:
+    id: profile_sign_out
+- tapOn:
+    id: bottom_nav_ShoppingList
+- assertVisible:
+    id: home_create_fab

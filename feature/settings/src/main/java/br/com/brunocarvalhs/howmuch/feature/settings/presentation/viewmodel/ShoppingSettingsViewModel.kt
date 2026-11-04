@@ -3,8 +3,10 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsBuckets
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
+import br.com.brunocarvalhs.howmuch.core.domain.repository.MonthlyGoalRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateShoppingPreferencesUseCase
@@ -24,7 +26,8 @@ import javax.inject.Inject
 internal class ShoppingSettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val updateShoppingPreferencesUseCase: UpdateShoppingPreferencesUseCase,
-    private val analyticsTracker: AnalyticsTracker
+    private val analyticsTracker: AnalyticsTracker,
+    private val monthlyGoalRepository: MonthlyGoalRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ShoppingSettingsUiState())
@@ -36,11 +39,36 @@ internal class ShoppingSettingsViewModel @Inject constructor(
         onUpdateShoppingPreferences = { defaultListId, sortingMode, remindersEnabled ->
             updateShoppingPreferences(defaultListId, sortingMode, remindersEnabled)
         },
+        onUpdateMonthlyGoal = { goal -> updateMonthlyGoal(goal) },
         onBack = { _navigator?.goBack() }
     )
 
     init {
         observeSettings()
+        observeMonthlyGoal()
+    }
+
+    /** A meta vem da conta (Firestore), não do DataStore das demais preferências. */
+    private fun observeMonthlyGoal() {
+        monthlyGoalRepository.observeGoal()
+            .onEach { goal -> _uiState.update { it.copy(monthlyGoal = goal) } }
+            .launchIn(viewModelScope)
+    }
+
+    /** Só grava e reporta quando o valor mudou; o evento leva a faixa da meta, nunca o valor. */
+    private fun updateMonthlyGoal(goal: Double?) {
+        val normalized = goal?.takeIf { it > 0.0 }
+        if (normalized == _uiState.value.monthlyGoal) return
+        viewModelScope.launch {
+            monthlyGoalRepository.setGoal(normalized)
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.MONTHLY_GOAL_SET,
+                buildMap {
+                    put(AnalyticsParams.HAS_GOAL, normalized != null)
+                    normalized?.let { put(AnalyticsParams.GOAL_BUCKET, AnalyticsBuckets.goal(it)) }
+                }
+            )
+        }
     }
 
     private fun observeSettings() {

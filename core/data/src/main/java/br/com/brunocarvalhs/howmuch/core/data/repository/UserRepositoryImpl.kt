@@ -54,7 +54,7 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteProfile(id: String): Result<Unit> = runCatching {
-        networkService.deleteDocumentWithSubCollections("$ENDPOINT/$id", "common-products")
+        networkService.deleteDocumentWithSubCollections("$ENDPOINT/$id", "common-products", "preferences")
     }
 
     companion object {

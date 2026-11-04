@@ -2,11 +2,17 @@ package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity
 
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.model.AiHistoryTurn
+import br.com.brunocarvalhs.howmuch.core.ai.model.ApprovalDecision
+import br.com.brunocarvalhs.howmuch.core.ai.model.ApprovalRequest
 import com.google.ai.client.generativeai.type.Content
 import com.google.ai.client.generativeai.type.TextPart
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.Locale
 
 /**
@@ -33,12 +39,17 @@ data class AgentSession(
         _activeAction.value = id
     }
 
-    private var turnIndex = 0
-    private val confirmationRequests = mutableMapOf<String, Int>()
+    private val _pendingApproval = MutableStateFlow<ApprovalRequest?>(null)
+    override val pendingApproval: StateFlow<ApprovalRequest?> = _pendingApproval.asStateFlow()
+
+    // Um pedido por vez: um segundo awaitApproval espera o primeiro terminar.
+    private val approvalLock = Mutex()
+
+    @Volatile
+    private var decision: CompletableDeferred<ApprovalDecision>? = null
 
     override fun clearHistory() {
         history.clear()
-        confirmationRequests.clear()
     }
 
     /**
@@ -47,7 +58,6 @@ data class AgentSession(
      */
     override fun restoreHistory(turns: List<AiHistoryTurn>) {
         history.clear()
-        confirmationRequests.clear()
         turns.filter { it.text.isNotBlank() }.forEach { turn ->
             val role = if (turn.fromUser) "user" else "model"
             val last = history.lastOrNull()
@@ -61,17 +71,20 @@ data class AgentSession(
         history.trimToRecentHistory()
     }
 
-    override fun beginTurn() {
-        turnIndex++
-    }
+    override suspend fun awaitApproval(request: ApprovalRequest, timeoutMillis: Long): ApprovalDecision =
+        approvalLock.withLock {
+            val deferred = CompletableDeferred<ApprovalDecision>()
+            decision = deferred
+            _pendingApproval.value = request
+            try {
+                withTimeoutOrNull(timeoutMillis) { deferred.await() } ?: ApprovalDecision.TIMEOUT
+            } finally {
+                decision = null
+                _pendingApproval.value = null
+            }
+        }
 
-    override fun requestConfirmation(key: String) {
-        confirmationRequests[key] = turnIndex
-    }
-
-    override fun consumeConfirmation(key: String): Boolean {
-        val approved = (confirmationRequests[key] ?: turnIndex) < turnIndex
-        if (approved) confirmationRequests.remove(key)
-        return approved
+    override fun resolveApproval(decision: ApprovalDecision) {
+        this.decision?.complete(decision)
     }
 }

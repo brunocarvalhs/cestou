@@ -1,6 +1,9 @@
 package br.com.brunocarvalhs.howmuch.core.ai.contract
 
+import br.com.brunocarvalhs.howmuch.core.ai.model.APPROVAL_TIMEOUT_MS
 import br.com.brunocarvalhs.howmuch.core.ai.model.AiHistoryTurn
+import br.com.brunocarvalhs.howmuch.core.ai.model.ApprovalDecision
+import br.com.brunocarvalhs.howmuch.core.ai.model.ApprovalRequest
 import com.google.ai.client.generativeai.type.Content
 import kotlinx.coroutines.flow.StateFlow
 
@@ -35,20 +38,18 @@ interface AiSession {
      */
     fun restoreHistory(turns: List<AiHistoryTurn>)
 
-    /** Marca o início de uma nova mensagem do usuário; é o relógio da confirmação de ações. */
-    fun beginTurn()
+    /** Pedido de aprovação aberto, ou `null`. É o que o chat mostra como card. */
+    val pendingApproval: StateFlow<ApprovalRequest?>
 
     /**
-     * Registra que [key] (ação + argumentos) foi proposta ao usuário neste turno e ainda precisa
-     * da resposta dele.
+     * Publica [request] e suspende até [resolveApproval] ou o fim de [timeoutMillis]. Só um
+     * pedido por vez: um segundo espera o primeiro terminar. Sempre limpa o pedido ao sair,
+     * inclusive no cancelamento do turno.
      */
-    fun requestConfirmation(key: String)
+    suspend fun awaitApproval(request: ApprovalRequest, timeoutMillis: Long = APPROVAL_TIMEOUT_MS): ApprovalDecision
 
-    /**
-     * `true` só se [key] foi proposta num turno anterior, ou seja, o usuário teve uma mensagem
-     * própria para aprovar. Consome o pedido: cada aprovação vale para uma execução.
-     */
-    fun consumeConfirmation(key: String): Boolean
+    /** Entrega a decisão do usuário ao pedido aberto; sem pedido aberto, não faz nada. */
+    fun resolveApproval(decision: ApprovalDecision)
 
     /**
      * `true` quando uma tool com efeito colateral real (ex. produto gravado no Firestore) já foi

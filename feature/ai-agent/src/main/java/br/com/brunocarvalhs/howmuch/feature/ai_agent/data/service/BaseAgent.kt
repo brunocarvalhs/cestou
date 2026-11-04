@@ -1,7 +1,9 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 import br.com.brunocarvalhs.howmuch.core.ai.contract.Agent
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentAction
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
+import br.com.brunocarvalhs.howmuch.core.ai.model.ApprovalRequest
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
@@ -60,12 +62,8 @@ internal abstract class BaseAgent(
                 mapOf(AnalyticsParams.ACTION_ID to action.id)
             )
             "Essa ação é exclusiva do plano Pro."
-        } else if (action != null && action.requiresConfirmation && !isApprovedByUser(action.id, arguments)) {
-            analyticsTracker.trackEvent(
-                AnalyticsEvents.AI_TOOL_CONFIRMATION_REQUESTED,
-                mapOf(AnalyticsParams.ACTION_ID to action.id)
-            )
-            CONFIRMATION_REQUIRED_MESSAGE
+        } else if (action != null && action.requiresConfirmation && !isApprovedByUser(action, arguments)) {
+            DECLINED_MESSAGE
         } else if (action != null) {
             try {
                 // Marcado antes de executar, não depois: mesmo uma execução que termina em
@@ -104,14 +102,35 @@ internal abstract class BaseAgent(
     }
 
     /**
-     * A primeira chamada só registra o pedido; a execução exige repetir a mesma ação com os
-     * mesmos argumentos num turno posterior, ou seja, depois de o usuário responder.
+     * Ação irreversível: abre o card de aprovação e **espera** a decisão dentro do próprio dispatch.
+     * Aprovada, segue para a execução normal deste mesmo ponto (Pro, telemetria, erro); recusada,
+     * sem resposta a tempo ou com o chat fechado, nada é executado. Só o `action_id` vai para a
+     * telemetria, nunca o resumo nem os argumentos.
      */
-    private fun isApprovedByUser(actionId: String, arguments: Map<String, Any?>): Boolean {
-        val key = actionId + arguments.entries.sortedBy { it.key }.joinToString(prefix = "(", postfix = ")")
-        if (session.consumeConfirmation(key)) return true
-        session.requestConfirmation(key)
-        return false
+    private suspend fun isApprovedByUser(action: AgentAction<*>, arguments: Map<String, Any?>): Boolean {
+        analyticsTracker.trackEvent(
+            AnalyticsEvents.AI_TOOL_CONFIRMATION_REQUESTED,
+            mapOf(AnalyticsParams.ACTION_ID to action.id)
+        )
+        val decision = session.awaitApproval(ApprovalRequest(action.id, summaryOf(action, arguments)))
+        analyticsTracker.trackEvent(
+            AnalyticsEvents.AI_TOOL_CONFIRMATION_RESOLVED,
+            mapOf(
+                AnalyticsParams.ACTION_ID to action.id,
+                AnalyticsParams.DECISION to decision.name.lowercase()
+            )
+        )
+        return decision.isApproved
+    }
+
+    /** O resumo é só um apoio ao card: se falhar, o card sai com o título genérico. */
+    private suspend fun summaryOf(action: AgentAction<*>, arguments: Map<String, Any?>): String? = try {
+        action.confirmationSummary(arguments)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Timber.tag(logTag).w(e, "Sem resumo para o card de '%s'", action.id)
+        null
     }
 
     /**
@@ -136,9 +155,8 @@ internal abstract class BaseAgent(
 
     private companion object {
         /** Devolvido ao modelo no lugar do resultado: nada foi executado. */
-        const val CONFIRMATION_REQUIRED_MESSAGE =
-            "NÃO EXECUTADO: esta ação é irreversível e o usuário ainda não autorizou. Diga em " +
-                "linguagem simples o que será apagado e pergunte se ele confirma. Só chame a ação " +
-                "de novo, com os mesmos argumentos, depois que o usuário responder que sim."
+        const val DECLINED_MESSAGE =
+            "NÃO EXECUTADO: o usuário recusou esta ação, ou não respondeu a tempo. Nada foi alterado. " +
+                "Diga isso em uma frase simples e pergunte se ele quer fazer outra coisa."
     }
 }

@@ -1,0 +1,41 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Ensure logged in
+---
+# Abre o app sem limpar o estado e só faz login se a tela de boas-vindas aparecer.
+# Credenciais por variável de ambiente (EMAIL, PASSWORD); nunca no repositório.
+- launchApp:
+    permissions:
+      notifications: allow
+      camera: allow
+- waitForAnimationToEnd:
+    timeout: 4000
+- runFlow:
+    when:
+      visible:
+        id: welcome_agree_and_continue_button
+    file: login.yaml
+- runFlow:
+    when:
+      visible:
+        id: name_step_submit_button
+    file: complete_name.yaml
+- extendedWaitUntil:
+    visible:
+      id: bottom_nav_ShoppingList
+    timeout: 20000
+# Garante a aba de listas como ponto de partida
+- tapOn:
+    id: bottom_nav_ShoppingList
+# Uma execução interrompida pode deixar um sheet ou tela aberta (o app restaura a navegação).
+# Enquanto a Home não aparece, volta e tenta de novo; só age fora da Home, onde o voltar é seguro.
+- repeat:
+    times: 3
+    commands:
+      - runFlow:
+          when:
+            notVisible:
+              id: home_create_fab
+          commands:
+            - back
+            - tapOn:
+                id: bottom_nav_ShoppingList

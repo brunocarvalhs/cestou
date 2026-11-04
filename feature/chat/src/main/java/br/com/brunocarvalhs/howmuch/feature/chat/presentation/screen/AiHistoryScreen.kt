@@ -32,6 +32,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -60,7 +61,7 @@ fun AiHistoryScreen(
             TopAppBar(
                 title = { Text(text = stringResource(R.string.ai_chat_history_title)) },
                 navigationIcon = {
-                    IconButton(onClick = intent.onBack) {
+                    IconButton(onClick = intent.onBack, modifier = Modifier.testTag("ai_history_back")) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.ai_chat_close_content_description),
@@ -72,6 +73,7 @@ fun AiHistoryScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = intent.onNewChat,
+                modifier = Modifier.testTag("ai_history_new_chat"),
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             ) {
@@ -91,10 +93,10 @@ fun AiHistoryScreen(
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else if (state.sessions.isEmpty()) {
                 Text(
+                    modifier = Modifier.align(Alignment.Center).testTag("ai_history_empty"),
                     text = stringResource(R.string.ai_chat_history_empty),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.align(Alignment.Center),
                 )
             } else {
                 LazyColumn(
@@ -128,6 +130,7 @@ private fun ChatSessionCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .testTag("ai_history_session")
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
@@ -165,7 +168,7 @@ private fun ChatSessionCard(
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
-            IconButton(onClick = onDelete) {
+            IconButton(onClick = onDelete, modifier = Modifier.testTag("ai_history_session_delete")) {
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = stringResource(R.string.ai_chat_history_delete_content_description),

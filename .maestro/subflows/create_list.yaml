@@ -1,0 +1,23 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Create list
+---
+# Cria a lista LIST_NAME pela Home e abre o detalhe dela.
+- tapOn:
+    id: home_create_fab
+- extendedWaitUntil:
+    visible:
+      id: create_list_title_field
+    timeout: 8000
+- tapOn:
+    id: create_list_title_field
+- inputText: ${LIST_NAME}
+- tapOn:
+    id: create_list_description_field
+- inputText: maestro
+- hideKeyboard
+- tapOn:
+    id: create_list_confirm
+- extendedWaitUntil:
+    visible:
+      id: cart_add_product_button
+    timeout: 15000

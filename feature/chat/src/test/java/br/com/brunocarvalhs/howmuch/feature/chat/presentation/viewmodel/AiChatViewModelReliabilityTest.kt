@@ -52,6 +52,7 @@ class AiChatViewModelReliabilityTest {
 
     private val aiSession = mockk<AiSession>(relaxed = true) {
         every { activeAction } returns MutableStateFlow(null)
+        every { pendingApproval } returns MutableStateFlow(null)
     }
     private val context = mockk<Context> {
         every { getString(R.string.ai_chat_error_network) } returns "network error"
@@ -74,7 +75,8 @@ class AiChatViewModelReliabilityTest {
             mockk(relaxed = true),
             context,
             CoroutineScope(SupervisorJob() + testDispatcher),
-            ChatTurnTrackerImpl()
+            ChatTurnTrackerImpl(),
+            mockk(relaxed = true)
         )
     }
 

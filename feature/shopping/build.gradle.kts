@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":core:data"))
     implementation(project(":core:ai"))
+    implementation(project(":core:remote-config"))
     implementation(project(":feature:settings"))
 
     implementation(libs.androidx.compose.material3.adaptive)

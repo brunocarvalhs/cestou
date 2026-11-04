@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Mantém o processo vivo enquanto a IA executa um pedido com o app fora de vista. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <!-- Avisos de resultado e de aprovação da IA; o app também a declara e pede ao usuário. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application>
+        <!-- shortService: uma execução da IA é curta; o serviço para sozinho no fim do pedido. -->
+        <service
+            android:name=".data.service.AiTurnService"
+            android:exported="false"
+            android:foregroundServiceType="shortService" />
+    </application>
+</manifest>

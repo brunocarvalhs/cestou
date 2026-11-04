@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpSize
@@ -56,6 +57,7 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.common.ShoppingEmptyState
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.CreateShoppingContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.notifications.NotificationBellButton
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.MonthlyGoalCard
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingFilterChips
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingItem
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingItemLoading
@@ -109,7 +111,7 @@ internal fun ShoppingScreen(
                         )
                     },
                     actions = {
-                        IconButton(onClick = intent.onShowJoinDialog) {
+                        IconButton(onClick = intent.onShowJoinDialog, modifier = Modifier.testTag("home_join_button")) {
                             Icon(
                                 imageVector = Icons.Default.QrCodeScanner,
                                 contentDescription = stringResource(
@@ -129,7 +131,7 @@ internal fun ShoppingScreen(
                 )
             },
             floatingActionButton = {
-                FloatingActionButton(onClick = intent.onCreate) {
+                FloatingActionButton(onClick = intent.onCreate, modifier = Modifier.testTag("home_create_fab")) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = stringResource(
@@ -159,6 +161,13 @@ internal fun ShoppingScreen(
                     onFilterSelected = intent.onFilter,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
+
+                uiState.monthlyGoalProgress?.let { progress ->
+                    MonthlyGoalCard(
+                        progress = progress,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
+                }
 
                 PullToRefreshBox(
                     isRefreshing = uiState.isLoading,
@@ -231,7 +240,7 @@ private fun ShoppingListItemWrapper(
     intent: ShoppingListIntent
 ) {
     ShoppingItem(
-        modifier = Modifier.padding(vertical = 4.dp),
+        modifier = Modifier.padding(vertical = 4.dp).testTag("home_list_item"),
         onClick = { intent.onOpen(shopping.id) },
         title = shopping.title,
         emoji = shopping.emoji,

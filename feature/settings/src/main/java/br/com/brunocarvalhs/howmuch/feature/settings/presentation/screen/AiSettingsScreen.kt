@@ -91,6 +91,7 @@ internal fun AiSettingsScreen(
                 title = stringResource(R.string.settings_ai_tier_1_title),
                 description = stringResource(R.string.settings_ai_tier_1_desc),
                 selected = tier == AiConfigTier.DEFAULT,
+                modifier = Modifier.testTag("ai_settings_tier_default"),
                 onClick = { tier = AiConfigTier.DEFAULT }
             )
 
@@ -101,6 +102,7 @@ internal fun AiSettingsScreen(
                 title = stringResource(R.string.settings_ai_tier_2_title),
                 description = stringResource(R.string.settings_ai_tier_2_desc),
                 selected = tier == AiConfigTier.SPECIFIC,
+                modifier = Modifier.testTag("ai_settings_tier_specific"),
                 isProRequired = !isPro,
                 onClick = {
                     if (isPro) {
@@ -126,6 +128,7 @@ internal fun AiSettingsScreen(
                 title = stringResource(R.string.settings_ai_tier_3_title),
                 description = stringResource(R.string.settings_ai_tier_3_desc),
                 selected = tier == AiConfigTier.CUSTOM_BYOK,
+                modifier = Modifier.testTag("ai_settings_tier_byok"),
                 isProRequired = !isPro,
                 onClick = {
                     if (isPro) {

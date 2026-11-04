@@ -1,15 +1,20 @@
 package br.com.brunocarvalhs.howmuch
 
+import android.Manifest
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -50,9 +55,11 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.StoreReview
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouBottomNavigation
+import br.com.brunocarvalhs.howmuch.core.ui.utils.exposeTestTags
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.CompleteName
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.Welcome
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.isAuthFlow
+import br.com.brunocarvalhs.howmuch.notifications.NotificationPermissionRequester
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -77,7 +84,10 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         consumeDeepLinkIntent()
         setContent {
-            CestouApp(windowSizeClass = calculateWindowSizeClass(this))
+            /** Expõe os testTags como resource-id para o Maestro, que não depende do idioma do aparelho. */
+            Box(modifier = Modifier.fillMaxSize().exposeTestTags()) {
+                CestouApp(windowSizeClass = calculateWindowSizeClass(this@MainActivity))
+            }
         }
     }
 
@@ -222,6 +232,38 @@ class MainActivity : AppCompatActivity() {
                 if (token != null && isAuthenticated && !requiresName) {
                     navigator.navigate(JoinList(token = token))
                     viewModel.consumePendingJoinToken()
+                }
+            }
+
+            /**
+             * Toque numa notificação da IA: abre a conversa. Espera o login e o nome (como o
+             * convite acima) para não navegar por cima da tela de boas-vindas.
+             */
+            val pendingAiChat by viewModel.pendingAiChatSession.collectAsStateWithLifecycle()
+            LaunchedEffect(pendingAiChat, isAuthenticated, requiresName) {
+                val sessionId = pendingAiChat
+                if (sessionId != null && isAuthenticated && !requiresName) {
+                    /** Se um chat já está aberto (app voltou de segundo plano nele), troca em vez de empilhar outro. */
+                    navigator.navigate(AiChat(sessionId = sessionId)) {
+                        popUpTo<AiChat> { inclusive = true }
+                        launchSingleTop = true
+                    }
+                    viewModel.consumePendingAiChatSession()
+                }
+            }
+
+            /**
+             * Pede a permissão de notificações uma vez por instalação, depois do login: sem ela os
+             * lembretes e os avisos da IA não aparecem. Recusar não bloqueia nada.
+             */
+            val notificationPermissionLauncher = rememberLauncherForActivityResult(
+                ActivityResultContracts.RequestPermission()
+            ) { }
+            LaunchedEffect(isAuthenticated, requiresName) {
+                val requester = NotificationPermissionRequester(applicationContext)
+                if (isAuthenticated && !requiresName && requester.shouldAsk()) {
+                    requester.markAsked()
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
             }
 

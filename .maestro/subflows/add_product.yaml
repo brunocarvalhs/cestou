@@ -1,0 +1,21 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Add a product from the list detail
+---
+# Espera PRODUCT_NAME e PRODUCT_PRICE (só dígitos, em centavos) no ambiente.
+- tapOn:
+    id: cart_add_product_button
+- extendedWaitUntil:
+    visible:
+      id: product_form_name_field
+    timeout: 8000
+- tapOn:
+    id: product_form_name_field
+- inputText: ${PRODUCT_NAME}
+- tapOn:
+    id: product_form_price_field
+- inputText: ${PRODUCT_PRICE}
+- hideKeyboard
+- tapOn:
+    id: product_form_save
+- waitForAnimationToEnd:
+    timeout: 4000

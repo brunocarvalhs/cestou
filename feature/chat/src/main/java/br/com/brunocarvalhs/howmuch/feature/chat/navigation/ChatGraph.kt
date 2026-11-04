@@ -50,14 +50,21 @@ fun NavGraphBuilder.chatGraph(navigator: Navigator) {
 
         /** Sair da composição do dialog (fechar, voltar ou rotacionar) avisa o fim do chat para o CSAT. */
         DisposableEffect(viewModel) {
-            onDispose { viewModel.intent.onClose() }
+            viewModel.setChatVisible(true)
+            onDispose {
+                viewModel.setChatVisible(false)
+                viewModel.intent.onClose()
+            }
         }
 
         AiChatScreen(
             state = uiState,
             intent = viewModel.intent.copy(
                 onSettings = { navigator.navigate(AiSettings) },
-                onBack = { navigator.goBack() },
+                onBack = {
+                    viewModel.dismissPendingApproval()
+                    navigator.goBack()
+                },
                 onToggleHistory = { navigator.navigate(AiHistory) }
             ),
             isSendEnabled = isSendEnabled,

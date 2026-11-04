@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -85,7 +86,7 @@ internal fun EditItemContent(
             value = name,
             onValueChange = { name = it },
             label = { Text(stringResource(R.string.shopping_list_label_product_name)) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("edit_item_name_field"),
             shape = RoundedCornerShape(12.dp)
         )
 
@@ -114,6 +115,7 @@ internal fun EditItemContent(
             Box(
                 modifier = Modifier
                     .matchParentSize()
+                    .testTag("edit_item_category_picker")
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
@@ -137,7 +139,7 @@ internal fun EditItemContent(
                 },
                 label = { Text(stringResource(R.string.shopping_list_label_unit_price)) },
                 prefix = { Text(currencyFormatter.currency?.symbol ?: "R$") },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).testTag("edit_item_price_field"),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 visualTransformation = visualTransformation,
                 shape = RoundedCornerShape(12.dp)
@@ -147,7 +149,7 @@ internal fun EditItemContent(
                 value = quantity,
                 onValueChange = { quantity = it },
                 label = { Text(stringResource(R.string.shopping_list_label_quantity)) },
-                modifier = Modifier.weight(QUANTITY_FIELD_WEIGHT),
+                modifier = Modifier.weight(QUANTITY_FIELD_WEIGHT).testTag("edit_item_quantity_field"),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 shape = RoundedCornerShape(12.dp)
             )
@@ -163,7 +165,8 @@ internal fun EditItemContent(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(56.dp)
+                .testTag("edit_item_save"),
             shape = RoundedCornerShape(16.dp)
         ) {
             Text(stringResource(R.string.shopping_list_save_changes))

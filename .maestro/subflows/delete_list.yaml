@@ -1,0 +1,9 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Delete list from Home
+---
+# Apaga, pelo menu da Home, a lista cujo título é LIST_NAME. Só apaga listas criadas pelo flow.
+- longPressOn: ${LIST_NAME}
+- tapOn:
+    id: home_menu_delete
+- waitForAnimationToEnd:
+    timeout: 3000

@@ -1,10 +1,19 @@
 appId: br.com.brunocarvalhs.howmuch
 ---
-- runFlow: flows/home_flow.yaml
-- runFlow: flows/create_list_flow.yaml
-- runFlow: flows/product_management_flow.yaml
-- runFlow: flows/finish_purchase_flow.yaml
-- runFlow: flows/join_list_flow.yaml
-- runFlow: flows/settings_flow.yaml
-- runFlow: flows/account_data_flow.yaml
-- runFlow: flows/chat_flow.yaml
+# Suíte completa. Exige EMAIL e PASSWORD da conta de teste (maestro test -e EMAIL=... -e PASSWORD=...).
+# O flow 01 limpa o estado do app; os demais reaproveitam a sessão e criam apenas listas "maestro-*",
+# que apagam ao final. O 14 encerra a sessão e deve ser o último.
+- runFlow: flows/01_auth_flow.yaml
+- runFlow: flows/02_home_flow.yaml
+- runFlow: flows/03_notifications_flow.yaml
+- runFlow: flows/04_history_insights_flow.yaml
+- runFlow: flows/05_lists_flow.yaml
+- runFlow: flows/06_products_flow.yaml
+- runFlow: flows/07_finish_purchase_flow.yaml
+- runFlow: flows/08_ai_chat_flow.yaml
+- runFlow: flows/09_settings_flow.yaml
+- runFlow: flows/10_subscription_flow.yaml
+- runFlow: flows/11_share_flow.yaml
+- runFlow: flows/12_budget_goal_flow.yaml
+- runFlow: flows/13_ai_notification_flow.yaml
+- runFlow: flows/14_sign_out_flow.yaml

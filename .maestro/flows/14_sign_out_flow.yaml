@@ -1,0 +1,15 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Sign out
+tags:
+  - auth
+---
+# Último flow da suíte: encerra a sessão e confere que volta às boas-vindas.
+- runFlow: ../subflows/ensure_logged_in.yaml
+- tapOn:
+    id: bottom_nav_Profile
+- tapOn:
+    id: profile_sign_out
+- extendedWaitUntil:
+    visible:
+      id: welcome_agree_and_continue_button
+    timeout: 15000

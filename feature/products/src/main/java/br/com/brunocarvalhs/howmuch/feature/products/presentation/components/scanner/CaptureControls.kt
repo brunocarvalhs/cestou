@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -44,6 +45,7 @@ internal fun CaptureControls(
                 onClick = onGalleryClick,
                 modifier = Modifier
                     .size(56.dp)
+                    .testTag("capture_gallery_button")
                     .background(Color.DarkGray.copy(alpha = 0.5f), CircleShape)
             ) {
                 Icon(
@@ -57,7 +59,7 @@ internal fun CaptureControls(
                 onClick = onCaptureClick,
                 shape = CircleShape,
                 color = Color.White,
-                modifier = Modifier.size(80.dp),
+                modifier = Modifier.size(80.dp).testTag("capture_shutter_button"),
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(

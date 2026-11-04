@@ -21,6 +21,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,7 +49,7 @@ internal fun CartBottomBar(
         ) {
             FilledTonalButton(
                 onClick = onFinished,
-                modifier = Modifier.height(56.dp).weight(PRIMARY_BUTTON_WEIGHT),
+                modifier = Modifier.height(56.dp).weight(PRIMARY_BUTTON_WEIGHT).testTag("cart_finish_button"),
                 shape = RoundedCornerShape(16.dp),
             ) {
                 Row(
@@ -68,7 +69,7 @@ internal fun CartBottomBar(
 
             Button(
                 onClick = onAdd,
-                modifier = Modifier.height(56.dp).weight(1f),
+                modifier = Modifier.height(56.dp).weight(1f).testTag("cart_add_product_button"),
                 shape = RoundedCornerShape(16.dp),
             ) {
                 Icon(Icons.Default.Add, null)

@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
@@ -50,7 +51,7 @@ internal fun ThemeSettingsScreen(
                 .padding(16.dp)
         ) {
             ListItem(
-                modifier = Modifier.clickable { showThemeBottomSheet = true },
+                modifier = Modifier.testTag("theme_picker_row").clickable { showThemeBottomSheet = true },
                 headlineContent = { Text(stringResource(R.string.settings_item_theme)) },
                 supportingContent = {
                     val currentThemeLabel = when (state.themeMode) {
@@ -110,6 +111,7 @@ private fun ThemeOption(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .testTag("theme_option_${mode.name}")
             .clickable { onSelect(mode) }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically

@@ -1,2 +1,5 @@
 appId: br.com.brunocarvalhs.howmuch
 name: Cestou
+# Só flows/ roda como teste; subflows/ são partes reutilizáveis chamadas por runFlow.
+flows:
+  - flows/*

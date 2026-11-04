@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.model.AiHistoryTurn
+import br.com.brunocarvalhs.howmuch.core.ai.model.ApprovalDecision
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
@@ -16,6 +17,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.di.ChatBackgroundScope
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.AiTurnBackground
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.AiChatAnalytics
@@ -60,6 +62,7 @@ class AiChatViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     @ChatBackgroundScope private val backgroundScope: CoroutineScope,
     private val turnTracker: ChatTurnTracker,
+    private val background: AiTurnBackground,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AiChatUiState())
@@ -81,6 +84,12 @@ class AiChatViewModel @Inject constructor(
         voice.observe(viewModelScope)
         viewModelScope.launch {
             aiSession.activeAction.collect { id -> _uiState.update { it.copy(activeAction = id) } }
+        }
+        viewModelScope.launch {
+            aiSession.pendingApproval.collect { request ->
+                _uiState.update { it.copy(pendingApproval = request) }
+                if (request != null) background.approvalNeeded(_uiState.value.sessionId)
+            }
         }
     }
 
@@ -118,6 +127,9 @@ class AiChatViewModel @Inject constructor(
                 telemetry.messageVoted(Vote.DOWN, state.turns[messageId], reason)
             }
         },
+        /** A decisão é reportada pelo agente (`ai_tool_confirmation_resolved`), que também vê tempo esgotado. */
+        onApprove = { aiSession.resolveApproval(ApprovalDecision.APPROVED) },
+        onReject = { aiSession.resolveApproval(ApprovalDecision.REJECTED) },
         /** Fechar o chat é o momento do CSAT; a pesquisa só abre num destino estável. */
         onClose = {
             if (assistantResponses >= MIN_RESPONSES_FOR_CSAT) {
@@ -130,6 +142,14 @@ class AiChatViewModel @Inject constructor(
      * Abrir o chat a partir de uma lista sempre começa uma conversa nova: conversas anteriores
      * ficam no histórico e só voltam por [loadSession]. A memória da IA começa vazia.
      */
+    /** O chat entrou ou saiu de vista; fora de vista, o fim do pedido vira notificação. */
+    val setChatVisible: (Boolean) -> Unit = { visible -> background.setChatVisible(visible) }
+
+    /** Fechar o chat com o card aberto recusa o pedido, para o turno não ficar preso esperando. */
+    val dismissPendingApproval: () -> Unit = {
+        if (_uiState.value.pendingApproval != null) aiSession.resolveApproval(ApprovalDecision.DISMISSED)
+    }
+
     fun setShoppingContext(shoppingId: String) {
         if (_uiState.value.shoppingId == shoppingId) return
         val othersRunning = turnTracker.inFlight.value.isNotEmpty()
@@ -207,7 +227,6 @@ class AiChatViewModel @Inject constructor(
         telemetry.messageSent(text.length, voice.consumeInputFromVoice(), !_uiState.value.shoppingId.isNullOrBlank())
         val sentAt = TimeSource.Monotonic.markNow()
         aiSession.fallbackUsedThisTurn = false
-        aiSession.beginTurn()
 
         val userMessage = ChatMessage(text = text, sender = ChatMessage.Sender.USER)
         _uiState.update {
@@ -225,6 +244,7 @@ class AiChatViewModel @Inject constructor(
          */
         val turn = backgroundScope.launch(start = CoroutineStart.LAZY) { runTurn(key, text, sentAt) }
         turnTracker.begin(key, turn)
+        background.turnStarted()
         turn.start()
     }
 
@@ -233,11 +253,15 @@ class AiChatViewModel @Inject constructor(
      * de aplicação e só termina por conclusão, falha ou [ChatTurnTracker.cancelAll].
      */
     private suspend fun runTurn(key: String, text: String, sentAt: TimeMark) {
+        // Só vira resultado se o turno terminou por conta própria; cancelado (logout) não notifica.
+        var result: String? = null
         try {
             persistHistory()
             collectResponse(text, sentAt)
+            result = _uiState.value.messages.lastOrNull { it.sender == ChatMessage.Sender.ASSISTANT }?.text
         } finally {
             turnTracker.end(key)
+            background.turnFinished(key, result)
         }
     }
 

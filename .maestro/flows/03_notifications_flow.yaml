@@ -1,0 +1,31 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Notifications - bell, filters and mark all as read
+tags:
+  - notifications
+---
+- runFlow: ../subflows/ensure_logged_in.yaml
+
+- tapOn:
+    id: notifications_bell
+- waitForAnimationToEnd:
+    timeout: 4000
+
+# Filtros do feed
+- tapOn:
+    id: notifications_filter_all
+- tapOn:
+    id: notifications_filter_lists
+- tapOn:
+    id: notifications_filter_all
+
+# "Marcar tudo como lido" só existe quando há notificações; vazio mostra o estado vazio
+- runFlow:
+    when:
+      visible:
+        id: notifications_mark_all_read
+    commands:
+      - tapOn:
+          id: notifications_mark_all_read
+- back
+- assertVisible:
+    id: home_create_fab

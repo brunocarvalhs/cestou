@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -87,7 +88,7 @@ internal fun ConfirmItemContent(
                 },
                 label = { Text(stringResource(R.string.shopping_list_label_unit_price)) },
                 prefix = { Text(currencyFormatter.currency?.symbol ?: "R$") },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).testTag("confirm_item_price_field"),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 visualTransformation = visualTransformation,
                 shape = RoundedCornerShape(12.dp)
@@ -97,7 +98,7 @@ internal fun ConfirmItemContent(
                 value = quantity,
                 onValueChange = { quantity = it },
                 label = { Text(stringResource(R.string.shopping_list_label_quantity)) },
-                modifier = Modifier.weight(QUANTITY_FIELD_WEIGHT),
+                modifier = Modifier.weight(QUANTITY_FIELD_WEIGHT).testTag("confirm_item_quantity_field"),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 shape = RoundedCornerShape(12.dp)
             )
@@ -113,7 +114,8 @@ internal fun ConfirmItemContent(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(56.dp)
+                .testTag("confirm_item_confirm"),
             shape = RoundedCornerShape(16.dp)
         ) {
             Text(stringResource(R.string.action_confirm))

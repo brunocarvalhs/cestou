@@ -29,6 +29,10 @@ internal class ShoppingMultiDeleteUseCase @Inject constructor(
 
     override val requiresConfirmation: Boolean = true
 
+    /** O título da lista que será apagada, para o card de aprovação. */
+    override suspend fun confirmationSummary(arguments: Map<String, Any?>): String? =
+        arguments.getString("shopping_id")?.let { repository.getById(it)?.title }
+
     suspend operator fun invoke(id: String): Result<Unit> = runCatching {
         val shopping = repository.getById(id) ?: throw Exception("Shopping not found")
         // Only the OWNER may delete the whole list — any collaborator could otherwise destroy

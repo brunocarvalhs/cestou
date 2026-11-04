@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -61,13 +62,16 @@ internal fun NotificationSettingsScreen(
                 trailingContent = {
                     Switch(
                         checked = state.notificationsEnabled,
-                        onCheckedChange = { intent.onUpdateNotificationSettings(it, state.reminderTime) }
+                        onCheckedChange = { intent.onUpdateNotificationSettings(it, state.reminderTime) },
+                        modifier = Modifier.testTag("notifications_enable_switch")
                     )
                 }
             )
 
             ListItem(
-                modifier = Modifier.clickable(enabled = state.notificationsEnabled) { showTimePicker = true },
+                modifier = Modifier
+                    .testTag("notifications_reminder_time")
+                    .clickable(enabled = state.notificationsEnabled) { showTimePicker = true },
                 headlineContent = {
                     Text(
                         text = stringResource(R.string.settings_notifications_reminder_time),
@@ -99,7 +103,7 @@ internal fun NotificationSettingsScreen(
             initialMinute = initialMinute,
             is24Hour = true
         )
-        val sheetState = rememberModalBottomSheetState()
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
         CestouModalBottomSheet(
             onDismissRequest = { showTimePicker = false },
@@ -128,7 +132,7 @@ internal fun NotificationSettingsScreen(
                 ) {
                     OutlinedButton(
                         onClick = { showTimePicker = false },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f).testTag("notifications_time_cancel")
                     ) {
                         Text(stringResource(R.string.action_cancel))
                     }
@@ -138,7 +142,7 @@ internal fun NotificationSettingsScreen(
                             intent.onUpdateNotificationSettings(state.notificationsEnabled, newTime)
                             showTimePicker = false
                         },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f).testTag("notifications_time_confirm")
                     ) {
                         Text(stringResource(R.string.action_confirm))
                     }

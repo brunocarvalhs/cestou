@@ -1,0 +1,17 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Complete name step
+---
+# O validador recusa nomes de placeholder (ex. "Teste"), então usa um nome plausível.
+- tapOn:
+    id: name_step_given_name_field
+- eraseText: 30
+- inputText: Ana
+- tapOn:
+    id: name_step_family_name_field
+- eraseText: 30
+- inputText: Souza
+- hideKeyboard
+- tapOn:
+    id: name_step_submit_button
+- waitForAnimationToEnd:
+    timeout: 6000

@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
+import br.com.brunocarvalhs.howmuch.core.ai.model.ApprovalDecision
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
@@ -9,6 +10,8 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
 import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AgentSession
 import com.google.ai.client.generativeai.type.FunctionCallPart
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -238,30 +241,71 @@ class GeminiAgentGatingTest {
         assertEquals(0, realSession.toolCallsThisTurn)
     }
 
+    private fun approvalAnswer(decision: ApprovalDecision) =
+        coEvery { session.awaitApproval(any(), any()) } returns decision
+
     @Test
-    fun `an irreversible action is not executed until the user confirms`() = runTest {
+    fun `an irreversible action is not executed when the user rejects the card`() = runTest {
         val action = FakeAgentAction(requiresConfirmation = true)
         every { registry.find("fake_action") } returns action
-        every { session.consumeConfirmation(any()) } returns false
+        approvalAnswer(ApprovalDecision.REJECTED)
         val agent = agentWithStatus(SubscriptionStatus.PRO)
 
         val response = agent.toFunctionResponsePart(FunctionCallPart("fake_action", mapOf("id" to "1")), emptyMap())
 
         assertTrue(response.response.getString("result").startsWith("NÃO EXECUTADO"))
         assertFalse(action.executed)
-        verify { session.requestConfirmation(any()) }
+        coVerify { session.awaitApproval(match { it.actionId == "fake_action" }, any()) }
     }
 
     @Test
-    fun `an irreversible action runs once the user confirmed it in a later turn`() = runTest {
+    fun `an irreversible action is not executed when the user does not answer in time`() = runTest {
         val action = FakeAgentAction(requiresConfirmation = true)
         every { registry.find("fake_action") } returns action
-        every { session.consumeConfirmation(any()) } returns true
+        approvalAnswer(ApprovalDecision.TIMEOUT)
+
+        agentWithStatus(SubscriptionStatus.PRO)
+            .toFunctionResponsePart(FunctionCallPart("fake_action", emptyMap()), emptyMap())
+
+        assertFalse(action.executed)
+    }
+
+    @Test
+    fun `an irreversible action runs right after the user approves the card`() = runTest {
+        val action = FakeAgentAction(requiresConfirmation = true)
+        every { registry.find("fake_action") } returns action
+        approvalAnswer(ApprovalDecision.APPROVED)
         val agent = agentWithStatus(SubscriptionStatus.PRO)
 
-        agent.toFunctionResponsePart(FunctionCallPart("fake_action", mapOf("id" to "1")), emptyMap())
+        val response = agent.toFunctionResponsePart(FunctionCallPart("fake_action", mapOf("id" to "1")), emptyMap())
 
         assertTrue(action.executed)
+        assertFalse(response.response.getString("result").startsWith("NÃO EXECUTADO"))
+    }
+
+    @Test
+    fun `the Pro gate comes before the approval card`() = runTest {
+        val action = FakeAgentAction(requiresConfirmation = true, requiresPro = true)
+        every { registry.find("fake_action") } returns action
+        approvalAnswer(ApprovalDecision.APPROVED)
+
+        agentWithStatus(SubscriptionStatus.FREE)
+            .toFunctionResponsePart(FunctionCallPart("fake_action", emptyMap()), emptyMap())
+
+        assertFalse(action.executed)
+        coVerify(exactly = 0) { session.awaitApproval(any(), any()) }
+    }
+
+    @Test
+    fun `an action that needs no confirmation never opens the card`() = runTest {
+        val action = FakeAgentAction()
+        every { registry.find("fake_action") } returns action
+        val agent = agentWithStatus(SubscriptionStatus.PRO)
+
+        agent.toFunctionResponsePart(FunctionCallPart("fake_action", emptyMap()), emptyMap())
+
+        assertTrue(action.executed)
+        coVerify(exactly = 0) { session.awaitApproval(any(), any()) }
     }
 
     @Test

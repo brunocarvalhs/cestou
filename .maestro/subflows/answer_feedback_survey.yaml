@@ -1,0 +1,28 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Answer or dismiss the feedback survey when it shows up
+---
+# A pesquisa (CSAT/NPS) aparece de tempos em tempos, por cima da tela, e bloqueia os toques.
+# Responde com a nota máxima e fecha; se não aparecer, não faz nada.
+- runFlow:
+    when:
+      visible:
+        id: feedback_score_5
+    commands:
+      - tapOn:
+          id: feedback_score_5
+      - waitForAnimationToEnd:
+          timeout: 2500
+      - runFlow:
+          when:
+            visible:
+              id: feedback_done
+          commands:
+            - tapOn:
+                id: feedback_done
+      - runFlow:
+          when:
+            visible:
+              id: feedback_dismiss
+          commands:
+            - tapOn:
+                id: feedback_dismiss

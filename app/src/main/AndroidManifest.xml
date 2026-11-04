@@ -98,6 +98,14 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="how-much-2a72e.web.app" android:pathPrefix="/join" />
             </intent-filter>
+
+            <!-- Toque numa notificação da IA: cestou://chat/<sessionId> (sem autoVerify, esquema próprio). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="cestou" android:host="chat" />
+            </intent-filter>
         </activity>
     </application>
 

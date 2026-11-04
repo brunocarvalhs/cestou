@@ -1,0 +1,27 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Login with e-mail
+---
+# Boas-vindas -> e-mail -> credenciais. Espera EMAIL e PASSWORD no ambiente.
+- tapOn:
+    id: welcome_agree_and_continue_button
+- extendedWaitUntil:
+    visible:
+      id: welcome_email_button
+    timeout: 8000
+- tapOn:
+    id: welcome_email_button
+- extendedWaitUntil:
+    visible:
+      id: signin_email_field
+    timeout: 8000
+- tapOn:
+    id: signin_email_field
+- inputText: ${EMAIL}
+- tapOn:
+    id: signin_password_field
+- inputText: ${PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: signin_submit_button
+- waitForAnimationToEnd:
+    timeout: 6000

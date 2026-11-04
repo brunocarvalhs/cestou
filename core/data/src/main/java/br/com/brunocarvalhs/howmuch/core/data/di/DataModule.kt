@@ -12,12 +12,14 @@ import br.com.brunocarvalhs.howmuch.core.data.network.NetworkLogger
 import br.com.brunocarvalhs.howmuch.core.data.network.NetworkServiceImpl
 import br.com.brunocarvalhs.howmuch.core.data.repository.AiModelRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.data.repository.AiTrialRepositoryImpl
+import br.com.brunocarvalhs.howmuch.core.data.repository.MonthlyGoalRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.data.repository.NotificationRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.data.repository.UserRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.data.security.Encryptor
 import br.com.brunocarvalhs.howmuch.core.data.service.DataStoreStorageService
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiModelRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
+import br.com.brunocarvalhs.howmuch.core.domain.repository.MonthlyGoalRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
@@ -59,6 +61,9 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindUserRepository(impl: UserRepositoryImpl): UserRepository
+
+    @Binds
+    abstract fun bindMonthlyGoalRepository(impl: MonthlyGoalRepositoryImpl): MonthlyGoalRepository
 
     @Binds
     @Singleton

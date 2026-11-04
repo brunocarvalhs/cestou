@@ -55,6 +55,7 @@ class AiChatViewModelTest {
     private val firstTimeEventTracker = mockk<FirstTimeEventTracker>(relaxed = true)
     private val aiSession = mockk<AiSession>(relaxed = true) {
         every { activeAction } returns MutableStateFlow(null)
+        every { pendingApproval } returns MutableStateFlow(null)
     }
     private val feedbackPromptRequester = mockk<FeedbackPromptRequester>(relaxed = true) {
         every { isFeedbackEnabled() } returns true
@@ -86,7 +87,8 @@ class AiChatViewModelTest {
             feedbackPromptRequester,
             context,
             CoroutineScope(SupervisorJob() + testDispatcher),
-            ChatTurnTrackerImpl()
+            ChatTurnTrackerImpl(),
+            mockk(relaxed = true)
         )
     }
 
@@ -203,16 +205,6 @@ class AiChatViewModelTest {
         verify {
             aiSession.restoreHistory(listOf(AiHistoryTurn(true, "add milk"), AiHistoryTurn(false, "done")))
         }
-    }
-
-    @Test
-    fun `every message starts a new AI turn so a confirmation needs its own user message`() = runTest {
-        viewModel.intent.onInputChange("hello")
-        coEvery { assistantUseCase("hello", any()) } returns flowOf("hi")
-
-        viewModel.intent.onSendMessage()
-
-        verify(exactly = 1) { aiSession.beginTurn() }
     }
 
     @Test
@@ -442,7 +434,8 @@ class AiChatViewModelTest {
         val vm = AiChatViewModel(
             assistantUseCase, chatHistoryRepository, analyticsTracker, aiTrialRepository, aiSession,
             speechToTextManager, firstTimeEventTracker, feedbackPromptRequester, context,
-            CoroutineScope(SupervisorJob() + testDispatcher), ChatTurnTrackerImpl()
+            CoroutineScope(SupervisorJob() + testDispatcher), ChatTurnTrackerImpl(),
+            mockk(relaxed = true)
         )
 
         active.value = "create_shopping_list"

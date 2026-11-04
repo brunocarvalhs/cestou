@@ -1,14 +1,17 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel
 
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.domain.budget.MonthlySpendingCalculator
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.User
+import br.com.brunocarvalhs.howmuch.core.domain.repository.MonthlyGoalRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.ShareShoppingUseCase
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ObserveUnreadNotificationsCountUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingCreateUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDeleteUseCase
@@ -54,6 +57,12 @@ class ShoppingListViewModelQuickActionsTest {
     private val observeUnreadNotificationsCount = mockk<ObserveUnreadNotificationsCountUseCase>()
     private val authService = mockk<AuthService>()
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
+    private val monthlyGoalRepository = mockk<MonthlyGoalRepository> {
+        every { observeGoal() } returns flowOf(null)
+    }
+    private val featureFlags = mockk<FeatureFlagService> {
+        every { isEnabled(any(), any()) } returns true
+    }
 
     private val ownedShopping = Shopping(
         id = "list1",
@@ -94,7 +103,10 @@ class ShoppingListViewModelQuickActionsTest {
         observeUnreadNotificationsCount,
         authService,
         analyticsTracker,
-        mockk(relaxed = true)
+        mockk(relaxed = true),
+        monthlyGoalRepository,
+        MonthlySpendingCalculator(),
+        featureFlags
     )
 
     @Test

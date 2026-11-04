@@ -16,5 +16,7 @@ data class AiChatIntent(
     val onVoiceResultReceived: (String) -> Unit = {},
     val onClose: () -> Unit = {},
     val onMessageVote: (messageId: Long, vote: Vote) -> Unit = { _, _ -> },
-    val onMessageVoteReason: (messageId: Long, reason: ReasonChip) -> Unit = { _, _ -> }
+    val onMessageVoteReason: (messageId: Long, reason: ReasonChip) -> Unit = { _, _ -> },
+    val onApprove: () -> Unit = {},
+    val onReject: () -> Unit = {}
 )

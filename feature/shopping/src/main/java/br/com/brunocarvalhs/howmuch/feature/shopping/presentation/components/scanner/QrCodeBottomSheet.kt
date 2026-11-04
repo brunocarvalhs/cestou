@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -86,7 +87,7 @@ fun QrCodeBottomSheet(
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
-                IconButton(onClick = onDismissRequest) {
+                IconButton(onClick = onDismissRequest, modifier = Modifier.testTag("qr_close")) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = stringResource(br.com.brunocarvalhs.howmuch.core.ui.R.string.action_close)
@@ -129,6 +130,7 @@ fun QrCodeBottomSheet(
             Surface(
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.testTag("qr_copy_code"),
                 onClick = {
                     scope.launch {
                         clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("token", token)))
@@ -160,7 +162,7 @@ fun QrCodeBottomSheet(
 
             Button(
                 onClick = onShare,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp).testTag("qr_share_invite"),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(Icons.Default.Share, contentDescription = null)

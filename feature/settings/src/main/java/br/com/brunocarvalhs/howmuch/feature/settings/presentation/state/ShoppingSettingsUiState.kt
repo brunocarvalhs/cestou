@@ -6,5 +6,6 @@ import androidx.compose.runtime.Stable
 internal data class ShoppingSettingsUiState(
     val defaultListId: String? = null,
     val sortingMode: String = "CATEGORY",
-    val remindersEnabled: Boolean = false
+    val remindersEnabled: Boolean = false,
+    val monthlyGoal: Double? = null
 )

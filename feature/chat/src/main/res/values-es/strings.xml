@@ -31,4 +31,17 @@
     <string name="ai_chat_activity_checking_lists">Consultando tus listas…</string>
     <string name="ai_chat_activity_updating_list">Actualizando la lista…</string>
     <string name="ai_chat_activity_removing">Eliminando artículos…</string>
+    <string name="ai_approval_title_delete_list">La IA quiere borrar una lista</string>
+    <string name="ai_approval_title_clear_purchased">La IA quiere quitar los productos comprados</string>
+    <string name="ai_approval_title_generic">La IA quiere hacer un cambio que no se puede deshacer</string>
+    <string name="ai_approval_irreversible">Esto no se puede deshacer.</string>
+    <string name="ai_approval_reject">Rechazar</string>
+    <string name="ai_approval_approve">Aprobar</string>
+    <string name="ai_notification_channel_results">Resultados de la IA</string>
+    <string name="ai_notification_channel_running">IA trabajando</string>
+    <string name="ai_notification_running_title">La IA está trabajando en tu pedido</string>
+    <string name="ai_notification_result_title">Cestou</string>
+    <string name="ai_notification_result_public">La IA terminó tu pedido</string>
+    <string name="ai_notification_approval_title">La IA necesita tu aprobación</string>
+    <string name="ai_notification_approval_text">Toca para revisar y decidir</string>
 </resources>

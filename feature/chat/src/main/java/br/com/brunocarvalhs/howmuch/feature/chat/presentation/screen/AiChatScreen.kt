@@ -71,6 +71,7 @@ import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.AiChatUpgradeBanner
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.AnimatedColorText
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.ApprovalCard
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.ChatBubble
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.MessageFeedbackBar
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.TypingBubble
@@ -81,8 +82,6 @@ import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiChatUiStat
 import timber.log.Timber
 import java.util.Locale
 import br.com.brunocarvalhs.howmuch.core.ui.R as CoreUiR
-
-private const val LEADING_AND_TRAILING_SPACERS = 2
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -178,8 +177,12 @@ fun AiChatScreen(
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = Color.Transparent,
                         ),
+                        title = {},
                         navigationIcon = {
-                            IconButton(onClick = intent.onToggleHistory) {
+                            IconButton(
+                                onClick = intent.onToggleHistory,
+                                modifier = Modifier.testTag("ai_chat_history_button")
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.History,
                                     contentDescription = stringResource(R.string.ai_chat_history_content_description),
@@ -187,13 +190,16 @@ fun AiChatScreen(
                             }
                         },
                         actions = {
-                            IconButton(onClick = intent.onSettings) {
+                            IconButton(
+                                onClick = intent.onSettings,
+                                modifier = Modifier.testTag("ai_chat_settings_button")
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.Settings,
                                     contentDescription = stringResource(R.string.ai_chat_settings_content_description),
                                 )
                             }
-                            IconButton(onClick = intent.onBack) {
+                            IconButton(onClick = intent.onBack, modifier = Modifier.testTag("ai_chat_close_button")) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = stringResource(R.string.ai_chat_close_content_description),
@@ -223,6 +229,7 @@ fun AiChatScreen(
                                 },
                                 modifier = Modifier
                                     .weight(1f)
+                                    .testTag("ai_chat_input")
                                     .focusRequester(focusRequester)
                                     .onFocusChanged { focusState ->
                                         isInputFocused = focusState.isFocused
@@ -315,12 +322,16 @@ fun AiChatScreen(
             ) { paddingValues ->
                 val listState = rememberLazyListState()
 
+                /**
+                 * Lista invertida (`reverseLayout`): o item 0 é o da base, então a conversa abre já na
+                 * última mensagem, sem rolar. Antes ela abria no topo e rolava até um índice calculado
+                 * à mão, que errava a contagem dos itens fixos e parava no meio.
+                 */
+                val reversedMessages = remember(state.messages) { state.messages.asReversed() }
+
+                // Nova mensagem ou indicador de digitação: volta para a base, onde está a mais recente.
                 LaunchedEffect(state.messages.size, state.isLoading) {
-                    val loadingOffset = if (state.isLoading) 1 else 0
-                    val itemCount = state.messages.size + LEADING_AND_TRAILING_SPACERS + loadingOffset
-                    if (itemCount > 0) {
-                        listState.animateScrollToItem(itemCount - 1)
-                    }
+                    listState.animateScrollToItem(0)
                 }
 
                 Box(
@@ -328,42 +339,66 @@ fun AiChatScreen(
                         .fillMaxSize()
                         .padding(paddingValues),
                 ) {
+                    /**
+                     * A saudação fica fixa no topo, fora da lista: dentro dela, a lista invertida a
+                     * empurrava para baixo junto com as mensagens.
+                     */
+                    if (state.messages.isEmpty()) {
+                        AnimatedColorText(
+                            text = stringResource(R.string.ai_chat_greeting),
+                            fontSize = 32.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .padding(horizontal = 12.dp, vertical = 4.dp),
+                        )
+                    }
+
                     LazyColumn(
                         state = listState,
+                        reverseLayout = true,
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(horizontal = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.Bottom),
                     ) {
+                        // Declarado de baixo para cima: espaçador da base, digitando, mensagens (da mais
+                        // nova para a mais antiga) e espaçador do topo.
                         item { Spacer(modifier = Modifier.height(4.dp)) }
 
-                        item {
-                            if (state.messages.isEmpty()) {
-                                AnimatedColorText(
-                                    text = stringResource(R.string.ai_chat_greeting),
-                                    fontSize = 32.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-
-                        items(state.messages) { message ->
-                            ChatBubble(message = message)
-                            if (state.feedbackEnabled &&
-                                message.sender == ChatMessage.Sender.ASSISTANT &&
-                                state.turns.containsKey(message.id)
-                            ) {
-                                MessageFeedbackBar(
-                                    messageId = message.id,
-                                    vote = state.votes[message.id],
-                                    onVote = intent.onMessageVote,
-                                    onReason = intent.onMessageVoteReason,
+                        state.pendingApproval?.let { request ->
+                            item {
+                                ApprovalCard(
+                                    request = request,
+                                    onApprove = intent.onApprove,
+                                    onReject = intent.onReject
                                 )
                             }
                         }
 
                         if (state.isLoading) {
                             item { TypingBubble(activityLabelFor(state.activeAction)) }
+                        }
+
+                        items(reversedMessages) { message ->
+                            val showFeedback = state.feedbackEnabled &&
+                                message.sender == ChatMessage.Sender.ASSISTANT &&
+                                state.turns.containsKey(message.id)
+                            ChatBubble(
+                                message = message,
+                                footer = if (showFeedback) {
+                                    {
+                                        MessageFeedbackBar(
+                                            messageId = message.id,
+                                            vote = state.votes[message.id],
+                                            onVote = intent.onMessageVote,
+                                            onReason = intent.onMessageVoteReason,
+                                        )
+                                    }
+                                } else {
+                                    null
+                                },
+                            )
                         }
 
                         item { Spacer(modifier = Modifier.height(4.dp)) }

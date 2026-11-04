@@ -1,0 +1,107 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Lists - create, detail, menu, edit, duplicate and delete
+tags:
+  - lists
+---
+# Cria apenas listas com o prefixo "maestro-" e apaga todas ao final.
+- runFlow: ../subflows/ensure_logged_in.yaml
+- runFlow: ../subflows/answer_feedback_survey.yaml
+- runFlow: ../subflows/cleanup_lists.yaml
+- evalScript: ${output.listName = 'maestro-' + Date.now()}
+
+# Sheet de criação: confere os campos e cancela
+- tapOn:
+    id: home_create_fab
+- assertVisible:
+    id: create_list_title_field
+- assertVisible:
+    id: create_list_description_field
+- assertVisible:
+    id: create_list_confirm
+- tapOn:
+    id: create_list_cancel
+- assertVisible:
+    id: home_create_fab
+
+# Criação de verdade, que já abre o detalhe da lista
+- runFlow:
+    file: ../subflows/create_list.yaml
+    env:
+      LIST_NAME: ${output.listName}
+- assertVisible:
+    id: cart_back_button
+- assertVisible:
+    id: cart_share_button
+- assertVisible:
+    id: cart_more_button
+- assertVisible:
+    id: cart_ai_fab
+- assertVisible:
+    id: cart_finish_button
+- tapOn:
+    id: cart_back_button
+
+# Lista aparece na Home e o menu de contexto tem todas as ações
+- assertVisible: ${output.listName}
+- longPressOn: ${output.listName}
+- assertVisible:
+    id: home_menu_edit
+- assertVisible:
+    id: home_menu_duplicate
+- assertVisible:
+    id: home_menu_share
+- assertVisible:
+    id: home_menu_finish
+- assertVisible:
+    id: home_menu_delete
+
+# Editar: orçamento e categorização
+- tapOn:
+    id: home_menu_edit
+- assertVisible:
+    id: edit_list_title_field
+- assertVisible:
+    id: edit_list_description_field
+- tapOn:
+    id: edit_list_budget_field
+- inputText: "5000"
+- hideKeyboard
+- tapOn:
+    id: edit_list_categorize_switch
+- assertVisible:
+    id: edit_list_save
+- tapOn:
+    id: edit_list_save
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Com orçamento definido, a lista mostra a linha de progresso sob o cabeçalho
+- tapOn: ${output.listName}
+- extendedWaitUntil:
+    visible:
+      id: cart_budget_progress
+    timeout: 10000
+- tapOn:
+    id: cart_back_button
+
+# Duplicar
+- longPressOn: ${output.listName}
+- tapOn:
+    id: home_menu_duplicate
+- waitForAnimationToEnd:
+    timeout: 4000
+
+# Limpeza: apaga as listas do flow (original e cópia), no máximo 3 passadas
+- repeat:
+    times: 3
+    commands:
+      - runFlow:
+          when:
+            visible: ${output.listName}.*
+          commands:
+            - longPressOn: ${output.listName}.*
+            - tapOn:
+                id: home_menu_delete
+            - waitForAnimationToEnd:
+                timeout: 3000
+- assertNotVisible: ${output.listName}.*

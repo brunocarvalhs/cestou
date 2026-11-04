@@ -1,0 +1,17 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Delete leftover maestro-* lists
+---
+# Apaga listas "maestro-*" deixadas por execuções interrompidas; no máximo 5 passadas.
+# Só toca em listas cujo nome começa com o prefixo dos flows.
+- repeat:
+    times: 5
+    commands:
+      - runFlow:
+          when:
+            visible: maestro-.*
+          commands:
+            - longPressOn: maestro-.*
+            - tapOn:
+                id: home_menu_delete
+            - waitForAnimationToEnd:
+                timeout: 3000

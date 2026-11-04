@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.chat.presentation.state
 
 import androidx.compose.runtime.Stable
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
+import br.com.brunocarvalhs.howmuch.core.ai.model.ApprovalRequest
 import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 
 @Stable
@@ -19,7 +20,9 @@ data class AiChatUiState(
     val turns: Map<Long, AiTurnInfo> = emptyMap(),
     val feedbackEnabled: Boolean = false,
     /** Ação da IA em execução, só para o texto de andamento; nunca vira mensagem. */
-    val activeAction: String? = null
+    val activeAction: String? = null,
+    /** Ação irreversível esperando Recusar/Aprovar; vira o card do chat. */
+    val pendingApproval: ApprovalRequest? = null
 ) : AgentContext {
     override fun toMetadata(): Map<String, Any?> = mapOf(
         "messages_count" to messages.size,

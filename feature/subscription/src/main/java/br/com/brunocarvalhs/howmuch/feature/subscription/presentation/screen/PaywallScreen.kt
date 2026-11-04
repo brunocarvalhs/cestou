@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,7 +46,7 @@ fun PaywallScreen(
             CestouTopBar(
                 title = { Text(stringResource(R.string.paywall_title)) },
                 navigationIcon = {
-                    IconButton(onClick = intent.onBack) {
+                    IconButton(onClick = intent.onBack, modifier = Modifier.testTag("paywall_back")) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.paywall_back_content_description)
@@ -110,6 +111,7 @@ fun PaywallScreen(
                         ?.let { stringResource(R.string.paywall_subscribe_button, it) }
                         ?: stringResource(R.string.paywall_subscribe_button_no_price),
                     onClick = { activity?.let(intent.onSubscribeClick) },
+                    modifier = Modifier.testTag("paywall_subscribe_button"),
                     enabled = !state.isPurchasing && activity != null
                 )
             }

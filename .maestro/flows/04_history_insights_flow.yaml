@@ -1,0 +1,32 @@
+appId: br.com.brunocarvalhs.howmuch
+name: History and spending insights
+tags:
+  - history
+---
+- runFlow: ../subflows/ensure_logged_in.yaml
+
+- tapOn:
+    id: bottom_nav_History
+- assertVisible:
+    id: history_screen
+- waitForAnimationToEnd:
+    timeout: 4000
+
+# "Ver análise" só aparece quando há compras finalizadas
+- runFlow:
+    when:
+      visible:
+        id: history_see_analysis
+    commands:
+      - tapOn:
+          id: history_see_analysis
+      - assertVisible:
+          id: insights_screen
+      - tapOn:
+          id: insights_back
+      - assertVisible:
+          id: history_screen
+- tapOn:
+    id: bottom_nav_ShoppingList
+- assertVisible:
+    id: home_create_fab

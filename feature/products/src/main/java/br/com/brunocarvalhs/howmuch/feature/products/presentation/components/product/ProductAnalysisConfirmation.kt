@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -94,6 +95,7 @@ internal fun ProductAnalysisConfirmation(
             CestouButton(
                 text = stringResource(R.string.product_photo_confirm_add_all, products.size),
                 onClick = onConfirmAll,
+                modifier = Modifier.testTag("photo_confirm_all"),
                 enabled = products.isNotEmpty(),
                 trailingIcon = Icons.Default.ShoppingCart
             )
@@ -101,6 +103,7 @@ internal fun ProductAnalysisConfirmation(
             CestouButton(
                 text = stringResource(R.string.product_action_retake),
                 onClick = onRetake,
+                modifier = Modifier.testTag("photo_retake"),
                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -120,12 +123,12 @@ private fun AnalysisResultItem(
                 OutlinedTextField(
                     value = product.name,
                     onValueChange = { onUpdate(product.copy(name = it)) },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).testTag("photo_item_name_field"),
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp)
                 )
                 Spacer(Modifier.width(8.dp))
-                IconButton(onClick = onRemove) {
+                IconButton(onClick = onRemove, modifier = Modifier.testTag("photo_item_remove")) {
                     Icon(
                         Icons.Default.Close,
                         contentDescription = stringResource(R.string.product_photo_item_remove),
