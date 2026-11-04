@@ -9,3 +9,9 @@ data class AiAgentParameter(
     val description: String,
     val isRequired: Boolean = true
 )
+
+/** Uma fala de uma conversa gravada, na ordem em que aconteceu. */
+data class AiHistoryTurn(
+    val fromUser: Boolean,
+    val text: String
+)

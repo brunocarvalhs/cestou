@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel
 
 import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
+import br.com.brunocarvalhs.howmuch.core.ai.model.AiHistoryTurn
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
@@ -12,6 +13,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackMoment
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import br.com.brunocarvalhs.howmuch.feature.chat.R
+import br.com.brunocarvalhs.howmuch.feature.chat.data.service.ChatTurnTrackerImpl
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.SpeechToTextManager
@@ -25,8 +27,10 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -49,7 +53,9 @@ class AiChatViewModelTest {
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val aiTrialRepository = mockk<AiTrialRepository>(relaxed = true)
     private val firstTimeEventTracker = mockk<FirstTimeEventTracker>(relaxed = true)
-    private val aiSession = mockk<AiSession>(relaxed = true)
+    private val aiSession = mockk<AiSession>(relaxed = true) {
+        every { activeAction } returns MutableStateFlow(null)
+    }
     private val feedbackPromptRequester = mockk<FeedbackPromptRequester>(relaxed = true) {
         every { isFeedbackEnabled() } returns true
     }
@@ -78,7 +84,9 @@ class AiChatViewModelTest {
             speechToTextManager,
             firstTimeEventTracker,
             feedbackPromptRequester,
-            context
+            context,
+            CoroutineScope(SupervisorJob() + testDispatcher),
+            ChatTurnTrackerImpl()
         )
     }
 
@@ -156,29 +164,55 @@ class AiChatViewModelTest {
     }
 
     @Test
-    fun `setShoppingContext loads persisted history for that shopping id`() {
-        val persisted = listOf(
-            ChatMessage(
-                text = "previous message",
-                sender = ChatMessage.Sender.USER
-            )
+    fun `setShoppingContext opens a fresh chat and ignores the old history of that list`() {
+        coEvery { chatHistoryRepository.load("list1") } returns listOf(
+            ChatMessage(text = "previous message", sender = ChatMessage.Sender.USER)
         )
-        coEvery { chatHistoryRepository.load("list1") } returns persisted
 
         viewModel.setShoppingContext("list1")
 
-        assertEquals(persisted, viewModel.uiState.value.messages)
+        assertTrue(viewModel.uiState.value.messages.isEmpty())
+        assertEquals(null, viewModel.uiState.value.sessionId)
+        coVerify(exactly = 0) { chatHistoryRepository.load(any()) }
     }
 
     @Test
-    fun `onSendMessage persists the updated history for the current shopping id`() = runTest {
+    fun `the first message of a chat from a list goes to a new session linked to that list`() = runTest {
         viewModel.setShoppingContext("list1")
         viewModel.intent.onInputChange("hello")
         coEvery { assistantUseCase("hello", any()) } returns flowOf("hi there")
 
         viewModel.intent.onSendMessage()
 
-        coVerify { chatHistoryRepository.save("list1", viewModel.uiState.value.messages) }
+        val sessionId = viewModel.uiState.value.sessionId!!
+        coVerify { chatHistoryRepository.saveSession(sessionId, viewModel.uiState.value.messages, "list1", null) }
+        coVerify(exactly = 0) { chatHistoryRepository.save(any(), any()) }
+    }
+
+    @Test
+    fun `loadSession shows the saved messages and gives them back to the AI memory`() {
+        val saved = listOf(
+            ChatMessage(text = "add milk", sender = ChatMessage.Sender.USER),
+            ChatMessage(text = "done", sender = ChatMessage.Sender.ASSISTANT)
+        )
+        coEvery { chatHistoryRepository.loadSession("s1") } returns saved
+
+        viewModel.loadSession("s1")
+
+        assertEquals(saved, viewModel.uiState.value.messages)
+        verify {
+            aiSession.restoreHistory(listOf(AiHistoryTurn(true, "add milk"), AiHistoryTurn(false, "done")))
+        }
+    }
+
+    @Test
+    fun `every message starts a new AI turn so a confirmation needs its own user message`() = runTest {
+        viewModel.intent.onInputChange("hello")
+        coEvery { assistantUseCase("hello", any()) } returns flowOf("hi")
+
+        viewModel.intent.onSendMessage()
+
+        verify(exactly = 1) { aiSession.beginTurn() }
     }
 
     @Test
@@ -399,5 +433,21 @@ class AiChatViewModelTest {
         clearViewModel()
 
         verify(exactly = 0) { feedbackPromptRequester.onMoment(any()) }
+    }
+
+    @Test
+    fun `the running action shows up in the state without becoming a message`() = runTest {
+        val active = MutableStateFlow<String?>(null)
+        every { aiSession.activeAction } returns active
+        val vm = AiChatViewModel(
+            assistantUseCase, chatHistoryRepository, analyticsTracker, aiTrialRepository, aiSession,
+            speechToTextManager, firstTimeEventTracker, feedbackPromptRequester, context,
+            CoroutineScope(SupervisorJob() + testDispatcher), ChatTurnTrackerImpl()
+        )
+
+        active.value = "create_shopping_list"
+
+        assertEquals("create_shopping_list", vm.uiState.value.activeAction)
+        assertTrue(vm.uiState.value.messages.isEmpty())
     }
 }

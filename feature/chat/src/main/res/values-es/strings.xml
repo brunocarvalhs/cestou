@@ -1,5 +1,4 @@
 <resources>
-    <string name="ai_chat_title">Asistente de IA</string>
     <string name="ai_chat_input_label">Mensaje</string>
     <string name="ai_chat_settings_content_description">Configuración</string>
     <string name="ai_chat_keyboard_content_description">Mostrar teclado</string>
@@ -25,4 +24,11 @@
     <string name="ai_chat_vote_reason_too_slow">Muy lenta</string>
     <string name="ai_chat_vote_reason_did_nothing">No hizo nada</string>
     <string name="ai_chat_vote_reason_other">Otro</string>
+    <string name="ai_chat_activity_thinking">Pensando…</string>
+    <string name="ai_chat_activity_creating_list">Creando tu lista…</string>
+    <string name="ai_chat_activity_adding_items">Añadiendo artículos a la lista…</string>
+    <string name="ai_chat_activity_searching">Buscando…</string>
+    <string name="ai_chat_activity_checking_lists">Consultando tus listas…</string>
+    <string name="ai_chat_activity_updating_list">Actualizando la lista…</string>
+    <string name="ai_chat_activity_removing">Eliminando artículos…</string>
 </resources>

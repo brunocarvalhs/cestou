@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -20,7 +18,10 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouAiLoader
 import br.com.brunocarvalhs.howmuch.feature.products.R
+
+private val LOADER_SIZE = 96.dp
 
 @Composable
 internal fun AnalyzingOverlay() {
@@ -33,10 +34,7 @@ internal fun AnalyzingOverlay() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(64.dp)
-            )
+            CestouAiLoader(size = LOADER_SIZE)
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = stringResource(R.string.product_ai_identifying),

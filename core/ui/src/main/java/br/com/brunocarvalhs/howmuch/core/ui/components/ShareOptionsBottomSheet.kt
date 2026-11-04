@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,10 +32,12 @@ private const val SURFACE_ALPHA = 0.5f
 fun ShareOptionsBottomSheet(
     onDismissRequest: () -> Unit,
     onInviteMember: () -> Unit,
-    onShareAsText: () -> Unit
+    onShareAsText: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    ModalBottomSheet(
+    CestouModalBottomSheet(
         onDismissRequest = onDismissRequest,
+        modifier = modifier,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
     ) {
         Column(

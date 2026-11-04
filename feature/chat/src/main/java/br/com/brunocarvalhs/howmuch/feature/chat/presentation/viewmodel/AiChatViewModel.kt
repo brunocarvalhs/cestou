@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
+import br.com.brunocarvalhs.howmuch.core.ai.model.AiHistoryTurn
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
@@ -13,11 +14,13 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackMoment
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import br.com.brunocarvalhs.howmuch.feature.chat.R
+import br.com.brunocarvalhs.howmuch.feature.chat.di.ChatBackgroundScope
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.AiChatAnalytics
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.AiChatVoiceInput
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.SpeechToTextManager
-import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.VoiceFailure
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatIntent
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiChatUiState
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiTurnInfo
@@ -26,13 +29,19 @@ import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.Vote
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.IOException
+import java.util.UUID
 import javax.inject.Inject
+import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
 private const val MIN_RESPONSES_FOR_CSAT = 2
@@ -45,25 +54,34 @@ class AiChatViewModel @Inject constructor(
     private val analyticsTracker: AnalyticsTracker,
     private val aiTrialRepository: AiTrialRepository,
     private val aiSession: AiSession,
-    private val speechToTextManager: SpeechToTextManager,
+    speechToTextManager: SpeechToTextManager,
     private val firstTimeEventTracker: FirstTimeEventTracker,
     private val feedbackPromptRequester: FeedbackPromptRequester,
     @ApplicationContext private val context: Context,
+    @ChatBackgroundScope private val backgroundScope: CoroutineScope,
+    private val turnTracker: ChatTurnTracker,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AiChatUiState())
     val uiState = _uiState.asStateFlow()
 
-    /** Verdadeiro quando o texto a enviar veio do reconhecimento de voz, para o `input_method`. */
-    private var inputFromVoice = false
-
     private val telemetry = AiChatAnalytics(analyticsTracker, firstTimeEventTracker)
 
-    /** Respostas reais do assistente nesta abertura do chat: o CSAT só vale a partir de 2. */
+    private val voice = AiChatVoiceInput(speechToTextManager, telemetry, context, _uiState)
+
+    /**
+     * Respostas reais do assistente nesta abertura do chat: o CSAT só vale a partir de 2. Escrito
+     * pelo turno em `Dispatchers.Default` e lido na thread principal no `onClose`, por isso volátil;
+     * há um único escritor por vez, pois o envio fica bloqueado enquanto `isLoading`.
+     */
+    @Volatile
     private var assistantResponses = 0
 
     init {
-        observeSpeechRecognizer()
+        voice.observe(viewModelScope)
+        viewModelScope.launch {
+            aiSession.activeAction.collect { id -> _uiState.update { it.copy(activeAction = id) } }
+        }
     }
 
     val intent = AiChatIntent(
@@ -71,10 +89,16 @@ class AiChatViewModel @Inject constructor(
         onSendMessage = { sendMessage() },
         onToggleHistory = { toggleHistory() },
         onSelectHistoryItem = { id -> selectHistoryItem(id) },
-        onStartVoiceInput = { startVoiceInput() },
-        onStopVoiceInput = { stopVoiceInput() },
-        onStopVoiceInputAndSend = { stopVoiceInputAndSend() },
-        onVoiceResultReceived = { text -> handleVoiceResult(text) },
+        onStartVoiceInput = {
+            telemetry.voiceStarted()
+            voice.start()
+        },
+        onStopVoiceInput = { voice.stop() },
+        onStopVoiceInputAndSend = {
+            voice.stop()
+            if (_uiState.value.input.isNotBlank()) sendMessage()
+        },
+        onVoiceResultReceived = { text -> voice.onResult(text) },
         /**
          * Um voto por mensagem na sessão da tela; votar numa resposta sem turno conhecido usa
          * `none`/0. O 👎 sai sem `reason`; o chip repete o evento com ele.
@@ -102,25 +126,61 @@ class AiChatViewModel @Inject constructor(
         },
     )
 
+    /**
+     * Abrir o chat a partir de uma lista sempre começa uma conversa nova: conversas anteriores
+     * ficam no histórico e só voltam por [loadSession]. A memória da IA começa vazia.
+     */
     fun setShoppingContext(shoppingId: String) {
         if (_uiState.value.shoppingId == shoppingId) return
-        aiSession.clearHistory()
-        _uiState.update { it.copy(shoppingId = shoppingId) }
+        val othersRunning = turnTracker.inFlight.value.isNotEmpty()
+        _uiState.update { it.copy(shoppingId = shoppingId, isLoading = othersRunning) }
 
         viewModelScope.launch {
-            val history = chatHistoryRepository.load(shoppingId)
-            _uiState.update { it.copy(messages = history) }
+            awaitIdleTurns()
+            aiSession.clearHistory()
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
+    /**
+     * Reabre uma conversa gravada e devolve o que foi dito à memória da IA; sem isso a tela mostra
+     * o histórico, mas o assistente responde como se fosse a primeira mensagem.
+     */
     fun loadSession(sessionId: String) {
-        aiSession.clearHistory()
-        _uiState.update { it.copy(sessionId = sessionId) }
+        val turnPending = sessionId in turnTracker.inFlight.value
+        val othersRunning = turnTracker.inFlight.value.isNotEmpty()
+        _uiState.update { it.copy(sessionId = sessionId, isLoading = othersRunning) }
 
         viewModelScope.launch {
+            if (turnPending) {
+                _uiState.update { it.copy(messages = chatHistoryRepository.loadSession(sessionId)) }
+                awaitPendingTurn(sessionId) { chatHistoryRepository.loadSession(sessionId) }
+                return@launch
+            }
+            awaitIdleTurns()
             val history = chatHistoryRepository.loadSession(sessionId)
-            _uiState.update { it.copy(messages = history) }
+            val shoppingId = chatHistoryRepository.getSessions().firstOrNull { it.id == sessionId }?.shoppingId
+            aiSession.restoreHistory(history.map { AiHistoryTurn(it.sender == ChatMessage.Sender.USER, it.text) })
+            _uiState.update {
+                it.copy(messages = history, shoppingId = it.shoppingId ?: shoppingId, isLoading = false)
+            }
         }
+    }
+
+    /** O `AiSession` é singleton: só se troca a memória dele sem nenhum turno usando-a. */
+    private suspend fun awaitIdleTurns() {
+        turnTracker.inFlight.first { it.isEmpty() }
+    }
+
+    /**
+     * Um turno aberto por uma instância anterior deste chat ainda está respondendo: o `AiSession`
+     * singleton não pode ser limpo nem receber um segundo envio. Espera o fim e recarrega o
+     * histórico, que já traz a resposta (ou o erro) gravado pelo turno.
+     */
+    private suspend fun awaitPendingTurn(key: String, reload: suspend () -> List<ChatMessage>) {
+        turnTracker.inFlight.first { key !in it }
+        val history = reload()
+        _uiState.update { it.copy(messages = history, isLoading = false) }
     }
 
     private fun toggleHistory() {
@@ -137,65 +197,6 @@ class AiChatViewModel @Inject constructor(
         loadSession(id)
     }
 
-    private fun observeSpeechRecognizer() {
-        viewModelScope.launch {
-            speechToTextManager.isListening.collect { listening ->
-                _uiState.update { it.copy(isRecording = listening) }
-            }
-        }
-        viewModelScope.launch {
-            speechToTextManager.recognizedText.collect { text ->
-                if (!text.isNullOrBlank()) {
-                    handleVoiceResult(text)
-                }
-            }
-        }
-        viewModelScope.launch {
-            speechToTextManager.errorMessage.collect { error ->
-                if (!error.isNullOrBlank()) {
-                    telemetry.voiceFailed(VoiceFailure.RECOGNITION)
-                    _uiState.update { it.copy(voiceErrorMessage = error, isRecording = false) }
-                }
-            }
-        }
-    }
-
-    private fun startVoiceInput() {
-        telemetry.voiceStarted()
-        if (speechToTextManager.isRecognitionAvailable()) {
-            _uiState.update { it.copy(isRecording = true, voiceErrorMessage = null) }
-            speechToTextManager.clearResult()
-            speechToTextManager.startListening()
-        } else {
-            telemetry.voiceFailed(VoiceFailure.UNSUPPORTED)
-            _uiState.update {
-                it.copy(
-                    voiceErrorMessage = context.getString(R.string.ai_chat_voice_not_supported),
-                    isRecording = false,
-                )
-            }
-        }
-    }
-
-    private fun stopVoiceInput() {
-        speechToTextManager.stopListening()
-        _uiState.update { it.copy(isRecording = false) }
-    }
-
-    private fun stopVoiceInputAndSend() {
-        speechToTextManager.stopListening()
-        _uiState.update { it.copy(isRecording = false) }
-        val text = _uiState.value.input
-        if (text.isNotBlank()) {
-            sendMessage()
-        }
-    }
-
-    private fun handleVoiceResult(text: String) {
-        inputFromVoice = true
-        _uiState.update { it.copy(input = text) }
-    }
-
     private fun sendMessage() {
         val text = _uiState.value.input
         // Guards against a second concurrent send while the assistant is still answering the
@@ -203,10 +204,10 @@ class AiChatViewModel @Inject constructor(
         // side backstop (sdd-017, B-06).
         if (text.isBlank() || _uiState.value.isLoading) return
 
-        telemetry.messageSent(text.length, inputFromVoice, !_uiState.value.shoppingId.isNullOrBlank())
-        inputFromVoice = false
+        telemetry.messageSent(text.length, voice.consumeInputFromVoice(), !_uiState.value.shoppingId.isNullOrBlank())
         val sentAt = TimeSource.Monotonic.markNow()
         aiSession.fallbackUsedThisTurn = false
+        aiSession.beginTurn()
 
         val userMessage = ChatMessage(text = text, sender = ChatMessage.Sender.USER)
         _uiState.update {
@@ -216,70 +217,102 @@ class AiChatViewModel @Inject constructor(
                 isLoading = true,
             )
         }
-        persistHistory()
+        val key = resolveConversationKey()
 
-        viewModelScope.launch {
-            // Tracks whether the trial credit should be spent: never before a response actually
-            // comes back, so a network failure no longer burns the user's one free message
-            // (sdd-017, B-05).
-            var receivedAny = false
-            try {
-                assistantUseCase(text, _uiState.value)
-                    // Guarantees isLoading always returns to false, even if the assistant Flow
-                    // completes without emitting anything (sdd-017, C-02).
-                    .onCompletion { _uiState.update { it.copy(isLoading = false) } }
-                    .collect { response ->
-                        if (!receivedAny) telemetry.responseReceived(sentAt, response.length, aiSession)
-                        receivedAny = true
-                        assistantResponses++
-                        val assistantMessage = ChatMessage(text = response, sender = ChatMessage.Sender.ASSISTANT)
-                        val turn = AiTurnInfo(aiSession.providerUsed ?: PROVIDER_NONE, aiSession.toolCallsThisTurn)
-                        val feedbackEnabled = feedbackPromptRequester.isFeedbackEnabled()
-                        _uiState.update {
-                            it.copy(
-                                messages = it.messages + assistantMessage,
-                                isLoading = false,
-                                turns = it.turns + (assistantMessage.id to turn),
-                                feedbackEnabled = feedbackEnabled,
-                            )
-                        }
-                        persistHistory()
-                    }
-                if (receivedAny) {
-                    aiTrialRepository.markFreeMessageUsed()
-                    telemetry.trialMessageUsed()
-                }
-            } catch (e: Exception) {
-                if (e is CancellationException) throw e
-                telemetry.responseFailed(e)
-                val errorText = if (e is IOException) {
-                    context.getString(R.string.ai_chat_error_network)
-                } else {
-                    context.getString(R.string.ai_chat_error_generic)
-                }
-                val errorMessage = ChatMessage(text = errorText, sender = ChatMessage.Sender.ASSISTANT)
-                _uiState.update {
-                    it.copy(messages = it.messages + errorMessage, isLoading = false)
-                }
-                persistHistory()
-            }
+        /**
+         * Fora do viewModelScope: fechar o chat não pode cancelar a chamada à IA nem perder a
+         * resposta. Registrado no rastreador antes de iniciar, para um chat reaberto já enxergá-lo.
+         */
+        val turn = backgroundScope.launch(start = CoroutineStart.LAZY) { runTurn(key, text, sentAt) }
+        turnTracker.begin(key, turn)
+        turn.start()
+    }
+
+    /**
+     * Um turno completo (gravação da mensagem, chamada à IA e gravação da resposta). Roda no scope
+     * de aplicação e só termina por conclusão, falha ou [ChatTurnTracker.cancelAll].
+     */
+    private suspend fun runTurn(key: String, text: String, sentAt: TimeMark) {
+        try {
+            persistHistory()
+            collectResponse(text, sentAt)
+        } finally {
+            turnTracker.end(key)
         }
     }
 
-    private fun persistHistory() {
-        val state = _uiState.value
-        viewModelScope.launch {
-            val sessionId = state.sessionId
-            if (sessionId != null) {
-                chatHistoryRepository.saveSession(
-                    sessionId = sessionId,
-                    messages = state.messages,
-                    shoppingId = state.shoppingId,
-                )
-            } else {
-                val shoppingId = state.shoppingId ?: return@launch
-                chatHistoryRepository.save(shoppingId, state.messages)
+    /**
+     * Chave da conversa no [ChatTurnTracker]. Todo chat novo ganha uma sessão própria antes do
+     * primeiro envio, mesmo vindo de uma lista: gravar pelo `shoppingId` anexaria a conversa a
+     * uma sessão antiga da mesma lista.
+     */
+    private fun resolveConversationKey(): String {
+        _uiState.value.sessionId?.let { return it }
+        val sessionId = UUID.randomUUID().toString()
+        _uiState.update { it.copy(sessionId = sessionId) }
+        return sessionId
+    }
+
+    private suspend fun collectResponse(text: String, sentAt: TimeMark) {
+        // Tracks whether the trial credit should be spent: never before a response actually
+        // comes back, so a network failure no longer burns the user's one free message
+        // (sdd-017, B-05).
+        var receivedAny = false
+        try {
+            assistantUseCase(text, _uiState.value)
+                // Guarantees isLoading always returns to false, even if the assistant Flow
+                // completes without emitting anything (sdd-017, C-02).
+                .onCompletion { _uiState.update { it.copy(isLoading = false) } }
+                .collect { response ->
+                    if (!receivedAny) telemetry.responseReceived(sentAt, response.length, aiSession)
+                    receivedAny = true
+                    assistantResponses++
+                    val assistantMessage = ChatMessage(text = response, sender = ChatMessage.Sender.ASSISTANT)
+                    val turn = AiTurnInfo(aiSession.providerUsed ?: PROVIDER_NONE, aiSession.toolCallsThisTurn)
+                    val feedbackEnabled = feedbackPromptRequester.isFeedbackEnabled()
+                    _uiState.update {
+                        it.copy(
+                            messages = it.messages + assistantMessage,
+                            isLoading = false,
+                            turns = it.turns + (assistantMessage.id to turn),
+                            feedbackEnabled = feedbackEnabled,
+                        )
+                    }
+                    persistHistory()
+                }
+            if (receivedAny) {
+                aiTrialRepository.markFreeMessageUsed()
+                telemetry.trialMessageUsed()
             }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            telemetry.responseFailed(e)
+            val errorText = if (e is IOException) {
+                context.getString(R.string.ai_chat_error_network)
+            } else {
+                context.getString(R.string.ai_chat_error_generic)
+            }
+            val errorMessage = ChatMessage(text = errorText, sender = ChatMessage.Sender.ASSISTANT)
+            _uiState.update {
+                it.copy(messages = it.messages + errorMessage, isLoading = false)
+            }
+            persistHistory()
+        }
+    }
+
+    /** Falha de gravação não pode derrubar o turno: a resposta continua na tela. */
+    private suspend fun persistHistory() {
+        val state = _uiState.value
+        val sessionId = state.sessionId ?: return
+        try {
+            chatHistoryRepository.saveSession(
+                sessionId = sessionId,
+                messages = state.messages,
+                shoppingId = state.shoppingId,
+            )
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Timber.e(e, "Failed to persist chat history")
         }
     }
 }
