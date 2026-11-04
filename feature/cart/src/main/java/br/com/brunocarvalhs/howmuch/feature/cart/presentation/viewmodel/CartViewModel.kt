@@ -9,8 +9,10 @@ import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
+import br.com.brunocarvalhs.howmuch.core.domain.budget.MonthlySpendingCalculator
 import br.com.brunocarvalhs.howmuch.core.domain.extensions.orEmpty
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.core.domain.repository.MonthlyGoalRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
@@ -19,12 +21,17 @@ import br.com.brunocarvalhs.howmuch.core.domain.usecase.ShoppingClearPurchasedUs
 import br.com.brunocarvalhs.howmuch.core.domain.usecase.SortProductsUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.ConfirmItemRoute
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.EditItemRoute
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.FinishPurchaseRoute
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.ProductHistoryRoute
 import br.com.brunocarvalhs.howmuch.feature.cart.navigation.ShareOptionsRoute
+import br.com.brunocarvalhs.howmuch.feature.cart.presentation.helper.BudgetAlertTracker
+import br.com.brunocarvalhs.howmuch.feature.cart.presentation.helper.BudgetInputs
+import br.com.brunocarvalhs.howmuch.feature.cart.presentation.helper.computeCartBudget
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.intent.CartIntent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.CartUiState
 import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute
@@ -32,9 +39,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -49,7 +59,10 @@ internal class CartViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val sortProductsUseCase: SortProductsUseCase,
     private val userRepository: UserRepository,
-    private val analyticsTracker: AnalyticsTracker
+    private val analyticsTracker: AnalyticsTracker,
+    private val monthlyGoalRepository: MonthlyGoalRepository,
+    private val monthlySpendingCalculator: MonthlySpendingCalculator,
+    private val featureFlags: FeatureFlagService
 ) : ViewModel() {
 
     private val shopping = savedStateHandle.toRoute<CartFlow>(CartFlow.typeMap).shopping
@@ -66,6 +79,15 @@ internal class CartViewModel @Inject constructor(
     // of `shopping`/`products` (e.g. a price edit) never re-resolves a member already cached in
     // CartUiState.memberProfiles (Tech Lead performance requirement, design.md).
     private val resolvedMemberIds = mutableSetOf<String>()
+
+    /** Decide quando avisar o gasto; vive com esta abertura da lista, então reabrir recomeça a contagem. */
+    private val budgetAlertTracker = BudgetAlertTracker()
+
+    // Só avisa depois de produtos, outras listas e meta terem chegado: antes disso os totais estão
+    // incompletos e o aviso seria falso. Setados antes da atualização do estado que reavalia.
+    private var productsLoaded = false
+    private var shoppingsLoaded = false
+    private var goalLoaded = false
 
     val intent = CartIntent(
         onRefresh = { /* Handled by observe */ },
@@ -94,6 +116,18 @@ internal class CartViewModel @Inject constructor(
             _navigator?.navigate(FinishPurchaseRoute)
         },
         onClearPurchased = { clearPurchased() },
+        onBudgetAlertShown = {
+            _uiState.value.budgetAlert?.let { alert ->
+                analyticsTracker.trackEvent(
+                    AnalyticsEvents.BUDGET_ALERT_SHOWN,
+                    mapOf(
+                        AnalyticsParams.SCOPE to alert.scope.name.lowercase(),
+                        AnalyticsParams.LEVEL to alert.level.name.lowercase()
+                    )
+                )
+            }
+            _uiState.update { it.copy(budgetAlert = null) }
+        },
         onShowShareOptions = {
             analyticsTracker.trackEvent(AnalyticsEvents.CART_SHARE_OPTIONS_OPENED, shoppingParams())
             _navigator?.navigate(ShareOptionsRoute)
@@ -107,6 +141,7 @@ internal class CartViewModel @Inject constructor(
 
     init {
         observeData()
+        observeBudget()
     }
 
     fun setNavigator(navigator: Navigator) {
@@ -126,6 +161,7 @@ internal class CartViewModel @Inject constructor(
                 }
                 .collect { (sortingMode, products) ->
                     val sortedProducts = sortProductsUseCase(products, sortingMode)
+                    productsLoaded = true
                     _uiState.update { it.copy(products = StableList(sortedProducts)) }
                     resolveMemberProfiles()
                 }
@@ -140,8 +176,38 @@ internal class CartViewModel @Inject constructor(
         }
         viewModelScope.launch {
             repository.observeAll().collect { lists ->
+                shoppingsLoaded = true
                 _uiState.update { it.copy(allShoppings = StableList(lists.filter { it.id != shopping.id })) }
             }
+        }
+    }
+
+    /**
+     * Total da lista contra o orçamento dela e, com meta, a projeção do mês. Reaproveita o
+     * `observeAll` que o ViewModel já mantém aberto (`allShoppings`): nenhuma leitura nova.
+     */
+    private fun observeBudget() {
+        if (!featureFlags.isEnabled(FeatureFlagKeys.BUDGET_ALERTS_ENABLED, true)) return
+        viewModelScope.launch {
+            combine(
+                _uiState.map { BudgetInputs(it.shopping, it.products, it.allShoppings) }.distinctUntilChanged(),
+                monthlyGoalRepository.observeGoal().onEach { goalLoaded = true }
+            ) { inputs, goal -> computeCartBudget(inputs, goal, monthlySpendingCalculator) }
+                .distinctUntilChanged()
+                .collect { snapshot ->
+                    val alert = budgetAlertTracker.onUpdate(
+                        ready = productsLoaded && shoppingsLoaded && goalLoaded,
+                        list = snapshot.list,
+                        month = snapshot.month
+                    )
+                    _uiState.update {
+                        it.copy(
+                            listBudgetProgress = snapshot.list,
+                            monthProgress = snapshot.month,
+                            budgetAlert = alert ?: it.budgetAlert
+                        )
+                    }
+                }
         }
     }
 

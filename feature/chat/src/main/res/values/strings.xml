@@ -31,4 +31,17 @@
     <string name="ai_chat_activity_checking_lists">Checking your lists…</string>
     <string name="ai_chat_activity_updating_list">Updating the list…</string>
     <string name="ai_chat_activity_removing">Removing items…</string>
+    <string name="ai_approval_title_delete_list">The AI wants to delete a list</string>
+    <string name="ai_approval_title_clear_purchased">The AI wants to remove the purchased items</string>
+    <string name="ai_approval_title_generic">The AI wants to make a change that cannot be undone</string>
+    <string name="ai_approval_irreversible">This cannot be undone.</string>
+    <string name="ai_approval_reject">Decline</string>
+    <string name="ai_approval_approve">Approve</string>
+    <string name="ai_notification_channel_results">AI results</string>
+    <string name="ai_notification_channel_running">AI working</string>
+    <string name="ai_notification_running_title">The AI is working on your request</string>
+    <string name="ai_notification_result_title">Cestou</string>
+    <string name="ai_notification_result_public">The AI finished your request</string>
+    <string name="ai_notification_approval_title">The AI needs your approval</string>
+    <string name="ai_notification_approval_text">Tap to review and decide</string>
 </resources>

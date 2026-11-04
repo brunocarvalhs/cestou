@@ -19,9 +19,15 @@ interface AgentAction<R> {
 
     /**
      * Ação irreversível (apagar listas ou itens). O dispatch chokepoint só a executa depois de o
-     * usuário aprovar numa mensagem própria; a IA sozinha não consegue se autorizar.
+     * usuário aprovar no card; a IA sozinha não consegue se autorizar.
      */
     val requiresConfirmation: Boolean get() = false
+
+    /**
+     * Resumo do que a ação vai afetar, mostrado no card de aprovação (ex. o título da lista);
+     * `null` usa só o título genérico da ação. Nunca deve conter ids.
+     */
+    suspend fun confirmationSummary(arguments: Map<String, Any?>): String? = null
 
     suspend fun execute(
         arguments: Map<String, Any?>,

@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -86,6 +87,7 @@ internal fun ProfileScreen(
 
                 ProfileFlatRow(
                     title = stringResource(R.string.profile_link_wear_device),
+                    testTag = "profile_link_wear",
                     icon = Icons.Default.Watch,
                     onClick = {
                         if (subscriptionStatus == SubscriptionStatus.PRO) {
@@ -105,6 +107,7 @@ internal fun ProfileScreen(
 
                 ProfileFlatRow(
                     title = stringResource(R.string.profile_menu_sign_out),
+                    testTag = "profile_sign_out",
                     icon = Icons.AutoMirrored.Filled.ExitToApp,
                     onClick = { intent.onSignOut() },
                     contentColor = MaterialTheme.colorScheme.error
@@ -159,12 +162,13 @@ private const val AVATAR_SIZE_DP = 64
 @Composable
 private fun ProfileFlatRow(
     title: String,
+    testTag: String,
     icon: ImageVector,
     onClick: () -> Unit,
     contentColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = Modifier.testTag(testTag).clickable(onClick = onClick),
         leadingContent = {
             Icon(imageVector = icon, contentDescription = null, tint = contentColor)
         },
@@ -191,6 +195,7 @@ private fun SubscriptionStatusCard(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .testTag("profile_subscription_card")
             .clickable(onClick = onManageSubscription),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.primaryContainer,

@@ -42,6 +42,14 @@ class AnalyticsCatalogTest {
     }
 
     @Test
+    fun `goal buckets cover every range without exposing the value`() {
+        assertEquals("<500", AnalyticsBuckets.goal(499.99))
+        assertEquals("500-1500", AnalyticsBuckets.goal(500.0))
+        assertEquals("1500-3000", AnalyticsBuckets.goal(1500.0))
+        assertEquals("3000+", AnalyticsBuckets.goal(3000.0))
+    }
+
+    @Test
     fun `nps classes follow the 0-6, 7-8 and 9-10 ranges`() {
         assertEquals("detractor", AnalyticsUserProperties.npsClass(0))
         assertEquals("detractor", AnalyticsUserProperties.npsClass(6))

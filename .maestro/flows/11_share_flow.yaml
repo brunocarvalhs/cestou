@@ -1,0 +1,86 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Share - options sheet, invite QR code and token
+tags:
+  - sharing
+---
+- runFlow: ../subflows/ensure_logged_in.yaml
+- runFlow: ../subflows/answer_feedback_survey.yaml
+- runFlow: ../subflows/cleanup_lists.yaml
+- evalScript: ${output.listName = 'maestro-' + Date.now()}
+- runFlow:
+    file: ../subflows/create_list.yaml
+    env:
+      LIST_NAME: ${output.listName}
+
+# Compartilhar pelo detalhe da lista
+- tapOn:
+    id: cart_share_button
+- extendedWaitUntil:
+    visible:
+      id: share_options_invite
+    timeout: 8000
+- assertVisible:
+    id: share_options_text
+- tapOn:
+    id: share_options_invite
+- waitForAnimationToEnd:
+    timeout: 5000
+- runFlow:
+    when:
+      visible:
+        id: qr_share_invite
+    commands:
+      - assertVisible:
+          id: qr_copy_code
+      - tapOn:
+          id: qr_close
+# Se algum sheet de compartilhar ainda estiver aberto, fecha (sem sair do detalhe da lista)
+- repeat:
+    times: 2
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: share_options_invite
+          commands:
+            - back
+- tapOn:
+    id: cart_back_button
+
+# Token de convite pela edição da lista
+- longPressOn: ${output.listName}
+- tapOn:
+    id: home_menu_edit
+- assertVisible:
+    id: edit_list_generate_token
+- tapOn:
+    id: edit_list_generate_token
+- waitForAnimationToEnd:
+    timeout: 4000
+# Gerar o token abre o sheet do QR por cima da edição: fecha o QR e depois a edição
+- runFlow:
+    when:
+      visible:
+        id: qr_close
+    commands:
+      - tapOn:
+          id: qr_close
+# Com o token gerado o conteúdo cresce e Cancelar sai da tela: fecha com o botão voltar.
+# O primeiro voltar pode fechar só o teclado, então repete até o sheet sumir.
+- repeat:
+    times: 3
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: edit_list_save
+          commands:
+            - back
+- assertVisible:
+    id: home_create_fab
+
+# Limpeza
+- runFlow:
+    file: ../subflows/delete_list.yaml
+    env:
+      LIST_NAME: ${output.listName}

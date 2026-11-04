@@ -24,6 +24,7 @@ rules_version = '2';
 //   /shopping/{id}/products/{id}                (feature/products ProductRepositoryImpl)
 //   /users/{uid}                                (core/data UserRepositoryImpl)
 //   /users/{uid}/common-products/{id}           (feature/products CommonProductRepositoryImpl)
+//   /users/{uid}/preferences/{id}               (core/data MonthlyGoalRepositoryImpl)
 //   /shortCodes/{code}                          (feature/shopping ShoppingRepositoryImpl)
 //   /notifications/{id}                         (core/data NotificationRepositoryImpl)
 // Recipes (TheMealDB) and product search (OpenFoodFacts) are plain HTTP through
@@ -257,6 +258,20 @@ service cloud.firestore {
                       && request.resource.data.get('id', '') == itemId
                       && request.resource.data.keys().hasOnly(['id', 'name', 'category', 'unit']);
         allow update, delete: if isSignedIn() && uid() == userId;
+      }
+
+      // -------------------------------------------------------------------
+      // /users/{userId}/preferences/{docId} — per-user private preferences
+      // -------------------------------------------------------------------
+      // Holds the monthly spending goal (`budget` document, sdd-036). It is financial data, so it
+      // must never live in `/users/{userId}` itself, which any signed-in user can read.
+      // MonthlyGoalRepositoryImpl always builds the path from the caller's own id.
+      match /preferences/{docId} {
+        allow read: if isSignedIn() && uid() == userId;
+        allow create, update: if isSignedIn() && uid() == userId
+                              && request.resource.data.get('id', '') == docId
+                              && request.resource.data.keys().hasOnly(['id', 'monthlyGoal']);
+        allow delete: if isSignedIn() && uid() == userId;
       }
     }
 

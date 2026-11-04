@@ -9,6 +9,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.data.service.ChatTurnTrackerImpl
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.AiTurnBackground
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.SpeechToTextManager
 import io.mockk.coEvery
@@ -54,8 +55,10 @@ class AiChatViewModelBackgroundTurnTest {
     private val aiTrialRepository = mockk<AiTrialRepository>(relaxed = true)
     private val aiSession = mockk<AiSession>(relaxed = true) {
         every { activeAction } returns MutableStateFlow(null)
+        every { pendingApproval } returns MutableStateFlow(null)
     }
     private val tracker = ChatTurnTrackerImpl()
+    private val background = mockk<AiTurnBackground>(relaxed = true)
     private val speechToTextManager = mockk<SpeechToTextManager>(relaxed = true) {
         every { isListening } returns MutableStateFlow(false)
         every { recognizedText } returns MutableStateFlow(null)
@@ -88,7 +91,8 @@ class AiChatViewModelBackgroundTurnTest {
         mockk(relaxed = true),
         context,
         CoroutineScope(SupervisorJob() + testDispatcher),
-        tracker
+        tracker,
+        background
     )
 
     private fun AiChatViewModel.send(text: String) {
@@ -252,5 +256,35 @@ class AiChatViewModelBackgroundTurnTest {
             exactly = 0
         ) { chatHistoryRepository.saveSession(any(), match { it.last().text == "answer" }, any(), any()) }
         assertNull(viewModel.uiState.value.messages.firstOrNull { it.text == "answer" })
+    }
+
+    @Test
+    fun `a turn turns the background service on and reports the final answer when it ends`() = runTest {
+        coEvery { assistantUseCase("hi", any()) } returns flowOf("final answer")
+        val viewModel = newViewModel()
+        viewModel.setShoppingContext("list1")
+
+        viewModel.send("hi")
+
+        verify(exactly = 1) { background.turnStarted() }
+        verify(exactly = 1) { background.turnFinished(any(), "final answer") }
+    }
+
+    @Test
+    fun `a cancelled turn reports no result to the background`() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        coEvery { assistantUseCase("hi", any()) } returns flow {
+            gate.await()
+            emit("answer")
+        }
+        val viewModel = newViewModel()
+        viewModel.setShoppingContext("list1")
+        viewModel.send("hi")
+
+        tracker.cancelAll()
+        gate.complete(Unit)
+
+        verify(exactly = 1) { background.turnFinished(any(), null) }
+        verify(exactly = 0) { background.turnFinished(any(), "answer") }
     }
 }

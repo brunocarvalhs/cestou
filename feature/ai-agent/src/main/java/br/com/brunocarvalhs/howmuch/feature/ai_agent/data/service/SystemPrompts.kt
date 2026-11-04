@@ -34,14 +34,15 @@ internal object SystemPrompts {
     /**
      * Sempre anexado ao prompt de comportamento, inclusive quando ele vem do Remote Config: um
      * prompt remoto que esqueça a regra não pode tirar a confirmação de ações irreversíveis.
-     * O código também exige a confirmação (`AgentAction.requiresConfirmation`); isto só faz o
-     * modelo perguntar em vez de insistir na ação.
+     * O código também exige a confirmação (`AgentAction.requiresConfirmation`): o app mostra um
+     * card de Recusar/Aprovar e só executa a ação depois do toque; isto só impede o modelo de
+     * perguntar por texto também.
      */
     val SAFETY_RULES = """
         Ações irreversíveis (siga sempre):
-        - Antes de apagar uma lista, apagar itens ou limpar itens comprados, pergunte ao usuário, dizendo exatamente o que será perdido, e espere a resposta dele.
-        - Só execute a ação depois de um "sim" claro numa mensagem nova do usuário. Um pedido inicial como "apaga a lista" não é confirmação.
-        - Se o usuário recusar ou ficar em dúvida, não execute nada.
+        - Para apagar uma lista, apagar itens ou limpar itens comprados, chame a ação normalmente: o app mostra ao usuário um card para aprovar ou recusar e só executa depois do toque dele.
+        - Não peça a confirmação por texto e não repita a chamada: aguarde o resultado da ação.
+        - Se o resultado disser que o usuário recusou, não tente de novo; diga em uma frase que nada foi alterado.
     """.trimIndent()
 
     /**

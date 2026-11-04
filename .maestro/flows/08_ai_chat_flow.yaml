@@ -1,0 +1,84 @@
+appId: br.com.brunocarvalhs.howmuch
+name: AI chat - open, send, history, settings and close
+tags:
+  - chat
+---
+# Só confere a UI e o envio; a resposta da IA depende de rede e provedor e não é afirmada.
+- runFlow: ../subflows/ensure_logged_in.yaml
+
+- tapOn:
+    id: home_ai_button
+- extendedWaitUntil:
+    visible:
+      id: ai_chat_input
+    timeout: 15000
+- assertVisible:
+    id: ai_chat_history_button
+- assertVisible:
+    id: ai_chat_settings_button
+- assertVisible:
+    id: ai_chat_close_button
+
+# Envio da mensagem (o texto do usuário não depende de idioma)
+- tapOn:
+    id: ai_chat_input
+- inputText: Oi
+- tapOn:
+    id: ai_chat_send_button
+- waitForAnimationToEnd:
+    timeout: 4000
+- assertVisible: Oi
+
+# Histórico de conversas (é uma tela própria: voltar leva à Home, não ao chat)
+- tapOn:
+    id: ai_chat_history_button
+- extendedWaitUntil:
+    visible:
+      id: ai_history_new_chat
+    timeout: 8000
+- tapOn:
+    id: ai_history_back
+- extendedWaitUntil:
+    visible:
+      id: home_create_fab
+    timeout: 8000
+
+# Configurações de IA (também tela própria)
+- tapOn:
+    id: home_ai_button
+- extendedWaitUntil:
+    visible:
+      id: ai_chat_settings_button
+    timeout: 15000
+- tapOn:
+    id: ai_chat_settings_button
+- extendedWaitUntil:
+    visible:
+      id: ai_settings_tier_default
+    timeout: 8000
+- back
+- extendedWaitUntil:
+    visible:
+      id: home_create_fab
+    timeout: 8000
+
+# Fechar pelo botão e pelo botão voltar do sistema
+- tapOn:
+    id: home_ai_button
+- extendedWaitUntil:
+    visible:
+      id: ai_chat_close_button
+    timeout: 15000
+- tapOn:
+    id: ai_chat_close_button
+- assertVisible:
+    id: home_create_fab
+- tapOn:
+    id: home_ai_button
+- extendedWaitUntil:
+    visible:
+      id: ai_chat_input
+    timeout: 15000
+- back
+- assertVisible:
+    id: home_create_fab
