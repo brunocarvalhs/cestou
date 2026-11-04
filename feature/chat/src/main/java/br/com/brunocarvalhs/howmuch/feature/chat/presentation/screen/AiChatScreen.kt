@@ -5,7 +5,6 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.speech.RecognizerIntent
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
@@ -40,7 +39,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -69,12 +67,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.AiChatUpgradeBanner
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.AnimatedColorText
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.ChatBubble
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.MessageFeedbackBar
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.TypingBubble
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.activityLabelFor
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.isSheetValueAllowed
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatIntent
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiChatUiState
 import timber.log.Timber
@@ -88,6 +89,7 @@ private const val LEADING_AND_TRAILING_SPACERS = 2
 fun AiChatScreen(
     state: AiChatUiState,
     intent: AiChatIntent,
+    modifier: Modifier = Modifier,
     isSendEnabled: Boolean = true,
     onUpgradeClick: () -> Unit = {},
 ) {
@@ -144,9 +146,7 @@ fun AiChatScreen(
 
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = false,
-        confirmValueChange = { newState ->
-            !(isChatActive && (newState != SheetValue.Expanded))
-        },
+        confirmValueChange = { newState -> isSheetValueAllowed(isChatActive, newState) },
     )
 
     LaunchedEffect(isChatActive) {
@@ -155,12 +155,9 @@ fun AiChatScreen(
         }
     }
 
-    BackHandler(enabled = isChatActive) {
-        intent.onBack()
-    }
-
-    ModalBottomSheet(
+    CestouModalBottomSheet(
         onDismissRequest = intent.onBack,
+        modifier = modifier,
         sheetState = sheetState,
         sheetGesturesEnabled = !isChatActive,
         dragHandle = {
@@ -181,7 +178,6 @@ fun AiChatScreen(
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = Color.Transparent,
                         ),
-                        title = { Text(text = stringResource(R.string.ai_chat_title)) },
                         navigationIcon = {
                             IconButton(onClick = intent.onToggleHistory) {
                                 Icon(
@@ -367,7 +363,7 @@ fun AiChatScreen(
                         }
 
                         if (state.isLoading) {
-                            item { TypingBubble() }
+                            item { TypingBubble(activityLabelFor(state.activeAction)) }
                         }
 
                         item { Spacer(modifier = Modifier.height(4.dp)) }

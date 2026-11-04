@@ -22,6 +22,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -48,7 +49,8 @@ internal class MainViewModel @Inject constructor(
     private val aiSession: AiSession,
     private val userPropertiesSync: UserPropertiesSync,
     private val appUsageTracker: AppUsageTracker,
-    private val feedbackPromptRequester: FeedbackPromptRequester
+    private val feedbackPromptRequester: FeedbackPromptRequester,
+    private val chatTurnTracker: ChatTurnTracker
 ) : ViewModel() {
 
     init {
@@ -62,6 +64,8 @@ internal class MainViewModel @Inject constructor(
      * The watch has its own Firebase session (AD-009); drop it whenever the phone signs out.
      * Also clears [AiSession.history]: it's `@Singleton`, so without this the next account
      * signed in on this device would inherit the previous user's AI chat context (sdd-006, B-11).
+     * Pending AI turns are cancelled too: they outlive the chat screen, and a late answer must not
+     * land in the next account's history.
      */
     private fun signOutWatchOnSignOut() {
         viewModelScope.launch {
@@ -72,6 +76,7 @@ internal class MainViewModel @Inject constructor(
                 .filter { signedIn -> !signedIn }
                 .collect {
                     wearableSyncService.notifySignOut()
+                    chatTurnTracker.cancelAll()
                     aiSession.clearHistory()
                 }
         }

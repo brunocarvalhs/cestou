@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -36,6 +35,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.EditShoppingContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.JoinListContent
@@ -123,7 +123,7 @@ private fun NavGraphBuilder.shoppingEditDialog(navigator: Navigator) {
             }
         }
 
-        ModalBottomSheet(
+        CestouModalBottomSheet(
             onDismissRequest = { navigator.goBack() },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {
@@ -183,7 +183,7 @@ private fun NavGraphBuilder.shoppingOtherDialogs(navigator: Navigator) {
     dialog<Scanner> {
         val viewModel: ScannerViewModel = hiltViewModel()
         viewModel.setNavigator(navigator)
-        ModalBottomSheet(
+        CestouModalBottomSheet(
             onDismissRequest = { viewModel.intent.onDismiss() },
             containerColor = Color.Black,
             dragHandle = { BottomSheetDefaults.DragHandle(color = Color.White) }
@@ -201,7 +201,7 @@ private fun NavGraphBuilder.shoppingOtherDialogs(navigator: Navigator) {
         viewModel.setNavigator(navigator)
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-        ModalBottomSheet(
+        CestouModalBottomSheet(
             onDismissRequest = { viewModel.intent.onDismiss() },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {

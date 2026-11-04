@@ -20,7 +20,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -50,6 +49,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
@@ -178,11 +178,10 @@ internal fun ShoppingScreen(
         }
 
         if (uiState.isCreateSheetVisible) {
-            ModalBottomSheet(
+            CestouModalBottomSheet(
                 onDismissRequest = { intent.onShowCreateSheet(false) },
                 sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                containerColor = MaterialTheme.colorScheme.surface
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
             ) {
                 CreateShoppingContent(
                     onConfirm = { title, description, emoji ->

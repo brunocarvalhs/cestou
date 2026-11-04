@@ -322,7 +322,7 @@ class AgentFactoryImplTest {
         val agent = (factory.create(AppSettings(aiProvider = AiProvider.OPENROUTER)) as FallbackAgent)
             .primaryAgent() as OpenRouterAgent
 
-        assertEquals(SystemPrompts.CESTOU_ASSISTANT, agent.actualSystemPrompt())
+        assertEquals(SystemPrompts.CESTOU_ASSISTANT + "\n\n" + SystemPrompts.SAFETY_RULES, agent.actualSystemPrompt())
     }
 
     @Test
@@ -335,6 +335,9 @@ class AgentFactoryImplTest {
         val agent = (factory.create(AppSettings(aiProvider = AiProvider.OPENROUTER)) as FallbackAgent)
             .primaryAgent() as OpenRouterAgent
 
-        assertEquals("prompt atualizado remotamente", agent.actualSystemPrompt())
+        assertEquals(
+            "prompt atualizado remotamente\n\n" + SystemPrompts.SAFETY_RULES,
+            agent.actualSystemPrompt()
+        )
     }
 }

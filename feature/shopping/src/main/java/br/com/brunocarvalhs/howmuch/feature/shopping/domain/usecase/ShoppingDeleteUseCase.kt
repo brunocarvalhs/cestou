@@ -23,6 +23,8 @@ class ShoppingDeleteUseCase @Inject constructor(
     private val repository: ShoppingRepository
 ) : AgentActionUseCase<Unit>() {
 
+    override val requiresConfirmation: Boolean = true
+
     suspend operator fun invoke(id: String): Result<Unit> = runCatching {
         val shopping = repository.getById(id) ?: throw Exception("Shopping not found")
         repository.delete(shopping)
