@@ -9,8 +9,11 @@ import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.analytics.service.FirstTimeEventTracker
 import br.com.brunocarvalhs.howmuch.core.common.extensions.toMonthYearString
+import br.com.brunocarvalhs.howmuch.core.domain.budget.BudgetProgress
+import br.com.brunocarvalhs.howmuch.core.domain.budget.MonthlySpendingCalculator
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.User
+import br.com.brunocarvalhs.howmuch.core.domain.repository.MonthlyGoalRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
@@ -20,6 +23,8 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
@@ -40,6 +45,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -59,13 +66,19 @@ internal class ShoppingListViewModel @Inject constructor(
     private val observeUnreadNotificationsCount: ObserveUnreadNotificationsCountUseCase,
     private val authService: AuthService,
     private val analyticsTracker: AnalyticsTracker,
-    private val firstTimeEventTracker: FirstTimeEventTracker
+    private val firstTimeEventTracker: FirstTimeEventTracker,
+    private val monthlyGoalRepository: MonthlyGoalRepository,
+    private val monthlySpendingCalculator: MonthlySpendingCalculator,
+    private val featureFlags: FeatureFlagService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ShoppingListUiState())
     val uiState: StateFlow<ShoppingListUiState> = _uiState.asStateFlow()
 
     private var closeConfirmation = false
+
+    /** Muda a cada volta à Home para o gasto do mês ser recalculado se o mês virou com o app aberto. */
+    private val monthTick = MutableStateFlow(0)
     private var _navigator: Navigator? = null
 
     val intent = ShoppingListIntent(
@@ -196,6 +209,7 @@ internal class ShoppingListViewModel @Inject constructor(
                 applyFilters()
             }
         }
+        viewModelScope.launch { observeMonthlyGoalProgress() }
         viewModelScope.launch {
             observeUnreadNotificationsCount().collect { count ->
                 _uiState.update { it.copy(unreadNotifications = count) }
@@ -291,7 +305,21 @@ internal class ShoppingListViewModel @Inject constructor(
         _uiState.update { it.copy(filteredList = StableList(filtered), groupedList = grouped) }
     }
 
+    /**
+     * Meta mensal contra as compras finalizadas do mês, pelo mesmo `observeAll` da Home, sem novo
+     * listener. Com a flag desligada o estado fica sem progresso e nada aparece.
+     */
+    private suspend fun observeMonthlyGoalProgress() {
+        if (!featureFlags.isEnabled(FeatureFlagKeys.BUDGET_ALERTS_ENABLED, true)) return
+        combine(repository.observeAll(), monthlyGoalRepository.observeGoal(), monthTick) { lists, goal, _ ->
+            goal?.let { BudgetProgress(limit = it, spent = monthlySpendingCalculator.finishedSpent(lists)) }
+        }
+            .distinctUntilChanged()
+            .collect { progress -> _uiState.update { it.copy(monthlyGoalProgress = progress) } }
+    }
+
     private fun fetchAll() {
+        monthTick.update { it + 1 }
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             shoppingGetAllUseCase.invoke()

@@ -133,4 +133,6 @@
     <string name="action_select_time">Selecionar Horário</string>
     <string name="settings_release_notes_title">Novidades</string>
     <string name="settings_open_source_licenses_title">Licenças</string>
+    <string name="settings_shopping_monthly_goal">Meta de gasto mensal</string>
+    <string name="settings_shopping_monthly_goal_hint">Opcional. Mostra quanto do mês você já gastou.</string>
 </resources>

@@ -22,6 +22,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
+import br.com.brunocarvalhs.howmuch.core.navigation.AiChatLaunch
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,6 +38,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 private const val KEY_PENDING_JOIN_TOKEN = "pending_join_token"
+private const val KEY_PENDING_AI_CHAT = "pending_ai_chat_session"
 
 @HiltViewModel
 internal class MainViewModel @Inject constructor(
@@ -161,6 +163,9 @@ internal class MainViewModel @Inject constructor(
      */
     val pendingJoinToken: StateFlow<String?> = savedStateHandle.getStateFlow(KEY_PENDING_JOIN_TOKEN, null)
 
+    /** Conversa da IA a abrir, vinda do toque numa notificação; consumida uma única vez. */
+    val pendingAiChatSession: StateFlow<String?> = savedStateHandle.getStateFlow(KEY_PENDING_AI_CHAT, null)
+
     /** A Activity reporta ida e volta do app; a ViewModel decide o que é sessão. */
     fun onForeground() {
         appUsageTracker.onForeground()
@@ -181,6 +186,11 @@ internal class MainViewModel @Inject constructor(
     fun onDeepLink(intent: Intent) {
         if (intent.action != Intent.ACTION_VIEW) return
         val data = intent.data ?: return
+        AiChatLaunch.sessionIdFrom(data)?.let {
+            analyticsTracker.trackEvent(AnalyticsEvents.DEEP_LINK_OPENED, mapOf(AnalyticsParams.SOURCE to "ai_chat"))
+            savedStateHandle[KEY_PENDING_AI_CHAT] = it
+            return
+        }
         if (!InviteLink.matches(data)) return
         val token = InviteLink.tokenFrom(data) ?: return
         analyticsTracker.trackEvent(AnalyticsEvents.DEEP_LINK_OPENED, mapOf(AnalyticsParams.SOURCE to "invite"))
@@ -193,6 +203,12 @@ internal class MainViewModel @Inject constructor(
      * obtained once from [SavedStateHandle.getStateFlow] - `set` updates that same flow's value,
      * while `remove` was verified (by this change's own tests) to leave it stale.
      */
+    fun consumePendingAiChatSession(): String? {
+        val sessionId = savedStateHandle.get<String>(KEY_PENDING_AI_CHAT)
+        savedStateHandle[KEY_PENDING_AI_CHAT] = null
+        return sessionId
+    }
+
     fun consumePendingJoinToken(): String? {
         val token = savedStateHandle.get<String>(KEY_PENDING_JOIN_TOKEN)
         savedStateHandle[KEY_PENDING_JOIN_TOKEN] = null

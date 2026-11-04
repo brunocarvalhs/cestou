@@ -76,6 +76,7 @@ async function seed() {
     });
     await setDoc(doc(db, 'users', OWNER), { id: OWNER, name: 'Bruno', email: 'b@x.com', photoUrl: null });
     await setDoc(doc(db, 'users', OWNER, 'common-products', 'c1'), { id: 'c1', name: 'Arroz', category: 'Mercearia', unit: 'kg' });
+    await setDoc(doc(db, 'users', OWNER, 'preferences', 'budget'), { id: 'budget', monthlyGoal: 1200 });
     await setDoc(doc(db, 'notifications', 'n1'), {
       id: 'n1', userId: OWNER, title: 'Oi', message: 'Msg', type: 'list_joined',
       isRead: false, timestamp: 123,
@@ -178,8 +179,9 @@ await t('sole non-owner member deletes the list', () =>
 await seed();
 await t('non-sole non-owner member still cannot delete', () =>
   assertFails(deleteDoc(listRef(editor()))));
-await t('account deletion: common-products then profile', async () => {
+await t('account deletion: common-products, preferences, then profile', async () => {
   await assertSucceeds(deleteDoc(doc(owner(), 'users', OWNER, 'common-products', 'c1')));
+  await assertSucceeds(deleteDoc(doc(owner(), 'users', OWNER, 'preferences', 'budget')));
   await assertSucceeds(deleteDoc(doc(owner(), 'users', OWNER)));
 });
 
@@ -272,6 +274,25 @@ await t('other user cannot write them', () =>
     { id: 'c3', name: 'Café', category: 'Mercearia', unit: 'un' })));
 await t('owner removes a common product', () =>
   assertSucceeds(deleteDoc(doc(owner(), 'users', OWNER, 'common-products', 'c1'))));
+
+console.log('\n== users/{uid}/preferences (monthly goal) ==');
+await seed();
+const goalRef = (db) => doc(db, 'users', OWNER, 'preferences', 'budget');
+await t('owner reads own monthly goal', () => assertSucceeds(getDoc(goalRef(owner()))));
+await t('other user cannot read the monthly goal', () => assertFails(getDoc(goalRef(editor()))));
+await t('owner saves the monthly goal', () =>
+  assertSucceeds(setDoc(goalRef(owner()), { id: 'budget', monthlyGoal: 1500 })));
+await t('owner clears the goal with null', () =>
+  assertSucceeds(setDoc(goalRef(owner()), { id: 'budget', monthlyGoal: null })));
+await t('other user cannot write the monthly goal', () =>
+  assertFails(setDoc(goalRef(editor()), { id: 'budget', monthlyGoal: 1 })));
+await t('the document id must match the id field', () =>
+  assertFails(setDoc(goalRef(owner()), { id: 'other', monthlyGoal: 1500 })));
+await t('extra fields are rejected', () =>
+  assertFails(setDoc(goalRef(owner()), { id: 'budget', monthlyGoal: 1500, email: 'b@x.com' })));
+await t('the goal cannot be stored in the public user document', () =>
+  assertFails(setDoc(doc(owner(), 'users', OWNER),
+    { id: OWNER, name: 'Bruno', photoUrl: null, monthlyGoal: 1500 })));
 
 console.log('\n== notifications ==');
 await seed();

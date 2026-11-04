@@ -133,4 +133,6 @@
     <string name="action_select_time">Select Time</string>
     <string name="settings_release_notes_title">Release notes</string>
     <string name="settings_open_source_licenses_title">Licenses</string>
+    <string name="settings_shopping_monthly_goal">Monthly spending goal</string>
+    <string name="settings_shopping_monthly_goal_hint">Optional. Shows how much of the month you have already spent.</string>
 </resources>

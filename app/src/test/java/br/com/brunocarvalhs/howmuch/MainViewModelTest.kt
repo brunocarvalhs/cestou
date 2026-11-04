@@ -270,6 +270,46 @@ class MainViewModelTest {
         }
     }
 
+    private fun chatIntent(sessionId: String?): Intent {
+        val uri = mockk<Uri> {
+            every { scheme } returns "cestou"
+            every { host } returns "chat"
+            every { pathSegments } returns listOfNotNull(sessionId)
+        }
+        return mockk {
+            every { action } returns Intent.ACTION_VIEW
+            every { data } returns uri
+        }
+    }
+
+    @Test
+    fun `onDeepLink keeps the AI chat session from a notification tap`() {
+        val vm = viewModel()
+
+        vm.onDeepLink(chatIntent("session-1"))
+
+        assertEquals("session-1", vm.pendingAiChatSession.value)
+    }
+
+    @Test
+    fun `the AI chat session is consumed only once`() {
+        val vm = viewModel()
+        vm.onDeepLink(chatIntent("session-1"))
+
+        assertEquals("session-1", vm.consumePendingAiChatSession())
+        assertNull(vm.consumePendingAiChatSession())
+        assertNull(vm.pendingAiChatSession.value)
+    }
+
+    @Test
+    fun `a chat link without an id leaves no pending AI chat`() {
+        val vm = viewModel()
+
+        vm.onDeepLink(chatIntent(null))
+
+        assertNull(vm.pendingAiChatSession.value)
+    }
+
     @Test
     fun `onDeepLink stores the token from a matching invite link`() {
         val vm = viewModel()

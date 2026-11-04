@@ -90,4 +90,8 @@
     <string name="shopping_list_share_invite_member_desc">Outro usuário poderá editar a lista em tempo real</string>
     <string name="shopping_list_share_text">Enviar como Texto</string>
     <string name="shopping_list_share_text_desc">Envie a lista de itens via WhatsApp, e-mail, etc.</string>
+    <string name="budget_caption_list_left">%1$d%% do orçamento · restam %2$s</string>
+    <string name="budget_caption_list_exceeded">Orçamento estourado em %1$s</string>
+    <string name="budget_caption_month">Meta do mês: %1$d%% · %2$s de %3$s</string>
+    <string name="budget_caption_month_exceeded">Meta do mês estourada em %1$s</string>
 </resources>

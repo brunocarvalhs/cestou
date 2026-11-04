@@ -1,0 +1,238 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Settings - theme, AI, shopping, notifications, data and about
+tags:
+  - settings
+---
+# Nunca confirma "apagar tudo" nem "apagar conta": só abre e cancela.
+- runFlow: ../subflows/ensure_logged_in.yaml
+- tapOn:
+    id: bottom_nav_Profile
+- assertVisible:
+    id: profile_sign_out
+
+# Geral > Tema: abre o seletor, escolhe escuro e volta para o tema do sistema
+- scrollUntilVisible:
+    element:
+      id: settings_section_header_general
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_section_header_general
+- scrollUntilVisible:
+    element:
+      id: settings_item_general_0
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_item_general_0
+- tapOn:
+    id: theme_picker_row
+- assertVisible:
+    id: theme_option_SYSTEM
+- assertVisible:
+    id: theme_option_LIGHT
+- assertVisible:
+    id: theme_option_DARK
+- tapOn:
+    id: theme_option_DARK
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    id: theme_picker_row
+- tapOn:
+    id: theme_option_SYSTEM
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    id: settings_back
+
+# Geral > Idioma e Moeda (telas provisórias)
+- scrollUntilVisible:
+    element:
+      id: settings_item_general_1
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_item_general_1
+- tapOn:
+    id: settings_back
+- scrollUntilVisible:
+    element:
+      id: settings_item_general_2
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_item_general_2
+- tapOn:
+    id: settings_back
+
+# IA
+- scrollUntilVisible:
+    element:
+      id: settings_section_header_ai
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_section_header_ai
+- scrollUntilVisible:
+    element:
+      id: settings_item_ai_0
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_item_ai_0
+- assertVisible:
+    id: ai_settings_tier_default
+- assertVisible:
+    id: ai_settings_save_button
+- back
+
+# Compras
+- scrollUntilVisible:
+    element:
+      id: settings_section_header_shopping
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_section_header_shopping
+- scrollUntilVisible:
+    element:
+      id: settings_item_shopping_0
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_item_shopping_0
+- tapOn:
+    id: shopping_settings_sort_name
+- tapOn:
+    id: shopping_settings_sort_category
+- tapOn:
+    id: shopping_settings_reminders_switch
+- tapOn:
+    id: shopping_settings_reminders_switch
+- assertVisible:
+    id: shopping_settings_save
+- tapOn:
+    id: shopping_settings_save
+- waitForAnimationToEnd:
+    timeout: 2000
+- runFlow:
+    when:
+      visible:
+        id: shopping_settings_save
+    commands:
+      - back
+
+# Dados: alterna a análise e restaura, limpa cache, abre e cancela as confirmações
+- scrollUntilVisible:
+    element:
+      id: settings_section_header_data
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_section_header_data
+- scrollUntilVisible:
+    element:
+      id: settings_item_data_0
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_item_data_0
+- assertVisible:
+    id: settings_data_analytics_toggle
+- tapOn:
+    id: settings_data_analytics_toggle
+- tapOn:
+    id: settings_data_analytics_toggle
+- tapOn:
+    id: data_clear_cache
+- tapOn:
+    id: data_delete_all
+- assertVisible:
+    id: data_delete_all_sheet_confirm
+- tapOn:
+    id: data_delete_all_sheet_cancel
+- tapOn:
+    id: data_delete_account
+- assertVisible:
+    id: data_delete_account_sheet_confirm
+- tapOn:
+    id: data_delete_account_sheet_cancel
+- back
+
+# Notificações
+- scrollUntilVisible:
+    element:
+      id: settings_section_header_notifications
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_section_header_notifications
+- scrollUntilVisible:
+    element:
+      id: settings_item_notifications_0
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_item_notifications_0
+# O horário só abre com as notificações ligadas: alterna o interruptor, abre o seletor se a
+# linha estiver habilitada, cancela, e alterna de novo para restaurar o estado original.
+- tapOn:
+    id: notifications_enable_switch
+- waitForAnimationToEnd:
+    timeout: 1500
+- runFlow:
+    when:
+      visible:
+        id: notifications_reminder_time
+        enabled: true
+    commands:
+      - tapOn:
+          id: notifications_reminder_time
+      - tapOn:
+          id: notifications_time_cancel
+- tapOn:
+    id: notifications_enable_switch
+- runFlow:
+    when:
+      visible:
+        id: notifications_reminder_time
+        enabled: true
+    commands:
+      - tapOn:
+          id: notifications_reminder_time
+      - tapOn:
+          id: notifications_time_cancel
+- back
+
+# Sobre: telas internas de licenças e novidades
+- scrollUntilVisible:
+    element:
+      id: settings_section_header_about
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_section_header_about
+- scrollUntilVisible:
+    element:
+      id: settings_item_about_2
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_item_about_2
+- tapOn:
+    id: settings_back
+- scrollUntilVisible:
+    element:
+      id: settings_item_about_3
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: settings_item_about_3
+- tapOn:
+    id: settings_back
+
+- tapOn:
+    id: bottom_nav_ShoppingList
+- assertVisible:
+    id: home_create_fab

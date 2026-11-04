@@ -18,6 +18,7 @@ Regras de acesso: `firestore.rules`. Coleções identificadas nas regras:
 | `/shopping/{shoppingId}/products/{productId}` | Produtos da lista (subcoleção) | Acesso conforme membership da lista. |
 | `/users/{userId}` | Perfil e configurações do usuário | Por `userId`. |
 | `/common-products/{itemId}` | Catálogo de produtos comuns | Ver regra no arquivo. |
+| `/users/{userId}/preferences/budget` | Meta de gasto mensal do usuário (`monthlyGoal`), em `MonthlyGoalRepositoryImpl` | Estritamente privado (só o dono lê e escreve; `create`/`update` só com `id` e `monthlyGoal`). Dado financeiro: nunca vai no `/users/{userId}`, legível por qualquer logado. A regra consta em `firestore.rules`, ainda não publicada (AD-009). |
 | `/shortCodes/{code}` | Índice de código curto para entrar em listas | Leitura para qualquer usuário autenticado (`isSignedIn`); `list` negado para impedir enumeração. |
 | `/notifications/{notificationId}` | Notificações entre membros | Leitura só do destinatário (`userId == uid`, inclusive a consulta de não lidas `isRead == false`); criação por qualquer logado com payload fixo (campos opcionais `shoppingId`/`senderId` validados); update só vira `isRead` para `true`; delete negado. Ver regra no arquivo e AD-009. |
 
@@ -27,7 +28,7 @@ Implementação da entrada por código: `feature/shopping/domain/usecase/Shoppin
 
 ## 3. Firebase Remote Config
 
-- Flags (`FeatureFlagKeys`): `ai_openrouter_enabled`, `ai_gemini_enabled`, provedores de login e `wear_login_enabled`.
+- Flags (`FeatureFlagKeys`): `ai_openrouter_enabled`, `ai_gemini_enabled`, provedores de login, `wear_login_enabled` e `feat_budget_alerts_enabled` (kill switch do cartão da meta mensal, da linha de orçamento da lista e dos avisos de gasto; default ligado).
 - Variáveis (`RemoteVariableKeys`): `open_router_model`, `gemini_agent_model`, `ai_system_prompt`, e também `open_router_api_key` e `gemini_api_key`.
 - Intervalo mínimo de busca: 3600 segundos (`RemoteConfigInitializer.kt`).
 - O system prompt tem fallback compilado em `feature/ai_agent/data/service/SystemPrompts.kt`, usado quando o Remote Config ainda não foi buscado.
@@ -57,7 +58,8 @@ Implementação da entrada por código: `feature/shopping/domain/usecase/Shoppin
 - **Histórico:** `ConversationHistory.kt`.
 - **Ferramentas:** ações de negócio expostas ao modelo por `@AiAgentAction` (`core/ai`), executadas via `AgentActionUseCase`.
 - **Gate de assinatura:** ações com `requiresPro` só rodam para usuários PRO (ver `02-regras-de-negocio.md`, seção 3).
-- **Gate de confirmação:** ações com `AgentAction.requiresConfirmation` (apagar listas, limpar comprados) não rodam na primeira chamada. `BaseAgent` registra o pedido em `AiSession.requestConfirmation` e devolve ao modelo que nada foi executado; só uma chamada igual, em turno posterior (`AiSession.beginTurn` marca cada mensagem do usuário), é executada (`consumeConfirmation`). O pedido gera `ai_tool_confirmation_requested`. Limite conhecido: a aprovação é o turno seguinte, não o texto da resposta, e depende de o modelo perguntar antes de repetir.
+- **Gate de confirmação:** ações com `AgentAction.requiresConfirmation` (apagar listas, limpar comprados) abrem um card de Recusar/Aprovar no chat. `BaseAgent` publica o pedido (`AiSession.awaitApproval`, com `ApprovalRequest` e o `confirmationSummary` da ação) e **espera** a decisão dentro do próprio dispatch: aprovada, executa pelo mesmo ponto (gate Pro, telemetria, erro); recusada, sem resposta em 2 minutos ou com o chat fechado, devolve ao modelo que nada foi feito. Eventos `ai_tool_confirmation_requested` e `ai_tool_confirmation_resolved` (só `action_id` e `decision`). Substitui o gate por texto e por turno, que dependia de o modelo repetir a chamada.
+- **Execução em segundo plano:** o turno roda no `@ChatBackgroundScope`; `AiTurnService` (serviço em primeiro plano `shortService`) mantém o processo vivo enquanto houver turno, e `AiNotifier` avisa o resultado (mensagem da IA, privada na tela bloqueada) ou a espera por aprovação quando o usuário não está olhando o chat, abrindo a conversa pelo deeplink `cestou://chat/<sessionId>` (`AiChatLaunch`, `core:navigation`; filtro no `MainActivity`, esquema próprio sem `autoVerify`). Se um chat já está aberto, o link o substitui em vez de empilhar outro. Só notifica com o interruptor do app, a permissão e o canal `ai_actions` permitidos. Melhor esforço: se o sistema matar o processo, a resposta pode se perder.
 - **Memória da conversa:** `AiSession.restoreHistory` recebe `AiHistoryTurn` (tipo de `core:ai`, sem depender do SDK do Gemini) ao reabrir uma conversa gravada; `ConversationHistory.kt` limita o que volta ao modelo.
 - **Andamento na tela:** `AiSession.activeAction` expõe a ação em execução e `feature/chat` a traduz em texto (`AiActionLabels.kt`).
 - **Turno em segundo plano:** o chat roda cada turno num scope de aplicação (`@ChatBackgroundScope`) rastreado por `ChatTurnTracker`; fechar a tela não cancela a chamada e o logout cancela os turnos pendentes.
