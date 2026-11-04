@@ -71,3 +71,6 @@
 }
 
 # Rules for core:ai moved to consumer-rules.pro
+
+# Play Core KTX references a GMS annotation that isn't on the classpath; it is compile-time only.
+-dontwarn com.google.android.gms.common.annotation.NoNullnessRewrite
