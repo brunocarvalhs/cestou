@@ -22,6 +22,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
