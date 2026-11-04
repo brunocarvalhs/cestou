@@ -3,11 +3,13 @@ package br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel
 import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackMoment
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationOrigin
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.cart.R
@@ -39,6 +41,7 @@ class FinishPurchaseViewModelTest {
     private val notificationRepository = mockk<NotificationRepository>(relaxed = true)
     private val navigator = mockk<Navigator>(relaxed = true)
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
+    private val feedbackPromptRequester = mockk<FeedbackPromptRequester>(relaxed = true)
     private val viewModel =
         FinishPurchaseViewModel(
             context,
@@ -46,7 +49,8 @@ class FinishPurchaseViewModelTest {
             authService,
             notificationRepository,
             analyticsTracker,
-            mockk(relaxed = true)
+            mockk(relaxed = true),
+            feedbackPromptRequester
         )
 
     private val shopping = Shopping(
@@ -85,6 +89,7 @@ class FinishPurchaseViewModelTest {
         assertEquals("Mercado X", fields.captured["establishment"])
         assertTrue((fields.captured["finishedAt"] as Long) >= before)
         verify { navigator.goBack() }
+        verify { feedbackPromptRequester.onMoment(FeedbackMoment.PURCHASE_FINISHED) }
         assertEquals(false, viewModel.uiState.value.isLoading)
     }
 
@@ -114,6 +119,7 @@ class FinishPurchaseViewModelTest {
         viewModel.onFinishPurchase(shopping, price = PRICE, establishment = "Mercado X")
 
         verify(exactly = 0) { navigator.goBack() }
+        verify(exactly = 0) { feedbackPromptRequester.onMoment(any()) }
         coVerify(exactly = 0) { notificationRepository.notify(any(), any(), any(), any(), any()) }
         assertEquals(false, viewModel.uiState.value.isLoading)
         val error = viewModel.uiState.value.error
