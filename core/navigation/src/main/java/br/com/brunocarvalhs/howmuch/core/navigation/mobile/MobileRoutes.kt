@@ -83,3 +83,23 @@ data class Paywall(val source: String) : NavKey, RouteProtocol {
 data object ManageSubscription : NavKey, RouteProtocol {
     override val routeType: RouteType = RouteType.PROTECTED
 }
+
+/**
+ * Abre o In-App Review da Play (sdd-034). Rota sem conteúdo visível, separada de [FeedbackSurvey]
+ * para o `screen_view` das pesquisas não contar pedidos de avaliação.
+ */
+@Serializable
+data object StoreReview : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}
+
+/**
+ * Pesquisa de satisfação (sdd-034), aberta pelo `:app` sobre um destino estável quando o
+ * `FeedbackPromptRequester` tem um pedido pendente. [kind] é o nome de `SurveyKind` e [feature] o
+ * recurso medido no CSAT; ficam como `String` para a rota continuar serializável sem depender do
+ * enum.
+ */
+@Serializable
+data class FeedbackSurvey(val kind: String, val feature: String? = null) : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}

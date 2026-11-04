@@ -68,10 +68,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.AiChatUpgradeBanner
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.AnimatedColorText
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.ChatBubble
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.MessageFeedbackBar
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.TypingBubble
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatIntent
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiChatUiState
@@ -351,6 +353,17 @@ fun AiChatScreen(
 
                         items(state.messages) { message ->
                             ChatBubble(message = message)
+                            if (state.feedbackEnabled &&
+                                message.sender == ChatMessage.Sender.ASSISTANT &&
+                                state.turns.containsKey(message.id)
+                            ) {
+                                MessageFeedbackBar(
+                                    messageId = message.id,
+                                    vote = state.votes[message.id],
+                                    onVote = intent.onMessageVote,
+                                    onReason = intent.onMessageVoteReason,
+                                )
+                            }
                         }
 
                         if (state.isLoading) {

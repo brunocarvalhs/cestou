@@ -8,11 +8,17 @@ import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.analytics.service.FirstTimeEventTracker
 import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackMoment
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
+import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.usecase.CartAssistantUseCase
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.SpeechToTextManager
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiTurnInfo
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.MessageVote
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.ReasonChip
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.Vote
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -44,6 +50,9 @@ class AiChatViewModelTest {
     private val aiTrialRepository = mockk<AiTrialRepository>(relaxed = true)
     private val firstTimeEventTracker = mockk<FirstTimeEventTracker>(relaxed = true)
     private val aiSession = mockk<AiSession>(relaxed = true)
+    private val feedbackPromptRequester = mockk<FeedbackPromptRequester>(relaxed = true) {
+        every { isFeedbackEnabled() } returns true
+    }
     private val speechToTextManager = mockk<SpeechToTextManager>(relaxed = true) {
         every { isListening } returns MutableStateFlow(false)
         every { recognizedText } returns MutableStateFlow(null)
@@ -68,6 +77,7 @@ class AiChatViewModelTest {
             aiSession,
             speechToTextManager,
             firstTimeEventTracker,
+            feedbackPromptRequester,
             context
         )
     }
@@ -259,5 +269,135 @@ class AiChatViewModelTest {
                 match { it["input_method"] == "voice" }
             )
         }
+    }
+
+    private fun sendAndGetAssistantId(provider: String = "gemini", toolCalls: Int = 2): Long {
+        every { aiSession.providerUsed } returns provider
+        every { aiSession.toolCallsThisTurn } returns toolCalls
+        coEvery { assistantUseCase("hello", any()) } returns flowOf("hi there")
+        viewModel.intent.onInputChange("hello")
+        viewModel.intent.onSendMessage()
+        return viewModel.uiState.value.messages.last().id
+    }
+
+    @Test
+    fun `a response records its turn and shows the feedback bar`() {
+        val id = sendAndGetAssistantId()
+
+        assertEquals(AiTurnInfo("gemini", 2), viewModel.uiState.value.turns[id])
+        assertTrue(viewModel.uiState.value.feedbackEnabled)
+    }
+
+    @Test
+    fun `thumbs up and down report provider and tool calls without any text`() {
+        val id = sendAndGetAssistantId()
+
+        viewModel.intent.onMessageVote(id, Vote.UP)
+
+        verify {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.AI_MESSAGE_FEEDBACK,
+                mapOf(
+                    AnalyticsParams.VALUE to "up",
+                    AnalyticsParams.PROVIDER to "gemini",
+                    AnalyticsParams.TOOL_CALLS to 2
+                )
+            )
+        }
+        assertEquals(MessageVote(Vote.UP), viewModel.uiState.value.votes[id])
+    }
+
+    @Test
+    fun `thumbs down then a reason chip adds the reason`() {
+        val id = sendAndGetAssistantId()
+
+        viewModel.intent.onMessageVote(id, Vote.DOWN)
+        viewModel.intent.onMessageVoteReason(id, ReasonChip.TOO_SLOW)
+
+        verify {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.AI_MESSAGE_FEEDBACK,
+                mapOf(
+                    AnalyticsParams.VALUE to "down",
+                    AnalyticsParams.PROVIDER to "gemini",
+                    AnalyticsParams.TOOL_CALLS to 2,
+                    AnalyticsParams.REASON to "too_slow"
+                )
+            )
+        }
+        assertEquals(MessageVote(Vote.DOWN, ReasonChip.TOO_SLOW), viewModel.uiState.value.votes[id])
+    }
+
+    @Test
+    fun `a second vote on the same message is ignored`() {
+        val id = sendAndGetAssistantId()
+
+        viewModel.intent.onMessageVote(id, Vote.UP)
+        viewModel.intent.onMessageVote(id, Vote.DOWN)
+
+        verify(exactly = 1) { analyticsTracker.trackEvent(AnalyticsEvents.AI_MESSAGE_FEEDBACK, any()) }
+        assertEquals(Vote.UP, viewModel.uiState.value.votes[id]?.value)
+    }
+
+    @Test
+    fun `a reason is ignored after thumbs up`() {
+        val id = sendAndGetAssistantId()
+
+        viewModel.intent.onMessageVote(id, Vote.UP)
+        viewModel.intent.onMessageVoteReason(id, ReasonChip.OTHER)
+
+        assertEquals(null, viewModel.uiState.value.votes[id]?.reason)
+    }
+
+    @Test
+    fun `voting on a message with an unknown turn reports none and zero`() {
+        every { feedbackPromptRequester.isFeedbackEnabled() } returns true
+        val id = sendAndGetAssistantId()
+        val unknown = id + 1
+        viewModel.intent.onMessageVote(unknown, Vote.UP)
+
+        verify {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.AI_MESSAGE_FEEDBACK,
+                mapOf(
+                    AnalyticsParams.VALUE to "up",
+                    AnalyticsParams.PROVIDER to "none",
+                    AnalyticsParams.TOOL_CALLS to 0
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `the feedback bar and votes are off when feedback is disabled`() {
+        every { feedbackPromptRequester.isFeedbackEnabled() } returns false
+        val id = sendAndGetAssistantId()
+
+        viewModel.intent.onMessageVote(id, Vote.UP)
+
+        assertEquals(false, viewModel.uiState.value.feedbackEnabled)
+        verify(exactly = 0) { analyticsTracker.trackEvent(AnalyticsEvents.AI_MESSAGE_FEEDBACK, any()) }
+    }
+
+    private fun clearViewModel() = viewModel.intent.onClose()
+
+    @Test
+    fun `closing the chat after two answers requests the CSAT moment`() {
+        sendAndGetAssistantId()
+        viewModel.intent.onInputChange("hello")
+        viewModel.intent.onSendMessage()
+
+        clearViewModel()
+
+        verify { feedbackPromptRequester.onMoment(FeedbackMoment.AI_CHAT_CLOSED) }
+    }
+
+    @Test
+    fun `closing the chat after a single answer does not ask`() {
+        sendAndGetAssistantId()
+
+        clearViewModel()
+
+        verify(exactly = 0) { feedbackPromptRequester.onMoment(any()) }
     }
 }

@@ -12,7 +12,9 @@ import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.analytics.service.FirstTimeEventTracker
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackMoment
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.domain.exception.ImageUnreadableException
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductAnalyzeImageUseCase
@@ -41,7 +43,8 @@ internal class ProductPhotoViewModel @Inject constructor(
     private val saveUseCase: ProductSaveUseCase,
     private val analyticsTracker: AnalyticsTracker,
     private val firstTimeEventTracker: FirstTimeEventTracker,
-    private val addSession: ProductAddSession
+    private val addSession: ProductAddSession,
+    private val feedbackPromptRequester: FeedbackPromptRequester
 ) : ViewModel() {
     private val shopping = savedStateHandle.toRoute<ProductPickerRoute>(ProductPickerRoute.typeMap).shopping
 
@@ -141,6 +144,7 @@ internal class ProductPhotoViewModel @Inject constructor(
                             AnalyticsParams.SOURCE to SOURCE_PHOTO_SCAN
                         )
                     )
+                    feedbackPromptRequester.onMoment(FeedbackMoment.PHOTO_SCAN_CONFIRMED)
                 }
             _uiState.update { state ->
                 state.copy(
@@ -182,6 +186,7 @@ internal class ProductPhotoViewModel @Inject constructor(
                     AnalyticsParams.ITEMS_COUNT to items.size
                 )
             )
+            feedbackPromptRequester.onMoment(FeedbackMoment.PHOTO_SCAN_CONFIRMED)
             _uiState.update {
                 it.copy(
                     analysisResult = emptyList(),

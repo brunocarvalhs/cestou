@@ -17,4 +17,12 @@
     <string name="ai_chat_voice_permission_required">Permissão de microfone necessária para gravação de voz.</string>
     <string name="ai_chat_voice_not_supported">Reconhecimento de voz não suportado neste dispositivo.</string>
     <string name="ai_chat_voice_listening">Ouvindo…</string>
+    <string name="ai_chat_vote_up">Boa resposta</string>
+    <string name="ai_chat_vote_down">Resposta ruim</string>
+    <string name="ai_chat_vote_reason_title">O que deu errado?</string>
+    <string name="ai_chat_vote_reason_wrong_answer">Resposta errada</string>
+    <string name="ai_chat_vote_reason_not_understood">Não me entendeu</string>
+    <string name="ai_chat_vote_reason_too_slow">Muito lenta</string>
+    <string name="ai_chat_vote_reason_did_nothing">Não fez nada</string>
+    <string name="ai_chat_vote_reason_other">Outro</string>
 </resources>

@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.chat.navigation
 
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -45,6 +46,11 @@ fun NavGraphBuilder.chatGraph(navigator: Navigator) {
                 sessionId != null -> viewModel.loadSession(sessionId)
                 shoppingId != null -> viewModel.setShoppingContext(shoppingId)
             }
+        }
+
+        /** Sair da composição do dialog (fechar, voltar ou rotacionar) avisa o fim do chat para o CSAT. */
+        DisposableEffect(viewModel) {
+            onDispose { viewModel.intent.onClose() }
         }
 
         AiChatScreen(

@@ -142,6 +142,15 @@ object AnalyticsEvents {
     const val AI_SESSION_CREATED = "ai_chat_session_created"
     const val AI_SESSION_SELECTED = "ai_session_selected"
     const val AI_TRIAL_MESSAGE_USED = "ai_trial_message_used"
+
+    /** Satisfação (sdd-034): só nota e enums, nunca texto digitado nem conteúdo de mensagem da IA. */
+    const val FEEDBACK_PROMPT_SHOWN = "feedback_prompt_shown"
+    const val FEEDBACK_PROMPT_DISMISSED = "feedback_prompt_dismissed"
+    const val NPS_SUBMITTED = "nps_submitted"
+    const val CSAT_SUBMITTED = "csat_submitted"
+    const val AI_MESSAGE_FEEDBACK = "ai_message_feedback"
+    const val STORE_REVIEW_REQUESTED = "store_review_requested"
+    const val FEEDBACK_CONTACT_OPENED = "feedback_contact_opened"
 }
 
 /**
@@ -193,4 +202,10 @@ object AnalyticsParams {
     const val VALUE = "value"
     const val HAS_CUSTOM_KEY = "has_custom_key"
     const val SECONDS_SINCE_SIGNUP = "seconds_since_signup"
+
+    /** Nota da pesquisa: 0-10 no NPS, 1-5 no CSAT. */
+    const val SCORE = "score"
+
+    /** Tipo da pesquisa: `nps`, `csat` ou `store_review`. */
+    const val KIND = "kind"
 }

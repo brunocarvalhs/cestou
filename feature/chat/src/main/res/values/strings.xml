@@ -17,4 +17,12 @@
     <string name="ai_chat_voice_permission_required">Microphone permission required for voice recording.</string>
     <string name="ai_chat_voice_not_supported">Voice recognition is not supported on this device.</string>
     <string name="ai_chat_voice_listening">Listening…</string>
+    <string name="ai_chat_vote_up">Good answer</string>
+    <string name="ai_chat_vote_down">Bad answer</string>
+    <string name="ai_chat_vote_reason_title">What went wrong?</string>
+    <string name="ai_chat_vote_reason_wrong_answer">Wrong answer</string>
+    <string name="ai_chat_vote_reason_not_understood">Didn\'t understand me</string>
+    <string name="ai_chat_vote_reason_too_slow">Too slow</string>
+    <string name="ai_chat_vote_reason_did_nothing">Did nothing</string>
+    <string name="ai_chat_vote_reason_other">Other</string>
 </resources>

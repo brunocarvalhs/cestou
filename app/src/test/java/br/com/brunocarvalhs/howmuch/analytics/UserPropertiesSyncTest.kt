@@ -127,6 +127,7 @@ class UserPropertiesSyncTest {
         verify { analytics.setCollectionEnabled(false) }
         verify { analytics.setUserId(null) }
         verify { analytics.setUserProperty("plan", null) }
+        verify { analytics.setUserProperty("nps_class", null) }
     }
 
     @Test

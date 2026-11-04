@@ -23,6 +23,12 @@ object FeatureFlagKeys {
 
     /** Kill-switch do evento `ui_action` (cliques); os demais eventos de analytics seguem. Default on. */
     const val ANALYTICS_UI_ACTIONS_ENABLED = "feat_analytics_ui_actions"
+
+    /** Kill-switch de todas as pesquisas de satisfação e do polegar do chat (sdd-034). Default on. */
+    const val FEEDBACK_ENABLED = "feat_feedback_enabled"
+
+    /** Permite pedir a avaliação na Play Store (In-App Review). Default on. */
+    const val FEEDBACK_STORE_REVIEW_ENABLED = "feedback_store_review_enabled"
 }
 
 /**
@@ -42,4 +48,8 @@ object RemoteVariableKeys {
      * compiled-in fallback for when Remote Config hasn't been fetched yet.
      */
     const val AI_SYSTEM_PROMPT = "ai_system_prompt"
+
+    /** Dias mínimos entre dois NPS (default 90) e entre dois CSAT do mesmo recurso (default 30). */
+    const val FEEDBACK_NPS_COOLDOWN_DAYS = "feedback_nps_cooldown_days"
+    const val FEEDBACK_CSAT_COOLDOWN_DAYS = "feedback_csat_cooldown_days"
 }

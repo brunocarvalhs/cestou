@@ -8,6 +8,9 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -32,16 +35,19 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import br.com.brunocarvalhs.howmuch.analytics.ScreenTracker
+import br.com.brunocarvalhs.howmuch.core.domain.model.SurveyKind
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.isProtectedRoute
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.FeedbackSurvey
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.StoreReview
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouBottomNavigation
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.CompleteName
@@ -111,6 +117,7 @@ class MainActivity : AppCompatActivity() {
         setIntent(Intent())
     }
 
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     private fun CestouApp(windowSizeClass: WindowSizeClass) {
         val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
@@ -226,6 +233,31 @@ class MainActivity : AppCompatActivity() {
                 if (requiresName && !destination.isAuthFlow() && viewModel.requiresNameNow()) {
                     navigator.navigate(CompleteName) {
                         popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                }
+            }
+
+            /**
+             * Pesquisa de satisfação (sdd-034): só abre num destino estável (uma das abas, sem dialog
+             * por cima) e com o teclado fechado. Fluxos de auth, carrinho, formulários, paywall e
+             * scanner não são abas, então nunca são interrompidos. O NPS é pedido ao chegar na lista.
+             */
+            val pendingFeedback by viewModel.pendingFeedback.collectAsStateWithLifecycle()
+            val onDialog = navBackStackEntry?.destination is DialogNavigator.Destination
+            val imeVisible = WindowInsets.isImeVisible
+            val onStableTab = isAuthenticated && !requiresName && !onDialog && !imeVisible &&
+                currentRoute != null && currentRoute !is AiChat
+            LaunchedEffect(currentRoute, onStableTab) {
+                if (onStableTab && currentRoute == ShoppingList) viewModel.onShoppingListReached()
+            }
+            LaunchedEffect(pendingFeedback, onStableTab) {
+                val prompt = pendingFeedback
+                if (prompt != null && onStableTab) {
+                    viewModel.onFeedbackPromptShown(prompt)
+                    if (prompt.kind == SurveyKind.STORE_REVIEW) {
+                        navigator.navigate(StoreReview)
+                    } else {
+                        navigator.navigate(FeedbackSurvey(kind = prompt.kind.name, feature = prompt.feature))
                     }
                 }
             }

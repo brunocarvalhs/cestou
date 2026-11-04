@@ -18,10 +18,17 @@ object AnalyticsUserProperties {
     const val NOTIFICATIONS_ENABLED = "notifications_enabled"
     const val REMINDERS_ENABLED = "reminders_enabled"
     const val SORTING_MODE = "sorting_mode"
+    const val NPS_CLASS = "nps_class"
 
     const val PLAN_FREE = "free"
     const val PLAN_PRO = "pro"
 
+    const val NPS_PROMOTER = "promoter"
+    const val NPS_PASSIVE = "passive"
+    const val NPS_DETRACTOR = "detractor"
+
+    private const val NPS_DETRACTOR_MAX = 6
+    private const val NPS_PASSIVE_MAX = 8
     private const val NEW_ACCOUNT_MAX_DAYS = 1L
     private const val WEEK_DAYS = 7L
     private const val MONTH_DAYS = 30L
@@ -40,5 +47,12 @@ object AnalyticsUserProperties {
         count <= 0 -> "0"
         count <= FEW_LISTS_MAX -> "1-3"
         else -> "4+"
+    }
+
+    /** `detractor` (0-6), `passive` (7-8) ou `promoter` (9-10). */
+    fun npsClass(score: Int): String = when {
+        score <= NPS_DETRACTOR_MAX -> NPS_DETRACTOR
+        score <= NPS_PASSIVE_MAX -> NPS_PASSIVE
+        else -> NPS_PROMOTER
     }
 }

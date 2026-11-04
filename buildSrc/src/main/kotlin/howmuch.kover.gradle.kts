@@ -52,6 +52,7 @@ dependencies {
     kover(project(":feature:chat"))
     kover(project(":feature:cart"))
     kover(project(":feature:ai-agent"))
+    kover(project(":feature:feedback"))
 }
 
 kover {

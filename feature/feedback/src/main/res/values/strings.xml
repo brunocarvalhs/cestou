@@ -1,0 +1,25 @@
+<resources>
+    <string name="feedback_nps_question">How likely are you to recommend Cestou to a friend?</string>
+    <string name="feedback_nps_low">Not at all likely</string>
+    <string name="feedback_nps_high">Extremely likely</string>
+    <string name="feedback_nps_option">%1$d out of %2$d</string>
+    <string name="feedback_csat_purchase">How was finishing your purchase?</string>
+    <string name="feedback_csat_ai_chat">How was the AI assistant?</string>
+    <string name="feedback_csat_photo_scan">How was adding items by photo?</string>
+    <string name="feedback_csat_generic">How was your experience?</string>
+    <string name="feedback_likert_1">very bad</string>
+    <string name="feedback_likert_2">bad</string>
+    <string name="feedback_likert_3">neutral</string>
+    <string name="feedback_likert_4">good</string>
+    <string name="feedback_likert_5">excellent</string>
+    <string name="feedback_likert_option">%1$d of %2$d, %3$s</string>
+    <string name="feedback_likert_low">Very bad</string>
+    <string name="feedback_likert_high">Excellent</string>
+    <string name="feedback_not_now">Not now</string>
+    <string name="feedback_thanks_title">Thank you!</string>
+    <string name="feedback_thanks">Your answer helps us make Cestou better.</string>
+    <string name="feedback_thanks_low">Sorry it wasn\'t great. Want to tell us what happened?</string>
+    <string name="feedback_contact">Talk to us</string>
+    <string name="feedback_contact_subject">Cestou feedback</string>
+    <string name="feedback_done">Close</string>
+</resources>

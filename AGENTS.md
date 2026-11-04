@@ -38,7 +38,7 @@ Chave de configuração do pipeline: `.github/pipeline-config.yaml` (ordem: lint
   - `di/` — módulos Hilt.
 - **Papéis dos módulos:**
   - `:core:*` — transversais (`common`, `domain`, `theme`, `ui`, `navigation`, `auth`, `data`, `ai`, `remote-config`, `analytics`, `billing`).
-  - `:feature:*` — `shopping`, `products`, `settings`, `auth`, `profile`, `chat`, `cart`, `ai-agent`, `subscription`.
+  - `:feature:*` — `shopping`, `products`, `settings`, `auth`, `profile`, `chat`, `cart`, `ai-agent`, `subscription`, `feedback`.
   - `:app` — entrypoint; orquestra features via `FeatureInitializer`.
   - `:wear` — módulo Wear OS standalone, com `applicationId` e pareamento próprios.
 
@@ -63,7 +63,7 @@ core/
 ├── auth/ ai/ remote-config/ analytics/ billing/
 feature/
 ├── shopping/ products/ settings/ auth/ profile/
-├── chat/ cart/ ai-agent/ subscription/
+├── chat/ cart/ ai-agent/ subscription/ feedback/
     └── src/main/java/br/com/brunocarvalhs/howmuch/feature/<nome>/
 wear/                     Wear OS standalone
 buildSrc/config/detekt/detekt.yml  regras Detekt

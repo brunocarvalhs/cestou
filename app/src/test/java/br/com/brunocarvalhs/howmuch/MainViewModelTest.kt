@@ -13,11 +13,15 @@ import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackMoment
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackPrompt
+import br.com.brunocarvalhs.howmuch.core.domain.model.SurveyKind
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -53,6 +57,10 @@ class MainViewModelTest {
     private val aiSession = mockk<AiSession>(relaxed = true)
     private val userPropertiesSync = mockk<UserPropertiesSync>(relaxed = true)
     private val appUsageTracker = mockk<AppUsageTracker>(relaxed = true)
+    private val feedbackPending = MutableStateFlow<FeedbackPrompt?>(null)
+    private val feedbackPromptRequester = mockk<FeedbackPromptRequester>(relaxed = true) {
+        every { pending } returns feedbackPending
+    }
 
     @Before
     fun setup() {
@@ -83,7 +91,8 @@ class MainViewModelTest {
             wearableSyncService,
             aiSession,
             userPropertiesSync,
-            appUsageTracker
+            appUsageTracker,
+            feedbackPromptRequester
         )
     }
 
@@ -327,5 +336,27 @@ class MainViewModelTest {
 
         verify { appUsageTracker.onForeground() }
         verify { appUsageTracker.onBackground() }
+        verify { feedbackPromptRequester.onAppForeground() }
+    }
+
+    @Test
+    fun `reaching the shopping list asks the policy for the relationship survey`() {
+        val vm = viewModel(currentUser = null)
+
+        vm.onShoppingListReached()
+
+        verify { feedbackPromptRequester.onMoment(FeedbackMoment.APP_RELATIONSHIP) }
+    }
+
+    @Test
+    fun `pending feedback is exposed and consumed through the requester`() {
+        val vm = viewModel(currentUser = null)
+        val prompt = FeedbackPrompt(SurveyKind.NPS)
+        feedbackPending.value = prompt
+
+        assertEquals(prompt, vm.pendingFeedback.value)
+        vm.onFeedbackPromptShown(prompt)
+
+        verify { feedbackPromptRequester.consume(prompt) }
     }
 }
