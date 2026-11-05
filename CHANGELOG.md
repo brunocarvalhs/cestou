@@ -125,6 +125,10 @@
 * feat(settings): add the Analytics opt-out switch in Settings > Data, kept across "delete all data" (sdd-033)
 * feat(navigation): `FeatureNavGraph.screenNames` (additive, default empty); `AppSettings.analyticsEnabled`, `SettingsRepository.updateAnalyticsEnabled` and `AuthenticatedUser.createdAt` (additive)
 
+## [2.3.1] - 2026-11-05
+
+* Enhance chat features with modal input, history, and search functionality (#267)
+
 ## [2.2.1] - 2026-10-16
 
 * Merge pull request #206 from brunocarvalhs/develop
