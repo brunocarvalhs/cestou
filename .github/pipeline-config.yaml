@@ -107,7 +107,7 @@ build:
         - name: "debug"
           description: "Development / Internal Testing"
           gradle_task: "assembleDebug"
-          enabled: true
+          enabled: false
           path: "wear/build/outputs/apk/debug/*.apk"
           artifact_name: "HowMuch-wear-debug"
           deploy:
