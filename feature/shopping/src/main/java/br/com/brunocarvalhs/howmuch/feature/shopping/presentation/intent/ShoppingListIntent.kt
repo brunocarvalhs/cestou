@@ -10,6 +10,7 @@ internal data class ShoppingListIntent(
     val onFilter: (ShoppingFilter) -> Unit = {},
     val onQueryChange: (String) -> Unit = {},
     val onSearch: (String) -> Unit = {},
+    val onOpenAiChat: () -> Unit = {},
     val onToggleFavorite: (Shopping) -> Unit = {},
     val onDuplicate: (Shopping) -> Unit = {},
     val onShare: (Shopping) -> Unit = {},
@@ -18,6 +19,7 @@ internal data class ShoppingListIntent(
     val onUpdate: (Shopping) -> Unit = {},
     val onReopen: (Shopping) -> Unit = {},
     val onShowJoinDialog: () -> Unit = {},
+    val onNotificationsClick: () -> Unit = {},
     val onMove: (Int, Int) -> Unit = { _, _ -> },
     val onShowCreateSheet: (Boolean) -> Unit = {},
     val onCreateConfirmed: (String, String, String) -> Unit = { _, _, _ -> }

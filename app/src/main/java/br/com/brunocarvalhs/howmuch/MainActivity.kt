@@ -1,13 +1,21 @@
 package br.com.brunocarvalhs.howmuch
 
+import android.Manifest
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -31,21 +39,28 @@ import androidx.navigation.compose.DialogNavigator
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import br.com.brunocarvalhs.howmuch.analytics.ScreenTracker
+import br.com.brunocarvalhs.howmuch.core.domain.model.SurveyKind
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.isProtectedRoute
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.FeedbackSurvey
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.StoreReview
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouBottomNavigation
+import br.com.brunocarvalhs.howmuch.core.ui.utils.exposeTestTags
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.CompleteName
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.Welcome
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.isAuthFlow
+import br.com.brunocarvalhs.howmuch.notifications.NotificationPermissionRequester
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -57,6 +72,9 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var navigator: Navigator
 
+    @Inject
+    internal lateinit var screenTracker: ScreenTracker
+
     private val viewModel: MainViewModel by viewModels()
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
@@ -66,8 +84,22 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         consumeDeepLinkIntent()
         setContent {
-            CestouApp(windowSizeClass = calculateWindowSizeClass(this))
+            /** Expõe os testTags como resource-id para o Maestro, que não depende do idioma do aparelho. */
+            Box(modifier = Modifier.fillMaxSize().exposeTestTags()) {
+                CestouApp(windowSizeClass = calculateWindowSizeClass(this@MainActivity))
+            }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        viewModel.onForeground()
+    }
+
+    /** Rotação e troca de tema recriam a Activity sem o app ir para segundo plano. */
+    override fun onStop() {
+        super.onStop()
+        if (!isChangingConfigurations) viewModel.onBackground()
     }
 
     /**
@@ -95,6 +127,7 @@ class MainActivity : AppCompatActivity() {
         setIntent(Intent())
     }
 
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     private fun CestouApp(windowSizeClass: WindowSizeClass) {
         val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
@@ -135,6 +168,14 @@ class MainActivity : AppCompatActivity() {
 
             val navBackStackEntry by navController.currentBackStackEntryAsState()
 
+            /**
+             * Usa a entrada atual do back stack (dialogs inclusos), não a `screenBackStackEntry`
+             * abaixo, que ignora dialogs só para o layout da barra inferior.
+             */
+            LaunchedEffect(navBackStackEntry) {
+                navBackStackEntry?.let { screenTracker.onDestinationChanged(it.id, it.destination) }
+            }
+
             var screenBackStackEntry by remember { mutableStateOf(navBackStackEntry) }
             LaunchedEffect(navBackStackEntry) {
                 val destination = navBackStackEntry?.destination
@@ -161,13 +202,13 @@ class MainActivity : AppCompatActivity() {
 
             // AiChat's shoppingId here is a throwaway placeholder: rootRoutes only matches by
             // route::class (see hasRoute/isProtectedRoute below), never by field value.
-            val rootRoutes = remember { listOf(ShoppingList, AiChat(shoppingId = ""), Profile) }
+            val rootRoutes = remember { listOf(ShoppingList, History, AiChat(shoppingId = ""), Profile) }
 
             val currentRoute = rootRoutes.find { route ->
                 currentDestination?.hierarchy?.any { it.hasRoute(route::class) } == true
             }
 
-            val isOnProtectedRoute = currentDestination?.isProtectedRoute(rootRoutes) == true
+            val isOnProtectedRoute = currentDestination?.isProtectedRoute(rootRoutes + SpendingInsights) == true
 
             LaunchedEffect(isOnProtectedRoute, isAuthenticated) {
                 if (!isAuthenticated && isOnProtectedRoute) {
@@ -194,6 +235,38 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            /**
+             * Toque numa notificação da IA: abre a conversa. Espera o login e o nome (como o
+             * convite acima) para não navegar por cima da tela de boas-vindas.
+             */
+            val pendingAiChat by viewModel.pendingAiChatSession.collectAsStateWithLifecycle()
+            LaunchedEffect(pendingAiChat, isAuthenticated, requiresName) {
+                val sessionId = pendingAiChat
+                if (sessionId != null && isAuthenticated && !requiresName) {
+                    /** Se um chat já está aberto (app voltou de segundo plano nele), troca em vez de empilhar outro. */
+                    navigator.navigate(AiChat(sessionId = sessionId)) {
+                        popUpTo<AiChat> { inclusive = true }
+                        launchSingleTop = true
+                    }
+                    viewModel.consumePendingAiChatSession()
+                }
+            }
+
+            /**
+             * Pede a permissão de notificações uma vez por instalação, depois do login: sem ela os
+             * lembretes e os avisos da IA não aparecem. Recusar não bloqueia nada.
+             */
+            val notificationPermissionLauncher = rememberLauncherForActivityResult(
+                ActivityResultContracts.RequestPermission()
+            ) { }
+            LaunchedEffect(isAuthenticated, requiresName) {
+                val requester = NotificationPermissionRequester(applicationContext)
+                if (isAuthenticated && !requiresName && requester.shouldAsk()) {
+                    requester.markAsked()
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+
             // Required-name gate (spec EPA-06): a signed-in account without a name never reaches the
             // app. Skipped inside the auth flow, where a just-created account has no name for a
             // moment; the decision re-reads the auth state so a name saved a moment ago is honored.
@@ -206,6 +279,31 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            /**
+             * Pesquisa de satisfação (sdd-034): só abre num destino estável (uma das abas, sem dialog
+             * por cima) e com o teclado fechado. Fluxos de auth, carrinho, formulários, paywall e
+             * scanner não são abas, então nunca são interrompidos. O NPS é pedido ao chegar na lista.
+             */
+            val pendingFeedback by viewModel.pendingFeedback.collectAsStateWithLifecycle()
+            val onDialog = navBackStackEntry?.destination is DialogNavigator.Destination
+            val imeVisible = WindowInsets.isImeVisible
+            val onStableTab = isAuthenticated && !requiresName && !onDialog && !imeVisible &&
+                currentRoute != null && currentRoute !is AiChat
+            LaunchedEffect(currentRoute, onStableTab) {
+                if (onStableTab && currentRoute == ShoppingList) viewModel.onShoppingListReached()
+            }
+            LaunchedEffect(pendingFeedback, onStableTab) {
+                val prompt = pendingFeedback
+                if (prompt != null && onStableTab) {
+                    viewModel.onFeedbackPromptShown(prompt)
+                    if (prompt.kind == SurveyKind.STORE_REVIEW) {
+                        navigator.navigate(StoreReview)
+                    } else {
+                        navigator.navigate(FeedbackSurvey(kind = prompt.kind.name, feature = prompt.feature))
+                    }
+                }
+            }
+
             Scaffold(
                 bottomBar = {
                     CestouBottomNavigation(
@@ -213,6 +311,7 @@ class MainActivity : AppCompatActivity() {
                         photoUrl = photoUrl,
                         visible = currentRoute != null && currentRoute !is AiChat,
                         onNavigate = { route ->
+                            screenTracker.onTabSelected(route)
                             navigator.navigate(route) {
                                 popUpTo(navController.graph.startDestinationId) {
                                     saveState = true

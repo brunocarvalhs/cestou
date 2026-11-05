@@ -2,8 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
 
 /**
  * Converte o [Result] de uma [br.com.brunocarvalhs.howmuch.core.ai.contract.AgentAction] no texto
- * devolvido ao modelo como resultado da tool call. Compartilhado por [GeminiAiAgent] e
- * [OpenRouterAiAgent] porque os dois tratam o mesmo contrato (`AgentAction.execute(): Result<R>`).
+ * devolvido ao modelo como resultado da tool call. Compartilhado por [GeminiAgent] e
+ * [OpenRouterAgent] porque os dois tratam o mesmo contrato (`AgentAction.execute(): Result<R>`).
  *
  * Antes desta função, `getOrNull()?.toString() ?: "Sucesso"` informava `Result.failure` como
  * sucesso e `Result.success(Unit)` como o literal `"kotlin.Unit"` — o modelo alucinava sobre o

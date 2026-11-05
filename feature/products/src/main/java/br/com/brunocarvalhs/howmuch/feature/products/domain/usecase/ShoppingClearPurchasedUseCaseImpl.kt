@@ -25,6 +25,8 @@ class ShoppingClearPurchasedUseCaseImpl @Inject constructor(
     private val productRepository: ProductRepository
 ) : AgentActionUseCase<Unit>(), ShoppingClearPurchasedUseCase {
 
+    override val requiresConfirmation: Boolean = true
+
     override suspend operator fun invoke(shoppingId: String): Result<Unit> = runCatching {
         val products = productRepository.getAllProducts(shoppingId).first()
         products.filter { it.isPurchased }.forEach { product ->

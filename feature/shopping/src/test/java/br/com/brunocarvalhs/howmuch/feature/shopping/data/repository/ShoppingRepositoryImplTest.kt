@@ -20,6 +20,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.concurrent.CopyOnWriteArrayList
 
 class ShoppingRepositoryImplTest {
 
@@ -334,7 +335,8 @@ class ShoppingRepositoryImplTest {
 
     @Test
     fun `updatePositions writes each shopping's position`() = runTest {
-        val requests = mutableListOf<NetworkService.NetworkRequest>()
+        /** Writes run in parallel on Dispatchers.IO, so a plain ArrayList could lose an add. */
+        val requests = CopyOnWriteArrayList<NetworkService.NetworkRequest>()
         coEvery { networkService.make<Boolean>(capture(requests), any(), any()) } returns true
 
         val shoppings = listOf(

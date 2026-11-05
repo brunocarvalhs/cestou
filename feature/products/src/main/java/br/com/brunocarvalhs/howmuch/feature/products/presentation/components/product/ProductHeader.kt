@@ -15,6 +15,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,7 +56,7 @@ internal fun ProductHeader(
             },
             navigationIcon = {
                 if (canNavigateBack) {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = onBack, modifier = Modifier.testTag("product_header_back")) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(CoreR.string.content_description_back)
@@ -65,7 +66,7 @@ internal fun ProductHeader(
             },
             actions = {
                 if (!canNavigateBack) {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = onBack, modifier = Modifier.testTag("product_header_close")) {
                         Icon(
                             Icons.Default.Close,
                             contentDescription = stringResource(CoreR.string.content_description_back)

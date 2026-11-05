@@ -127,6 +127,7 @@ dependencies {
     implementation(project(":feature:ai-agent"))
     implementation(project(":feature:cart"))
     implementation(project(":feature:subscription"))
+    implementation(project(":feature:feedback"))
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
@@ -143,6 +144,7 @@ dependencies {
     implementation(libs.androidx.startup)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)

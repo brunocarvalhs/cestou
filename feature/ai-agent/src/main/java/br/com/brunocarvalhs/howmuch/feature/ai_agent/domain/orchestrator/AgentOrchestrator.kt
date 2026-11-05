@@ -1,0 +1,39 @@
+package br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.orchestrator
+
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentFactory
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
+import br.com.brunocarvalhs.howmuch.feature.ai_agent.domain.entity.AgentSession
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import javax.inject.Inject
+import javax.inject.Singleton
+
+/**
+ * Orquestrador principal do Agente de IA.
+ * Gerencia a sessão, o histórico e a escolha do provedor de IA.
+ * Esta classe é o "cérebro" da integração com IA no projeto.
+ */
+@Singleton
+class AgentOrchestrator @Inject constructor(
+    private val factory: AgentFactory,
+    private val settingsRepository: SettingsRepository,
+    val session: AgentSession
+) {
+    /**
+     * Envia uma mensagem para o assistente e recebe o fluxo de resposta.
+     * O histórico é mantido automaticamente na sessão.
+     */
+    suspend fun chat(prompt: String, context: AgentContext): Flow<String> {
+        val settings = settingsRepository.getSettings().first()
+        val agent = factory.create(settings)
+        return agent.sendMessage(prompt, context)
+    }
+
+    /**
+     * Limpa o histórico de conversa da sessão atual.
+     */
+    fun clearHistory() {
+        session.history.clear()
+    }
+}

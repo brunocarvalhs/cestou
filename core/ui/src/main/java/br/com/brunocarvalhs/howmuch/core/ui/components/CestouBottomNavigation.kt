@@ -5,10 +5,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.AccountCircle
-import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,9 +19,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
 import br.com.brunocarvalhs.howmuch.core.ui.R
 import coil.compose.AsyncImage
@@ -39,6 +39,13 @@ sealed class BottomNavItem(
         titleRes = R.string.nav_lists,
         selectedIcon = Icons.Filled.ShoppingCart,
         unselectedIcon = Icons.Outlined.ShoppingCart
+    )
+
+    object HistoryItem : BottomNavItem(
+        route = History,
+        titleRes = R.string.nav_history,
+        selectedIcon = HistoryBarsIcon.Filled,
+        unselectedIcon = HistoryBarsIcon.Outlined
     )
 
     object ProfileItem : BottomNavItem(
@@ -59,6 +66,7 @@ fun CestouBottomNavigation(
 ) {
     val items = listOf(
         BottomNavItem.Lists,
+        BottomNavItem.HistoryItem,
         BottomNavItem.ProfileItem
     )
 
@@ -74,6 +82,7 @@ fun CestouBottomNavigation(
             NavigationBarItem(
                 selected = selected,
                 onClick = { onNavigate(item.route) },
+                modifier = Modifier.testTag("bottom_nav_${item.route::class.simpleName}"),
                 icon = {
                     if (item is BottomNavItem.ProfileItem && photoUrl != null) {
                         AsyncImage(

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,11 +17,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.components.SettingsHeader
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.ThemeSettingsIntent
@@ -50,7 +51,7 @@ internal fun ThemeSettingsScreen(
                 .padding(16.dp)
         ) {
             ListItem(
-                modifier = Modifier.clickable { showThemeBottomSheet = true },
+                modifier = Modifier.testTag("theme_picker_row").clickable { showThemeBottomSheet = true },
                 headlineContent = { Text(stringResource(R.string.settings_item_theme)) },
                 supportingContent = {
                     val currentThemeLabel = when (state.themeMode) {
@@ -81,7 +82,7 @@ private fun ThemeBottomSheet(
     onDismiss: () -> Unit,
     onSelect: (ThemeMode) -> Unit
 ) {
-    ModalBottomSheet(
+    CestouModalBottomSheet(
         onDismissRequest = onDismiss
     ) {
         Column(
@@ -110,6 +111,7 @@ private fun ThemeOption(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .testTag("theme_option_${mode.name}")
             .clickable { onSelect(mode) }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically

@@ -2,6 +2,9 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
@@ -22,7 +25,8 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 internal class ThemeSettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
-    private val updateThemeUseCase: UpdateThemeUseCase
+    private val updateThemeUseCase: UpdateThemeUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ThemeSettingsUiState())
@@ -49,6 +53,10 @@ internal class ThemeSettingsViewModel @Inject constructor(
     private fun updateTheme(themeMode: ThemeMode) {
         viewModelScope.launch {
             updateThemeUseCase(themeMode)
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.SETTINGS_THEME_CHANGED,
+                mapOf(AnalyticsParams.VALUE to themeMode.name.lowercase())
+            )
         }
     }
 

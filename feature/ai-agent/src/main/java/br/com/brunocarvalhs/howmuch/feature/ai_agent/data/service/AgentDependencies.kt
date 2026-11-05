@@ -1,0 +1,21 @@
+package br.com.brunocarvalhs.howmuch.feature.ai_agent.data.service
+
+import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
+import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
+
+/**
+ * Bundles the collaborators shared by every [br.com.brunocarvalhs.howmuch.core.ai.contract.Agent]
+ * implementation (currently [GeminiAgent] and [OpenRouterAgent]), keeping their own
+ * constructors down to just this plus their provider-specific model/apiKey.
+ */
+internal data class AgentDependencies(
+    val session: AiSession,
+    val crashReporter: CrashReporter,
+    val subscriptionRepository: SubscriptionRepository,
+    val registry: AgentRegistry,
+    val analyticsTracker: AnalyticsTracker,
+    val systemPrompt: String = SystemPrompts.CESTOU_ASSISTANT
+)

@@ -5,8 +5,9 @@
 //   npm install --no-save @firebase/rules-unit-testing firebase
 //   firebase emulators:exec --only firestore --project demo-cestou "node rules.test.mjs"
 //
-// It is deliberately NOT wired into Gradle or CI: this repo has no JS toolchain
-// and adding one is a separate decision. Keep it in sync when the rules change.
+// It is not part of Gradle (this repo has no JS toolchain there). CI runs it in its own
+// workflow, .github/workflows/firestore-rules.yml, only when the rules or this folder change.
+// Keep it in sync when the rules change.
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -75,6 +76,7 @@ async function seed() {
     });
     await setDoc(doc(db, 'users', OWNER), { id: OWNER, name: 'Bruno', email: 'b@x.com', photoUrl: null });
     await setDoc(doc(db, 'users', OWNER, 'common-products', 'c1'), { id: 'c1', name: 'Arroz', category: 'Mercearia', unit: 'kg' });
+    await setDoc(doc(db, 'users', OWNER, 'preferences', 'budget'), { id: 'budget', monthlyGoal: 1200 });
     await setDoc(doc(db, 'notifications', 'n1'), {
       id: 'n1', userId: OWNER, title: 'Oi', message: 'Msg', type: 'list_joined',
       isRead: false, timestamp: 123,
@@ -177,8 +179,9 @@ await t('sole non-owner member deletes the list', () =>
 await seed();
 await t('non-sole non-owner member still cannot delete', () =>
   assertFails(deleteDoc(listRef(editor()))));
-await t('account deletion: common-products then profile', async () => {
+await t('account deletion: common-products, preferences, then profile', async () => {
   await assertSucceeds(deleteDoc(doc(owner(), 'users', OWNER, 'common-products', 'c1')));
+  await assertSucceeds(deleteDoc(doc(owner(), 'users', OWNER, 'preferences', 'budget')));
   await assertSucceeds(deleteDoc(doc(owner(), 'users', OWNER)));
 });
 
@@ -272,6 +275,25 @@ await t('other user cannot write them', () =>
 await t('owner removes a common product', () =>
   assertSucceeds(deleteDoc(doc(owner(), 'users', OWNER, 'common-products', 'c1'))));
 
+console.log('\n== users/{uid}/preferences (monthly goal) ==');
+await seed();
+const goalRef = (db) => doc(db, 'users', OWNER, 'preferences', 'budget');
+await t('owner reads own monthly goal', () => assertSucceeds(getDoc(goalRef(owner()))));
+await t('other user cannot read the monthly goal', () => assertFails(getDoc(goalRef(editor()))));
+await t('owner saves the monthly goal', () =>
+  assertSucceeds(setDoc(goalRef(owner()), { id: 'budget', monthlyGoal: 1500 })));
+await t('owner clears the goal with null', () =>
+  assertSucceeds(setDoc(goalRef(owner()), { id: 'budget', monthlyGoal: null })));
+await t('other user cannot write the monthly goal', () =>
+  assertFails(setDoc(goalRef(editor()), { id: 'budget', monthlyGoal: 1 })));
+await t('the document id must match the id field', () =>
+  assertFails(setDoc(goalRef(owner()), { id: 'other', monthlyGoal: 1500 })));
+await t('extra fields are rejected', () =>
+  assertFails(setDoc(goalRef(owner()), { id: 'budget', monthlyGoal: 1500, email: 'b@x.com' })));
+await t('the goal cannot be stored in the public user document', () =>
+  assertFails(setDoc(doc(owner(), 'users', OWNER),
+    { id: OWNER, name: 'Bruno', photoUrl: null, monthlyGoal: 1500 })));
+
 console.log('\n== notifications ==');
 await seed();
 const notif = (id, userId, over = {}) => ({
@@ -296,6 +318,35 @@ await t('extra fields are rejected', () =>
   assertFails(setDoc(doc(editor(), 'notifications', 'n6'), { ...notif('n6', OWNER), payloadUrl: 'http://evil' })));
 await t('oversized message is rejected', () =>
   assertFails(setDoc(doc(editor(), 'notifications', 'n7'), notif('n7', OWNER, { message: 'x'.repeat(501) }))));
+await t('notification with shoppingId and senderId between list members succeeds', () =>
+  assertSucceeds(setDoc(doc(editor(), 'notifications', 'n9'),
+    notif('n9', OWNER, { shoppingId: LIST_ID, senderId: EDITOR }))));
+await t('senderId must be the writer', () =>
+  assertFails(setDoc(doc(editor(), 'notifications', 'n10'),
+    notif('n10', OWNER, { shoppingId: LIST_ID, senderId: OUTSIDER }))));
+await t('writer who is not a list member cannot reference the list', () =>
+  assertFails(setDoc(doc(outsider(), 'notifications', 'n11'),
+    notif('n11', OWNER, { shoppingId: LIST_ID, senderId: OUTSIDER }))));
+await t('recipient who is not a list member is rejected when shoppingId is sent', () =>
+  assertFails(setDoc(doc(editor(), 'notifications', 'n12'),
+    notif('n12', OUTSIDER, { shoppingId: LIST_ID, senderId: EDITOR }))));
+await t('shoppingId pointing at a missing list is rejected', () =>
+  assertFails(setDoc(doc(editor(), 'notifications', 'n13'),
+    notif('n13', OWNER, { shoppingId: 'ghost', senderId: EDITOR }))));
+await t('empty or oversized shoppingId is rejected', () => Promise.all([
+  assertFails(setDoc(doc(editor(), 'notifications', 'n14'), notif('n14', OWNER, { shoppingId: '' }))),
+  assertFails(setDoc(doc(editor(), 'notifications', 'n15'), notif('n15', OWNER, { shoppingId: 'x'.repeat(129) }))),
+]));
+await t('non-string shoppingId is rejected', () =>
+  assertFails(setDoc(doc(editor(), 'notifications', 'n16'), notif('n16', OWNER, { shoppingId: 42 }))));
+await t('senderId alone (no list) is accepted when it is the writer', () =>
+  assertSucceeds(setDoc(doc(editor(), 'notifications', 'n17'), notif('n17', OWNER, { senderId: EDITOR }))));
+await t('recipient may query only the unread notifications', () =>
+  assertSucceeds(getDocs(query(collection(owner(), 'notifications'),
+    where('userId', '==', OWNER), where('isRead', '==', false)))));
+await t('other user cannot query the unread feed of the recipient', () =>
+  assertFails(getDocs(query(collection(editor(), 'notifications'),
+    where('userId', '==', OWNER), where('isRead', '==', false)))));
 await t('id must match the document id', () =>
   assertFails(setDoc(doc(editor(), 'notifications', 'n8'), notif('nope', OWNER))));
 await t('recipient marks as read', () =>

@@ -87,7 +87,7 @@ class ProductSaveUseCase @Inject constructor(
 
         // The AI chat is the only surface this PR wires the warning into: this
         // message is what feeds back into the model's function-call response
-        // (see GeminiAiAgent/OpenRouterAiAgent: `.getOrNull()?.toString()`), so the
+        // (see GeminiAgent/OpenRouterAgent: `.getOrNull()?.toString()`), so the
         // assistant can mention the duplicate naturally in its reply to the user.
         val message = if (duplicate != null) {
             val adderName = duplicate.addedBy?.let { userRepository.getUserProfile(it).first()?.name }

@@ -2,6 +2,9 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateNotificationSettingsUseCase
@@ -20,7 +23,8 @@ import javax.inject.Inject
 @HiltViewModel
 internal class NotificationSettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
-    private val updateNotificationSettingsUseCase: UpdateNotificationSettingsUseCase
+    private val updateNotificationSettingsUseCase: UpdateNotificationSettingsUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NotificationSettingsUiState())
@@ -40,10 +44,12 @@ internal class NotificationSettingsViewModel @Inject constructor(
     private fun observeSettings() {
         settingsRepository.getSettings()
             .onEach { settings ->
-                _uiState.update { it.copy(
-                    notificationsEnabled = settings.notificationsEnabled,
-                    reminderTime = settings.reminderTime
-                ) }
+                _uiState.update {
+                    it.copy(
+                        notificationsEnabled = settings.notificationsEnabled,
+                        reminderTime = settings.reminderTime
+                    )
+                }
             }
             .launchIn(viewModelScope)
     }
@@ -51,6 +57,10 @@ internal class NotificationSettingsViewModel @Inject constructor(
     private fun updateNotificationSettings(enabled: Boolean, reminderTime: String) {
         viewModelScope.launch {
             updateNotificationSettingsUseCase(enabled, reminderTime)
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.SETTINGS_NOTIFICATIONS_TOGGLED,
+                mapOf(AnalyticsParams.ENABLED to enabled)
+            )
         }
     }
 

@@ -15,12 +15,12 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -33,10 +33,12 @@ private const val SURFACE_ALPHA = 0.5f
 fun ShareOptionsBottomSheet(
     onDismissRequest: () -> Unit,
     onInviteMember: () -> Unit,
-    onShareAsText: () -> Unit
+    onShareAsText: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    ModalBottomSheet(
+    CestouModalBottomSheet(
         onDismissRequest = onDismissRequest,
+        modifier = modifier,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
     ) {
         Column(
@@ -56,7 +58,7 @@ fun ShareOptionsBottomSheet(
                 onClick = onInviteMember,
                 shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = SURFACE_ALPHA),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().testTag("share_options_invite")
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -90,7 +92,7 @@ fun ShareOptionsBottomSheet(
                 onClick = onShareAsText,
                 shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = SURFACE_ALPHA),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().testTag("share_options_text")
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),

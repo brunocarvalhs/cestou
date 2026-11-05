@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,6 +48,7 @@ import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.components.UserAvatars
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatPrice
 import br.com.brunocarvalhs.howmuch.core.ui.utils.LocalCurrency
+import br.com.brunocarvalhs.howmuch.core.ui.utils.exposeTestTags
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.common.IconProduct
 import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
@@ -141,27 +143,44 @@ internal fun ShoppingItem(
         // Dropdown Menu ativado pelo Long Press
         DropdownMenu(
             expanded = showMenu,
-            onDismissRequest = { showMenu = false }
+            onDismissRequest = { showMenu = false },
+            modifier = Modifier.exposeTestTags()
         ) {
             DropdownMenuItem(
                 text = { Text(stringResource(CoreR.string.action_edit)) },
                 leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                onClick = { showMenu = false; onEditClick() }
+                modifier = Modifier.testTag("home_menu_edit"),
+                onClick = {
+                    showMenu = false
+                    onEditClick()
+                }
             )
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.action_duplicate)) },
                 leadingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null) },
-                onClick = { showMenu = false; onDuplicateClick() }
+                modifier = Modifier.testTag("home_menu_duplicate"),
+                onClick = {
+                    showMenu = false
+                    onDuplicateClick()
+                }
             )
             DropdownMenuItem(
                 text = { Text(stringResource(CoreR.string.action_share)) },
                 leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) },
-                onClick = { showMenu = false; onShareClick() }
+                modifier = Modifier.testTag("home_menu_share"),
+                onClick = {
+                    showMenu = false
+                    onShareClick()
+                }
             )
             DropdownMenuItem(
                 text = { Text(stringResource(CoreR.string.action_finish)) },
                 leadingIcon = { Icon(Icons.Default.CheckCircle, contentDescription = null) },
-                onClick = { showMenu = false; onFinishClick() }
+                modifier = Modifier.testTag("home_menu_finish"),
+                onClick = {
+                    showMenu = false
+                    onFinishClick()
+                }
             )
             HorizontalDivider()
             DropdownMenuItem(
@@ -169,7 +188,11 @@ internal fun ShoppingItem(
                 leadingIcon = {
                     Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                 },
-                onClick = { showMenu = false; onDeleteClick() }
+                modifier = Modifier.testTag("home_menu_delete"),
+                onClick = {
+                    showMenu = false
+                    onDeleteClick()
+                }
             )
         }
     }

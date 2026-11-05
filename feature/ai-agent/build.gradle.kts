@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:domain"))
     implementation(project(":core:ai"))
+    implementation(project(":core:analytics"))
     implementation(project(":core:remote-config"))
 
     implementation(libs.timber)
@@ -28,6 +29,8 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
+
+    testImplementation(libs.ktor.client.mock)
 }
 
 secrets {

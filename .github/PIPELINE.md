@@ -35,7 +35,28 @@ The following secrets must be configured in your GitHub repository (`Settings > 
 
 ---
 
+## 🔥 Firestore Rules
+
+`firestore.rules` is **not** deployed by any workflow here: publish it by hand with
+`firebase deploy --only firestore:rules` from a maintainer machine.
+
+- **Order matters when the rules and the app change together.** Publish the rules *first* when the
+  app starts sending new fields (the previous rules reject unknown keys, so every write from the new
+  app would fail until they are live). Rules that only get stricter go *after* the app is in use.
+- `firestore-rules.yml` runs `firestore-tests/rules.test.mjs` against the local Firestore emulator on
+  every pull request that touches `firestore.rules`, `firestore-tests/` or `firebase.json`. It never
+  talks to the real project. To run it locally:
+
+  ```
+  cd firestore-tests
+  npm install --no-save @firebase/rules-unit-testing firebase
+  firebase emulators:exec --only firestore --project demo-cestou "node rules.test.mjs"
+  ```
+
+---
+
 ## 🛠️ Infrastructure Maintenance
 
 - **Danger JS**: Rules are dynamically loaded from `pipeline-config.yaml`. If you need to add a new naming convention or architectural rule, update the `danger.rules` section in the YAML.
 - **Issue Forms**: The bug and feature templates use GitHub YAML forms located in `ISSUE_TEMPLATE/`.
+- **Runner disk space**: the `codeql` and `instrumented-tests` jobs in `tests.yml` run `.github/scripts/free-disk-space.sh` right after checkout. Both jobs build a full APK (one under the CodeQL tracer, the other to install on an emulator) or download an emulator system image, and have failed with "No space left on device" on the hosted `ubuntu-24.04` runner once its preinstalled toolchains (`.NET`, Haskell, Swift) and cached Docker images were already consuming most of the free disk. If a future job hits the same error, add it to that script's call sites rather than duplicating the cleanup logic.

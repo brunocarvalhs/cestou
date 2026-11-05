@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -30,6 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -100,7 +100,7 @@ internal fun ProductForm(
             value = uiState.name,
             onValueChange = intent.onNameChange,
             label = { Text(stringResource(R.string.shopping_list_label_product_name)) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("product_form_name_field"),
             singleLine = true,
             enabled = !uiState.isSaving,
             shape = RoundedCornerShape(12.dp)
@@ -139,6 +139,7 @@ internal fun ProductForm(
             Box(
                 modifier = Modifier
                     .matchParentSize()
+                    .testTag("product_form_category_picker")
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
@@ -158,7 +159,7 @@ internal fun ProductForm(
                 value = uiState.quantity,
                 onValueChange = intent.onQuantityChange,
                 label = { Text(stringResource(R.string.shopping_list_label_quantity)) },
-                modifier = Modifier.weight(QUANTITY_FIELD_WEIGHT),
+                modifier = Modifier.weight(QUANTITY_FIELD_WEIGHT).testTag("product_form_quantity_field"),
                 singleLine = true,
                 enabled = !uiState.isSaving,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -170,7 +171,7 @@ internal fun ProductForm(
                 onValueChange = intent.onPriceChange,
                 label = { Text(stringResource(R.string.shopping_list_label_unit_price)) },
                 prefix = { Text(currencyFormatter.currency?.symbol ?: "R$") },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).testTag("product_form_price_field"),
                 singleLine = true,
                 enabled = !uiState.isSaving,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
@@ -184,6 +185,7 @@ internal fun ProductForm(
         CestouButton(
             text = stringResource(R.string.product_form_save),
             onClick = intent.onSave,
+            modifier = Modifier.testTag("product_form_save"),
             enabled = uiState.isValid && !uiState.isSaving
         )
 
@@ -208,6 +210,7 @@ internal fun ProductForm(
         CestouButton(
             text = stringResource(R.string.product_form_camera_button),
             onClick = onNavigateToPhoto,
+            modifier = Modifier.testTag("product_form_camera_button"),
             enabled = !uiState.isSaving,
             trailingIcon = Icons.Default.CameraAlt,
             containerColor = MaterialTheme.colorScheme.surfaceVariant,

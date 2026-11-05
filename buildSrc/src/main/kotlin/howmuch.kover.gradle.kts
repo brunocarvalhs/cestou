@@ -52,6 +52,7 @@ dependencies {
     kover(project(":feature:chat"))
     kover(project(":feature:cart"))
     kover(project(":feature:ai-agent"))
+    kover(project(":feature:feedback"))
 }
 
 kover {
@@ -70,7 +71,9 @@ kover {
                     "*.databinding.*",
                     "*Hilt_*",
                     "dagger.hilt.internal.*",
-                    "hilt_aggregated_deps.*"
+                    "hilt_aggregated_deps.*",
+                    "*.contract.*",
+                    "*.exception.*"
                 )
                 annotatedBy("dagger.Module", "dagger.hilt.InstallIn")
                 // Funções @Preview só existem para o Android Studio; não são código do app nem testadas.
@@ -103,13 +106,6 @@ kover {
                     "*.ShoppingReminderScheduler*",
                     "*.ShoppingReminderWorker*"
                 )
-                // Provedores de IA que constroem o cliente do SDK (GenerativeModel / Ktor
-                // HttpClient) como campo privado inline em vez de injetado — não testável sem
-                // um refactor de DI (fora de escopo aqui; considerar injetar o client depois).
-                classes(
-                    "*.GeminiAiAgent*",
-                    "*.OpenRouterAiAgent*"
-                )
                 // Ponto de entrada do app: Activity que só monta o Compose root (setContent)
                 // e faz roteamento de deep link, e a Application que só registra o Hilt/Timber
                 // no boot — mesma categoria de presentation.screen, sem teste de layout dedicado.
@@ -122,11 +118,31 @@ kover {
                 // unit-testing (would just be mocking the SDK's own static initializers).
                 classes("*.initializer.*")
                 // ML Kit / CameraX wrappers (OCR, image analysis) — need instrumentation, not
-                // unit-testable in plain JVM tests without a real Android environment.
+                // unit-testable in plain JVM tests without a real Android environment. Same
+                // category for the Composable AndroidView wrappers around CameraX/ZXing preview
+                // surfaces below: they host a real Android Camera/SurfaceView, not fakeable with
+                // Robolectric's shadow layer.
+                // "*X*", not "*.X*": the Compose compiler hoists a file's composable lambdas
+                // (including ones inside e.g. a @Preview function - see below) into a sibling
+                // "ComposableSingletons$<File>Kt" class, named with "$", not ".", right before
+                // the file's own Kt suffix - a leading "*." anchor misses that synthetic class
+                // entirely and only catches the file's own top-level "<File>Kt" class.
                 classes(
-                    "*.MlKitImageAnalyzerService*",
-                    "*.ProductImageTextRecognizer*"
+                    "*MlKitImageAnalyzerService*",
+                    "*ProductImageTextRecognizer*",
+                    "*CameraCaptureViewKt*",
+                    "*CameraPreviewKt*",
+                    "*QrCodeScannerKt*"
                 )
+                // Dedicated *Previews.kt files (as opposed to a @Preview function living beside
+                // real screen code in the same file, already handled by the annotatedBy(Preview)
+                // filter above): that filter only matches classes/methods that themselves carry
+                // the annotation in bytecode, but a @Preview function's trailing composable
+                // lambda(s) get hoisted into the ComposableSingletons$*Kt class described above,
+                // which does NOT carry the parent function's annotation - so those lambdas still
+                // show up as "missed" lines in the layout report. Safe to exclude by filename
+                // only where the whole file is preview-only.
+                classes("*AiChatScreenPreviewsKt*")
                 // *InitializerImpl classes: by project convention (see feature-layer whitelist)
                 // these only wire NavGraphBuilder.composable<X> { ... } blocks per feature, same
                 // category as the already-excluded *.navigation.*Graph* wiring.
@@ -138,7 +154,7 @@ kover {
             filtersAppend { excludes { classes(LAYOUT_CLASSES) } }
             verify {
                 rule {
-                    minBound(80)
+                    minBound(85)
                 }
             }
         }
@@ -148,7 +164,7 @@ kover {
             filtersAppend { includes { classes(LAYOUT_CLASSES) } }
             verify {
                 rule {
-                    minBound(80)
+                    minBound(85)
                 }
             }
         }

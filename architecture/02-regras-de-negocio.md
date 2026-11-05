@@ -26,7 +26,7 @@
 | 2.2 | Categoria padrão: `"Outros"`. | `Product.kt` |
 | 2.3 | Cada produto guarda histórico de atividades (`ADDED`, `EDITED`, `PURCHASED`). Quem adicionou, editou por último e comprou são derivados do histórico. | `Product.kt`, `ProductActivity.kt` |
 | 2.4 | Limpar comprados remove os produtos marcados como comprados da lista. | `core/domain/.../usecase/ShoppingClearPurchasedUseCase.kt` e `feature/products/.../ShoppingClearPurchasedUseCaseImpl.kt` |
-| 2.5 | Verificação de duplicidade antes de salvar, e comparação de preços entre listas/mercados. | `feature/products/domain/usecase/ProductDuplicateCheckUseCase.kt`, `PriceComparisonUseCase.kt` |
+| 2.5 | Verificação de duplicidade antes de salvar. (A tool de IA `compare_prices`/`PriceComparisonUseCase.kt` foi removida em `sdd-017`: retornava preços fictícios hardcoded apresentados como reais — ver `.specs/sdd-017-ai-agent-safety/tasks.md`, B-09.) | `feature/products/domain/usecase/ProductDuplicateCheckUseCase.kt` |
 | 2.6 | Ordenação de produtos. | `core/domain/.../usecase/SortProductsUseCase.kt` |
 
 ## 3. Assinatura (FREE e PRO)
@@ -38,7 +38,7 @@ Entitlement reduzido a dois estados, sem dados de compra (`core/domain/.../model
 | 3.1 | Listas de compras (feature shopping) | Gate PRO aplicado na navegação; o `isPro` vem do `SubscriptionRepository`. | `feature/shopping/presentation/viewmodel/ShoppingSubscriptionGateViewModel.kt`; `feature/shopping/navigation/ShoppingGraph.kt` |
 | 3.2 | Carrinho | Mesmo padrão de gate PRO. | `feature/cart/presentation/viewmodel/CartSubscriptionGateViewModel.kt`; `feature/cart/navigation/CartGraph.kt` |
 | 3.3 | Chat com IA | PRO: mensagens ilimitadas. FREE: **uma** mensagem gratuita, controlada por `AiTrialRepository`. Enviar fica bloqueado quando não é PRO e a mensagem gratuita já foi usada. | `feature/chat/.../ChatAiGateViewModel.kt` |
-| 3.4 | Ações de IA marcadas com `requiresPro` | Se a ação exige PRO e o usuário não é PRO, a ação não é executada. | `feature/ai_agent/data/service/GeminiAiAgent.kt` (~linha 134); `OpenRouterAiAgent.kt` (~linha 176) |
+| 3.4 | Ações de IA marcadas com `requiresPro` | Se a ação exige PRO e o usuário não é PRO, a ação não é executada. | `feature/ai_agent/data/service/GeminiAgent.kt` (~linha 134); `OpenRouterAgent.kt` (~linha 176) |
 | 3.5 | Tela de assinatura | Mostra o estado PRO e o botão de assinar quando é FREE. | `feature/subscription/presentation/screen/PaywallScreen.kt`; `feature/profile/presentation/screen/ProfileScreen.kt` |
 
 ## 4. Conta, perfil e configurações

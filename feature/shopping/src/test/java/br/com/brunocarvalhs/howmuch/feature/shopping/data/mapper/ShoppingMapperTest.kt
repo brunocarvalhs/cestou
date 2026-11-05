@@ -50,7 +50,7 @@ class ShoppingMapperTest {
     @Test
     fun `toDomain should map model to domain entity`() {
         val result = model.toDomain()
-        
+
         assertEquals(domain.id, result.id)
         assertEquals(domain.title, result.title)
         assertEquals(domain.description, result.description)
@@ -70,7 +70,7 @@ class ShoppingMapperTest {
     @Test
     fun `toModel should map domain entity to model`() {
         val result = domain.toModel()
-        
+
         assertEquals(model.id, result.id)
         assertEquals(model.title, result.title)
         assertEquals(model.description, result.description)
@@ -85,5 +85,13 @@ class ShoppingMapperTest {
         assertEquals(model.budget, result.budget)
         assertEquals(model.position, result.position)
         assertEquals(model.establishment, result.establishment)
+    }
+
+    @Test
+    fun `finishedAt survives the domain to model round trip`() {
+        val finished = domain.copy(status = Shopping.Status.FINISH, finishedAt = 1_700_000_000_000L)
+
+        assertEquals(finished, finished.toModel().toDomain())
+        assertEquals(null, domain.toModel().finishedAt)
     }
 }

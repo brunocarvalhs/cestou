@@ -1,11 +1,18 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
+import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.User
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.exception.OwnershipRequiredException
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -13,7 +20,8 @@ import org.junit.Test
 class ShoppingUpdateUseCaseTest {
 
     private val repository = mockk<ShoppingRepository>()
-    private val useCase = ShoppingUpdateUseCase(repository)
+    private val authService = mockk<AuthService>()
+    private val useCase = ShoppingUpdateUseCase(repository, authService)
 
     private val shopping = Shopping(
         id = "list1",
@@ -21,8 +29,8 @@ class ShoppingUpdateUseCaseTest {
         description = "",
         price = 0.0,
         status = Shopping.Status.NEW,
-        users = emptyList(),
-        roles = emptyMap()
+        users = listOf(OWNER_ID),
+        roles = mapOf(OWNER_ID to User.Role.OWNER.name)
     )
 
     @Test
@@ -111,6 +119,104 @@ class ShoppingUpdateUseCaseTest {
         assertTrue(result.isSuccess)
         coVerify { repository.updateFields("list1", mapOf("price" to UPDATED_PRICE)) }
     }
+
+    @Test
+    fun `execute denies changing users or roles when caller is not the owner`() = runTest {
+        coEvery { repository.getById("list1") } returns shopping
+        every { authService.currentUser } returns AuthenticatedUser(id = MEMBER_ID)
+
+        val result = useCase.execute(
+            arguments = mapOf("shopping_id" to "list1", "roles" to mapOf(MEMBER_ID to User.Role.OWNER.name)),
+            session = mockk(relaxed = true),
+            metadata = emptyMap()
+        )
+
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is OwnershipRequiredException)
+        coVerify(exactly = 0) { repository.updateFields(any(), any()) }
+    }
+
+    @Test
+    fun `execute stamps finishedAt when the status becomes FINISH, even in lowercase`() = runTest {
+        coEvery { repository.getById("list1") } returns shopping
+        val fields = slot<Map<String, Any?>>()
+        coEvery { repository.updateFields("list1", capture(fields)) } returns Result.success(Unit)
+        val before = System.currentTimeMillis()
+
+        useCase.execute(
+            arguments = mapOf("shopping_id" to "list1", "status" to "finish"),
+            session = mockk(relaxed = true),
+            metadata = emptyMap()
+        )
+
+        assertEquals("FINISH", fields.captured["status"])
+        assertTrue((fields.captured["finishedAt"] as Long) >= before)
+    }
+
+    @Test
+    fun `invoke stamps finishedAt for the quick-finish write`() = runTest {
+        val fields = slot<Map<String, Any?>>()
+        coEvery { repository.updateFields("list1", capture(fields)) } returns Result.success(Unit)
+
+        useCase("list1", mapOf("status" to "FINISH"))
+
+        assertEquals(setOf("status", "finishedAt"), fields.captured.keys)
+    }
+
+    @Test
+    fun `invoke does not stamp finishedAt for other statuses`() = runTest {
+        coEvery { repository.updateFields(any(), any()) } returns Result.success(Unit)
+
+        useCase("list1", mapOf("status" to "IN_PROGRESS"))
+
+        coVerify { repository.updateFields("list1", mapOf("status" to "IN_PROGRESS")) }
+    }
+
+    @Test
+    fun `execute allows changing users and roles when caller is the owner`() = runTest {
+        coEvery { repository.getById("list1") } returns shopping
+        coEvery { repository.updateFields(any(), any()) } returns Result.success(Unit)
+        every { authService.currentUser } returns AuthenticatedUser(id = OWNER_ID)
+
+        val result = useCase.execute(
+            arguments = mapOf(
+                "shopping_id" to "list1",
+                "users" to listOf(OWNER_ID, MEMBER_ID),
+                "roles" to mapOf(OWNER_ID to User.Role.OWNER.name, MEMBER_ID to User.Role.EDITOR.name)
+            ),
+            session = mockk(relaxed = true),
+            metadata = emptyMap()
+        )
+
+        assertTrue(result.isSuccess)
+        coVerify {
+            repository.updateFields(
+                "list1",
+                mapOf(
+                    "users" to listOf(OWNER_ID, MEMBER_ID),
+                    "roles" to mapOf(OWNER_ID to User.Role.OWNER.name, MEMBER_ID to User.Role.EDITOR.name)
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `execute accepts a lowercase status from the LLM`() = runTest {
+        coEvery { repository.getById("list1") } returns shopping
+        val fields = slot<Map<String, Any?>>()
+        coEvery { repository.updateFields("list1", capture(fields)) } returns Result.success(Unit)
+
+        val result = useCase.execute(
+            arguments = mapOf("shopping_id" to "list1", "status" to "finish"),
+            session = mockk(relaxed = true),
+            metadata = emptyMap()
+        )
+
+        assertTrue(result.isSuccess)
+        assertEquals(Shopping.Status.FINISH.name, fields.captured["status"])
+    }
 }
 
 private const val UPDATED_PRICE = 10.5
+private const val OWNER_ID = "owner-user-id"
+private const val MEMBER_ID = "member-user-id"

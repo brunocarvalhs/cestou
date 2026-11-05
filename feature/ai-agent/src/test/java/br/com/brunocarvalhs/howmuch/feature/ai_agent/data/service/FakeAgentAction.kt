@@ -7,6 +7,7 @@ import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 internal class FakeAgentAction(
     override val id: String = "fake_action",
     override val requiresPro: Boolean = false,
+    override val requiresConfirmation: Boolean = false,
     private val result: Result<Any?> = Result.success("ok"),
     private val throwable: Throwable? = null
 ) : AgentAction<Any?> {

@@ -2,7 +2,21 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
+    <ID>ComposableParamOrder:ProductAnalysisConfirmation.kt$ProductAnalysisConfirmation</ID>
+    <ID>ComposableParamOrder:ProductForm.kt$ProductForm</ID>
+    <ID>ComposableParamOrder:ProductPhotoForm.kt$ProductPhotoForm</ID>
     <ID>Filename:ProductsRoutes.kt$br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductsRoutes.kt</ID>
-    <ID>TooManyFunctions:ProductRepositoryImplTest.kt$ProductRepositoryImplTest</ID>
+    <ID>LambdaParameterEventTrailing:ProductAnalysisConfirmation.kt$onRetake</ID>
+    <ID>MatchingDeclarationName:ProductsRoutes.kt$ProductPickerRoute : NavKey</ID>
+    <ID>ModifierNotUsedAtRoot:ProductScreen.kt$modifier = modifier.padding(innerPadding)</ID>
+    <ID>ParameterNaming:CameraCaptureView.kt$onImageCaptured</ID>
+    <ID>ReturnCount:ProductActivityModel.kt$ProductActivityModel.Companion$fun fromMap(map: Map&lt;String, Any?&gt;): ProductActivityModel?</ID>
+    <ID>ReturnCount:ProductImageTextRecognizer.kt$ProductImageTextRecognizer$private fun isLikelyProductName(text: String): Boolean</ID>
+    <ID>ReturnCount:ProductListSaveUseCase.kt$ProductListSaveUseCase$override suspend fun execute( arguments: Map&lt;String, Any?&gt;, session: AiSession, metadata: Map&lt;String, Any?&gt; ): Result&lt;List&lt;Product&gt;&gt;</ID>
+    <ID>ReturnCount:ProductRepositoryImpl.kt$ProductRepositoryImpl$private suspend fun analyzeImageWithGemini(bitmap: Bitmap): List&lt;Product&gt;</ID>
+    <ID>ReturnCount:ProductSaveUseCase.kt$ProductSaveUseCase$override suspend fun execute( arguments: Map&lt;String, Any?&gt;, session: AiSession, metadata: Map&lt;String, Any?&gt; ): Result&lt;String&gt;</ID>
+    <ID>ReturnCount:RecipeAddToListUseCase.kt$RecipeAddToListUseCase$override suspend fun execute( arguments: Map&lt;String, Any?&gt;, session: AiSession, metadata: Map&lt;String, Any?&gt; ): Result&lt;Unit&gt;</ID>
+    <ID>TooGenericExceptionCaught:CameraCaptureView.kt$exc: Exception</ID>
+    <ID>TooGenericExceptionThrown:ShoppingClearPurchasedUseCaseImpl.kt$ShoppingClearPurchasedUseCaseImpl$throw Exception("Shopping ID is required")</ID>
   </CurrentIssues>
 </SmellBaseline>

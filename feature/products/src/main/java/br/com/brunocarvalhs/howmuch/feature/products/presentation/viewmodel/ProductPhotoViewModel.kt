@@ -7,14 +7,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
+import br.com.brunocarvalhs.howmuch.core.analytics.service.FirstTimeEventTracker
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackMoment
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
+import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.domain.exception.ImageUnreadableException
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductAnalyzeImageUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.helper.ProductAddSession
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.intent.ProductPhotoIntent
 import br.com.brunocarvalhs.howmuch.feature.products.presentation.state.ProductPhotoUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,13 +33,18 @@ import javax.inject.Inject
 
 private const val SOURCE_PHOTO_SCAN = "photo_scan"
 
+private const val FEATURE_PHOTO_SCAN = "photo_scan"
+
 @HiltViewModel
 internal class ProductPhotoViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle,
     private val analyzeImageUseCase: ProductAnalyzeImageUseCase,
     private val saveUseCase: ProductSaveUseCase,
-    private val analyticsTracker: AnalyticsTracker
+    private val analyticsTracker: AnalyticsTracker,
+    private val firstTimeEventTracker: FirstTimeEventTracker,
+    private val addSession: ProductAddSession,
+    private val feedbackPromptRequester: FeedbackPromptRequester
 ) : ViewModel() {
     private val shopping = savedStateHandle.toRoute<ProductPickerRoute>(ProductPickerRoute.typeMap).shopping
 
@@ -41,7 +52,9 @@ internal class ProductPhotoViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     init {
-        analyticsTracker.trackScreenView(screenName = "product_photo_scan", screenClass = "ProductPhotoViewModel")
+        addSession.onOpened()
+        analyticsTracker.trackAction(AnalyticsElements.PRODUCT_PICKER_PHOTO_SCAN_OPENED)
+        firstTimeEventTracker.trackFeatureFirstUsed(FEATURE_PHOTO_SCAN)
     }
 
     val intent = ProductPhotoIntent(
@@ -61,15 +74,16 @@ internal class ProductPhotoViewModel @Inject constructor(
     }
 
     private fun retake() {
+        analyticsTracker.trackAction(AnalyticsElements.PRODUCT_PHOTO_RETAKE)
         _uiState.update { it.copy(capturedImageUri = null, analysisResult = emptyList(), errorMessage = null) }
     }
 
     private fun analyzeImage() {
         val uri = _uiState.value.capturedImageUri ?: return
-        
+
         viewModelScope.launch {
             _uiState.update { it.copy(isAnalyzing = true, errorMessage = null) }
-            
+
             analyzeImageUseCase(uri.toString())
                 .onSuccess { products ->
                     analyticsTracker.trackEvent(
@@ -104,8 +118,7 @@ internal class ProductPhotoViewModel @Inject constructor(
                     analyticsTracker.trackEvent(
                         AnalyticsEvents.PRODUCT_PHOTO_SCAN_FAILED,
                         mapOf(
-                            AnalyticsParams.REASON to
-                                (error.message ?: error::class.simpleName.orEmpty())
+                            AnalyticsParams.REASON to error::class.simpleName.orEmpty()
                         )
                     )
                     _uiState.update {
@@ -122,6 +135,7 @@ internal class ProductPhotoViewModel @Inject constructor(
         viewModelScope.launch {
             saveUseCase(product = product, shoppingId = shopping.id)
                 .onSuccess {
+                    addSession.onProductAdded()
                     analyticsTracker.trackEvent(
                         AnalyticsEvents.PRODUCT_ADDED,
                         mapOf(
@@ -130,6 +144,7 @@ internal class ProductPhotoViewModel @Inject constructor(
                             AnalyticsParams.SOURCE to SOURCE_PHOTO_SCAN
                         )
                     )
+                    feedbackPromptRequester.onMoment(FeedbackMoment.PHOTO_SCAN_CONFIRMED)
                 }
             _uiState.update { state ->
                 state.copy(
@@ -162,6 +177,7 @@ internal class ProductPhotoViewModel @Inject constructor(
 
         viewModelScope.launch {
             items.forEach { product -> saveUseCase(product = product, shoppingId = shopping.id) }
+            addSession.onProductAdded()
             analyticsTracker.trackEvent(
                 AnalyticsEvents.PRODUCT_ADDED,
                 mapOf(
@@ -170,6 +186,7 @@ internal class ProductPhotoViewModel @Inject constructor(
                     AnalyticsParams.ITEMS_COUNT to items.size
                 )
             )
+            feedbackPromptRequester.onMoment(FeedbackMoment.PHOTO_SCAN_CONFIRMED)
             _uiState.update {
                 it.copy(
                     analysisResult = emptyList(),

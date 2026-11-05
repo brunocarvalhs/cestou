@@ -7,7 +7,7 @@ import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getString
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
-import kotlinx.coroutines.flow.first
+import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,7 +27,10 @@ class ShoppingReopenUseCase @Inject constructor(
 
     suspend operator fun invoke(shopping: Shopping): Result<Unit> = repository.updateFields(
         shopping.id,
-        mapOf("status" to Shopping.Status.IN_PROGRESS.name)
+        mapOf(
+            "status" to Shopping.Status.IN_PROGRESS.name,
+            "finishedAt" to NetworkService.FieldOp.Delete
+        )
     )
 
     override suspend fun execute(

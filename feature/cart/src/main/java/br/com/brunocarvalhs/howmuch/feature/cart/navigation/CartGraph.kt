@@ -3,7 +3,6 @@ package br.com.brunocarvalhs.howmuch.feature.cart.navigation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -15,7 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.currentStateAsState
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
@@ -25,6 +26,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
 import br.com.brunocarvalhs.howmuch.core.ui.components.ShareOptionsBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.ConfirmItemContent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.EditItemContent
@@ -67,6 +69,10 @@ private fun NavGraphBuilder.cartDestination(
         val parentEntry = remember(backStackEntry) {
             navigator.navController.getBackStackEntry<CartFlow>()
         }
+
+        /** Avoids NavBackStackEntry.getViewModelStore() throwing after `parentEntry` is destroyed (Crashlytics fatal). */
+        val parentEntryLifecycleState by parentEntry.lifecycle.currentStateAsState()
+        if (parentEntryLifecycleState == Lifecycle.State.DESTROYED) return@composable
         val viewModel: CartViewModel = hiltViewModel(parentEntry)
         viewModel.setNavigator(navigator)
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -110,6 +116,10 @@ private fun NavGraphBuilder.finishPurchaseDestination(navigator: Navigator) {
         val parentEntry = remember(backStackEntry) {
             navigator.navController.getBackStackEntry<CartFlow>()
         }
+
+        /** Avoids NavBackStackEntry.getViewModelStore() throwing after `parentEntry` is destroyed (Crashlytics fatal). */
+        val parentEntryLifecycleState by parentEntry.lifecycle.currentStateAsState()
+        if (parentEntryLifecycleState == Lifecycle.State.DESTROYED) return@dialog
         val listViewModel: CartViewModel = hiltViewModel(parentEntry)
         val listUiState by listViewModel.uiState.collectAsStateWithLifecycle()
         val snackbarHostState = remember { SnackbarHostState() }
@@ -122,7 +132,7 @@ private fun NavGraphBuilder.finishPurchaseDestination(navigator: Navigator) {
             }
         }
 
-        ModalBottomSheet(
+        CestouModalBottomSheet(
             onDismissRequest = { navigator.goBack() },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {
@@ -136,7 +146,8 @@ private fun NavGraphBuilder.finishPurchaseDestination(navigator: Navigator) {
                     )
                 }
                 SnackbarHost(
-                    hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter)
+                    hostState = snackbarHostState,
+                    modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }
         }
@@ -152,7 +163,7 @@ private fun NavGraphBuilder.confirmItemDestination(navigator: Navigator) {
         val viewModel: ConfirmItemViewModel = hiltViewModel()
         viewModel.setNavigator(navigator)
 
-        ModalBottomSheet(
+        CestouModalBottomSheet(
             onDismissRequest = { navigator.goBack() },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {
@@ -175,7 +186,7 @@ private fun NavGraphBuilder.editItemDestination(navigator: Navigator) {
         val viewModel: EditItemViewModel = hiltViewModel()
         viewModel.setNavigator(navigator)
 
-        ModalBottomSheet(
+        CestouModalBottomSheet(
             onDismissRequest = { navigator.goBack() },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {
@@ -205,12 +216,16 @@ private fun NavGraphBuilder.productHistoryDestination(navigator: Navigator) {
         val parentEntry = remember(backStackEntry) {
             navigator.navController.getBackStackEntry<CartFlow>()
         }
+
+        /** Avoids NavBackStackEntry.getViewModelStore() throwing after `parentEntry` is destroyed (Crashlytics fatal). */
+        val parentEntryLifecycleState by parentEntry.lifecycle.currentStateAsState()
+        if (parentEntryLifecycleState == Lifecycle.State.DESTROYED) return@dialog
         // Reuses the parent CartViewModel's already-resolved memberProfiles — no new
         // UserRepository call for this sheet (T10 done-when).
         val listViewModel: CartViewModel = hiltViewModel(parentEntry)
         val listUiState by listViewModel.uiState.collectAsStateWithLifecycle()
 
-        ModalBottomSheet(
+        CestouModalBottomSheet(
             onDismissRequest = { navigator.goBack() },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {
@@ -229,6 +244,10 @@ private fun NavGraphBuilder.shareOptionsDestination(navigator: Navigator) {
         val parentEntry = remember(backStackEntry) {
             navigator.navController.getBackStackEntry<CartFlow>()
         }
+
+        /** Avoids NavBackStackEntry.getViewModelStore() throwing after `parentEntry` is destroyed (Crashlytics fatal). */
+        val parentEntryLifecycleState by parentEntry.lifecycle.currentStateAsState()
+        if (parentEntryLifecycleState == Lifecycle.State.DESTROYED) return@dialog
         val listViewModel: CartViewModel = hiltViewModel(parentEntry)
         val listUiState by listViewModel.uiState.collectAsStateWithLifecycle()
 

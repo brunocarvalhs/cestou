@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -58,10 +59,13 @@ import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.CurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
+import br.com.brunocarvalhs.howmuch.core.ui.utils.exposeTestTags
 import br.com.brunocarvalhs.howmuch.feature.cart.R
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.CartBottomBar
+import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.CartBudgetLines
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.CartDetailHeader
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.ProductListItem
+import br.com.brunocarvalhs.howmuch.feature.cart.presentation.components.budgetAlertText
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.intent.CartIntent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.AiDockState
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.CartUiState
@@ -120,6 +124,15 @@ internal fun CartScreen(
     }
 
     val listUpdatedMessage = stringResource(R.string.shopping_list_updated)
+    val budgetAlertMessage = uiState.budgetAlert?.let { budgetAlertText(it) }
+
+    // O aviso aparece uma vez; ao mostrar, avisa o ViewModel, que reporta o evento e limpa o estado.
+    LaunchedEffect(uiState.budgetAlert) {
+        if (budgetAlertMessage != null) {
+            snackbarHostState.showSnackbar(message = budgetAlertMessage, duration = SnackbarDuration.Long)
+            intent.onBudgetAlertShown()
+        }
+    }
 
     LaunchedEffect(uiState.products.size) {
         if (uiState.products.isNotEmpty()) {
@@ -157,11 +170,18 @@ internal fun CartScreen(
                     description = uiState.shopping?.description.orEmpty(),
                     emoji = uiState.shopping?.emoji,
                     onBack = onBack,
+                    footer = {
+                        CartBudgetLines(
+                            listProgress = uiState.listBudgetProgress,
+                            monthProgress = uiState.monthProgress
+                        )
+                    },
                     actions = {
                         IconButton(
                             onClick = {
                                 intent.onShareShopping()
-                            }
+                            },
+                            modifier = Modifier.testTag("cart_share_button")
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Share,
@@ -173,7 +193,8 @@ internal fun CartScreen(
                         IconButton(
                             onClick = {
                                 isUiVisible = true
-                            }
+                            },
+                            modifier = Modifier.testTag("cart_more_button")
                         ) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
@@ -184,12 +205,14 @@ internal fun CartScreen(
                         }
                         DropdownMenu(
                             expanded = isUiVisible,
-                            onDismissRequest = { isUiVisible = false }
+                            onDismissRequest = { isUiVisible = false },
+                            modifier = Modifier.exposeTestTags()
                         ) {
                             DropdownMenuItem(
                                 text = {
                                     Text(text = stringResource(R.string.shopping_list_edit_list_title))
                                 },
+                                modifier = Modifier.testTag("cart_menu_edit"),
                                 onClick = {
                                     isUiVisible = false
                                     onEditShopping()
@@ -198,11 +221,13 @@ internal fun CartScreen(
                             if (!isLocked) {
                                 DropdownMenuItem(
                                     text = { Text(text = stringResource(R.string.shopping_list_menu_clear_purchased)) },
+                                    modifier = Modifier.testTag("cart_menu_clear_purchased"),
                                     onClick = { intent.onClearPurchased() }
                                 )
                             } else {
                                 DropdownMenuItem(
                                     text = { Text(text = stringResource(R.string.shopping_list_menu_clear_purchased)) },
+                                    modifier = Modifier.testTag("cart_menu_clear_purchased"),
                                     onClick = { intent.onClearPurchased() }
                                 )
                             }
@@ -310,6 +335,7 @@ internal fun CartScreen(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(16.dp)
+                        .testTag("cart_ai_fab")
                 ) {
                     Icon(
                         imageVector = Icons.Default.AutoAwesome,
@@ -322,7 +348,6 @@ internal fun CartScreen(
         }
     }
 }
-
 
 private val previewShopping = Shopping(
     id = "1",

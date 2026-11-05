@@ -9,6 +9,7 @@ import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.FirebaseUserMetadata
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.mockk.coEvery
@@ -50,6 +51,7 @@ class FirebaseAuthServiceTest {
         every { displayName } returns "User"
         every { phoneNumber } returns null
         every { photoUrl } returns null
+        every { metadata } returns mockk<FirebaseUserMetadata> { every { creationTimestamp } returns CREATED_AT }
         every { this@mockk.isAnonymous } returns isAnonymous
     }
 
@@ -304,6 +306,16 @@ class FirebaseAuthServiceTest {
     }
 
     @Test
+    fun `authState carries the account creation time for the analytics age bucket`() = runTest {
+        every { auth.currentUser } returns fakeUser()
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        service.authState.test {
+            assertEquals(CREATED_AT, awaitItem()?.createdAt)
+        }
+    }
+
+    @Test
     fun `updateDisplayName updates the Firebase profile and publishes the new name`() = runTest {
         // UserProfileChangeRequest.Builder calls TextUtils, which is a stub on the plain JVM.
         mockkStatic(TextUtils::class)
@@ -373,5 +385,9 @@ class FirebaseAuthServiceTest {
         verify { auth.signOut() }
         coVerify(exactly = 0) { storage.save("synced_user_id", any<String>()) }
         unmockkStatic(GoogleAuthProvider::class)
+    }
+
+    private companion object {
+        const val CREATED_AT = 1_700_000_000_000L
     }
 }

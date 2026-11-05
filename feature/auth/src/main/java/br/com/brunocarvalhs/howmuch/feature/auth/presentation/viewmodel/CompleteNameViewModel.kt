@@ -3,6 +3,7 @@ package br.com.brunocarvalhs.howmuch.feature.auth.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.util.PersonNameResult
 import br.com.brunocarvalhs.howmuch.core.domain.util.PersonNameValidator
@@ -66,7 +67,10 @@ internal class CompleteNameViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = true, hasSaveError = false) }
         viewModelScope.launch {
             authService.updateDisplayName(name.fullName)
-                .onSuccess { _uiState.update { it.copy(isLoading = false, isSuccess = true) } }
+                .onSuccess {
+                    analyticsTracker.trackEvent(AnalyticsEvents.PROFILE_NAME_COMPLETED)
+                    _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+                }
                 .onFailure { _uiState.update { it.copy(isLoading = false, hasSaveError = true) } }
         }
     }

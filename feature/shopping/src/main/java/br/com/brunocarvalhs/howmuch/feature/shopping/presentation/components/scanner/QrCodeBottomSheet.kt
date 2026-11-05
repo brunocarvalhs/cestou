@@ -25,7 +25,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,11 +37,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
 import br.com.brunocarvalhs.howmuch.core.ui.utils.QrCodeGenerator
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import kotlinx.coroutines.launch
@@ -54,7 +55,8 @@ private const val QR_CODE_SIZE_PX = 512
 fun QrCodeBottomSheet(
     token: String,
     onDismissRequest: () -> Unit,
-    onShare: () -> Unit
+    onShare: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
@@ -63,10 +65,10 @@ fun QrCodeBottomSheet(
     // shown/copied below stays the raw token for manual entry (JoinListContent).
     val qrCodeBitmap = remember(token) { QrCodeGenerator.generate(InviteLink.build(token), QR_CODE_SIZE_PX) }
 
-    ModalBottomSheet(
+    CestouModalBottomSheet(
         onDismissRequest = onDismissRequest,
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        containerColor = MaterialTheme.colorScheme.surface
+        modifier = modifier,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
     ) {
         Column(
             modifier = Modifier
@@ -85,7 +87,7 @@ fun QrCodeBottomSheet(
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
-                IconButton(onClick = onDismissRequest) {
+                IconButton(onClick = onDismissRequest, modifier = Modifier.testTag("qr_close")) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = stringResource(br.com.brunocarvalhs.howmuch.core.ui.R.string.action_close)
@@ -128,7 +130,8 @@ fun QrCodeBottomSheet(
             Surface(
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(12.dp),
-                onClick = { 
+                modifier = Modifier.testTag("qr_copy_code"),
+                onClick = {
                     scope.launch {
                         clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("token", token)))
                     }
@@ -159,7 +162,7 @@ fun QrCodeBottomSheet(
 
             Button(
                 onClick = onShare,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp).testTag("qr_share_invite"),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(Icons.Default.Share, contentDescription = null)

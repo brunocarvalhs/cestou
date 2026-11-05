@@ -14,9 +14,9 @@ class DateExtensionsTest {
     fun `toMonthYearString should format timestamp correctly`() {
         // Mock default locale to ensure consistent results
         Locale.setDefault(Locale.US)
-        
+
         val result = AUGUST_2026_TIMESTAMP.toMonthYearString()
-        
+
         // Note: The actual result might vary slightly based on the system timezone where the test runs
         // because of Instant.ofEpochMilli(this).atZone(ZoneId.systemDefault())
         // But for August 2026, it should be "August 2026"

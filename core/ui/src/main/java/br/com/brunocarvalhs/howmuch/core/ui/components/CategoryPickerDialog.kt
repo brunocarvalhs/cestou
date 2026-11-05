@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,6 +35,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import br.com.brunocarvalhs.howmuch.core.ui.R
 import br.com.brunocarvalhs.howmuch.core.ui.entity.ProductCategory
+import br.com.brunocarvalhs.howmuch.core.ui.utils.exposeTestTags
 
 private const val DIALOG_MAX_WIDTH_FRACTION = 0.92f
 private const val DIALOG_MAX_HEIGHT = 420
@@ -60,7 +62,8 @@ fun CategoryPickerDialog(
         Card(
             modifier = Modifier
                 .fillMaxWidth(DIALOG_MAX_WIDTH_FRACTION)
-                .padding(16.dp),
+                .padding(16.dp)
+                .exposeTestTags(),
             shape = RoundedCornerShape(28.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
@@ -106,6 +109,7 @@ fun CategoryPickerDialog(
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .testTag("category_option_${category.name}")
                                 .clickable { onSelect(label) }
                         )
                     }

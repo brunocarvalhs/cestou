@@ -10,7 +10,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NavigationModule {
-    
+
     @Provides
     @Singleton
     fun provideNavigator(): Navigator = Navigator()

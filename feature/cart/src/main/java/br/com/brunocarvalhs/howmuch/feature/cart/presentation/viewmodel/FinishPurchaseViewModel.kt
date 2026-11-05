@@ -4,12 +4,17 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackError
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
+import br.com.brunocarvalhs.howmuch.core.analytics.service.FirstTimeEventTracker
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackMoment
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationOrigin
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.cart.R
@@ -32,17 +37,15 @@ internal class FinishPurchaseViewModel @Inject constructor(
     private val repository: ShoppingRepository,
     private val authService: AuthService,
     private val notificationRepository: NotificationRepository,
-    private val analyticsTracker: AnalyticsTracker
+    private val analyticsTracker: AnalyticsTracker,
+    private val firstTimeEventTracker: FirstTimeEventTracker,
+    private val feedbackPromptRequester: FeedbackPromptRequester
 ) : ViewModel() {
 
     private var _navigator: Navigator? = null
 
     private val _uiState = MutableStateFlow(FinishPurchaseUiState())
     val uiState: StateFlow<FinishPurchaseUiState> = _uiState.asStateFlow()
-
-    init {
-        analyticsTracker.trackScreenView(screenName = "cart_finish_purchase", screenClass = "FinishPurchaseViewModel")
-    }
 
     fun setNavigator(navigator: Navigator) {
         _navigator = navigator
@@ -55,7 +58,7 @@ internal class FinishPurchaseViewModel @Inject constructor(
     fun onFinishPurchase(shopping: Shopping, price: Double, establishment: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            // Partial write: status/price/establishment only. `description` is never touched here
+            // Partial write: status/price/establishment/finishedAt only. `description` is never touched here
             // (it used to be overwritten with the establishment name) and no other member's
             // concurrent edit to this list is clobbered.
             repository.updateFields(
@@ -63,7 +66,8 @@ internal class FinishPurchaseViewModel @Inject constructor(
                 mapOf(
                     "status" to Shopping.Status.FINISH.name,
                     "price" to price,
-                    "establishment" to establishment
+                    "establishment" to establishment,
+                    "finishedAt" to System.currentTimeMillis()
                 )
             ).onSuccess {
                 analyticsTracker.trackEvent(
@@ -73,10 +77,13 @@ internal class FinishPurchaseViewModel @Inject constructor(
                         AnalyticsParams.AMOUNT to price
                     )
                 )
+                firstTimeEventTracker.trackOnce(AnalyticsEvents.FIRST_PURCHASE_COMPLETED)
+                feedbackPromptRequester.onMoment(FeedbackMoment.PURCHASE_FINISHED)
                 notifyOtherMembers(shopping)
                 _uiState.update { it.copy(isLoading = false) }
                 _navigator?.goBack()
-            }.onFailure {
+            }.onFailure { error ->
+                analyticsTracker.trackError("finish_purchase", error)
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -98,7 +105,13 @@ internal class FinishPurchaseViewModel @Inject constructor(
             shopping.title
         )
         shopping.users.filter { it != actorId }.forEach { memberId ->
-            notificationRepository.notify(memberId, title, message, TYPE_LIST_FINISHED)
+            notificationRepository.notify(
+                userId = memberId,
+                title = title,
+                message = message,
+                type = TYPE_LIST_FINISHED,
+                origin = NotificationOrigin(shoppingId = shopping.id, senderId = actorId)
+            )
         }
     }
 }

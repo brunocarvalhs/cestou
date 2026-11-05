@@ -2,14 +2,22 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel
 
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
+import br.com.brunocarvalhs.howmuch.core.domain.budget.MonthlySpendingCalculator
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.User
+import br.com.brunocarvalhs.howmuch.core.domain.repository.MonthlyGoalRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.ShareShoppingUseCase
+import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ObserveUnreadNotificationsCountUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingCreateUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDeleteUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDuplicateUseCase
@@ -21,6 +29,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -49,8 +58,15 @@ class ShoppingListViewModelTest {
     private val shareShoppingUseCase = mockk<ShareShoppingUseCase>(relaxed = true)
     private val shoppingReopenUseCase = mockk<ShoppingReopenUseCase>(relaxed = true)
     private val settingsRepository = mockk<SettingsRepository>()
+    private val observeUnreadNotificationsCount = mockk<ObserveUnreadNotificationsCountUseCase>()
     private val authService = mockk<AuthService>()
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
+    private val monthlyGoalRepository = mockk<MonthlyGoalRepository> {
+        every { observeGoal() } returns flowOf(null)
+    }
+    private val featureFlags = mockk<FeatureFlagService> {
+        every { isEnabled(any(), any()) } returns true
+    }
 
     private val ownedShopping = Shopping(
         id = "list1",
@@ -67,6 +83,7 @@ class ShoppingListViewModelTest {
         Dispatchers.setMain(testDispatcher)
         every { repository.observeAll() } returns flowOf(listOf(ownedShopping))
         every { settingsRepository.getSettings() } returns flowOf(AppSettings())
+        every { observeUnreadNotificationsCount() } returns flowOf(0)
         coEvery { shoppingGetAllUseCase() } returns Result.success(listOf(ownedShopping))
     }
 
@@ -88,17 +105,22 @@ class ShoppingListViewModelTest {
             shareShoppingUseCase,
             shoppingReopenUseCase,
             settingsRepository,
+            observeUnreadNotificationsCount,
             authService,
-            analyticsTracker
+            analyticsTracker,
+            mockk(relaxed = true),
+            monthlyGoalRepository,
+            MonthlySpendingCalculator(),
+            featureFlags
         )
     }
 
     @Test
-    fun `init tracks screen_view and loads the shopping list`() {
+    fun `init loads the shopping list`() {
         val vm = viewModel()
 
         assertEquals(listOf(ownedShopping), vm.uiState.value.filteredList.items)
-        coVerify { analyticsTracker.trackScreenView("shopping_list", "ShoppingListViewModel") }
+        coVerify(exactly = 0) { analyticsTracker.trackScreenView(any(), any()) }
     }
 
     @Test
@@ -169,5 +191,43 @@ class ShoppingListViewModelTest {
         vm.intent.onShowCreateSheet(true)
 
         assertEquals(true, vm.uiState.value.isCreateSheetVisible)
+    }
+
+    @Test
+    fun `onOpenAiChat navigates to AiChat with empty shoppingId`() {
+        val navigator = mockk<Navigator>(relaxed = true)
+        val vm = viewModel()
+        vm.setNavigator(navigator)
+
+        vm.intent.onOpenAiChat()
+
+        coVerify { navigator.navigate(AiChat(shoppingId = "")) }
+    }
+
+    @Test
+    fun `unreadNotifications reflects the observed unread count`() {
+        every { observeUnreadNotificationsCount() } returns flowOf(3)
+
+        val vm = viewModel()
+
+        assertEquals(3, vm.uiState.value.unreadNotifications)
+    }
+
+    @Test
+    fun `onNotificationsClick navigates to Notifications and tracks the unread count`() {
+        every { observeUnreadNotificationsCount() } returns flowOf(4)
+        val navigator = mockk<Navigator>(relaxed = true)
+        val vm = viewModel()
+        vm.setNavigator(navigator)
+
+        vm.intent.onNotificationsClick()
+
+        coVerify { navigator.navigate(Notifications) }
+        verify {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.NOTIFICATIONS_OPENED,
+                mapOf(AnalyticsParams.UNREAD_COUNT to 4)
+            )
+        }
     }
 }

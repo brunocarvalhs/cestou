@@ -58,9 +58,12 @@ fun CameraPreview(
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
                     .also {
-                        it.setAnalyzer(executor, BarcodeAnalyzer { barcode ->
-                            onBarcodeScanned(barcode)
-                        })
+                        it.setAnalyzer(
+                            executor,
+                            BarcodeAnalyzer { barcode ->
+                                onBarcodeScanned(barcode)
+                            }
+                        )
                     }
 
                 try {

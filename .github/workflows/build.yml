@@ -39,6 +39,7 @@ jobs:
       step_run_check: ${{ steps.config.outputs.step_run_check }}
       step_build_apks: ${{ steps.config.outputs.step_build_apks }}
       step_build_upload_apks: ${{ steps.config.outputs.step_build_upload_apks }}
+      step_bump_version: ${{ steps.config.outputs.step_bump_version }}
       step_deploy_download_apks: ${{ steps.config.outputs.step_deploy_download_apks }}
       step_deploy_install_firebase_cli: ${{ steps.config.outputs.step_deploy_install_firebase_cli }}
       step_deploy_distribute: ${{ steps.config.outputs.step_deploy_distribute }}
@@ -85,6 +86,7 @@ jobs:
           echo "step_run_check=$(yq '.build.step_names.run_check' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_build_apks=$(yq '.build.step_names.build_apks' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_build_upload_apks=$(yq '.build.step_names.upload_apks' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_bump_version=$(yq '.release.step_names.bump_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_deploy_download_apks=$(yq '.release.firebase.step_names.download_apks' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_deploy_install_firebase_cli=$(yq '.release.firebase.step_names.install_cli' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_deploy_distribute=$(yq '.release.firebase.step_names.distribute' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
@@ -152,22 +154,57 @@ jobs:
         env:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
-  build:
+  version:
     needs: [prepare, checks_stage_1, checks_stage_2]
     if: |
       always() &&
       needs.prepare.outputs.build_enabled == 'true' &&
       (needs.checks_stage_1.result == 'success' || needs.checks_stage_1.result == 'skipped') &&
       (needs.checks_stage_2.result == 'success' || needs.checks_stage_2.result == 'skipped')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    name: 🔢 Bump version (dev)
+    outputs:
+      version: ${{ steps.result.outputs.version }}
+      sha: ${{ steps.result.outputs.sha }}
+      ship: ${{ steps.result.outputs.ship }}
+    steps:
+      - name: ${{ needs.prepare.outputs.step_checkout }}
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+          token: ${{ secrets.TOKEN }}
+
+      - name: ${{ needs.prepare.outputs.step_bump_version }}
+        id: bump
+        run: |
+          chmod +x .github/scripts/version.sh
+          echo "new_version=$(.github/scripts/version.sh)" >> $GITHUB_OUTPUT
+
+      - name: Commit and push version bump to develop
+        if: steps.bump.outputs.new_version != ''
+        run: |
+          git config user.name "${{ needs.prepare.outputs.bot_name }}"
+          git config user.email "${{ needs.prepare.outputs.bot_email }}"
+          git add "$(yq '.paths.gradle_file' .github/pipeline-config.yaml)" "$(yq '.paths.changelog' .github/pipeline-config.yaml)"
+          git commit -m "chore(release): prepare dev version ${{ steps.bump.outputs.new_version }} [skip ci]"
+          git push origin "HEAD:${{ github.ref_name }}"
+
+      - id: result
+        run: |
+          GRADLE_FILE=$(yq '.paths.gradle_file' .github/pipeline-config.yaml)
+          VERSION=$(grep "versionName = " "$GRADLE_FILE" | sed 's/.*versionName = "\(.*\)"/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          echo "ship=true" >> $GITHUB_OUTPUT
+
+  build:
+    needs: [prepare, version]
+    if: always() && needs.version.result == 'success' && needs.version.outputs.ship == 'true'
     strategy:
       fail-fast: false
       matrix:
-        # Grouped by target (app, wear, ...), not by variant: every enabled
-        # variant (debug, release, ...) for that target is built as steps
-        # inside ONE job, via the bash loop below, instead of fanning out
-        # into one job per target/variant combination. Keeps the job list to
-        # one entry per target regardless of how many variants a target
-        # declares.
         target_name: ${{ fromJson(needs.prepare.outputs.target_names) }}
     runs-on: ubuntu-24.04
     timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
@@ -175,6 +212,8 @@ jobs:
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
         uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.version.outputs.sha }}
 
       - name: ${{ needs.prepare.outputs.step_setup_env }}
         uses: ./.github/actions/setup-env
@@ -195,9 +234,7 @@ jobs:
             GRADLE_TASK=$(echo "$VARIANT" | jq -r '.gradle_task')
             PATH_GLOB=$(echo "$VARIANT" | jq -r '.path')
             echo "::group::Building $MODULE:$GRADLE_TASK"
-            # Suffixes versionName with the run number ("2.1.0-dev.412") so App Distribution
-            # builds from develop are distinguishable; store builds (release.yml) don't pass it.
-            ./gradlew "$MODULE:$GRADLE_TASK" -PdevBuildNumber="${{ github.run_number }}"
+            ./gradlew "$MODULE:$GRADLE_TASK"
             echo "::endgroup::"
             PATHS="$PATHS"$'\n'"$PATH_GLOB"
           done < <(echo '${{ needs.prepare.outputs.variants }}' | jq -c --arg t "${{ matrix.target_name }}" '.[] | select(.target == $t)')
@@ -277,12 +314,6 @@ jobs:
             echo "::endgroup::"
           done < <(echo '${{ needs.prepare.outputs.variants }}' | jq -c --arg t "${{ matrix.target_name }}" '.[] | select(.target == $t)')
 
-  # Keeps size_check.baseline_bytes in pipeline-config.yaml (read by
-  # tests.yml's apk-size-check job on every PR) equal to the size of the
-  # debug APK actually built above, so PRs are always compared against what
-  # really shipped to internal testers - not a stale, hand-maintained number.
-  # develop has no branch protection (see branch protection rules), so this
-  # bot commit can push directly instead of needing a PR.
   update-size-baseline:
     needs: [prepare, build]
     if: |
@@ -293,11 +324,6 @@ jobs:
     timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
     name: 📏 Update APK Size Baseline
     steps:
-      # develop is now branch-protected (require PR) - the default
-      # GITHUB_TOKEN this step gets without an explicit `token:` isn't an
-      # admin identity and can't push directly even with enforce_admins:
-      # false, unlike secrets.TOKEN (a real admin PAT, same as
-      # sync-develop's checkout in release.yml).
       - name: ${{ needs.prepare.outputs.step_checkout }}
         uses: actions/checkout@v7
         with:
@@ -323,28 +349,21 @@ jobs:
           git config user.name "${{ needs.prepare.outputs.bot_name }}"
           git config user.email "${{ needs.prepare.outputs.bot_email }}"
 
-          # The checkout is the commit that triggered this run; if another merge
-          # landed on develop meanwhile, a plain push is rejected as non-fast-forward
-          # (happened when #189 and #190 merged minutes apart). Re-apply on top of
-          # the latest develop and retry. Runs on the same ref are queued (see
-          # `concurrency`), so the last merge still writes the final baseline.
-          for attempt in 1 2 3; do
-            git fetch --quiet origin "$DEV_BRANCH"
-            git reset --quiet --hard "origin/$DEV_BRANCH"
-            CURRENT_BYTES=$(yq '.size_check.baseline_bytes' .github/pipeline-config.yaml)
-            if [ "$NEW_BYTES" == "$CURRENT_BYTES" ]; then
-              echo "Baseline já está em $NEW_BYTES bytes, nada para commitar."
-              exit 0
-            fi
+          yq -i ".size_check.baseline_bytes = $NEW_BYTES" .github/pipeline-config.yaml
+          git add .github/pipeline-config.yaml
+          git commit --quiet -m "chore(ci): update APK size baseline to $NEW_BYTES bytes"
 
-            yq -i ".size_check.baseline_bytes = $NEW_BYTES" .github/pipeline-config.yaml
-            git add .github/pipeline-config.yaml
-            git commit --quiet -m "chore(ci): update APK size baseline to $NEW_BYTES bytes"
-            if git push origin "HEAD:$DEV_BRANCH"; then
-              exit 0
-            fi
-            echo "::warning::Push do baseline recusado ($DEV_BRANCH avançou), tentativa $attempt de 3."
-            sleep $((attempt * 5))
-          done
-          echo "::error::Não foi possível atualizar o baseline após 3 tentativas."
-          exit 1
+          BRANCH="ci/update-size-baseline-${{ github.run_id }}"
+          git checkout -b "$BRANCH"
+          git push origin "$BRANCH" --force
+
+          EXISTING=$(gh pr list --head "$BRANCH" --base "$DEV_BRANCH" --json number --jq 'length')
+          if [ "$EXISTING" -eq 0 ]; then
+            gh pr create \
+              --title "chore(ci): update APK size baseline to $NEW_BYTES bytes" \
+              --body "Automated APK size baseline update due to size change." \
+              --base "$DEV_BRANCH" \
+              --head "$BRANCH" \
+              --label "ci,size-check"
+          fi
+          exit 0

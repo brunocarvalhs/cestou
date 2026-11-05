@@ -2,9 +2,13 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.common.BuildConfig
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
-import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiModelRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
@@ -28,7 +32,8 @@ internal class AiSettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val aiModelRepository: AiModelRepository,
     private val subscriptionRepository: SubscriptionRepository,
-    private val updateAiSettingsUseCase: UpdateAiSettingsUseCase
+    private val updateAiSettingsUseCase: UpdateAiSettingsUseCase,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AiSettingsUiState())
@@ -41,6 +46,7 @@ internal class AiSettingsViewModel @Inject constructor(
             updateAiSettings(tier, model, creativity, customApiKey)
         },
         onOpenPaywall = {
+            analyticsTracker.trackAction(AnalyticsElements.AI_SETTINGS_OPEN_PAYWALL)
             _navigator?.navigate(Paywall(source = "ai_settings"))
         },
         onBack = { _navigator?.goBack() }
@@ -109,6 +115,13 @@ internal class AiSettingsViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             updateAiSettingsUseCase(tier, model, creativity, customApiKey)
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.SETTINGS_AI_CHANGED,
+                mapOf(
+                    AnalyticsParams.VALUE to tier.name.lowercase(),
+                    AnalyticsParams.HAS_CUSTOM_KEY to !customApiKey.isNullOrBlank()
+                )
+            )
         }
     }
 

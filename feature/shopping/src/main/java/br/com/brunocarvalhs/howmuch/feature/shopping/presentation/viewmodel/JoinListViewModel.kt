@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
@@ -43,14 +45,20 @@ internal class JoinListViewModel @Inject constructor(
     val intent = JoinListIntent(
         onJoinByToken = { token -> joinByToken(token, JOIN_METHOD_MANUAL_TOKEN) },
         onScanQrCode = {
+            analyticsTracker.trackAction(AnalyticsElements.JOIN_SCAN_QR)
             _navigator?.goBack()
             _navigator?.navigate(Scanner)
         },
-        onDismiss = { _navigator?.goBack() }
+        onDismiss = {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.DIALOG_DISMISSED,
+                mapOf(AnalyticsParams.ELEMENT_ID to "join_list.dismiss")
+            )
+            _navigator?.goBack()
+        }
     )
 
     init {
-        analyticsTracker.trackScreenView(screenName = "shopping_join", screenClass = "JoinListViewModel")
         initialToken?.takeIf { it.isNotBlank() }?.let { joinByToken(it, JOIN_METHOD_DEEP_LINK) }
     }
 
@@ -75,22 +83,24 @@ internal class JoinListViewModel @Inject constructor(
                         AnalyticsEvents.SHOPPING_LIST_JOIN_FAILED,
                         mapOf(
                             AnalyticsParams.JOIN_METHOD to method,
-                            AnalyticsParams.REASON to (error.message ?: error::class.simpleName.orEmpty())
+                            AnalyticsParams.REASON to error::class.simpleName.orEmpty()
                         )
                     )
-                    _uiState.update { it.copy(
-                        isLoading = false,
-                        error = if (error.message?.contains("invalid", true) == true) {
-                            UiText.StringResource(R.string.shopping_management_join_error_invalid)
-                        } else {
-                            val message = error.message
-                            if (message != null) {
-                                UiText.DynamicString(message)
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = if (error.message?.contains("invalid", true) == true) {
+                                UiText.StringResource(R.string.shopping_management_join_error_invalid)
                             } else {
-                                UiText.StringResource(R.string.shopping_management_error_join)
+                                val message = error.message
+                                if (message != null) {
+                                    UiText.DynamicString(message)
+                                } else {
+                                    UiText.StringResource(R.string.shopping_management_error_join)
+                                }
                             }
-                        }
-                    ) }
+                        )
+                    }
                 }
         }
     }

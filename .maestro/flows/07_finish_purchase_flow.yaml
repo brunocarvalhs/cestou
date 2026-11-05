@@ -1,0 +1,61 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Finish purchase - total, establishment, locked list and reopen
+tags:
+  - cart
+---
+- runFlow: ../subflows/ensure_logged_in.yaml
+- runFlow: ../subflows/answer_feedback_survey.yaml
+- runFlow: ../subflows/cleanup_lists.yaml
+- evalScript: ${output.listName = 'maestro-' + Date.now()}
+- runFlow:
+    file: ../subflows/create_list.yaml
+    env:
+      LIST_NAME: ${output.listName}
+- runFlow:
+    file: ../subflows/add_product.yaml
+    env:
+      PRODUCT_NAME: Arroz
+      PRODUCT_PRICE: "1000"
+- runFlow:
+    when:
+      visible:
+        id: product_form_name_field
+    commands:
+      - back
+- assertVisible:
+    id: cart_product_item
+
+# Finalizar: sheet com estabelecimento e confirmação
+- tapOn:
+    id: cart_finish_button
+- assertVisible:
+    id: finish_purchase_establishment_field
+- tapOn:
+    id: finish_purchase_establishment_field
+- inputText: Mercado Teste
+- hideKeyboard
+- tapOn:
+    id: finish_purchase_confirm_button
+- waitForAnimationToEnd:
+    timeout: 5000
+- runFlow: ../subflows/answer_feedback_survey.yaml
+
+# Lista finalizada fica trancada: sem barra de finalizar
+- assertNotVisible:
+    id: cart_finish_button
+- tapOn:
+    id: cart_back_button
+- runFlow: ../subflows/answer_feedback_survey.yaml
+
+# Reabrir pelo menu da Home
+- longPressOn: ${output.listName}
+- tapOn:
+    id: home_menu_finish
+- waitForAnimationToEnd:
+    timeout: 4000
+
+# Limpeza
+- runFlow:
+    file: ../subflows/delete_list.yaml
+    env:
+      LIST_NAME: ${output.listName}
