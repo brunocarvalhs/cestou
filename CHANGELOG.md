@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.4.2] - 2026-11-05
+
+* fix(ci): keep wear versionCode in step with app on release
+* chore(release): prepare dev version 2.4.1 [skip ci]
+
+
 ## [2.4.1] - 2026-11-05
 
 * Merge pull request #269 from brunocarvalhs/sync/resolve-master-to-develop
