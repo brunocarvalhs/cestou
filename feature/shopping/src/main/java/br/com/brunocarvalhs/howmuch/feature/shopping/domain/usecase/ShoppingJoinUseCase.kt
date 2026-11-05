@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase
 
+import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationOrigin
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
@@ -35,7 +36,13 @@ class ShoppingJoinUseCase @Inject constructor(
         val title = texts.listJoinedTitle()
         val message = texts.listJoinedMessage(user.displayName, shopping.title)
         shopping.users.filter { it != user.id }.forEach { memberId ->
-            notificationRepository.notify(memberId, title, message, TYPE_LIST_JOINED)
+            notificationRepository.notify(
+                userId = memberId,
+                title = title,
+                message = message,
+                type = TYPE_LIST_JOINED,
+                origin = NotificationOrigin(shoppingId = shopping.id, senderId = user.id)
+            )
         }
     }
 

@@ -81,9 +81,12 @@
     <string name="settings_ai_tier_3_desc">Use modelos pagos externos (Claude, GPT, etc.) com sua própria chave de API. Exclusivo para assinantes Pro.</string>
     <string name="settings_ai_label_custom_api_key">Chave de API (BYOK)</string>
     <string name="settings_ai_placeholder_custom_api_key">Insira sua chave de API (sk-…</string>
+    <string name="settings_ai_byok_key_required_error">Informe sua chave de API ou troque para outro nível</string>
     <string name="settings_ai_pro_badge">PRO</string>
     <string name="settings_ai_upgrade_prompt">Assine o Pro para desbloquear modelos específicos e chaves de API personalizadas.</string>
     <string name="settings_ai_button_upgrade">Assinar o Pro</string>
+    <string name="settings_data_analytics">Dados de uso</string>
+    <string name="settings_data_analytics_hint">Ajuda a entender como o app é usado para melhorá-lo. Desligue para parar de enviar dados de uso.</string>
     <string name="settings_data_clear_cache">Limpar cache</string>
     <string name="settings_data_clear_cache_hint">Libera espaço ocupado</string>
     <string name="settings_data_delete_all">Apagar todos os dados</string>
@@ -130,4 +133,6 @@
     <string name="action_select_time">Selecionar Horário</string>
     <string name="settings_release_notes_title">Novidades</string>
     <string name="settings_open_source_licenses_title">Licenças</string>
+    <string name="settings_shopping_monthly_goal">Meta de gasto mensal</string>
+    <string name="settings_shopping_monthly_goal_hint">Opcional. Mostra quanto do mês você já gastou.</string>
 </resources>

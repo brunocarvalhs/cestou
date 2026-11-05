@@ -1,0 +1,103 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Auth - welcome, e-mail login, reset and sign-up screens
+tags:
+  - auth
+---
+# Credenciais por ambiente: maestro test -e EMAIL=... -e PASSWORD=... (ver README).
+- launchApp:
+    clearState: true
+    permissions:
+      notifications: allow
+      camera: allow
+- extendedWaitUntil:
+    visible:
+      id: welcome_agree_and_continue_button
+    timeout: 20000
+
+# Tela de boas-vindas
+- assertVisible:
+    id: welcome_logo
+- assertVisible:
+    id: welcome_brand_name
+- assertVisible:
+    id: welcome_legal_notice
+
+# Escolha do método de entrada
+- tapOn:
+    id: welcome_agree_and_continue_button
+- assertVisible:
+    id: welcome_email_button
+- tapOn:
+    id: welcome_email_button
+- assertVisible:
+    id: signin_email_field
+- assertVisible:
+    id: signin_password_field
+- assertVisible:
+    id: signin_submit_button
+
+# Senha errada mostra o erro do formulário
+- tapOn:
+    id: signin_email_field
+- inputText: ${EMAIL}
+- tapOn:
+    id: signin_password_field
+- inputText: senha-errada-123
+- hideKeyboard
+- tapOn:
+    id: signin_submit_button
+- extendedWaitUntil:
+    visible:
+      id: signin_form_error
+    timeout: 10000
+
+# Recuperação de senha: abre a tela e volta, sem enviar e-mail
+- tapOn:
+    id: signin_forgot_password
+- assertVisible:
+    id: reset_email_field
+- assertVisible:
+    id: reset_submit_button
+- tapOn:
+    id: reset_back_to_sign_in
+- assertVisible:
+    id: signin_submit_button
+
+# Criar conta: só confere a tela; não cria nenhuma conta
+- tapOn:
+    id: signin_create_account
+- assertVisible:
+    id: signup_email_field
+- assertVisible:
+    id: signup_password_field
+- assertVisible:
+    id: signup_submit_button
+- tapOn:
+    id: signup_go_to_sign_in
+- assertVisible:
+    id: signin_submit_button
+
+# Login válido leva à Home (e ao passo do nome, se a conta ainda não tiver nome).
+# Voltar da tela de cadastro limpa o formulário, então o e-mail é digitado de novo.
+- tapOn:
+    id: signin_email_field
+- eraseText: 60
+- inputText: ${EMAIL}
+- tapOn:
+    id: signin_password_field
+- eraseText: 40
+- inputText: ${PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: signin_submit_button
+- waitForAnimationToEnd:
+    timeout: 6000
+- runFlow:
+    when:
+      visible:
+        id: name_step_submit_button
+    file: ../subflows/complete_name.yaml
+- extendedWaitUntil:
+    visible:
+      id: bottom_nav_ShoppingList
+    timeout: 20000

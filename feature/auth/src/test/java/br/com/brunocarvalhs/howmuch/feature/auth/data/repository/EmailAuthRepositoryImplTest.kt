@@ -58,22 +58,28 @@ class EmailAuthRepositoryImplTest {
 
     @Test
     fun `wrong password and unknown account map to the same generic error`() = runTest {
-        authError(mockk<FirebaseAuthInvalidCredentialsException>(relaxed = true) {
-            every { errorCode } returns "ERROR_INVALID_CREDENTIAL"
-        })
+        authError(
+            mockk<FirebaseAuthInvalidCredentialsException>(relaxed = true) {
+                every { errorCode } returns "ERROR_INVALID_CREDENTIAL"
+            }
+        )
         assertEquals(EmailAuthError.INVALID_CREDENTIALS, repository.signIn("a@b.co", "x").error())
 
-        authError(mockk<FirebaseAuthInvalidUserException>(relaxed = true) {
-            every { errorCode } returns "ERROR_USER_NOT_FOUND"
-        })
+        authError(
+            mockk<FirebaseAuthInvalidUserException>(relaxed = true) {
+                every { errorCode } returns "ERROR_USER_NOT_FOUND"
+            }
+        )
         assertEquals(EmailAuthError.INVALID_CREDENTIALS, repository.signIn("a@b.co", "x").error())
     }
 
     @Test
     fun `disabled account maps to its own error`() = runTest {
-        authError(mockk<FirebaseAuthInvalidUserException>(relaxed = true) {
-            every { errorCode } returns "ERROR_USER_DISABLED"
-        })
+        authError(
+            mockk<FirebaseAuthInvalidUserException>(relaxed = true) {
+                every { errorCode } returns "ERROR_USER_DISABLED"
+            }
+        )
 
         assertEquals(EmailAuthError.USER_DISABLED, repository.signIn("a@b.co", "x").error())
     }
@@ -134,9 +140,11 @@ class EmailAuthRepositoryImplTest {
 
     @Test
     fun `malformed e-mail maps to invalid e-mail`() = runTest {
-        authError(mockk<FirebaseAuthInvalidCredentialsException>(relaxed = true) {
-            every { errorCode } returns "ERROR_INVALID_EMAIL"
-        })
+        authError(
+            mockk<FirebaseAuthInvalidCredentialsException>(relaxed = true) {
+                every { errorCode } returns "ERROR_INVALID_EMAIL"
+            }
+        )
 
         assertEquals(EmailAuthError.INVALID_EMAIL, repository.signUp("a@b", "12345678").error())
     }
@@ -155,9 +163,11 @@ class EmailAuthRepositoryImplTest {
 
     @Test
     fun `sendPasswordReset reports success for an unknown account to prevent enumeration`() = runTest {
-        authError(mockk<FirebaseAuthInvalidUserException>(relaxed = true) {
-            every { errorCode } returns "ERROR_USER_NOT_FOUND"
-        })
+        authError(
+            mockk<FirebaseAuthInvalidUserException>(relaxed = true) {
+                every { errorCode } returns "ERROR_USER_NOT_FOUND"
+            }
+        )
 
         assertTrue(repository.sendPasswordReset("nobody@test.com").isSuccess)
     }

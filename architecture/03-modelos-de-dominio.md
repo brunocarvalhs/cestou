@@ -49,6 +49,10 @@ Arquivo: `SubscriptionStatus.kt`. Enum com `FREE` e `PRO`, sem payload. Dados de
 
 Arquivo: `User.kt`. Contém `enum class Role { OWNER, EDITOR }`. Demais campos: ler o arquivo.
 
+### `Notification` — verificado
+
+Arquivo: `core/domain/.../repository/NotificationRepository.kt`. Campos: `id`, `userId` (destinatário), `title`, `message`, `type` (`list_joined` | `list_finished`), `isRead`, `timestamp`, `shoppingId?` e `senderId?` (nulos em documentos anteriores ao sdd-028; sem `shoppingId` o toque só marca como lida). `NotificationOrigin(shoppingId, senderId)` é o parâmetro opcional de `NotificationRepository.notify`.
+
 ### Demais modelos (ler o arquivo antes de usar)
 
 | Modelo | Arquivo |
@@ -70,7 +74,7 @@ Arquivo: `User.kt`. Contém `enum class Role { OWNER, EDITOR }`. Demais campos: 
 | `Recipe` | products | `feature/products/domain/model/Recipe.kt` |
 | `CredentialRules` | auth | `feature/auth/domain/model/CredentialRules.kt` |
 | `EmailAuthError` | auth | `feature/auth/domain/model/EmailAuthError.kt` |
-| `AiAgentSession` | ai-agent | `feature/ai_agent/domain/entity/AiAgentSession.kt` |
+| `AgentSession` | ai-agent | `feature/ai_agent/domain/entity/AgentSession.kt` |
 | `AiProviderUnavailableException` | ai-agent | `feature/ai_agent/domain/exception/AiProviderUnavailableException.kt` |
 
 ## 3. Contratos de IA (`:core:ai`)

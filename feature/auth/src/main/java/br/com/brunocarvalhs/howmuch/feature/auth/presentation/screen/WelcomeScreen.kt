@@ -29,9 +29,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -57,6 +55,7 @@ import br.com.brunocarvalhs.howmuch.core.common.util.LegalUrls
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.currentAppLocaleTag
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.supportedLanguages
 import br.com.brunocarvalhs.howmuch.feature.auth.R
@@ -157,10 +156,9 @@ internal fun WelcomeScreen(
                     val currentLocale = context.currentAppLocaleTag()
                     val languages = context.supportedLanguages()
 
-                    ModalBottomSheet(
+                    CestouModalBottomSheet(
                         onDismissRequest = { showLanguageSheet = false },
-                        sheetState = languageSheetState,
-                        containerColor = MaterialTheme.colorScheme.surface
+                        sheetState = languageSheetState
                     ) {
                         Column(
                             modifier = Modifier
@@ -228,12 +226,11 @@ internal fun WelcomeScreen(
                 }
 
                 if (showSheet) {
-                    ModalBottomSheet(
+                    CestouModalBottomSheet(
                         onDismissRequest = {
                             showSheet = false
                         },
-                        sheetState = sheetState,
-                        containerColor = MaterialTheme.colorScheme.surface
+                        sheetState = sheetState
                     ) {
                         Column(
                             modifier = Modifier

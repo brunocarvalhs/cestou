@@ -3,10 +3,13 @@ package br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel
 import android.content.Context
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackMoment
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationOrigin
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.cart.R
@@ -14,6 +17,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -37,8 +41,17 @@ class FinishPurchaseViewModelTest {
     private val notificationRepository = mockk<NotificationRepository>(relaxed = true)
     private val navigator = mockk<Navigator>(relaxed = true)
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
+    private val feedbackPromptRequester = mockk<FeedbackPromptRequester>(relaxed = true)
     private val viewModel =
-        FinishPurchaseViewModel(context, repository, authService, notificationRepository, analyticsTracker)
+        FinishPurchaseViewModel(
+            context,
+            repository,
+            authService,
+            notificationRepository,
+            analyticsTracker,
+            mockk(relaxed = true),
+            feedbackPromptRequester
+        )
 
     private val shopping = Shopping(
         id = "list1",
@@ -62,19 +75,21 @@ class FinishPurchaseViewModelTest {
     }
 
     @Test
-    fun `onFinishPurchase writes only status, price and establishment, then goes back`() = runTest {
+    fun `onFinishPurchase writes only status, price, establishment and finishedAt, then goes back`() = runTest {
         every { authService.currentUser } returns AuthenticatedUser(id = "u1", displayName = "Ana")
-        coEvery { repository.updateFields(any(), any()) } returns Result.success(Unit)
+        val fields = slot<Map<String, Any?>>()
+        coEvery { repository.updateFields("list1", capture(fields)) } returns Result.success(Unit)
+        val before = System.currentTimeMillis()
 
         viewModel.onFinishPurchase(shopping, price = PRICE, establishment = "Mercado X")
 
-        coVerify {
-            repository.updateFields(
-                "list1",
-                mapOf("status" to "FINISH", "price" to PRICE, "establishment" to "Mercado X")
-            )
-        }
+        assertEquals(setOf("status", "price", "establishment", "finishedAt"), fields.captured.keys)
+        assertEquals("FINISH", fields.captured["status"])
+        assertEquals(PRICE, fields.captured["price"])
+        assertEquals("Mercado X", fields.captured["establishment"])
+        assertTrue((fields.captured["finishedAt"] as Long) >= before)
         verify { navigator.goBack() }
+        verify { feedbackPromptRequester.onMoment(FeedbackMoment.PURCHASE_FINISHED) }
         assertEquals(false, viewModel.uiState.value.isLoading)
     }
 
@@ -85,8 +100,16 @@ class FinishPurchaseViewModelTest {
 
         viewModel.onFinishPurchase(shopping, price = PRICE, establishment = "Mercado X")
 
-        coVerify { notificationRepository.notify("u2", any(), any(), "list_finished") }
-        coVerify(exactly = 0) { notificationRepository.notify("u1", any(), any(), any()) }
+        coVerify {
+            notificationRepository.notify(
+                "u2",
+                any(),
+                any(),
+                "list_finished",
+                NotificationOrigin(shoppingId = "list1", senderId = "u1")
+            )
+        }
+        coVerify(exactly = 0) { notificationRepository.notify("u1", any(), any(), any(), any()) }
     }
 
     @Test
@@ -96,7 +119,8 @@ class FinishPurchaseViewModelTest {
         viewModel.onFinishPurchase(shopping, price = PRICE, establishment = "Mercado X")
 
         verify(exactly = 0) { navigator.goBack() }
-        coVerify(exactly = 0) { notificationRepository.notify(any(), any(), any(), any()) }
+        verify(exactly = 0) { feedbackPromptRequester.onMoment(any()) }
+        coVerify(exactly = 0) { notificationRepository.notify(any(), any(), any(), any(), any()) }
         assertEquals(false, viewModel.uiState.value.isLoading)
         val error = viewModel.uiState.value.error
         assertTrue(error is UiText.StringResource)

@@ -18,8 +18,9 @@ Regras de acesso: `firestore.rules`. Coleções identificadas nas regras:
 | `/shopping/{shoppingId}/products/{productId}` | Produtos da lista (subcoleção) | Acesso conforme membership da lista. |
 | `/users/{userId}` | Perfil e configurações do usuário | Por `userId`. |
 | `/common-products/{itemId}` | Catálogo de produtos comuns | Ver regra no arquivo. |
+| `/users/{userId}/preferences/budget` | Meta de gasto mensal do usuário (`monthlyGoal`), em `MonthlyGoalRepositoryImpl` | Estritamente privado (só o dono lê e escreve; `create`/`update` só com `id` e `monthlyGoal`). Dado financeiro: nunca vai no `/users/{userId}`, legível por qualquer logado. A regra consta em `firestore.rules`, ainda não publicada (AD-009). |
 | `/shortCodes/{code}` | Índice de código curto para entrar em listas | Leitura para qualquer usuário autenticado (`isSignedIn`); `list` negado para impedir enumeração. |
-| `/notifications/{notificationId}` | Notificações entre membros | Ver regra no arquivo. |
+| `/notifications/{notificationId}` | Notificações entre membros | Leitura só do destinatário (`userId == uid`, inclusive a consulta de não lidas `isRead == false`); criação por qualquer logado com payload fixo (campos opcionais `shoppingId`/`senderId` validados); update só vira `isRead` para `true`; delete negado. Ver regra no arquivo e AD-009. |
 
 Estado atual: a entrada por código usa o índice `shortCodes/{code}` (`ShoppingRepositoryImpl.kt`, `resolveShortCode` e `ensureShortCodeIndex`). Como o índice não existe para listas antigas, há um fallback por consulta em `shopping` que as regras versionadas em `firestore.rules` negam a não-membros. Essas regras ainda não foram publicadas, então o fallback funciona em produção até o deploy da decisão AD-009 (`05-decisoes-arquiteturais.md`), que o interrompe. O comentário em `firestore.rules` (bloco `shopping`) registra o motivo: não é possível liberar a consulta de um único código sem liberar a leitura de todas as listas (decisão G5).
 
@@ -27,7 +28,7 @@ Implementação da entrada por código: `feature/shopping/domain/usecase/Shoppin
 
 ## 3. Firebase Remote Config
 
-- Flags (`FeatureFlagKeys`): `ai_openrouter_enabled`, `ai_gemini_enabled`, provedores de login e `wear_login_enabled`.
+- Flags (`FeatureFlagKeys`): `ai_openrouter_enabled`, `ai_gemini_enabled`, provedores de login, `wear_login_enabled` e `feat_budget_alerts_enabled` (kill switch do cartão da meta mensal, da linha de orçamento da lista e dos avisos de gasto; default ligado).
 - Variáveis (`RemoteVariableKeys`): `open_router_model`, `gemini_agent_model`, `ai_system_prompt`, e também `open_router_api_key` e `gemini_api_key`.
 - Intervalo mínimo de busca: 3600 segundos (`RemoteConfigInitializer.kt`).
 - O system prompt tem fallback compilado em `feature/ai_agent/data/service/SystemPrompts.kt`, usado quando o Remote Config ainda não foi buscado.
@@ -38,8 +39,8 @@ Implementação da entrada por código: `feature/shopping/domain/usecase/Shoppin
 
 **Onde a chave está exposta:**
 - **No APK:** as chaves vêm do `.env` no build (`app/build.gradle.kts`, `feature/ai-agent/build.gradle.kts`, via `propertiesFileName = ".env"`) e são gravadas no `BuildConfig` (`BuildConfig.GEMINI_API_KEY`, `BuildConfig.OPEN_ROUTER_API_KEY`). Qualquer pessoa que decompilar um APK obtém esses valores, independentemente do Remote Config.
-- **Em tempo de execução:** o Remote Config sobrepõe o valor do `BuildConfig` quando não está vazio (`AiAgentFactoryImpl.kt`, `ProductRepositoryImpl.kt`, `RecipeRepositoryImpl.kt`). O valor remoto também chega ao aparelho.
-- **Na rede:** a chave do OpenRouter é enviada do aparelho no header `Authorization: Bearer ...` (`OpenRouterAiAgent.kt`, ~linha 150), direto ao provedor.
+- **Em tempo de execução:** o Remote Config sobrepõe o valor do `BuildConfig` quando não está vazio (`AgentFactoryImpl.kt`, `ProductRepositoryImpl.kt`, `RecipeRepositoryImpl.kt`). O valor remoto também chega ao aparelho.
+- **Na rede:** a chave do OpenRouter é enviada do aparelho no header `Authorization: Bearer ...` (`OpenRouterAgent.kt`, ~linha 150), direto ao provedor.
 
 **Consequência da troca remota:** trocar a chave no Remote Config só afeta quem recebe o novo valor. APKs antigos continuam com a chave embutida no `BuildConfig` até que ela seja revogada no provedor. Assim, o objetivo de trocar sem rollout é parcialmente atingido: a rotação funciona, mas a chave antiga permanece válida até ser revogada.
 
@@ -50,13 +51,18 @@ Implementação da entrada por código: `feature/shopping/domain/usecase/Shoppin
 
 ## 4. Provedores de IA
 
-- **OpenRouter:** `feature/ai_agent/data/service/OpenRouterAiAgent.kt`, mapeamento em `OpenRouterMapping.kt`. Ligado pela flag `ai_openrouter_enabled`.
-- **Gemini:** `feature/ai_agent/data/service/GeminiAiAgent.kt`. Ligado pela flag `ai_gemini_enabled`.
-- **Fábrica e seleção:** `feature/ai_agent/data/service/AiAgentFactoryImpl.kt`.
+- **OpenRouter:** `feature/ai_agent/data/service/OpenRouterAgent.kt`, mapeamento em `OpenRouterMapping.kt`. Ligado pela flag `ai_openrouter_enabled`.
+- **Gemini:** `feature/ai_agent/data/service/GeminiAgent.kt`. Ligado pela flag `ai_gemini_enabled`.
+- **Fábrica e seleção:** `feature/ai_agent/data/service/AgentFactoryImpl.kt`.
 - **Erros:** mensagens em `AiErrorMessages.kt`; indisponibilidade do provedor gera `AiProviderUnavailableException`.
 - **Histórico:** `ConversationHistory.kt`.
 - **Ferramentas:** ações de negócio expostas ao modelo por `@AiAgentAction` (`core/ai`), executadas via `AgentActionUseCase`.
 - **Gate de assinatura:** ações com `requiresPro` só rodam para usuários PRO (ver `02-regras-de-negocio.md`, seção 3).
+- **Gate de confirmação:** ações com `AgentAction.requiresConfirmation` (apagar listas, limpar comprados) abrem um card de Recusar/Aprovar no chat. `BaseAgent` publica o pedido (`AiSession.awaitApproval`, com `ApprovalRequest` e o `confirmationSummary` da ação) e **espera** a decisão dentro do próprio dispatch: aprovada, executa pelo mesmo ponto (gate Pro, telemetria, erro); recusada, sem resposta em 2 minutos ou com o chat fechado, devolve ao modelo que nada foi feito. Eventos `ai_tool_confirmation_requested` e `ai_tool_confirmation_resolved` (só `action_id` e `decision`). Substitui o gate por texto e por turno, que dependia de o modelo repetir a chamada.
+- **Execução em segundo plano:** o turno roda no `@ChatBackgroundScope`; `AiTurnService` (serviço em primeiro plano `shortService`) mantém o processo vivo enquanto houver turno, e `AiNotifier` avisa o resultado (mensagem da IA, privada na tela bloqueada) ou a espera por aprovação quando o usuário não está olhando o chat, abrindo a conversa pelo deeplink `cestou://chat/<sessionId>` (`AiChatLaunch`, `core:navigation`; filtro no `MainActivity`, esquema próprio sem `autoVerify`). Se um chat já está aberto, o link o substitui em vez de empilhar outro. Só notifica com o interruptor do app, a permissão e o canal `ai_actions` permitidos. Melhor esforço: se o sistema matar o processo, a resposta pode se perder.
+- **Memória da conversa:** `AiSession.restoreHistory` recebe `AiHistoryTurn` (tipo de `core:ai`, sem depender do SDK do Gemini) ao reabrir uma conversa gravada; `ConversationHistory.kt` limita o que volta ao modelo.
+- **Andamento na tela:** `AiSession.activeAction` expõe a ação em execução e `feature/chat` a traduz em texto (`AiActionLabels.kt`).
+- **Turno em segundo plano:** o chat roda cada turno num scope de aplicação (`@ChatBackgroundScope`) rastreado por `ChatTurnTracker`; fechar a tela não cancela a chamada e o logout cancela os turnos pendentes.
 
 ## 5. Google Play Billing
 
@@ -78,6 +84,10 @@ Implementação da entrada por código: `feature/shopping/domain/usecase/Shoppin
 
 - Firebase Analytics, Crashlytics e Performance Monitoring (citados em `README.md`; confirmar a configuração em `core:analytics` antes de planejar eventos).
 - Logs de desenvolvimento via Timber.
+- `core:analytics` (sdd-033): `AnalyticsTracker` -> `FirebaseAnalyticsTracker` valida nomes e limites do Firebase (`util/AnalyticsSanitizer.kt`). Kill-switch remoto `feat_analytics_ui_actions` (Remote Config) desliga só o `ui_action`; opt-out do usuário em Configurações > Dados aplicado por `UserPropertiesSync` a partir de `AppSettings.analyticsEnabled`. Eventos em `model/AnalyticsEvents.kt`, telas em `AnalyticsScreen`, controles em `AnalyticsElements`, user properties em `AnalyticsUserProperties`.
+- Telas: `app/.../analytics/ScreenTracker.kt` reporta `screen_view` a cada destino, a partir de `FeatureNavGraph.screenNames`; ViewModels não reportam tela (regra em `ArchitectureTest`). O `screen_view` automático da Activity está desligado no `AndroidManifest.xml`.
+- Identificação: `UserPropertiesSync` define `user_id` (UID do Firebase Auth) e as user properties; com `AppSettings.analyticsEnabled = false` desliga a coleta e limpa identificação. E-mail e nome nunca vão para o Analytics (termos do Google).
+- Google Play In-App Review (sdd-034): `play:review-ktx` usado só em `feature:feedback` (`PlayReviewLauncher`). O pedido é disparado por marcos de uso (3ª compra e 14 dias), nunca logo após uma pesquisa, no máximo a cada 120 dias e nunca para quem deu nota baixa nos últimos 30 dias; sem Play Services o app segue normal. Conferir a política vigente da Play antes de ampliar os gatilhos.
 
 ## 9. Pendências deste documento
 

@@ -6,8 +6,8 @@ Este documento descreve o funcionamento do sistema de Agentes de IA e serve como
 
 O sistema é baseado no padrão **Agentic Workflow**, onde a IA não apenas responde, mas pode interagir com o app através de ferramentas (Tools).
 
-### 1. AiAgent (O Cérebro)
-Interface principal para comunicação. A implementação atual utiliza o `OpenRouterAiAgent` que suporta **Tool Calling**.
+### 1. Agent (O Cérebro)
+Interface principal para comunicação. A implementação atual utiliza o `OpenRouterAgent` que suporta **Tool Calling**.
 - **Input**: Prompt + `AgentContext` (Estado atual da tela).
 - **Processo**: Envia para o LLM -> Recebe resposta ou Chamada de Ferramenta -> Executa Ferramenta -> Devolve resultado para o LLM -> Retorna resposta final.
 

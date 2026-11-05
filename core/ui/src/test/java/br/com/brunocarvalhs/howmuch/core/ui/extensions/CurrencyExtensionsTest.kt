@@ -11,7 +11,7 @@ class CurrencyExtensionsTest {
         Locale.setDefault(Locale("pt", "BR"))
         val price = PRICE
         val formatted = price.formatPrice("BRL")
-        
+
         // Use contains because the non-breaking space and currency symbol can vary between environments
         assertTrue(formatted.contains("1.234,56"))
         assertTrue(formatted.contains("R$"))
@@ -22,7 +22,7 @@ class CurrencyExtensionsTest {
         Locale.setDefault(Locale.US)
         val price = PRICE
         val formatted = price.formatPrice("USD")
-        
+
         assertTrue(formatted.contains("1,234.56"))
         assertTrue(formatted.contains("$"))
     }

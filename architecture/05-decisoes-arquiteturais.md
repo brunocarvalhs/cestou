@@ -2,7 +2,7 @@
 
 > Registro das decisões de arquitetura citadas no código (`AD-0xx` em comentários de `.kt` e em `firestore.rules`). Este arquivo preserva o texto original da seção "Decisions" de `.specs/STATE.md`, removido no branch `chore/sdd` (commit `ddf8fb57`). O texto está em inglês porque é transcrito sem edição, para não alterar o raciocínio registrado. O histórico completo continua em `git show develop:.specs/STATE.md`.
 >
-> **Referências históricas:** caminhos citados abaixo dentro de `.specs/` (por exemplo `MVP-ROADMAP.md` e `.specs/features/g10-cross-feature-decoupling/`) não existem mais na árvore atual. Consulte-os no histórico do git (`git show develop:<caminho>`).
+> **Referências históricas:** caminhos citados abaixo dentro de `.specs/` (por exemplo `MVP-ROADMAP.md` e `.specs/features/g10-cross-feature-decoupling/`) referem-se ao diretório `.specs/` pré-`chore/sdd`, removido no commit `ddf8fb57`, e não existem mais na árvore atual — consulte-os no histórico do git (`git show develop:<caminho>`). O `.specs/` atual na árvore é a renomeação do antigo `specs/` do fluxo SDD (ver `AGENTS.md` §8) e tem conteúdo não relacionado a este.
 >
 > **G5:** item do antigo roadmap (`.specs/MVP-ROADMAP.md`) — regras do Firestore, em especial para escrita em `notifications`. É a motivação da AD-009.
 >
@@ -74,7 +74,7 @@
 - **Trade-off**: The compiled fallback still ships inside the APK, so this buys *fast rotation*, not
   *secrecy* — the old key stays valid until manually revoked at the provider. Callers holding the
   client `by lazy` in a `@Singleton` (`ProductRepositoryImpl`, `RecipeRepositoryImpl`) only pick up a
-  rotated key after an app restart. Callers that re-read per invocation (`AiAgentFactoryImpl.create()`)
+  rotated key after an app restart. Callers that re-read per invocation (`AgentFactoryImpl.create()`)
   rotate immediately. Each call site must also guard against a blank remote value, which `getString`
   returns verbatim.
 - **Scope**: Any API key or secret currently sourced from `BuildConfig` (today: `GEMINI_API_KEY`).
@@ -108,6 +108,7 @@
   | `/shopping/{id}/products/{id}` | `ProductRepositoryImpl` | inherits the parent list's membership |
   | `/users/{uid}` | `UserRepositoryImpl` | own document; readable by other signed-in users |
   | `/users/{uid}/common-products/{id}` | `CommonProductRepositoryImpl` | strictly private |
+  | `/users/{uid}/preferences/{id}` | `MonthlyGoalRepositoryImpl` | strictly private (monthly spending goal) |
   | `/notifications/{id}` | `NotificationRepositoryImpl` | recipient reads; any signed-in user may create one addressed to someone else |
 
 - **Rule-by-rule reasoning**:
@@ -152,7 +153,12 @@
     recipient-only (matching `whereEqualTo("userId", uid)`), creation is pinned to the exact
     `NotificationModel` shape with the two real `type` values, `isRead == false` and size caps so
     the collection cannot be used as arbitrary storage, updates may only flip `isRead` to true, and
-    deletes are denied because no code path deletes.
+    deletes are denied because no code path deletes. sdd-028 added two OPTIONAL fields,
+    `shoppingId` and `senderId`: `senderId` must equal the writer's uid, and when `shoppingId` is
+    sent both the writer and the recipient must be members of that list. They stay optional so
+    older clients keep working, which leaves one gap: a client that omits `shoppingId` can still
+    notify any uid it knows. Making both required is the follow-up. Publish `firestore.rules`
+    BEFORE the app that sends the new fields (extra keys are rejected by the previous rules).
   - **catch-all `if false`** — explicit so a collection added by a future feature fails loudly in
     development instead of silently inheriting a broader rule.
 - **Trade-off / known breakage on deploy**:
@@ -199,7 +205,7 @@
   is no free trial, promo grant, or sign-in-based auto-upgrade to `PRO` anywhere in this contract.
 - **Reason**: Isolate the third-party Play Billing SDK and its `Activity`-scoped purchase flow to
   one module (`core:billing`), so every other paid-feature gate (`ShoppingSubscriptionGateViewModel`,
-  `CartSubscriptionGateViewModel`, `GeminiAiAgent`/`OpenRouterAiAgent`'s dispatch gating) depends on
+  `CartSubscriptionGateViewModel`, `GeminiAgent`/`OpenRouterAgent`'s dispatch gating) depends on
   a trivial two-state enum instead of Play Billing internals.
 - **Trade-off**: `SubscriptionRepository` alone can't express *why* a user is `FREE`/`PRO` (no
   expiry, no product id) — any feature needing that detail has to go through `core:billing`

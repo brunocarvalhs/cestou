@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiConfigTier
 import br.com.brunocarvalhs.howmuch.core.domain.model.AiModel
+import br.com.brunocarvalhs.howmuch.core.domain.model.AiProvider
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
@@ -40,6 +41,18 @@ private object PreferencesKeys {
     val REMINDERS_ENABLED = booleanPreferencesKey("reminders_enabled")
     val LANGUAGE = stringPreferencesKey("language")
     val CURRENCY = stringPreferencesKey("currency")
+    val ANALYTICS_ENABLED = booleanPreferencesKey("analytics_enabled")
+}
+
+/**
+ * Um `ai_model` salvo que não está mais no catálogo atual é de uma versão antiga do app (único
+ * jeito de escolher um modelo é o dropdown em AiSettingsScreen, não há texto livre) -
+ * tipicamente "openrouter/auto", que nunca foi de graça (é o Auto Router pago do OpenRouter) e
+ * por isso sempre batia 402 pra quem nunca trocou o modelo manualmente.
+ */
+private fun Preferences.resolveStoredAiModel(): String {
+    val storedModel = this[PreferencesKeys.AI_MODEL]
+    return if (storedModel.isNullOrBlank() || storedModel == "openrouter/auto") DEFAULT_AI_MODEL else storedModel
 }
 
 private fun Preferences.toAppSettings(): AppSettings {
@@ -53,16 +66,7 @@ private fun Preferences.toAppSettings(): AppSettings {
     } catch (e: IllegalArgumentException) {
         AiConfigTier.DEFAULT
     }
-    // Um `ai_model` salvo que não está mais no catálogo atual é de uma versão antiga do app
-    // (único jeito de escolher um modelo é o dropdown em AiSettingsScreen, não há texto livre) —
-    // tipicamente "openrouter/auto", que nunca foi de graça (é o Auto Router pago do
-    // OpenRouter) e por isso sempre batia 402 pra quem nunca trocou o modelo manualmente.
-    val storedModel = this[PreferencesKeys.AI_MODEL]
-    val aiModel = if (storedModel.isNullOrBlank() || storedModel == "openrouter/auto") {
-        DEFAULT_AI_MODEL
-    } else {
-        storedModel
-    }
+    val aiModel = resolveStoredAiModel()
 
     return AppSettings(
         themeMode = themeMode,
@@ -77,28 +81,36 @@ private fun Preferences.toAppSettings(): AppSettings {
         sortingMode = this[PreferencesKeys.SORTING_MODE] ?: "CATEGORY",
         remindersEnabled = this[PreferencesKeys.REMINDERS_ENABLED] ?: false,
         language = this[PreferencesKeys.LANGUAGE] ?: "pt-BR",
-        currency = this[PreferencesKeys.CURRENCY] ?: "BRL"
+        currency = this[PreferencesKeys.CURRENCY] ?: "BRL",
+        analyticsEnabled = this[PreferencesKeys.ANALYTICS_ENABLED] ?: true
     )
 }
 
 /**
  * [storedProvider] pode ser um valor legado (o fabricante, ex. "nvidia") de antes de
- * [AiModel.vendor]/[AiModel.provider] existirem separados (sdd-006, B-07) — re-derivado do
- * [aiModel] salvo a cada leitura, sem precisar reescrever o DataStore.
+ * [AiModel.vendor]/[AiModel.provider] existirem separados (sdd-006, B-07), um `AiProvider.name`
+ * já técnico (gravado por [updateAiSettings] a partir desta mudança, sdd-026), ou um valor
+ * técnico legado em minúsculas (gravado antes desta mudança) — re-derivado do [aiModel] salvo a
+ * cada leitura quando desconhecido, sem precisar reescrever o DataStore. `ignoreCase` é
+ * necessário para continuar lendo os valores legados em minúsculas; `entries.firstOrNull` (não
+ * `AiProvider.valueOf()`) porque um valor legado desconhecido (ex. "nvidia") lançaria
+ * `IllegalArgumentException` em vez de cair no heurístico.
  */
-private fun resolveStoredAiProvider(storedProvider: String?, aiModel: String): String =
-    when (storedProvider) {
-        null, "gemini", "openrouter" -> storedProvider ?: "openrouter"
-        else -> providerFor(aiModel)
+private fun resolveStoredAiProvider(storedProvider: String?, aiModel: String): AiProvider =
+    if (storedProvider == null) {
+        AiProvider.OPENROUTER
+    } else {
+        AiProvider.entries.firstOrNull { it.name.equals(storedProvider, ignoreCase = true) }
+            ?: providerFor(aiModel)
     }
 
 /**
- * Resolve o provider técnico (`"openrouter"`/`"gemini"`) de [model]: usa o catálogo quando o
- * modelo é conhecido; senão, cai no heurístico por nome (um modelo da família Gemini ainda pode
- * ser escolhido fora do catálogo atual, ex. via `aiModel` definido em outra tela).
+ * Resolve o provider técnico ([AiProvider.OPENROUTER]/[AiProvider.GEMINI]) de [model]: usa o
+ * catálogo quando o modelo é conhecido; senão, cai no heurístico por nome (um modelo da família
+ * Gemini ainda pode ser escolhido fora do catálogo atual, ex. via `aiModel` definido em outra tela).
  */
-private fun providerFor(model: String): String =
-    if (model.contains("gemini")) "gemini" else "openrouter"
+private fun providerFor(model: String): AiProvider =
+    if (model.contains("gemini")) AiProvider.GEMINI else AiProvider.OPENROUTER
 
 internal class SettingsRepositoryImpl @Inject constructor(
     private val dataStore: DataStore<Preferences>,
@@ -139,7 +151,7 @@ internal class SettingsRepositoryImpl @Inject constructor(
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.AI_CONFIG_TIER] = tier.name
             preferences[PreferencesKeys.AI_MODEL] = model
-            preferences[PreferencesKeys.AI_PROVIDER] = providerFor(model)
+            preferences[PreferencesKeys.AI_PROVIDER] = providerFor(model).name
             preferences[PreferencesKeys.CREATIVITY_LEVEL] = creativity
 
             if (customApiKey != null && customApiKey.isNotBlank()) {
@@ -179,13 +191,25 @@ internal class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateAnalyticsEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ANALYTICS_ENABLED] = enabled
+        }
+    }
+
     override suspend fun clearCache() {
         context.cacheDir.deleteRecursively()
     }
 
     override suspend fun deleteAllData() {
         dataStore.edit { preferences ->
+            /**
+             * A escolha de privacidade sobrevive ao "apagar tudo": quem desligou o Analytics não
+             * pode voltar a ser rastreado só por ter limpado os dados do app.
+             */
+            val analyticsEnabled = preferences[PreferencesKeys.ANALYTICS_ENABLED]
             preferences.clear()
+            analyticsEnabled?.let { preferences[PreferencesKeys.ANALYTICS_ENABLED] = it }
         }
         clearCache()
     }

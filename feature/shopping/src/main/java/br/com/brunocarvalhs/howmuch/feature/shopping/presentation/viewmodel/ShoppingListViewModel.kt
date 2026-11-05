@@ -3,23 +3,33 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
+import br.com.brunocarvalhs.howmuch.core.analytics.service.FirstTimeEventTracker
 import br.com.brunocarvalhs.howmuch.core.common.extensions.toMonthYearString
+import br.com.brunocarvalhs.howmuch.core.domain.budget.BudgetProgress
+import br.com.brunocarvalhs.howmuch.core.domain.budget.MonthlySpendingCalculator
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.User
+import br.com.brunocarvalhs.howmuch.core.domain.repository.MonthlyGoalRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.ShareShoppingUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.exception.OwnershipRequiredException
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ObserveUnreadNotificationsCountUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingCreateUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDeleteUseCase
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ShoppingDuplicateUseCase
@@ -35,6 +45,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -51,25 +63,41 @@ internal class ShoppingListViewModel @Inject constructor(
     private val shareShoppingUseCase: ShareShoppingUseCase,
     private val shoppingReopenUseCase: ShoppingReopenUseCase,
     private val settingsRepository: SettingsRepository,
+    private val observeUnreadNotificationsCount: ObserveUnreadNotificationsCountUseCase,
     private val authService: AuthService,
-    private val analyticsTracker: AnalyticsTracker
+    private val analyticsTracker: AnalyticsTracker,
+    private val firstTimeEventTracker: FirstTimeEventTracker,
+    private val monthlyGoalRepository: MonthlyGoalRepository,
+    private val monthlySpendingCalculator: MonthlySpendingCalculator,
+    private val featureFlags: FeatureFlagService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ShoppingListUiState())
     val uiState: StateFlow<ShoppingListUiState> = _uiState.asStateFlow()
 
     private var closeConfirmation = false
+
+    /** Muda a cada volta à Home para o gasto do mês ser recalculado se o mês virou com o app aberto. */
+    private val monthTick = MutableStateFlow(0)
     private var _navigator: Navigator? = null
 
     val intent = ShoppingListIntent(
         onFetchAll = { fetchAll() },
-        onCreate = { _uiState.update { it.copy(isCreateSheetVisible = true) } },
+        onCreate = {
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_CREATE)
+            _uiState.update { it.copy(isCreateSheetVisible = true) }
+        },
         onOpen = { id ->
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.SHOPPING_LIST_OPENED,
+                mapOf(AnalyticsParams.SHOPPING_ID to id)
+            )
             viewModelScope.launch {
                 shoppingGetByIdUseCase.invoke(id).onSuccess { navigateToProducts(it) }
             }
         },
         onFilter = { value ->
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_FILTER)
             _uiState.update { it.copy(selectedFilter = value) }
             applyFilters()
         },
@@ -78,13 +106,26 @@ internal class ShoppingListViewModel @Inject constructor(
             applyFilters()
         },
         onSearch = { value ->
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.SEARCH,
+                mapOf(AnalyticsParams.QUERY_LENGTH to value.length, AnalyticsParams.SOURCE to "shopping_list")
+            )
             _uiState.update { it.copy(searchQuery = value) }
             applyFilters()
         },
+        onOpenAiChat = {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.AI_CHAT_OPENED,
+                mapOf(AnalyticsParams.SOURCE to "shopping_list_fab")
+            )
+            _navigator?.navigate(AiChat(shoppingId = ""))
+        },
         onToggleFavorite = { shopping ->
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_FAVORITE)
             handleShoppingAction(ShoppingAction.ToggleFavorite(shopping))
         },
         onDuplicate = { shopping ->
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_DUPLICATE)
             handleShoppingAction(ShoppingAction.Duplicate(shopping))
         },
         onShare = { shopping ->
@@ -92,6 +133,7 @@ internal class ShoppingListViewModel @Inject constructor(
         },
         onDelete = { id -> handleShoppingAction(ShoppingAction.Delete(id)) },
         onEdit = { shopping ->
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_EDIT)
             val userId = authService.currentUser?.id
             if (shopping.roles[userId] == User.Role.OWNER.name) {
                 _navigator?.navigate(EditShopping(shopping))
@@ -106,12 +148,24 @@ internal class ShoppingListViewModel @Inject constructor(
             }
         },
         onUpdate = { shopping ->
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_FINISH)
             handleShoppingAction(ShoppingAction.Update(shopping))
         },
         onReopen = { shopping ->
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_REOPEN)
             handleShoppingAction(ShoppingAction.Reopen(shopping))
         },
-        onShowJoinDialog = { _navigator?.navigate(JoinList()) },
+        onShowJoinDialog = {
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_JOIN)
+            _navigator?.navigate(JoinList())
+        },
+        onNotificationsClick = {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.NOTIFICATIONS_OPENED,
+                mapOf(AnalyticsParams.UNREAD_COUNT to _uiState.value.unreadNotifications)
+            )
+            _navigator?.navigate(Notifications)
+        },
         onMove = { from, to -> moveShopping(from, to) },
         onShowCreateSheet = { visible -> _uiState.update { it.copy(isCreateSheetVisible = visible) } },
         onCreateConfirmed = { title, description, emoji ->
@@ -123,6 +177,7 @@ internal class ShoppingListViewModel @Inject constructor(
                             AnalyticsEvents.SHOPPING_LIST_CREATED,
                             mapOf(AnalyticsParams.SHOPPING_ID to it.id)
                         )
+                        firstTimeEventTracker.trackOnce(AnalyticsEvents.FIRST_LIST_CREATED)
                         navigateToProducts(it)
                     }
                     .onFailure {
@@ -139,7 +194,6 @@ internal class ShoppingListViewModel @Inject constructor(
     )
 
     init {
-        analyticsTracker.trackScreenView(screenName = "shopping_list", screenClass = "ShoppingListViewModel")
         observeData()
     }
 
@@ -153,6 +207,12 @@ internal class ShoppingListViewModel @Inject constructor(
             repository.observeAll().collect { list ->
                 _uiState.update { it.copy(list = StableList(list), isLoading = false) }
                 applyFilters()
+            }
+        }
+        viewModelScope.launch { observeMonthlyGoalProgress() }
+        viewModelScope.launch {
+            observeUnreadNotificationsCount().collect { count ->
+                _uiState.update { it.copy(unreadNotifications = count) }
             }
         }
         viewModelScope.launch {
@@ -223,9 +283,11 @@ internal class ShoppingListViewModel @Inject constructor(
                 shopping.description.lowercase().contains(query)
 
             val matchesFilter = when (filter) {
-                ShoppingFilter.SHOPPING -> shopping.status != Shopping.Status.FINISH
                 ShoppingFilter.FAVORITES -> shopping.isFavorite
-                else -> true
+                ShoppingFilter.OPEN -> shopping.status != Shopping.Status.FINISH
+                ShoppingFilter.GROUP -> shopping.users.size > 1 || shopping.roles.size > 1
+                ShoppingFilter.FINISHED -> shopping.status == Shopping.Status.FINISH
+                ShoppingFilter.ALL -> true
             }
 
             matchesQuery && matchesFilter
@@ -243,7 +305,21 @@ internal class ShoppingListViewModel @Inject constructor(
         _uiState.update { it.copy(filteredList = StableList(filtered), groupedList = grouped) }
     }
 
+    /**
+     * Meta mensal contra as compras finalizadas do mês, pelo mesmo `observeAll` da Home, sem novo
+     * listener. Com a flag desligada o estado fica sem progresso e nada aparece.
+     */
+    private suspend fun observeMonthlyGoalProgress() {
+        if (!featureFlags.isEnabled(FeatureFlagKeys.BUDGET_ALERTS_ENABLED, true)) return
+        combine(repository.observeAll(), monthlyGoalRepository.observeGoal(), monthTick) { lists, goal, _ ->
+            goal?.let { BudgetProgress(limit = it, spent = monthlySpendingCalculator.finishedSpent(lists)) }
+        }
+            .distinctUntilChanged()
+            .collect { progress -> _uiState.update { it.copy(monthlyGoalProgress = progress) } }
+    }
+
     private fun fetchAll() {
+        monthTick.update { it + 1 }
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             shoppingGetAllUseCase.invoke()
@@ -274,6 +350,7 @@ internal class ShoppingListViewModel @Inject constructor(
 
         viewModelScope.launch {
             repository.updatePositions(updatedList)
+            analyticsTracker.trackAction(AnalyticsElements.SHOPPING_LIST_MOVE)
         }
     }
 

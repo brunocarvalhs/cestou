@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -29,23 +28,31 @@ import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.EditShoppingContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.JoinListContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.scanner.QrCodeBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.scanner.QrCodeScanner
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.HistoryScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.NotificationsScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.ShoppingScreen
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.SpendingInsightsScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.EditShoppingViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.HistoryViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.JoinListViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.NotificationsViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ScannerViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingListViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingSubscriptionGateViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.SpendingInsightsViewModel
 
 private const val SCANNER_MAX_HEIGHT_FRACTION = 0.8f
 private const val PAYWALL_SOURCE_QR_CODE = "shopping_qr_code"
@@ -69,11 +76,27 @@ fun NavGraphBuilder.shoppingGraph(
     composable<Notifications> {
         val viewModel: NotificationsViewModel = hiltViewModel()
         viewModel.onBack = { navigator.goBack() }
+        viewModel.onOpenShopping = { navigator.navigate(CartFlow(it)) }
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
         NotificationsScreen(
-            state = uiState, intent = viewModel.intent
+            state = uiState,
+            intent = viewModel.intent
         )
+    }
+
+    composable<History> {
+        val viewModel: HistoryViewModel = hiltViewModel()
+        viewModel.setNavigator(navigator)
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        HistoryScreen(state = uiState, intent = viewModel.intent)
+    }
+
+    composable<SpendingInsights> {
+        val viewModel: SpendingInsightsViewModel = hiltViewModel()
+        viewModel.setNavigator(navigator)
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        SpendingInsightsScreen(state = uiState, intent = viewModel.intent)
     }
 
     shoppingEditDialog(navigator)
@@ -100,7 +123,7 @@ private fun NavGraphBuilder.shoppingEditDialog(navigator: Navigator) {
             }
         }
 
-        ModalBottomSheet(
+        CestouModalBottomSheet(
             onDismissRequest = { navigator.goBack() },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {
@@ -121,7 +144,8 @@ private fun NavGraphBuilder.shoppingEditDialog(navigator: Navigator) {
                     )
                 }
                 SnackbarHost(
-                    hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter)
+                    hostState = snackbarHostState,
+                    modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }
         }
@@ -147,19 +171,23 @@ private fun NavGraphBuilder.shoppingOtherDialogs(navigator: Navigator) {
                     putExtra(Intent.EXTRA_TEXT, shareText)
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
-                context.startActivity(Intent.createChooser(shareIntent, null).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                })
-            })
+                context.startActivity(
+                    Intent.createChooser(shareIntent, null).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                )
+            }
+        )
     }
 
     dialog<Scanner> {
         val viewModel: ScannerViewModel = hiltViewModel()
         viewModel.setNavigator(navigator)
-        ModalBottomSheet(
+        CestouModalBottomSheet(
             onDismissRequest = { viewModel.intent.onDismiss() },
             containerColor = Color.Black,
-            dragHandle = { BottomSheetDefaults.DragHandle(color = Color.White) }) {
+            dragHandle = { BottomSheetDefaults.DragHandle(color = Color.White) }
+        ) {
             Box(modifier = Modifier.fillMaxHeight(SCANNER_MAX_HEIGHT_FRACTION)) {
                 QrCodeScanner(onTokenScanned = { token ->
                     viewModel.intent.onTokenScanned(token)
@@ -173,7 +201,7 @@ private fun NavGraphBuilder.shoppingOtherDialogs(navigator: Navigator) {
         viewModel.setNavigator(navigator)
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-        ModalBottomSheet(
+        CestouModalBottomSheet(
             onDismissRequest = { viewModel.intent.onDismiss() },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ) {

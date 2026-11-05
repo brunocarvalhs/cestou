@@ -101,7 +101,7 @@ class UserRepositoryImplTest {
     }
 
     @Test
-    fun `deleteProfile removes common products before the user document`() = runTest {
+    fun `deleteProfile removes common products and preferences before the user document`() = runTest {
         val requests = mutableListOf<NetworkService.NetworkRequest>()
         coEvery { networkService.make<Any>(any(), any(), any()) } answers {
             val request = firstArg<NetworkService.NetworkRequest>()
@@ -120,6 +120,8 @@ class UserRepositoryImplTest {
             listOf(
                 "users/u1/common-products" to NetworkService.Method.GET,
                 "users/u1/common-products/c1" to NetworkService.Method.DELETE,
+                "users/u1/preferences" to NetworkService.Method.GET,
+                "users/u1/preferences/c1" to NetworkService.Method.DELETE,
                 "users/u1" to NetworkService.Method.DELETE
             ),
             requests.map { it.endpoint to it.method }

@@ -1,89 +1,43 @@
 # Changelog
 
-## [2.3.0] - 2026-10-28
+## [Unreleased]
 
-* Merge pull request #235 from brunocarvalhs/develop
-* chore(ci): update APK size baseline to 189091348 bytes
-* chore(ci): update APK size baseline to 189040052 bytes
-* Merge pull request #234 from brunocarvalhs/feat/sdd-014-ai-agent-three-tier-config
-* Merge branch 'develop' into feat/sdd-014-ai-agent-three-tier-config
-* Merge pull request #233 from brunocarvalhs/fix/sdd-006-ai-agent-reliability
-* Merge branch 'develop' into fix/sdd-006-ai-agent-reliability
-* fix(settings): filter built-in models list to free models only
-* fix(settings): remove custom prompt, return to chat on save, remove free mentions in model texts
-* feat(settings): implement 3-tier AI configuration with Pro gating (sdd-014)
-* feat(ai): load AI models dynamically from OpenRouter API without static fallback
-* chore(ci): update APK size baseline to 189023668 bytes
-* chore(ci): update APK size baseline to 189023664 bytes
-* chore(ci): update APK size baseline to 189023668 bytes
-* chore(ci): update APK size baseline to 189022864 bytes
-* Merge pull request #232 from brunocarvalhs/fix/sdd-006-ai-agent-reliability
-* Merge branch 'develop' into fix/sdd-006-ai-agent-reliability
-* chore(ci): update APK size baseline to 189022868 bytes
-* fix(ai-agent): never duplicate a tool's side effect when falling back to the secondary provider (sdd-012)
-* fix(ai-agent): correct model routing, fallback, tool feedback and history privacy (sdd-006)
-* Merge pull request #231 from brunocarvalhs/feat/sdd-011-perfil-configuracoes-unificado
-* feat(subscription): add plan management screen for Pro subscribers
-* feat(profile): merge settings into profile as a non-exclusive accordion
-* chore(ci): update APK size baseline to 188972776 bytes
-* chore(ci): update APK size baseline to 188972788 bytes
-* Merge pull request #229 from brunocarvalhs/fix/sdd-004-navigator-deeplink
-* Merge branch 'develop' into fix/sdd-004-navigator-deeplink
-* Merge pull request #230 from brunocarvalhs/fix/sdd-005-crash-hardening
-* fix: protect against crashes from invalid data or expired session (sdd-005)
-* fix(navigation): fix Navigator crash and lost invites from deep links
-* chore(ci): update APK size baseline to 188956400 bytes
-* chore(ci): update APK size baseline to 188939736 bytes
-* Merge pull request #228 from brunocarvalhs/fix/sdd-003-shopping-data-integrity
-* Merge branch 'develop' into fix/sdd-003-shopping-data-integrity
-* chore(ci): update APK size baseline to 188939740 bytes
-* fix(shopping): preserve data integrity across list and cart writes
-* chore(ci): update APK size baseline to 188939736 bytes
-* chore(ci): update APK size baseline to 188939740 bytes
-* revert: restore skills.json discovery index to local .claude config
-* chore: move .agents/skills.json to .gitignore (auto-discovered, not repository state)
-* chore: create .agents/skills.json index for automatic skill discovery
-* Merge pull request #227 from brunocarvalhs/chore/sdd
-* docs: add kdoc to observeAll and observeById in ShoppingRepositoryImpl
-* docs: clarify intentional design patterns in NetworkService and ShoppingRepository
-* feat: implement network error contract (sdd-002)
-* chore: implementação de sdd novo
-* docs(sdd): add architecture docs 01-04 from code
-* chore(sdd): add spec-driven development governance
-* chore: removendo sdd antigo
-* build(deps): Bump gradle-wrapper from 9.8.1 to 9.8.2 (#223)
-* build(deps): Bump com.squareup.okhttp3:okhttp from 5.5.0 to 5.5.1 (#226)
-* build(deps): Bump com.squareup.okhttp3:logging-interceptor (#225)
-* build(deps): Bump org.jetbrains.kotlinx:kotlinx-serialization-json (#220)
-* build(deps): Bump androidx.datastore:datastore-preferences (#222)
-* build(deps): Bump com.mikepenz:multiplatform-markdown-renderer-m3 (#207)
-* build(deps): Bump androidx.datastore:datastore-core from 1.2.1 to 1.3.0 (#221)
-* chore(ci): update APK size baseline to 188676687 bytes
-* chore(ci): update APK size baseline to 188676691 bytes
-* chore(ci): update APK size baseline to 188676687 bytes
-* chore(ci): update APK size baseline to 188676691 bytes
-* Merge pull request #215 from brunocarvalhs/docs/session-notes-convention
-* docs(process): add local session-notes convention
-* chore(ci): update APK size baseline to 188676687 bytes
-* Merge pull request #210 from brunocarvalhs/fix/shopping-update-partial-fields
-* Merge branch 'develop' into fix/shopping-update-partial-fields
-* chore(ci): update APK size baseline to 188676691 bytes
-* chore(ci): update APK size baseline to 188676687 bytes
-* Merge pull request #211 from brunocarvalhs/fix/user-save-profile-response-type-mismatch
-* Merge branch 'develop' into fix/user-save-profile-response-type-mismatch
-* Merge branch 'develop' into fix/shopping-update-partial-fields
-* Merge pull request #209 from brunocarvalhs/fix/navigator-bind-race-crash
-* refactor(test): split response-type regression tests into their own class
-* fix(lint): suppress TooManyFunctions on NetworkServiceImplTest
-* fix: correct UserRepositoryImpl.saveProfile response type mismatch
-* fix: support partial updates in ShoppingUpdateUseCase AI tool
-* fix: bind Navigator synchronously to avoid NavController race crash
-* chore(ci): update APK size baseline to 188676691 bytes
-* chore(ci): update APK size baseline to 188676687 bytes
-* ci: ajuste de pipeline para publicação na loja
-* chore(ci): update APK size baseline to 188676691 bytes
-* chore(ci): update APK size baseline to 188676687 bytes
-
+* fix(ui): bottom sheets now share one background, `colorScheme.background`, so the drag handle no longer shows a different colour from the content (sdd-035)
+* feat(ui): add `CestouModalBottomSheet` in `core:ui` (additive) and `ShareOptionsBottomSheet` gains an optional `modifier` (additive) (sdd-035)
+* fix(chat): the native back button and the scrim now close the AI chat sheet while a conversation is active; before, the sheet stayed stuck on screen (sdd-035)
+* fix(chat): the AI answer is no longer cancelled when the chat is closed; the turn runs on an application scope and the answer (or the error) is saved to the history. Reopening the chat waits for the pending answer, a chat without list or session now gets one before the first send, and signing out cancels pending turns (sdd-035)
+* feat(chat): `AiChatViewModel` gains `@ChatBackgroundScope` and `ChatTurnTracker` constructor parameters (additive, internal wiring through Hilt) (sdd-035)
+* fix(chat): the greeting stays pinned at the top of an empty chat instead of sliding down with the messages; the AI rating thumbs now sit inside the answer bubble, smaller and with the app's own icons instead of emoji (sdd-035)
+* fix(chat): the AI chat now opens on the latest message instead of stopping in the middle of the conversation; the list is reversed so the newest message is always at the bottom and new messages keep it in view (sdd-035)
+* feat(settings): add the optional monthly spending goal in Settings > Shopping; it is saved in the account (`users/{uid}/preferences/budget`, a private sub-collection, never the public `users/{uid}`) so it follows the user across devices (sdd-036)
+* feat(shopping): add a Home card with how much of the monthly goal was spent by the purchases finished in the month (sdd-036)
+* feat(cart): show a budget line under the list header (percent and amount left, or by how much it was exceeded), a monthly-goal line that projects this list into the month, and one-time alerts at 80% and 100%; kill switch `feat_budget_alerts_enabled` (sdd-036)
+* feat(core): add `MonthlyGoalRepository`, `BudgetProgress`, `BudgetLevel` and `MonthlySpendingCalculator` in `core:domain` and `CestouBudgetProgress` in `core:ui` (additive); analytics `monthly_goal_set` and `budget_alert_shown` carry buckets, never amounts (sdd-036)
+* fix(data): deleting the account also deletes `users/{uid}/preferences` (sdd-036)
+* chore(firestore): `firestore.rules` proposal gains the private `users/{uid}/preferences/{id}` rule; the rules are still not deployed (AD-009) (sdd-036)
+* feat(chat): irreversible AI actions (delete a list, delete several lists, clear purchased items) now open an approval card with Decline and Approve inside the chat; the action waits for the tap and, once approved, runs right away through the same dispatch (Pro gate, telemetry, errors). No answer in 2 minutes, or leaving the chat with the card open, counts as a refusal (sdd-037)
+* feat(ai): the AI keeps working with the app out of sight: a short foreground service keeps the process alive while a request runs, and when the user is not looking at the chat a local notification shows the AI's own message and opens the conversation on tap; a pending approval also notifies. Only sent if notifications are allowed in the app (switch, permission and channel) (sdd-037)
+* feat(navigation): new deeplink `cestou://chat/<sessionId>` opens an AI conversation; the AI notification tap uses it, and an already open chat is replaced instead of stacked. `AiChatLaunch` (`core:navigation`) builds and parses it (sdd-037)
+* feat(app): ask for the notifications permission once per install, after sign-in (Android 13+); it also enables the shopping reminders for users who never granted it (sdd-037)
+* feat(ai): `AiSession` swaps the per-turn confirmation members (`beginTurn`, `requestConfirmation`, `consumeConfirmation`, never released) for `pendingApproval`, `awaitApproval` and `resolveApproval`, with the new `ApprovalRequest` and `ApprovalDecision` models; `AgentAction` gains `confirmationSummary` (additive); analytics `ai_tool_confirmation_resolved` carries the decision, never arguments (sdd-037)
+* feat(ai): `AgentAction.requiresConfirmation` (additive, default `false`); irreversible actions (`delete_shopping_list`, `delete_multi_shopping_list`, `clear_purchased_products`) are only executed after the user answers in a later message, and the attempt is reported as `ai_tool_confirmation_requested` (sdd-032, phase 0)
+* feat(ai): `AiSession` gains `activeAction`, `setActiveAction`, `restoreHistory`, `beginTurn`, `requestConfirmation` and `consumeConfirmation`, plus the `AiHistoryTurn` model in `core:ai`. These are new abstract members of an interface whose only implementation is `AgentSession` (additive for consumers, source-breaking for any other implementer) (sdd-032, phase 0)
+* feat(chat): reopening a saved conversation restores the AI memory, and the loading bubble shows what the AI is doing ("Creating your list…", "Searching…") in pt-BR, en and es; new `CestouAiLoader` in `core:ui`, also used by the photo analysis in products (additive)
+* chore(infra): delete Realtime Database instance (legacy v1.x data, irrecoverable)
+* feat(shopping): add History tab with purchases grouped by month, a trend card carousel and the purchases of the selected month (sdd-029)
+* feat(shopping): add spending analysis screen with total cost per month, top categories ranking and the month's purchases, opened from History (sdd-031)
+* feat(core): add optional `Shopping.finishedAt` (additive), stamped when a list is finished (finish sheet, quick-finish and AI agent) and cleared on reopen. Lists finished before this release have no `finishedAt` and appear in the month they were created, which may differ from the month of the purchase
+* feat(navigation): add `History` and `SpendingInsights` routes
+* feat(analytics): report `screen_view` from a single `ScreenTracker` using the screen's name and Composable class (`screen_class` used to be the ViewModel name); disable the automatic Activity `screen_view` (sdd-033)
+* feat(analytics): add click, create/update/delete/move/toggle, session, retention, search, auth, subscription, settings and error events, plus `ui_action` for relevant controls (sdd-033)
+* feat(analytics): add AI chat events (`ai_response_received` with latency, `ai_response_failed`, `ai_tool_executed`, `ai_tool_blocked_pro`, `ai_provider_fallback`, voice and trial); message content is never sent (sdd-033)
+* feat(analytics): set `user_id` to the Firebase Auth UID and user properties `plan`, `ever_pro`, `ai_trial_used`, `account_age_bucket`, `is_tester`, `lists_bucket`, language, currency, theme, AI provider (no email or name) (sdd-033)
+* feat(analytics): add `paywall_dismissed` (source and time on screen), `product_add_abandoned`, `tab_selected` and `back_pressed` (from/to screen), reported centrally; drop never-emitted `sheet_*`, `product_sorted` and `search_no_results` from the catalog (sdd-033)
+* feat(analytics): `ai_response_received` now carries `provider`, `tool_calls` and `fallback_used`; `ai_provider_fallback` carries `from`; new `app_function_invoked` for system-assistant calls; `AiSession` gains `providerUsed`, `toolCallsThisTurn` and `fallbackUsedThisTurn` (additive) (sdd-033)
+* feat(analytics): `AnalyticsTracker` gains `setCollectionEnabled(enabled)` and `isCollectionEnabled` (additive; the only implementation is `FirebaseAnalyticsTracker`); remote kill-switch `feat_analytics_ui_actions` drops only `ui_action` (sdd-033)
+* fix(analytics): the Analytics opt-out is applied from the settings flow alone, no longer waiting for auth, subscription, trial and lists to emit; failure reasons never carry exception or billing messages (sdd-033)
+* feat(settings): add the Analytics opt-out switch in Settings > Data, kept across "delete all data" (sdd-033)
+* feat(navigation): `FeatureNavGraph.screenNames` (additive, default empty); `AppSettings.analyticsEnabled`, `SettingsRepository.updateAnalyticsEnabled` and `AuthenticatedUser.createdAt` (additive)
 
 ## [2.2.1] - 2026-10-16
 

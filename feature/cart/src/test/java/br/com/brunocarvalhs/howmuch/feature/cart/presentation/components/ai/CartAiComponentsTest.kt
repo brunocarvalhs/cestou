@@ -61,12 +61,22 @@ class CartAiComponentsTest {
             CestouTheme {
                 Column {
                     AiInputBar(
-                        value = "leite", expanded = true, onValueChange = {}, onSendClick = {},
-                        onAddClick = {}, onFocused = {}, onNotFocused = {}
+                        value = "leite",
+                        expanded = true,
+                        onValueChange = {},
+                        onSendClick = {},
+                        onAddClick = {},
+                        onFocused = {},
+                        onNotFocused = {}
                     )
                     AiInputBar(
-                        value = "", expanded = false, onValueChange = {}, onSendClick = {},
-                        onAddClick = {}, onFocused = {}, onNotFocused = {}
+                        value = "",
+                        expanded = false,
+                        onValueChange = {},
+                        onSendClick = {},
+                        onAddClick = {},
+                        onFocused = {},
+                        onNotFocused = {}
                     )
                 }
             }

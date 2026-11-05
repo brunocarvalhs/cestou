@@ -12,11 +12,11 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -28,12 +28,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
+import br.com.brunocarvalhs.howmuch.core.ui.utils.exposeTestTags
 import br.com.brunocarvalhs.howmuch.feature.settings.R
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.components.SettingsHeader
 import br.com.brunocarvalhs.howmuch.feature.settings.presentation.intent.DataSettingsIntent
@@ -73,13 +76,25 @@ internal fun DataSettingsScreen(
                 .padding(16.dp)
         ) {
             ListItem(
-                modifier = Modifier.clickable { intent.onClearCache() },
+                modifier = Modifier.testTag("settings_data_analytics_toggle"),
+                headlineContent = { Text(stringResource(R.string.settings_data_analytics)) },
+                supportingContent = { Text(stringResource(R.string.settings_data_analytics_hint)) },
+                trailingContent = {
+                    Switch(
+                        checked = state.analyticsEnabled,
+                        onCheckedChange = intent.onToggleAnalytics
+                    )
+                }
+            )
+
+            ListItem(
+                modifier = Modifier.testTag("data_clear_cache").clickable { intent.onClearCache() },
                 headlineContent = { Text(stringResource(R.string.settings_data_clear_cache)) },
                 supportingContent = { Text(stringResource(R.string.settings_data_clear_cache_hint)) }
             )
 
             ListItem(
-                modifier = Modifier.clickable { showDeleteAllConfirmation = true },
+                modifier = Modifier.testTag("data_delete_all").clickable { showDeleteAllConfirmation = true },
                 headlineContent = {
                     Text(
                         text = stringResource(R.string.settings_data_delete_all),
@@ -90,7 +105,7 @@ internal fun DataSettingsScreen(
             )
 
             ListItem(
-                modifier = Modifier.clickable { showDeleteAccountConfirmation = true },
+                modifier = Modifier.testTag("data_delete_account").clickable { showDeleteAccountConfirmation = true },
                 headlineContent = {
                     Text(
                         text = stringResource(R.string.settings_data_delete_account),
@@ -105,15 +120,19 @@ internal fun DataSettingsScreen(
     if (state.reauthRequired) {
         AlertDialog(
             onDismissRequest = intent.onReauthDismissed,
+            modifier = Modifier.exposeTestTags(),
             title = { Text(stringResource(R.string.settings_data_delete_account_reauth_title)) },
             text = { Text(stringResource(R.string.settings_data_delete_account_reauth_message)) },
             confirmButton = {
-                TextButton(onClick = intent.onReauthConfirmed) {
+                TextButton(onClick = intent.onReauthConfirmed, modifier = Modifier.testTag("data_reauth_confirm")) {
                     Text(stringResource(R.string.settings_data_delete_account_reauth_button))
                 }
             },
             dismissButton = {
-                TextButton(onClick = intent.onReauthDismissed) { Text(stringResource(R.string.action_cancel)) }
+                TextButton(
+                    onClick = intent.onReauthDismissed,
+                    modifier = Modifier.testTag("data_reauth_cancel")
+                ) { Text(stringResource(R.string.action_cancel)) }
             }
         )
     }
@@ -123,6 +142,7 @@ internal fun DataSettingsScreen(
             title = stringResource(R.string.settings_data_delete_confirmation_title),
             message = stringResource(R.string.settings_data_delete_confirmation_message),
             confirmLabel = stringResource(R.string.settings_data_delete_button),
+            tagPrefix = "data_delete_all_sheet",
             sheetState = deleteAllSheetState,
             onConfirm = intent.onDeleteAllData,
             onDismiss = { showDeleteAllConfirmation = false }
@@ -134,6 +154,7 @@ internal fun DataSettingsScreen(
             title = stringResource(R.string.settings_data_delete_account_confirmation_title),
             message = stringResource(R.string.settings_data_delete_account_confirmation_message),
             confirmLabel = stringResource(R.string.settings_data_delete_account_button),
+            tagPrefix = "data_delete_account_sheet",
             sheetState = deleteAccountSheetState,
             onConfirm = intent.onDeleteAccount,
             onDismiss = { showDeleteAccountConfirmation = false }
@@ -147,11 +168,12 @@ private fun DeleteConfirmationSheet(
     title: String,
     message: String,
     confirmLabel: String,
+    tagPrefix: String,
     sheetState: SheetState,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    ModalBottomSheet(
+    CestouModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState
     ) {
@@ -179,7 +201,7 @@ private fun DeleteConfirmationSheet(
                     onConfirm()
                     onDismiss()
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("${tagPrefix}_confirm"),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
             ) {
                 Text(confirmLabel)
@@ -187,7 +209,7 @@ private fun DeleteConfirmationSheet(
             Spacer(modifier = Modifier.height(12.dp))
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().testTag("${tagPrefix}_cancel")
             ) {
                 Text(stringResource(R.string.action_cancel))
             }

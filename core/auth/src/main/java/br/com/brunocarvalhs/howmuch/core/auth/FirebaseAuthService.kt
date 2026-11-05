@@ -201,7 +201,8 @@ class FirebaseAuthService @Inject constructor(
         email = email,
         displayName = displayName,
         phoneNumber = phoneNumber,
-        photoUrl = photoUrl?.toString()
+        photoUrl = photoUrl?.toString(),
+        createdAt = metadata?.creationTimestamp
     )
 
     // Anonymous Firebase sessions (including ones created before this app version dropped

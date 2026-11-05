@@ -1,5 +1,9 @@
 <?xml version="1.0" ?>
 <SmellBaseline>
   <ManuallySuppressedIssues/>
-  <CurrentIssues/>
+  <CurrentIssues>
+    <ID>ReturnCount:PlayBillingSubscriptionRepository.kt$PlayBillingSubscriptionRepository$suspend fun purchase( activity: Activity, productId: String = BillingConstants.PRO_MONTHLY ): BillingResult</ID>
+    <ID>TooGenericExceptionCaught:BillingStatusCache.kt$BillingStatusCache$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PlayBillingSubscriptionRepository.kt$PlayBillingSubscriptionRepository$e: Exception</ID>
+  </CurrentIssues>
 </SmellBaseline>

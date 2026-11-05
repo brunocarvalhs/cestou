@@ -117,6 +117,82 @@ class ArchitectureTest {
         assertKnown("suffix -> package", violations, KNOWN_SUFFIX_PACKAGE)
     }
 
+    @Test
+    fun `view models never report screen_view, the ScreenTracker does`() {
+        val violations = production
+            .filter { it.name.endsWith("ViewModel") && "trackScreenView(" in it.text }
+            .map { it.path() }
+            .toSet()
+
+        assertKnown("ViewModel -> trackScreenView", violations, known = emptySet())
+    }
+
+    @Test
+    fun `analytics events are named by constants, never string literals`() {
+        val literalEvent = Regex("""\.trackEvent\(\s*"""")
+        val violations = production
+            .filterNot { it.packageName.startsWith("$ROOT.core.analytics") }
+            .filter { literalEvent.containsMatchIn(it.text) }
+            .map { it.path() }
+            .toSet()
+
+        assertKnown("trackEvent literal", violations, known = emptySet())
+    }
+
+    @Test
+    fun `every composable or dialog route has a screen name for analytics`() {
+        val destination = Regex("""\b(?:composable|dialog)<(\w+)>""")
+        val mapped = Regex("""(\w+)::class\s+to\s+AnalyticsScreen""")
+        val mobile = production.filterNot { ".wear" in it.packageName }
+        val routes = mobile.flatMap { file -> destination.findAll(file.text).map { it.groupValues[1] } }.toSet()
+        val screens = mobile.flatMap { file -> mapped.findAll(file.text).map { it.groupValues[1] } }.toSet()
+
+        assertKnown("route without analytics screen", routes - screens, known = emptySet())
+    }
+
+    @Test
+    fun `every intent callback is tracked by its view model or explicitly exempt`() {
+        val field = Regex("""val\s+(on\w+)\s*:""")
+        val viewModels = production.filter { it.name.endsWith("ViewModel") }
+        val violations = production
+            .filter { it.name.endsWith("Intent") && ".feature." in it.packageName }
+            .filter { ".presentation." in it.packageName }
+            .flatMap { file ->
+                val sources = viewModels.filter { it.featureName() == file.featureName() }.map { it.text }
+                field.findAll(file.text).map { it.groupValues[1] }
+                    .filterNot { name -> sources.any { text -> isTracked(text, name) } }
+                    .map { "${file.name}.$it" }
+            }
+            .toSet()
+
+        assertKnown("intent callback without analytics", violations, KNOWN_UNTRACKED_INTENTS)
+    }
+
+    private fun KoFileDeclaration.featureName() = packageName.removePrefix("$ROOT.feature.").substringBefore(".")
+
+    private fun reportsAnalytics(code: String) = "track" in code || "telemetry." in code
+
+    /** True if the lambda assigned to [name], or a function it calls, reports analytics. */
+    private fun isTracked(viewModel: String, name: String): Boolean {
+        val start = Regex("""\b$name\s*=""").find(viewModel)?.range?.last
+        val body = start?.let { assignedCode(viewModel.substring(it)) }.orEmpty()
+        return reportsAnalytics(body) || Regex("""(\w+)\(?""").findAll(body).map { it.groupValues[1] }.distinct()
+            .any { called -> reportsAnalytics(functionBody(viewModel, called)) }
+    }
+
+    private fun assignedCode(fromAssignment: String): String {
+        val lines = fromAssignment.lineSequence()
+        val rest = lines.drop(1)
+            .takeWhile { !Regex("""^\s{8}on\w+\s*=""").containsMatchIn(it) && !it.startsWith("    )") }
+        return (sequenceOf(lines.first()) + rest).joinToString("\n")
+    }
+
+    private fun functionBody(viewModel: String, name: String): String {
+        val declaration = Regex("""fun $name\(""").find(viewModel) ?: return ""
+        return viewModel.substring(declaration.range.last)
+            .split(Regex("""\n    (?:private |internal )?fun """)).first()
+    }
+
     private fun assertKnown(rule: String, actual: Set<String>, known: Set<String>) {
         val new = (actual - known).sorted()
         val fixed = (known - actual).sorted()
@@ -134,7 +210,7 @@ class ArchitectureTest {
 
     private val KoFileDeclaration.packageName get() = packagee?.name.orEmpty()
 
-    private fun KoFileDeclaration.path() = "${packageName.removePrefix("$ROOT.")}.${name}"
+    private fun KoFileDeclaration.path() = "${packageName.removePrefix("$ROOT.")}.$name"
 
     @Suppress("MaximumLineLength") // Known-violation lists are data, one entry per line.
     private companion object {
@@ -143,7 +219,7 @@ class ArchitectureTest {
         val FEATURE_LAYERS = setOf("data", "di", "domain", "navigation", "presentation", "commons")
 
         val CORE_LAYERS = setOf(
-            "annotation", "base", "cloud", "components", "contract", "di", "dragdrop", "entity",
+            "annotation", "base", "budget", "cloud", "components", "contract", "di", "dragdrop", "entity",
             "exception", "extensions", "initializer", "mobile", "model", "network", "registry",
             "repository", "security", "service", "services", "usecase", "util", "utils", "wear",
             "wearable",
@@ -161,6 +237,59 @@ class ArchitectureTest {
         // state/intent/composable) directly instead of through a NavKey. Deepens the
         // pre-existing feature:profile -> feature:settings Gradle dependency rather than
         // introducing a new one.
+        /**
+         * Callbacks that are not behavior worth reporting: back/close navigation, text-field
+         * edits, refresh/retry, one-shot message acknowledgements, dialog confirmations already
+         * reported by their own event, and the Wear screens (out of sdd-033 scope). Only shrinks.
+         */
+        val KNOWN_UNTRACKED_INTENTS = setOf(
+            "AiChatIntent.onApprove",
+            "AiChatIntent.onBack",
+            "AiChatIntent.onClose",
+            "AiChatIntent.onInputChange",
+            "AiChatIntent.onSettings",
+            "AiChatIntent.onStopVoiceInput",
+            "AiChatIntent.onVoiceResultReceived",
+            "AiChatIntent.onReject",
+            "AiHistoryIntent.onBack",
+            "AiSettingsIntent.onBack",
+            "CartIntent.onRefresh",
+            "DataSettingsIntent.onBack",
+            "DataSettingsIntent.onMessageShown",
+            "DataSettingsIntent.onReauthConfirmed",
+            "DataSettingsIntent.onReauthDismissed",
+            "HistoryIntent.onRetry",
+            "LinkWearIntent.onCodeChange",
+            "ManageSubscriptionIntent.onBack",
+            "NotificationSettingsIntent.onBack",
+            "NotificationsIntent.onBack",
+            "NotificationsIntent.onRefreshTimes",
+            "PaywallIntent.onBack",
+            "ProductFormIntent.onCategorySelected",
+            "ProductFormIntent.onDuplicateWarningShown",
+            "ProductFormIntent.onNameChange",
+            "ProductFormIntent.onPriceChange",
+            "ProductFormIntent.onQuantityChange",
+            "ProductFormIntent.onSaveErrorShown",
+            "ProductPhotoIntent.onAnalysisItemRemoved",
+            "ProductPhotoIntent.onAnalysisItemUpdated",
+            "ProductPhotoIntent.onConfirmationMessageShown",
+            "ProductPhotoIntent.onErrorMessageShown",
+            "ProductPhotoIntent.onImageCaptured",
+            "ProfileIntent.onManageSubscription",
+            "SettingsIntent.onBack",
+            "ShoppingDetailIntent.onAddItem",
+            "ShoppingDetailIntent.onBack",
+            "ShoppingDetailIntent.onToggle",
+            "ShoppingListIntent.onFetchAll",
+            "ShoppingListIntent.onQueryChange",
+            "ShoppingListIntent.onShowCreateSheet",
+            "ShoppingSettingsIntent.onBack",
+            "SpendingInsightsIntent.onBack",
+            "SpendingInsightsIntent.onRetry",
+            "ThemeSettingsIntent.onBack",
+        )
+
         val KNOWN_FEATURE_TO_FEATURE = setOf(
             "feature.profile.navigation.ProfileGraph -> feature.settings.presentation.viewmodel.SettingsViewModel",
             "feature.profile.presentation.components.ProfileSettingsSection -> feature.settings.presentation.intent.SettingsIntent",

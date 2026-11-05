@@ -6,15 +6,19 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackMoment
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
 import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.feature.products.domain.exception.ImageUnreadableException
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductAnalyzeImageUseCase
 import br.com.brunocarvalhs.howmuch.feature.products.domain.usecase.ProductSaveUseCase
-import br.com.brunocarvalhs.howmuch.feature.products.presentation.viewmodel.ProductPhotoViewModel
+import br.com.brunocarvalhs.howmuch.feature.products.presentation.helper.ProductAddSession
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -54,9 +58,20 @@ class ProductPhotoViewModelTest {
         roles = emptyMap()
     )
 
+    private val feedbackPromptRequester = mockk<FeedbackPromptRequester>(relaxed = true)
+
     private fun viewModel(): ProductPhotoViewModel {
         val savedStateHandle = SavedStateHandle(mapOf("shopping" to navJson.encodeToString(shopping)))
-        return ProductPhotoViewModel(context, savedStateHandle, analyzeImageUseCase, saveUseCase, analyticsTracker)
+        return ProductPhotoViewModel(
+            context,
+            savedStateHandle,
+            analyzeImageUseCase,
+            saveUseCase,
+            analyticsTracker,
+            mockk(relaxed = true),
+            ProductAddSession(),
+            feedbackPromptRequester
+        )
     }
 
     @Before
@@ -77,6 +92,12 @@ class ProductPhotoViewModelTest {
 
         assertNull(vm.uiState.value.capturedImageUri)
         assertEquals(emptyList<Product>(), vm.uiState.value.analysisResult)
+        verify {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.UI_ACTION,
+                mapOf(AnalyticsParams.ELEMENT_ID to AnalyticsElements.PRODUCT_PHOTO_RETAKE)
+            )
+        }
     }
 
     @Test
@@ -91,6 +112,18 @@ class ProductPhotoViewModelTest {
         verify {
             analyticsTracker.trackEvent(AnalyticsEvents.PRODUCT_ADDED, any())
         }
+        verify { feedbackPromptRequester.onMoment(FeedbackMoment.PHOTO_SCAN_CONFIRMED) }
+    }
+
+    @Test
+    fun `onProductConfirmed does not ask for feedback when saving fails`() = runTest {
+        val product = Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0)
+        coEvery { saveUseCase(product, "list1") } returns Result.failure(IllegalStateException("offline"))
+        val vm = viewModel()
+
+        vm.intent.onProductConfirmed(product)
+
+        verify(exactly = 0) { feedbackPromptRequester.onMoment(any()) }
     }
 
     @Test

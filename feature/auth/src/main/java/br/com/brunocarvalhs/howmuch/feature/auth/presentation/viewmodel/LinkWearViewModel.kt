@@ -3,6 +3,9 @@ package br.com.brunocarvalhs.howmuch.feature.auth.presentation.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
@@ -24,7 +27,8 @@ internal class LinkWearViewModel @Inject constructor(
     private val wearableSyncService: WearableSyncService,
     private val authService: AuthService,
     private val googleIdTokenProvider: GoogleIdTokenProvider,
-    private val featureFlagService: FeatureFlagService
+    private val featureFlagService: FeatureFlagService,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LinkWearUiState())
@@ -38,6 +42,7 @@ internal class LinkWearViewModel @Inject constructor(
     )
 
     private fun linkDevice(context: Context) {
+        analyticsTracker.trackAction(AnalyticsElements.WEAR_LINK_CODE_SUBMIT)
         val code = _uiState.value.code
         if (!featureFlagService.isEnabled(FeatureFlagKeys.WEAR_LOGIN_ENABLED, default = true)) {
             _uiState.update { it.copy(error = "Relógio indisponível no momento") }

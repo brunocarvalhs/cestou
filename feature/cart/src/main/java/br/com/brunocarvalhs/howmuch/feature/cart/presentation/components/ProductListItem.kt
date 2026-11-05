@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -62,14 +63,13 @@ internal fun ProductListItem(
     attributionProfile: UserProfile? = null,
     onShowHistory: () -> Unit = {}
 ) {
-
     val dismissState = rememberSwipeToDismissBoxState(
         initialValue = SwipeToDismissBoxValue.Settled,
         positionalThreshold = SwipeToDismissBoxDefaults.positionalThreshold
     )
 
     SwipeToDismissBox(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().testTag("cart_product_item"),
         state = dismissState,
         enableDismissFromStartToEnd = enabled,
         enableDismissFromEndToStart = enabled,
@@ -97,6 +97,7 @@ internal fun ProductListItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(
+                    modifier = Modifier.testTag("cart_product_checkbox"),
                     enabled = enabled,
                     checked = product.isPurchased,
                     onCheckedChange = {

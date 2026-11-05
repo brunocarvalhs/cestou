@@ -9,12 +9,24 @@ import kotlinx.serialization.Serializable
 import kotlin.reflect.typeOf
 
 @Serializable
-data class AiChat(val shoppingId: String) : NavKey, RouteProtocol {
+data class AiChat(val shoppingId: String? = null, val sessionId: String? = null) : NavKey, RouteProtocol {
     override val routeType: RouteType = RouteType.PROTECTED
 }
 
 @Serializable
 data object Profile : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}
+
+/** Bottom-bar tab listing finished purchases grouped by month (sdd-029). */
+@Serializable
+data object History : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}
+
+/** Monthly spending chart and category ranking, opened from [History] (sdd-031). */
+@Serializable
+data object SpendingInsights : NavKey, RouteProtocol {
     override val routeType: RouteType = RouteType.PROTECTED
 }
 
@@ -69,5 +81,25 @@ data class Paywall(val source: String) : NavKey, RouteProtocol {
  */
 @Serializable
 data object ManageSubscription : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}
+
+/**
+ * Abre o In-App Review da Play (sdd-034). Rota sem conteúdo visível, separada de [FeedbackSurvey]
+ * para o `screen_view` das pesquisas não contar pedidos de avaliação.
+ */
+@Serializable
+data object StoreReview : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}
+
+/**
+ * Pesquisa de satisfação (sdd-034), aberta pelo `:app` sobre um destino estável quando o
+ * `FeedbackPromptRequester` tem um pedido pendente. [kind] é o nome de `SurveyKind` e [feature] o
+ * recurso medido no CSAT; ficam como `String` para a rota continuar serializável sem depender do
+ * enum.
+ */
+@Serializable
+data class FeedbackSurvey(val kind: String, val feature: String? = null) : NavKey, RouteProtocol {
     override val routeType: RouteType = RouteType.PROTECTED
 }

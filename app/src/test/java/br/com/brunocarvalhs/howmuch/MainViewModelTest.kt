@@ -4,6 +4,8 @@ import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
+import br.com.brunocarvalhs.howmuch.analytics.AppUsageTracker
+import br.com.brunocarvalhs.howmuch.analytics.UserPropertiesSync
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
@@ -11,11 +13,16 @@ import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackMoment
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackPrompt
+import br.com.brunocarvalhs.howmuch.core.domain.model.SurveyKind
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -49,6 +56,13 @@ class MainViewModelTest {
         coEvery { saveProfile(any()) } returns Result.success(Unit)
     }
     private val aiSession = mockk<AiSession>(relaxed = true)
+    private val userPropertiesSync = mockk<UserPropertiesSync>(relaxed = true)
+    private val appUsageTracker = mockk<AppUsageTracker>(relaxed = true)
+    private val chatTurnTracker = mockk<ChatTurnTracker>(relaxed = true)
+    private val feedbackPending = MutableStateFlow<FeedbackPrompt?>(null)
+    private val feedbackPromptRequester = mockk<FeedbackPromptRequester>(relaxed = true) {
+        every { pending } returns feedbackPending
+    }
 
     @Before
     fun setup() {
@@ -77,7 +91,11 @@ class MainViewModelTest {
             userRepository,
             analyticsTracker,
             wearableSyncService,
-            aiSession
+            aiSession,
+            userPropertiesSync,
+            appUsageTracker,
+            feedbackPromptRequester,
+            chatTurnTracker
         )
     }
 
@@ -106,6 +124,15 @@ class MainViewModelTest {
         authState.value = null
 
         verify(exactly = 1) { aiSession.clearHistory() }
+    }
+
+    @Test
+    fun `signing out cancels the pending AI turns, so a late answer never lands in the next account`() {
+        viewModel(currentUser = AuthenticatedUser(id = "user-1", displayName = "Bruno"))
+
+        authState.value = null
+
+        verify(exactly = 1) { chatTurnTracker.cancelAll() }
     }
 
     @Test
@@ -189,7 +216,10 @@ class MainViewModelTest {
     fun `saves the users profile for a signed-in user with a name, without the e-mail`() {
         viewModel(
             currentUser = AuthenticatedUser(
-                id = "u1", email = "ana@test.com", displayName = "Ana Silva", photoUrl = "http://x/y.png"
+                id = "u1",
+                email = "ana@test.com",
+                displayName = "Ana Silva",
+                photoUrl = "http://x/y.png"
             )
         )
 
@@ -238,6 +268,46 @@ class MainViewModelTest {
             every { action } returns Intent.ACTION_VIEW
             every { data } returns uri
         }
+    }
+
+    private fun chatIntent(sessionId: String?): Intent {
+        val uri = mockk<Uri> {
+            every { scheme } returns "cestou"
+            every { host } returns "chat"
+            every { pathSegments } returns listOfNotNull(sessionId)
+        }
+        return mockk {
+            every { action } returns Intent.ACTION_VIEW
+            every { data } returns uri
+        }
+    }
+
+    @Test
+    fun `onDeepLink keeps the AI chat session from a notification tap`() {
+        val vm = viewModel()
+
+        vm.onDeepLink(chatIntent("session-1"))
+
+        assertEquals("session-1", vm.pendingAiChatSession.value)
+    }
+
+    @Test
+    fun `the AI chat session is consumed only once`() {
+        val vm = viewModel()
+        vm.onDeepLink(chatIntent("session-1"))
+
+        assertEquals("session-1", vm.consumePendingAiChatSession())
+        assertNull(vm.consumePendingAiChatSession())
+        assertNull(vm.pendingAiChatSession.value)
+    }
+
+    @Test
+    fun `a chat link without an id leaves no pending AI chat`() {
+        val vm = viewModel()
+
+        vm.onDeepLink(chatIntent(null))
+
+        assertNull(vm.pendingAiChatSession.value)
     }
 
     @Test
@@ -301,4 +371,44 @@ class MainViewModelTest {
     }
 
     // endregion
+
+    @Test
+    fun `starting the app starts the user properties sync`() {
+        viewModel(currentUser = null)
+
+        verify { userPropertiesSync.start(any()) }
+    }
+
+    @Test
+    fun `foreground and background are forwarded to the usage tracker`() {
+        val vm = viewModel(currentUser = null)
+
+        vm.onForeground()
+        vm.onBackground()
+
+        verify { appUsageTracker.onForeground() }
+        verify { appUsageTracker.onBackground() }
+        verify { feedbackPromptRequester.onAppForeground() }
+    }
+
+    @Test
+    fun `reaching the shopping list asks the policy for the relationship survey`() {
+        val vm = viewModel(currentUser = null)
+
+        vm.onShoppingListReached()
+
+        verify { feedbackPromptRequester.onMoment(FeedbackMoment.APP_RELATIONSHIP) }
+    }
+
+    @Test
+    fun `pending feedback is exposed and consumed through the requester`() {
+        val vm = viewModel(currentUser = null)
+        val prompt = FeedbackPrompt(SurveyKind.NPS)
+        feedbackPending.value = prompt
+
+        assertEquals(prompt, vm.pendingFeedback.value)
+        vm.onFeedbackPromptShown(prompt)
+
+        verify { feedbackPromptRequester.consume(prompt) }
+    }
 }

@@ -4,18 +4,26 @@ import android.content.Intent
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.analytics.AppUsageTracker
+import br.com.brunocarvalhs.howmuch.analytics.UserPropertiesSync
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackMoment
+import br.com.brunocarvalhs.howmuch.core.domain.model.FeedbackPrompt
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
+import br.com.brunocarvalhs.howmuch.core.navigation.AiChatLaunch
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +38,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 private const val KEY_PENDING_JOIN_TOKEN = "pending_join_token"
+private const val KEY_PENDING_AI_CHAT = "pending_ai_chat_session"
 
 @HiltViewModel
 internal class MainViewModel @Inject constructor(
@@ -39,11 +48,16 @@ internal class MainViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val analyticsTracker: AnalyticsTracker,
     private val wearableSyncService: WearableSyncService,
-    private val aiSession: AiSession
+    private val aiSession: AiSession,
+    private val userPropertiesSync: UserPropertiesSync,
+    private val appUsageTracker: AppUsageTracker,
+    private val feedbackPromptRequester: FeedbackPromptRequester,
+    private val chatTurnTracker: ChatTurnTracker
 ) : ViewModel() {
 
     init {
         analyticsTracker.trackEvent(AnalyticsEvents.APP_OPEN)
+        userPropertiesSync.start(viewModelScope)
         syncUserProfile()
         signOutWatchOnSignOut()
     }
@@ -52,6 +66,8 @@ internal class MainViewModel @Inject constructor(
      * The watch has its own Firebase session (AD-009); drop it whenever the phone signs out.
      * Also clears [AiSession.history]: it's `@Singleton`, so without this the next account
      * signed in on this device would inherit the previous user's AI chat context (sdd-006, B-11).
+     * Pending AI turns are cancelled too: they outlive the chat screen, and a late answer must not
+     * land in the next account's history.
      */
     private fun signOutWatchOnSignOut() {
         viewModelScope.launch {
@@ -62,6 +78,7 @@ internal class MainViewModel @Inject constructor(
                 .filter { signedIn -> !signedIn }
                 .collect {
                     wearableSyncService.notifySignOut()
+                    chatTurnTracker.cancelAll()
                     aiSession.clearHistory()
                 }
         }
@@ -146,12 +163,37 @@ internal class MainViewModel @Inject constructor(
      */
     val pendingJoinToken: StateFlow<String?> = savedStateHandle.getStateFlow(KEY_PENDING_JOIN_TOKEN, null)
 
+    /** Conversa da IA a abrir, vinda do toque numa notificação; consumida uma única vez. */
+    val pendingAiChatSession: StateFlow<String?> = savedStateHandle.getStateFlow(KEY_PENDING_AI_CHAT, null)
+
+    /** A Activity reporta ida e volta do app; a ViewModel decide o que é sessão. */
+    fun onForeground() {
+        appUsageTracker.onForeground()
+        feedbackPromptRequester.onAppForeground()
+    }
+
+    fun onBackground() = appUsageTracker.onBackground()
+
+    /** Pedido de pesquisa aguardando um destino estável (sdd-034); o `:app` só o repassa à navegação. */
+    val pendingFeedback: StateFlow<FeedbackPrompt?> = feedbackPromptRequester.pending
+
+    /** Chegar na tela de listas é o momento do NPS; a política decide se pergunta. */
+    fun onShoppingListReached() = feedbackPromptRequester.onMoment(FeedbackMoment.APP_RELATIONSHIP)
+
+    fun onFeedbackPromptShown(prompt: FeedbackPrompt) = feedbackPromptRequester.consume(prompt)
+
     /** Reads an invite token out of [intent], if it is one, and holds it for [consumePendingJoinToken]. */
     fun onDeepLink(intent: Intent) {
         if (intent.action != Intent.ACTION_VIEW) return
         val data = intent.data ?: return
+        AiChatLaunch.sessionIdFrom(data)?.let {
+            analyticsTracker.trackEvent(AnalyticsEvents.DEEP_LINK_OPENED, mapOf(AnalyticsParams.SOURCE to "ai_chat"))
+            savedStateHandle[KEY_PENDING_AI_CHAT] = it
+            return
+        }
         if (!InviteLink.matches(data)) return
         val token = InviteLink.tokenFrom(data) ?: return
+        analyticsTracker.trackEvent(AnalyticsEvents.DEEP_LINK_OPENED, mapOf(AnalyticsParams.SOURCE to "invite"))
         savedStateHandle[KEY_PENDING_JOIN_TOKEN] = token
     }
 
@@ -161,6 +203,12 @@ internal class MainViewModel @Inject constructor(
      * obtained once from [SavedStateHandle.getStateFlow] - `set` updates that same flow's value,
      * while `remove` was verified (by this change's own tests) to leave it stale.
      */
+    fun consumePendingAiChatSession(): String? {
+        val sessionId = savedStateHandle.get<String>(KEY_PENDING_AI_CHAT)
+        savedStateHandle[KEY_PENDING_AI_CHAT] = null
+        return sessionId
+    }
+
     fun consumePendingJoinToken(): String? {
         val token = savedStateHandle.get<String>(KEY_PENDING_JOIN_TOKEN)
         savedStateHandle[KEY_PENDING_JOIN_TOKEN] = null

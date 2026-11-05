@@ -13,7 +13,7 @@ import javax.inject.Singleton
 /**
  * `:wear` doesn't depend on `core:billing` (no Play Billing on the watch — AD-010 is phone-only),
  * but several `@HiltViewModel` classes it pulls in transitively (`ProfileSubscriptionViewModel`,
- * `AiAgentFactoryImpl`, the `*SubscriptionGateViewModel`s in feature:cart/chat/shopping) inject
+ * `AgentFactoryImpl`, the `*SubscriptionGateViewModel`s in feature:cart/chat/shopping) inject
  * [SubscriptionRepository]. Every `@HiltViewModel` in a module `:wear` depends on is aggregated
  * into `:wear`'s own Hilt component regardless of whether wear's UI ever requests it — Dagger's
  * `hiltJavaCompileDebug` failed with `[Dagger/MissingBinding]` without this, even though nothing

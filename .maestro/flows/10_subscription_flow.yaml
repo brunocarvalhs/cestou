@@ -1,0 +1,37 @@
+appId: br.com.brunocarvalhs.howmuch
+name: Subscription - card on Profile and paywall
+tags:
+  - subscription
+---
+# Abre o paywall (ou o gerenciamento, se a conta for PRO) e volta; nunca compra.
+- runFlow: ../subflows/ensure_logged_in.yaml
+- tapOn:
+    id: bottom_nav_Profile
+- assertVisible:
+    id: profile_subscription_card
+- tapOn:
+    id: profile_subscription_card
+- waitForAnimationToEnd:
+    timeout: 4000
+- runFlow:
+    when:
+      visible:
+        id: paywall_subscribe_button
+    commands:
+      - assertVisible:
+          id: paywall_back
+      - tapOn:
+          id: paywall_back
+- runFlow:
+    when:
+      visible:
+        id: manage_subscription_back_button
+    commands:
+      - assertVisible:
+          id: manage_subscription_manage_button
+      - tapOn:
+          id: manage_subscription_back_button
+- assertVisible:
+    id: profile_sign_out
+- tapOn:
+    id: bottom_nav_ShoppingList

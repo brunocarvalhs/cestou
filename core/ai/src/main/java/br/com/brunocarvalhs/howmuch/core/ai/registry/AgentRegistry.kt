@@ -1,31 +1,24 @@
 package br.com.brunocarvalhs.howmuch.core.ai.registry
 
+import br.com.brunocarvalhs.howmuch.core.ai.base.AgentActionUseCase
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentAction
-import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentActionProvider
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
- * Registro central de todas as ações (ferramentas) que o Agente de IA pode executar.
+ * Registro central de todas as ações (ferramentas) que o Agente de IA pode executar. Construído
+ * uma única vez a partir do [Set] de [AgentActionUseCase] que o Hilt já agrega via `@IntoSet` em
+ * cada feature (`ShoppingAgentModule`, `ProductAgentModule`) — não há mais `register`/`clear`
+ * (sdd-027, A-01): o `Set` do Hilt já é a fonte de verdade completa no momento da construção.
  */
-object AgentRegistry {
+@Singleton
+class AgentRegistry @Inject constructor(
+    actions: Set<@JvmSuppressWildcards AgentActionUseCase<*>>
+) {
 
-    private val actions = mutableMapOf<String, AgentAction<*>>()
+    private val byId: Map<String, AgentActionUseCase<*>> = actions.associateBy { it.id }
 
-    fun register(action: AgentAction<*>) {
-        actions[action.id] = action
-    }
+    fun find(id: String): AgentAction<*>? = byId[id]
 
-    fun registerProvider(vararg providers: AgentActionProvider) {
-        providers.forEach { provider ->
-            val action = provider.toAgentAction()
-            actions[action.id] = action
-        }
-    }
-
-    fun find(id: String): AgentAction<*>? = actions[id]
-
-    fun getAll(): List<AgentAction<*>> = actions.values.toList()
-
-    fun clear() {
-        actions.clear()
-    }
+    fun getAll(): List<AgentAction<*>> = byId.values.toList()
 }

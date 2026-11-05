@@ -19,9 +19,11 @@
     <string name="shopping_management_placeholder_description_new">Ej: Mercado de la esquina</string>
     <string name="shopping_management_button_create">Crear</string>
 
-    <string name="shopping_filter_all">Todos</string>
-    <string name="shopping_filter_active">Compras</string>
+    <string name="shopping_filter_all">Todas</string>
     <string name="shopping_filter_favorites">Favoritos</string>
+    <string name="shopping_filter_open">En curso</string>
+    <string name="shopping_filter_group">En grupo</string>
+    <string name="shopping_filter_finished">Finalizadas</string>
     <string name="shopping_management_edit_list_title">Editar Lista</string>
     <string name="shopping_management_label_description">Descripción / Lugar</string>
     <string name="shopping_management_placeholder_description">Ej: Compras del mes</string>
@@ -124,4 +126,62 @@
     <string name="shopping_wear_tile_label">Lista actual</string>
     <string name="shopping_wear_tile_empty">Abre una lista en el reloj</string>
     <string name="shopping_wear_tile_signed_out">Vincula con el teléfono</string>
+
+    <!-- Notifications -->
+    <plurals name="shopping_notifications_bell_unread">
+        <item quantity="one">Notificaciones, %d sin leer</item>
+        <item quantity="other">Notificaciones, %d sin leer</item>
+    </plurals>
+    <string name="notifications_badge_overflow">%1$d+</string>
+    <string name="notifications_filter_all">Todas</string>
+    <string name="notifications_filter_lists">Listas</string>
+    <string name="notifications_section_today">Hoy</string>
+    <string name="notifications_section_yesterday">Ayer</string>
+    <string name="notifications_section_earlier">Anteriores</string>
+    <string name="notifications_mark_all_read">Marcar leídas</string>
+    <string name="notifications_unread_indicator">Sin leer</string>
+    <string name="notifications_empty_title">Sin notificaciones</string>
+    <string name="notifications_empty_message">Los avisos de tus listas compartidas aparecen aquí.</string>
+    <string name="notifications_empty_filtered_message">No hay notificaciones en este filtro.</string>
+    <string name="notifications_time_now">ahora</string>
+    <plurals name="notifications_time_minutes_ago">
+        <item quantity="one">hace %d min</item>
+        <item quantity="other">hace %d min</item>
+    </plurals>
+    <plurals name="notifications_time_hours_ago">
+        <item quantity="one">hace %d h</item>
+        <item quantity="other">hace %d h</item>
+    </plurals>
+    <string name="notifications_error_list_unavailable">Esta lista ya no está disponible.</string>
+    <string name="notifications_error_mark_read">No se pudo actualizar la notificación. Inténtalo de nuevo.</string>
+    <!-- History and spending insights (sdd-029, sdd-031) -->
+    <string name="history_title">Historial</string>
+    <string name="history_month_purchases">Compras de %1$s</string>
+    <string name="history_see_analysis">Ver análisis</string>
+    <string name="history_empty_title">Aún no hay compras finalizadas</string>
+    <string name="history_empty_hint">Finaliza una lista de compras y aparecerá aquí.</string>
+    <string name="history_error">No se pudo cargar tu historial.</string>
+    <string name="history_retry">Reintentar</string>
+    <string name="history_month_description">%1$s, %2$s</string>
+    <string name="history_month_description_selected">%1$s, %2$s, seleccionado</string>
+    <string name="history_purchase_subtitle">%1$s · %2$s</string>
+    <string name="insights_title">Análisis de gastos</string>
+    <string name="insights_total_per_month">Gasto total por mes</string>
+    <string name="insights_top_categories">Dónde más gastaste en %1$s</string>
+    <string name="insights_category_others">Otros</string>
+    <string name="insights_purchases_of">Compras de %1$s</string>
+    <string name="insights_empty_title">Finaliza una compra para ver tu análisis</string>
+    <string name="insights_empty_hint">Tu gasto mensual y las categorías principales aparecerán aquí.</string>
+    <string name="insights_error">No se pudo cargar tu análisis.</string>
+    <string name="insights_categories_error">No se pudieron cargar las categorías.</string>
+    <string name="insights_retry">Reintentar</string>
+    <string name="insights_categories_footer">Basado en los artículos con precio</string>
+    <string name="insights_categories_empty">No hay artículos con precio en este mes.</string>
+    <string name="insights_category_description">%1$s, %2$s, %3$s del total</string>
+    <string name="insights_back">Volver</string>
+    <plurals name="history_people">
+        <item quantity="one">%d persona</item>
+        <item quantity="other">%d personas</item>
+    </plurals>
+    <string name="shopping_monthly_goal_title">Meta del mes</string>
 </resources>

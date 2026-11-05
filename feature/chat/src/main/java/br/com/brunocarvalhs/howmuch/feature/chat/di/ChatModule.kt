@@ -10,7 +10,11 @@ import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
 import br.com.brunocarvalhs.howmuch.feature.chat.ChatNavGraph
 import br.com.brunocarvalhs.howmuch.feature.chat.data.repository.ChatHistoryRepositoryImpl
+import br.com.brunocarvalhs.howmuch.feature.chat.data.service.AiTurnBackgroundImpl
+import br.com.brunocarvalhs.howmuch.feature.chat.data.service.ChatTurnTrackerImpl
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.repository.ChatHistoryRepository
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.AiTurnBackground
+import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -18,12 +22,20 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoSet
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class ChatDataStore
+
+/** Scope de aplicação do chat: o turno da IA não pode morrer junto com o `viewModelScope`. */
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class ChatBackgroundScope
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -36,7 +48,19 @@ internal abstract class ChatModule {
     @Binds
     abstract fun bindChatHistoryRepository(impl: ChatHistoryRepositoryImpl): ChatHistoryRepository
 
+    @Binds
+    abstract fun bindChatTurnTracker(impl: ChatTurnTrackerImpl): ChatTurnTracker
+
+    @Binds
+    abstract fun bindAiTurnBackground(impl: AiTurnBackgroundImpl): AiTurnBackground
+
     companion object {
+        @Provides
+        @Singleton
+        @ChatBackgroundScope
+        fun provideChatBackgroundScope(): CoroutineScope =
+            CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
         @Provides
         @Singleton
         @ChatDataStore

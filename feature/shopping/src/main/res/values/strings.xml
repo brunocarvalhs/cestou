@@ -20,8 +20,10 @@
     <string name="shopping_management_button_create">Create</string>
 
     <string name="shopping_filter_all">All</string>
-    <string name="shopping_filter_active">Shopping</string>
     <string name="shopping_filter_favorites">Favorites</string>
+    <string name="shopping_filter_open">In Progress</string>
+    <string name="shopping_filter_group">Group</string>
+    <string name="shopping_filter_finished">Finished</string>
     <string name="shopping_management_edit_list_title">Edit List</string>
     <string name="shopping_management_label_description">Description / Location</string>
     <string name="shopping_management_placeholder_description">Ex: Monthly shopping</string>
@@ -124,4 +126,62 @@
     <string name="shopping_wear_tile_label">Current list</string>
     <string name="shopping_wear_tile_empty">Open a list on your watch</string>
     <string name="shopping_wear_tile_signed_out">Pair with your phone</string>
+
+    <!-- Notifications -->
+    <plurals name="shopping_notifications_bell_unread">
+        <item quantity="one">Notifications, %d unread</item>
+        <item quantity="other">Notifications, %d unread</item>
+    </plurals>
+    <string name="notifications_badge_overflow">%1$d+</string>
+    <string name="notifications_filter_all">All</string>
+    <string name="notifications_filter_lists">Lists</string>
+    <string name="notifications_section_today">Today</string>
+    <string name="notifications_section_yesterday">Yesterday</string>
+    <string name="notifications_section_earlier">Earlier</string>
+    <string name="notifications_mark_all_read">Mark all read</string>
+    <string name="notifications_unread_indicator">Unread</string>
+    <string name="notifications_empty_title">No notifications</string>
+    <string name="notifications_empty_message">Updates from your shared lists show up here.</string>
+    <string name="notifications_empty_filtered_message">No notifications in this filter.</string>
+    <string name="notifications_time_now">just now</string>
+    <plurals name="notifications_time_minutes_ago">
+        <item quantity="one">%d min ago</item>
+        <item quantity="other">%d min ago</item>
+    </plurals>
+    <plurals name="notifications_time_hours_ago">
+        <item quantity="one">%d h ago</item>
+        <item quantity="other">%d h ago</item>
+    </plurals>
+    <string name="notifications_error_list_unavailable">This list is no longer available.</string>
+    <string name="notifications_error_mark_read">Could not update the notification. Try again.</string>
+    <!-- History and spending insights (sdd-029, sdd-031) -->
+    <string name="history_title">History</string>
+    <string name="history_month_purchases">Purchases in %1$s</string>
+    <string name="history_see_analysis">See analysis</string>
+    <string name="history_empty_title">No finished purchases yet</string>
+    <string name="history_empty_hint">Finish a shopping list and it will show up here.</string>
+    <string name="history_error">Could not load your history.</string>
+    <string name="history_retry">Try again</string>
+    <string name="history_month_description">%1$s, %2$s</string>
+    <string name="history_month_description_selected">%1$s, %2$s, selected</string>
+    <string name="history_purchase_subtitle">%1$s · %2$s</string>
+    <string name="insights_title">Spending analysis</string>
+    <string name="insights_total_per_month">Total spent per month</string>
+    <string name="insights_top_categories">Where you spent most in %1$s</string>
+    <string name="insights_category_others">Others</string>
+    <string name="insights_purchases_of">Purchases in %1$s</string>
+    <string name="insights_empty_title">Finish a purchase to see your analysis</string>
+    <string name="insights_empty_hint">Your monthly spending and top categories will appear here.</string>
+    <string name="insights_error">Could not load your analysis.</string>
+    <string name="insights_categories_error">Could not load the categories.</string>
+    <string name="insights_retry">Try again</string>
+    <string name="insights_categories_footer">Based on items with a price</string>
+    <string name="insights_categories_empty">No priced items in this month.</string>
+    <string name="insights_category_description">%1$s, %2$s, %3$s of the total</string>
+    <string name="insights_back">Back</string>
+    <plurals name="history_people">
+        <item quantity="one">%d person</item>
+        <item quantity="other">%d people</item>
+    </plurals>
+    <string name="shopping_monthly_goal_title">Monthly goal</string>
 </resources>

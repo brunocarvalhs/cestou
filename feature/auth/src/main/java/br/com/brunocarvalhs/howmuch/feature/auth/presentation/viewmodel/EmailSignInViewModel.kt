@@ -63,7 +63,10 @@ internal class EmailSignInViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = true, formError = null) }
         viewModelScope.launch {
             repository.signIn(state.email.trim(), state.password)
-                .onSuccess { _uiState.update { it.copy(isLoading = false, isSuccess = true) } }
+                .onSuccess {
+                    analyticsTracker.trackEvent(AnalyticsEvents.LOGIN, mapOf(AnalyticsParams.METHOD to "email"))
+                    _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+                }
                 .onFailure { throwable ->
                     val error = (throwable as? EmailAuthException)?.error ?: EmailAuthError.UNKNOWN
                     analyticsTracker.trackEvent(

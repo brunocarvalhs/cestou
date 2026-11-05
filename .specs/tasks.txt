@@ -1,0 +1,82 @@
+# sdd-025-auditoria-clean-architecture-design-patterns
+
+Auditoria de conformidade com Clean Architecture (grafo de dependências entre os 19 módulos, separação de
+camadas dentro de cada feature) e de Design Patterns GoF (já aplicados vs. oportunidades de consolidação),
+realizada em 2026-11-02 a pedido do usuário. O projeto já tem um guard-rail Konsist real e passando
+(`app/src/test/.../architecture/ArchitectureTest.kt`) cobrindo a Dependency Rule — a dívida real encontrada
+não está no grafo de módulos, e sim em: `AgentRegistry` como service locator global no chokepoint de
+dispatch de IA (A-01, P1), regra de negócio divergente entre `invoke()`/`execute()` em `ProductSaveUseCase`
+(A-02, P1), duplicação de dispatch entre `GeminiAiAgent`/`OpenRouterAiAgent` já excluída do gate de
+cobertura do Kover por esse motivo (A-03, P2), e `aiProvider` "stringly-typed" que deve ser resolvido antes
+do `sdd-014` (BYOK multi-provider) (A-04, P2).
+Plano detalhado em: `specs/sdd-025-auditoria-clean-architecture-design-patterns/tasks.md`.
+
+Roadmap derivado desta auditoria:
+1. sdd-026-ai-provider-consolidation: Template Method (`BaseAiAgent`) + `enum AiProvider`, desbloqueia a
+   cobertura hoje excluída do Kover. **Deve rodar antes de sdd-014.** Plano pronto em
+   `specs/sdd-026-ai-provider-consolidation/tasks.md`, status `ready`.
+2. sdd-027-ai-registry-di-refactor: substitui o `object AgentRegistry` por registro via Hilt Multibinding.
+   Maior risco — sequenciar depois que `sdd-017` (branch em andamento) estabilizar.
+3. sdd-028-business-rule-parity-review: corrige `ProductSaveUseCase` e audita os demais `AgentActionUseCase`
+   quanto ao mesmo padrão de regra divergente entre caminho humano e caminho do agente.
+4. sdd-029-visibility-and-dependency-cleanup: `internal` em `feature:subscription`/`products`, AD formal
+   para `cart`→`products`/`shopping`, remoção de dependência Gradle morta `shopping`→`settings`.
+
+---
+
+# sdd-001-auditoria-geral
+
+Nova Auditoria Geral do Projeto Cestou realizada com sucesso em 2026-10-31.
+Plano detalhado em: `.specs/sdd-001-auditoria-geral/tasks.md`.
+
+Roadmap dos próximos SDDs a implementar (conforme prioridade de severidade):
+1. sdd-016-billing-hardening: Resiliência no Google Play Billing, timeout em conexões e prevenção contra downgrade indevido de usuários PRO. (Plano pronto em `.specs/sdd-016-billing-hardening/tasks.md` — ✅ implementado, commit `55f2869a`)
+2. sdd-017-ai-agent-safety: Remoção de tools simuladas/inseguras, proteção contra alteração indevida de roles/status pelo LLM e fix de consumo de trial no chat. **Reclassificado como P0** em `.specs/sdd-023-auditoria-logica-producao/tasks.md` (B-02, B-10): qualquer colaborador pode zerar posse (`users`/`roles`) ou excluir a lista inteira só pedindo no chat — priorizar antes dos demais. (Plano pronto em `.specs/sdd-017-ai-agent-safety/tasks.md`, status `ready`; cobre B-02, B-10, B-05, B-06, C-02, C-03, B-09, B-15)
+3. sdd-018-firestore-resilience: Desserialização elemento-a-elemento no Firestore e retry com backoff no snapshot listener.
+4. sdd-019-shopping-rules-collaboration: Fix de ordenação por position na lista de compras, join idempotente e ações de sair/gerenciar membros. Inclui novos achados de `sdd-023` (B-16 corrida no ProfileViewModel, B-17 reagendamento de lembrete via WorkManager).
+5. sdd-020-cart-budget-ux: Progresso de orçamento e alertas no carrinho, lembrete diário funcional e desfazer (undo) em exclusões. Inclui novo achado de `sdd-023` (B-14: preferência de moeda do usuário nunca é aplicada à formatação de preços).
+
+# sdd-023-auditoria-logica-producao
+
+Auditoria dedicada a bugs de lógica preditivos (app inteiro), realizada em 2026-11-01 a pedido do usuário.
+Revalida linha a linha os itens B/C de `sdd-001` ainda não corrigidos e adiciona 4 novos achados (B-14 a B-17) em módulos antes não cobertos (`core/ai`, `feature/ai-agent`, `core/remote-config`, `feature/profile`, `feature/settings`, `core/navigation`, `wear/`, `app/`).
+Plano detalhado em: `.specs/sdd-023-auditoria-logica-producao/tasks.md`.
+
+# chore/kover-coverage-85
+
+Gate de cobertura mínima do Kover elevado de 80% para 85% (`buildSrc/src/main/kotlin/howmuch.kover.gradle.kts`), com testes unitários complementares para fechar a diferença e timeout de CI do job de cobertura ampliado para 25min. Implementado e mergeado via PR #240.
+
+---
+
+# sdd-013-openrouter-dynamic-models
+
+Carregar dinamicamente a lista de modelos de IA da API do OpenRouter (`https://openrouter.ai/api/v1/models`) em vez da lista fixa (`AiModel.freeModels`), permitindo a seleção de modelos com fallback para a lista estática em caso de falha/offline e mantendo sempre um modelo gratuito (`free`) como padrão.
+
+---
+
+# sdd-014-ai-agent-three-tier-config
+
+Implementar layout de configuração de agente de IA em 3 níveis no app:
+1. Nível 1: Valor default sempre o mesmo (`openrouter/free`, automático e gratuito).
+2. Nível 2: Seleção de agente específico (modelos built-in/gratuitos disponíveis).
+3. Nível 3: Agentes de IA pagos usando API key externa (Bring Your Own Key - BYOK), permitindo incluir chaves para Claude, GPT e outros com pagamento externo dentro do app.
+
+---
+
+# sdd-015-chat-bottom-sheet-voice
+
+Converter a tela de chat (`AiChatScreen`) em um ModalBottomSheet (com suporte a navegação em diálogo/bottom sheet no `chatGraph`), contendo:
+1. Ícone de fechar à direita.
+2. Ícone de histórico à esquerda, abrindo uma lista de conversas anteriores.
+3. Texto de boas-vindas: "Como Cestou pode lhe ajudar?".
+4. Input de mensagem com botão dinâmico: se houver texto, exibe o ícone de enviar (send); se não houver texto, exibe o ícone de microfone (voice input) para gravação/simulação de transcrição de áudio para texto para envio à IA.
+
+---
+
+# sdd-016-chat-history-voice-lottie
+
+Implementar tela de Histórico de Conversas com IA (`AiHistoryScreen`), gerenciamento de múltiplas sessões no `ChatHistoryRepository`, suporte nativo a gravação de voz (Speech-to-Text com permissão `RECORD_AUDIO`) e inclusão das animações Lottie para digitação da IA (`ai_thinking_loader.json`) e ondas de áudio (`audio_wave_micro_interaction.json`).
+
+
+
+

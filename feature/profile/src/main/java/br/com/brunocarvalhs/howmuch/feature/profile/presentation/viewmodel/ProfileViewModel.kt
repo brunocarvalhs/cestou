@@ -3,6 +3,8 @@ package br.com.brunocarvalhs.howmuch.feature.profile.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
@@ -33,14 +35,19 @@ internal class ProfileViewModel @Inject constructor(
     private var _navigator: Navigator? = null
 
     init {
-        analyticsTracker.trackScreenView(screenName = "profile", screenClass = "ProfileViewModel")
         observeProfile()
     }
 
     val intent = ProfileIntent(
         onSignOut = { signOut() },
-        onLinkWearDevice = { _navigator?.navigate(LinkWearDevice) },
-        onLinkMobileDevice = { _navigator?.navigate(PairingCode) }
+        onLinkWearDevice = {
+            analyticsTracker.trackAction(AnalyticsElements.PROFILE_LINK_WEAR)
+            _navigator?.navigate(LinkWearDevice)
+        },
+        onLinkMobileDevice = {
+            analyticsTracker.trackAction(AnalyticsElements.PROFILE_LINK_MOBILE)
+            _navigator?.navigate(PairingCode)
+        }
     )
 
     private fun observeProfile() {

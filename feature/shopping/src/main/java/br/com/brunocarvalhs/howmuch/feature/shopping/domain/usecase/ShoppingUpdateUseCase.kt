@@ -9,7 +9,10 @@ import br.com.brunocarvalhs.howmuch.core.ai.utils.getList
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getMap
 import br.com.brunocarvalhs.howmuch.core.ai.utils.getString
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
+import br.com.brunocarvalhs.howmuch.core.domain.model.User
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import br.com.brunocarvalhs.howmuch.feature.shopping.domain.exception.OwnershipRequiredException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,13 +27,25 @@ import javax.inject.Singleton
 )
 @Singleton
 internal class ShoppingUpdateUseCase @Inject constructor(
-    private val repository: ShoppingRepository
+    private val repository: ShoppingRepository,
+    private val authService: AuthService
 ) : AgentActionUseCase<Unit>() {
 
     suspend operator fun invoke(
         id: String,
         fields: Map<String, Any?>
-    ): Result<Unit> = repository.updateFields(id, fields)
+    ): Result<Unit> = repository.updateFields(id, withFinishedAt(fields))
+
+    /**
+     * Every path that moves a list to FINISH (quick-finish on the list row and the AI agent) goes
+     * through here, so the finish date is stamped in one place instead of per caller (sdd-029).
+     */
+    private fun withFinishedAt(fields: Map<String, Any?>): Map<String, Any?> =
+        if (fields["status"] == Shopping.Status.FINISH.name && "finishedAt" !in fields) {
+            fields + ("finishedAt" to System.currentTimeMillis())
+        } else {
+            fields
+        }
 
     override suspend fun execute(
         arguments: Map<String, Any?>,
@@ -38,7 +53,7 @@ internal class ShoppingUpdateUseCase @Inject constructor(
         metadata: Map<String, Any?>
     ): Result<Unit> {
         val id = arguments.getString("shopping_id") ?: throw Exception("Shopping ID is required")
-        repository.getById(id) ?: throw Exception("Shopping list not found")
+        val shopping = repository.getById(id) ?: throw Exception("Shopping list not found")
         // This is a partial update: the AI agent may be asked to change a single
         // field (e.g. "change the price to 50"), so it should not be forced to
         // resend every field of the list on every call, and the write itself only
@@ -50,10 +65,19 @@ internal class ShoppingUpdateUseCase @Inject constructor(
             arguments.getString("description")?.let { put("description", it) }
             arguments.getDouble("price")?.let { put("price", it) }
             arguments.getString("status")
-                ?.let { Shopping.Status.valueOf(it) }
+                // Tolerant to casing: the LLM may send "finished" instead of "FINISH" (sdd-017, C-03).
+                ?.let { status -> Shopping.Status.entries.firstOrNull { it.name.equals(status, ignoreCase = true) } }
                 ?.let { put("status", it.name) }
-            if (arguments.containsKey("users")) put("users", arguments.getList("users"))
-            if (arguments.containsKey("roles")) put("roles", arguments.getMap("roles"))
+            if (arguments.containsKey("users") || arguments.containsKey("roles")) {
+                // Only the OWNER may reassign ownership/roles — any other member could otherwise
+                // strip the real owner's access by just asking the chat to (sdd-017, B-02).
+                val callerId = authService.currentUser?.id
+                if (shopping.roles[callerId] != User.Role.OWNER.name) {
+                    return Result.failure(OwnershipRequiredException("update_shopping_list.users_roles"))
+                }
+                if (arguments.containsKey("users")) put("users", arguments.getList("users"))
+                if (arguments.containsKey("roles")) put("roles", arguments.getMap("roles"))
+            }
         }
         return invoke(id, fields)
     }

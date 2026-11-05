@@ -30,7 +30,7 @@ Persona: especialista de arquitetura Android do projeto.
 | `:core:remote-config` | Feature toggles e configuração remota. |
 | `:core:analytics` | Eventos e telemetria. |
 | `:core:billing` | Google Play Billing. |
-| `:feature:*` | Features independentes (shopping, products, settings, auth, profile, chat, cart, ai-agent, subscription). |
+| `:feature:*` | Features independentes (shopping, products, settings, auth, profile, chat, cart, ai-agent, subscription, feedback). |
 | `:wear` | Wear OS standalone. |
 
 ## Anatomia de uma feature

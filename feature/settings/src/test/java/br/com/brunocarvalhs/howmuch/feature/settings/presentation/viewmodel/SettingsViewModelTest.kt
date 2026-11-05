@@ -16,7 +16,6 @@ import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.settings.domain.usecase.UpdateCurrencyUseCase
 import br.com.brunocarvalhs.howmuch.feature.settings.navigation.SupportContact
 import br.com.brunocarvalhs.howmuch.feature.settings.navigation.ThemeSettings
-import br.com.brunocarvalhs.howmuch.feature.settings.presentation.viewmodel.SettingsViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

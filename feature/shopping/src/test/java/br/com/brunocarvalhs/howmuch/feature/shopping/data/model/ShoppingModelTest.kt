@@ -61,4 +61,31 @@ class ShoppingModelTest {
 
         assertEquals(model, decoded)
     }
+
+    @Test
+    fun `finishedAt round-trips and is exposed by toMap`() {
+        val finished = model.copy(status = Shopping.Status.FINISH, finishedAt = FINISHED_AT)
+
+        val decoded = json.decodeFromString(
+            ShoppingModel.serializer(),
+            json.encodeToString(ShoppingModel.serializer(), finished)
+        )
+
+        assertEquals(finished, decoded)
+        assertEquals(FINISHED_AT, finished.toMap()["finishedAt"])
+    }
+
+    @Test
+    fun `documents written before finishedAt existed decode with null`() {
+        val legacy = """{"id":"1","title":"t","description":"d","price":1.0,"status":"FINISH",""" +
+            """"users":[],"roles":{}}"""
+
+        val decoded = json.decodeFromString(ShoppingModel.serializer(), legacy)
+
+        assertEquals(null, decoded.finishedAt)
+    }
+
+    private companion object {
+        const val FINISHED_AT = 1_700_000_000_000L
+    }
 }
