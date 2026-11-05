@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.3.1] - 2026-11-05
+
+* Enhance chat features with modal input, history, and search functionality (#267)
+
+
 ## [Unreleased]
 
 * fix(ui): bottom sheets now share one background, `colorScheme.background`, so the drag handle no longer shows a different colour from the content (sdd-035)
