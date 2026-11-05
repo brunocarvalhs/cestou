@@ -1111,3 +1111,7 @@ of everything since the `[1.4.0]` entry below actually landed on `develop`:
 - **feat**: Documentando e configurando mínimo SDK
 - **feat**: MVP da aplicação
 - **chore**: Criação do README.md e commit inicial
+
+## [2.3.2] - 2026-11-05
+
+* fix(ci): keep wear versionCode in step with app on release
