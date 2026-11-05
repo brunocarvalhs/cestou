@@ -1,5 +1,91 @@
 # Changelog
 
+## [2.4.0] - 2026-11-05
+
+* ci(workflows): fix develop branch protection violations by opening PRs for sync and size updates
+* ci: align release.yml and build.yml structure and add automatic versioning to build workflow
+* fix(build): ignore missing NoNullnessRewrite annotation in R8 (#265)
+* feat: monthly spending goal, AI approval card and background AI notifications (sdd-036, sdd-037) (#264)
+* fix(chat): standardise sheet handle background and keep the AI turn alive (sdd-035) (#263)
+* feat(feedback): emoji CSAT, NPS and chat thumbs with closed-list reasons (sdd-034) (#261)
+* docs(sdd): add plan sdd-035 for modal colors, chat back fix and detached AI turn (#262)
+* feat(analytics): central screen tracking, behavior events and Analytics opt-out (sdd-033) (#260)
+* chore(deps): bump actions/setup-java from 4 to 6 (#255)
+* chore(deps): bump com.firebaseui:firebase-ui-auth (#259)
+* chore(deps): bump com.google.devtools.ksp from 2.3.12 to 2.3.13 (#258)
+* chore(deps): bump agp from 9.4.1 to 9.5.0 (#257)
+* feat(shopping): add History tab and spending insights screen (#254)
+* docs(sdd): add plans sdd-029, sdd-031 and sdd-032 (#253)
+* chore(sdd): move sdd-024..026 plans from specs/ to .specs/ (#251)
+* feat(shopping): add notification bell with unread badge and redesigned feed (#250)
+* refactor(ai-agent): rename AiAgent family to Agent (#247)
+* Merge pull request #246 from brunocarvalhs/chore/project-structure-cleanup
+* Merge remote-tracking branch 'origin/develop' into chore/project-structure-cleanup
+* Merge pull request #249 from brunocarvalhs/fix/agent-registry-di-gap
+* chore(ci): update APK size baseline to 189308173 bytes
+* fix: atualiza baselines do detekt e corrige findings nos agentes de IA
+* refactor(ai-agent): replace AgentRegistry service locator with real Hilt DI
+* Merge remote-tracking branch 'origin/develop' into chore/project-structure-cleanup
+* Merge pull request #243 from brunocarvalhs/fix/sdd-024-cobertura-testes-ai-settings
+* Merge remote-tracking branch 'origin/develop' into chore/project-structure-cleanup
+* Merge remote-tracking branch 'origin/develop' into fix/sdd-024-cobertura-testes-ai-settings
+* Merge pull request #248 from brunocarvalhs/ci/disable-instrumented-tests
+* ci(instrumented-tests): disable, flaky emulator never produced a real failure
+* ci(instrumented-tests): drop explanatory comment, keep enabled: false
+* ci(instrumented-tests): drop explanatory comment, keep enabled: false
+* ci(instrumented-tests): disable, flaky emulator never produced a real failure
+* ci(instrumented-tests): disable, flaky emulator never produced a real failure
+* fix(ci): pin emulator GPU mode to work around ColorBuffer crashes
+* style: autofix formatting debt exposed by the detekt inheritance fix
+* fix(detekt): subprojects never inherited the custom ruleset
+* chore(specs): consolidate sdd-021/sdd-022 under .specs/
+* chore(ci): update APK size baseline to 189291789 bytes
+* Merge remote-tracking branch 'origin/develop' into chore/project-structure-cleanup
+* chore(ci): update APK size baseline to 189291821 bytes
+* test(settings): split AiSettingsScreenTest to satisfy TooManyFunctions
+* chore(infra): remove Realtime Database legacy data reference
+* Merge remote-tracking branch 'origin/develop' into fix/sdd-024-cobertura-testes-ai-settings
+* Merge pull request #241 from brunocarvalhs/fix/crashlytics-top-crashes
+* chore: remove old specs/ and config/ paths after reorg
+* Merge pull request #244 from brunocarvalhs/refactor/sdd-026-ai-provider-consolidation
+* Merge pull request #240 from brunocarvalhs/chore/kover-coverage-85
+* chore: move detekt config into buildSrc and rename specs/ to .specs/
+* docs: fix stale 95% coverage reference in copilot-instructions
+* Merge remote-tracking branch 'origin/develop' into chore/kover-coverage-85
+* refactor(ai-agent): consolidate Gemini/OpenRouter providers behind BaseAgent and AiProvider enum
+* refactor(settings): extract AiSettingsScreen logic and restore layout coverage gate
+* chore(ci): update APK size baseline to 189291817 bytes
+* chore(ci): update APK size baseline to 189291821 bytes
+* fix(ai-agent): block role/ownership tampering and harden chat trial flow (#242)
+* test(coverage): close the layout coverage gap to meet the new 85% gate
+* fix(crashlytics): guard CartGraph lifecycle and harden WorkManager init
+* fix(ci): fix lint violation and harden pipeline against disk/timeout failures
+* chore: set kover coverage minimum to 85% and add unit tests
+* chore(ci): update APK size baseline to 189140784 bytes
+* Merge pull request #237 from brunocarvalhs/feature/chat-bottom-sheet-voice
+* feat(chat): add AI chat history, native voice input, and Lottie thinking animation
+* chore: chat via bottom sheet
+* Merge pull request #238 from brunocarvalhs/feature/chat-voice-history
+* Merge branch 'develop' into feature/chat-voice-history
+* Merge branch 'develop' into feature/chat-bottom-sheet-voice
+* Merge pull request #239 from brunocarvalhs/feature/sdd-016-billing-hardening
+* Merge branch 'develop' into feature/chat-voice-history
+* Merge branch 'develop' into feature/chat-bottom-sheet-voice
+* fix(billing): harden Play Billing resilience against transient failures (sdd-016)
+* docs(specs): clean obsolete SDD plans and publish updated general audit
+* docs(specs): update tasks.txt with merged and pending PRs
+* feat(chat): add AI chat history, native voice input, and Lottie thinking animation
+* chore: chat via bottom sheet
+* Merge branch 'refs/heads/develop' into feature/chat-bottom-sheet-voice
+* chore(ci): update APK size baseline to 189124400 bytes
+* chore(ci): update APK size baseline to 189124396 bytes
+* chore(ci): update APK size baseline to 189124400 bytes
+* chore(ci): update APK size baseline to 189124396 bytes
+* Merge pull request #236 from brunocarvalhs/feature/search-bar-ai-chat
+* feat(chat): convert chat screen into modal bottom sheet with history and voice input
+* feat(shopping): add search bar, AI chat entry point and category/status filter chips
+
+
 ## [Unreleased]
 
 * fix(ui): bottom sheets now share one background, `colorScheme.background`, so the drag handle no longer shows a different colour from the content (sdd-035)
