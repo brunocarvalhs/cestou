@@ -334,35 +334,37 @@ jobs:
           git config user.email "${{ steps.config.outputs.bot_email }}"
 
       - name: ${{ needs.prepare.outputs.step_sync_merge }}
-        id: merge
-        run: |
-          MAIN="${{ steps.config.outputs.main_branch }}"
-          DEV="${{ steps.config.outputs.dev_branch }}"
-          git checkout "$DEV"
-          if git merge --no-edit "origin/$MAIN"; then
-            git push origin "$DEV"
-            echo "conflict=false" >> $GITHUB_OUTPUT
-          else
-            git merge --abort
-            echo "conflict=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: ${{ needs.prepare.outputs.step_sync_open_pr_conflict }}
-        if: steps.merge.outputs.conflict == 'true'
+        id: sync_pr
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         run: |
           MAIN="${{ steps.config.outputs.main_branch }}"
           DEV="${{ steps.config.outputs.dev_branch }}"
+          git checkout "$DEV"
+
           BRANCH="sync/$MAIN-to-$DEV-${{ github.sha }}"
-          git checkout -b "$BRANCH" "origin/$MAIN"
-          git push origin "$BRANCH"
-          gh pr create \
-            --title "Sync $MAIN → $DEV (conflict - needs manual resolution)" \
-            --body "Automated sync from \`$MAIN\` to \`$DEV\` hit a merge conflict after this release/hotfix and needs a human to resolve it." \
-            --base "$DEV" \
-            --head "$BRANCH" \
-            --label "sync"
+          git checkout -b "$BRANCH"
+
+          if git merge --no-edit "origin/$MAIN"; then
+            git push origin "$BRANCH"
+            gh pr create \
+              --title "Sync $MAIN → $DEV" \
+              --body "Automated sync from \`$MAIN\` to \`$DEV\` after release." \
+              --base "$DEV" \
+              --head "$BRANCH" \
+              --label "sync"
+          else
+            git merge --abort
+            BRANCH_CONFLICT="sync/$MAIN-to-$DEV-${{ github.sha }}-conflict"
+            git checkout -b "$BRANCH_CONFLICT" "origin/$MAIN"
+            git push origin "$BRANCH_CONFLICT"
+            gh pr create \
+              --title "Sync $MAIN → $DEV (conflict - needs manual resolution)" \
+              --body "Automated sync from \`$MAIN\` to \`$DEV\` hit a merge conflict after this release/hotfix and needs a human to resolve it." \
+              --base "$DEV" \
+              --head "$BRANCH_CONFLICT" \
+              --label "sync,conflict"
+          fi
 
   deploy:
     runs-on: ubuntu-24.04

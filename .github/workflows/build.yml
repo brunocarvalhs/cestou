@@ -349,23 +349,21 @@ jobs:
           git config user.name "${{ needs.prepare.outputs.bot_name }}"
           git config user.email "${{ needs.prepare.outputs.bot_email }}"
 
-          for attempt in 1 2 3; do
-            git fetch --quiet origin "$DEV_BRANCH"
-            git reset --quiet --hard "origin/$DEV_BRANCH"
-            CURRENT_BYTES=$(yq '.size_check.baseline_bytes' .github/pipeline-config.yaml)
-            if [ "$NEW_BYTES" == "$CURRENT_BYTES" ]; then
-              echo "Baseline já está em $NEW_BYTES bytes, nada para commitar."
-              exit 0
-            fi
+          yq -i ".size_check.baseline_bytes = $NEW_BYTES" .github/pipeline-config.yaml
+          git add .github/pipeline-config.yaml
+          git commit --quiet -m "chore(ci): update APK size baseline to $NEW_BYTES bytes"
 
-            yq -i ".size_check.baseline_bytes = $NEW_BYTES" .github/pipeline-config.yaml
-            git add .github/pipeline-config.yaml
-            git commit --quiet -m "chore(ci): update APK size baseline to $NEW_BYTES bytes"
-            if git push origin "HEAD:$DEV_BRANCH"; then
-              exit 0
-            fi
-            echo "::warning::Push do baseline recusado ($DEV_BRANCH avançou), tentativa $attempt de 3."
-            sleep $((attempt * 5))
-          done
-          echo "::error::Não foi possível atualizar o baseline após 3 tentativas."
-          exit 1
+          BRANCH="ci/update-size-baseline-${{ github.run_id }}"
+          git checkout -b "$BRANCH"
+          git push origin "$BRANCH" --force
+
+          EXISTING=$(gh pr list --head "$BRANCH" --base "$DEV_BRANCH" --json number --jq 'length')
+          if [ "$EXISTING" -eq 0 ]; then
+            gh pr create \
+              --title "chore(ci): update APK size baseline to $NEW_BYTES bytes" \
+              --body "Automated APK size baseline update due to size change." \
+              --base "$DEV_BRANCH" \
+              --head "$BRANCH" \
+              --label "ci,size-check"
+          fi
+          exit 0
