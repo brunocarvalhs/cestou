@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.3.2] - 2026-11-05
+
+* fix(ci): keep wear versionCode in step with app on release
+
+
 ## [2.3.1] - 2026-11-05
 
 * Enhance chat features with modal input, history, and search functionality (#267)
