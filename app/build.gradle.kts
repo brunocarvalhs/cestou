@@ -46,8 +46,8 @@ android {
         applicationId = "br.com.brunocarvalhs.howmuch"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 17
-        versionName = "2.3.2"
+        versionCode = 18
+        versionName = "2.3.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

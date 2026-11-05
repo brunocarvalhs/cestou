@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.3.3] - 2026-11-05
+
+* Disable debug variant in pipeline-config.yaml
+* ci(release): disable wear release build and Play upload
+
+
 ## [2.3.2] - 2026-11-05
 
 * fix(ci): keep wear versionCode in step with app on release
