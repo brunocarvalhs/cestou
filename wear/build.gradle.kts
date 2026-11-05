@@ -42,7 +42,7 @@ android {
         applicationId = "br.com.brunocarvalhs.howmuch.wear"
         minSdk = 30
         targetSdk = 37
-        versionCode = 1
+        versionCode = 16
         versionName = "1.0"
     }
 
