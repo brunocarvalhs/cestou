@@ -17,6 +17,7 @@ get_config() {
 
 GRADLE_FILE=$(get_config '.paths.gradle_file')
 CHANGELOG_FILE=$(get_config '.paths.changelog')
+WEAR_GRADLE_FILE="wear/build.gradle.kts"
 
 # 1️⃣ Pega a última tag (se houver)
 latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
@@ -103,6 +104,12 @@ new_version_code=$((current_version_code + 1))
 sed -i.bak "s/versionName = \"$current_version\"/versionName = \"$new_version\"/" "$GRADLE_FILE"
 sed -i.bak "s/versionCode = $current_version_code/versionCode = $new_version_code/" "$GRADLE_FILE"
 rm -f "${GRADLE_FILE}.bak"
+
+# O módulo wear tem applicationId próprio e sobe como AAB separado no Play:
+# o versionCode dele precisa acompanhar o do app, senão o upload é rejeitado
+# com "Version code N has already been used".
+sed -i.bak "s/versionCode = [0-9]*/versionCode = $new_version_code/" "$WEAR_GRADLE_FILE"
+rm -f "${WEAR_GRADLE_FILE}.bak"
 
 # 6️⃣ Atualiza o CHANGELOG.md
 today=$(date +%Y-%m-%d)

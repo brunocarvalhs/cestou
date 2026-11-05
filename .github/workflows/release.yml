@@ -211,7 +211,7 @@ jobs:
         run: |
           git config user.name "$(yq '.git.bot_name' .github/pipeline-config.yaml)"
           git config user.email "$(yq '.git.bot_email' .github/pipeline-config.yaml)"
-          git add "$(yq '.paths.gradle_file' .github/pipeline-config.yaml)" "$(yq '.paths.changelog' .github/pipeline-config.yaml)"
+          git add "$(yq '.paths.gradle_file' .github/pipeline-config.yaml)" wear/build.gradle.kts "$(yq '.paths.changelog' .github/pipeline-config.yaml)"
           git commit -m "chore(release): prepare ${{ steps.bump.outputs.new_version }} [skip ci]"
           git push origin "HEAD:${{ github.ref_name }}"
 
