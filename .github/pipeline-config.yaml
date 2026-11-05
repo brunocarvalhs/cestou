@@ -117,7 +117,8 @@ build:
         - name: "release"
           description: "Production Ready APK"
           gradle_task: "assembleRelease"
-          enabled: true
+          # Desabilitado: o AAB do wear não é publicado no Play por enquanto.
+          enabled: false
           path: "wear/build/outputs/apk/release/*.apk"
           artifact_name: "HowMuch-wear-release"
           deploy:
