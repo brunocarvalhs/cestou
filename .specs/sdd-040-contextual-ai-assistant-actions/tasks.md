@@ -1,23 +1,23 @@
-# Task: Assistente de IA Contextual com Sugestões e Visão Computacional
+# Task: Assistente de IA Proativo e Visão Computacional Refinada
 
 - **Slug:** contextual-ai-assistant-actions
 - **Autor do plano:** Code-Planner (SDD)
-- **Data:** 2026-11-03
+- **Data:** 2026-11-03 (Refinado)
 - **Status:** ready
 - **Versão-alvo:** 2.3.0
 - **Tipo de mudança:** feature
 - **Impacto público (módulo):** additive
 
 ## 1. Contexto e Motivação
-- Eliminar a "Síndrome da Tela em Branco" no chat de IA através de chips flutuantes de sugestão rápida ("O que está na época agora?", "Dê 3 ideias de jantares rápidos", "Alimentos ricos em proteína"), respostas acionáveis com botão "+" para adicionar itens diretamente à lista com um toque, e suporte a visão computacional (envio de foto de produto para extração e adição em lote).
-- Referência ao pedido: Requisitos de Concorrentes - Item 3.
+- Eliminar a tela vazia do chat através de "chips" de prompts rápidos ("Ideias de jantar para dois", "Frutas da estação", "Lista para churrasco") e ações diretas nos itens sugeridos (botão "+" por item ou "Adicionar todos à lista"). Além disso, refinar o prompt da visão computacional na câmera para ignorar "lixo" (tabelas nutricionais, códigos aleatórios como "1a00") e extrair apenas nomes comerciais e ingredientes úteis.
+- Referência ao pedido: Refinamento de Concorrentes - Itens 1 e 2 (Chat Proativo e Visão Computacional).
 - Rastreabilidade: `core/ai/`, `feature/chat/`, `feature/ai-agent/`.
 
 ## 2. Escopo
 - **Inclui:**
-  - Chips de prompts prontos na `AiChatScreen`.
-  - Botão de ação rápida ("+") em itens sugeridos pela IA para adição direta à lista de compras.
-  - Funcionalidade de upload/captura de imagem (Vision API / multimodal) para extração de itens e botão de adição em lote ("Adicionar X produtos").
+  - Chips de sugestão rápida flutuantes acima da barra de digitação.
+  - Botão de ação rápida ("+" por item e "Adicionar todos à lista") nas respostas estruturadas da IA.
+  - Refinamento de system prompt para visão computacional (filtro estrito de ruído: ignorar tabela nutricional e códigos irrelevantes, extraindo apenas nomes comerciais/ingredientes).
 - **Exclui:**
   - Histórico de conversas (já coberto por sdd-016).
 
@@ -26,31 +26,31 @@
 - Padrão aplicado: Clean Architecture + MVI, Nav3.
 - Novos arquivos:
   - `feature/chat/src/main/java/br/com/brunocarvalhs/howmuch/feature/chat/presentation/components/AiSuggestionChips.kt`
-  - `feature/chat/src/main/java/br/com/brunocarvalhs/howmuch/feature/chat/presentation/components/VisionProductExtractorDialog.kt`
+  - `core/ai/src/main/java/br/com/brunocarvalhs/howmuch/core/ai/prompt/VisionExtractionPrompt.kt`
 
 ## 4. Contratos e Interfaces
-- Extensão dos contratos multimodais em `core:ai` para processamento de imagem e extração estruturada de produtos.
+- Atualização dos parsers de resposta da IA em `core:ai` para suportar adição em lote de ingredientes sugeridos.
 
 ## 5. Regras de Negócio Aplicáveis
 
 | # | Regra atual | Comportamento após a mudança | Origem (`arquivo:linha`) |
 |---|---|---|---|
-| 1 | Chat de IA apenas textual e sem sugestões iniciais | Chat com sugestões em chips, adição com 1 clique e extração por imagem | `core/ai/...` |
+| 1 | Chat estático sem sugestões e visão extraindo textos irrelevantes | Chat proativo com chips e ações de adicionar; visão filtrando apenas itens comerciais/ingredientes | `core/ai/...` |
 
 ## 6. Critérios de Aceitação
-- Performance: Processamento de imagem otimizado com compressão prévia antes de enviar à API de IA.
-- Feature toggle: `feat_ai_contextual_actions` (default: true).
-- Observabilidade: Eventos `ai_suggestion_clicked`, `ai_vision_products_extracted`.
+- Performance: Processamento de imagem otimizado; prompt restritivo para evitar alucinação ou inclusão de texto espúrio.
+- Feature toggle: `feat_proactive_ai` (default: true).
+- Observabilidade: Evento `ai_suggestion_clicked`, `ai_batch_items_added`.
 
 ## 7. Plano de Testes
-- **Unitários:** Testes de parsing de resposta multimodal da IA para extracão de itens.
-- **Instrumentados / UI:** Testes de interação com chips e botão "+".
+- **Unitários:** Testes de extração e filtragem de imagem simulada (garantindo exclusão de tabelas nutricionais).
+- **Instrumentados / UI:** Testes de interação com chips e botão "Adicionar todos".
 - **Lint/Detekt/Cobertura:** Validação padrão via Gradle.
 
 ## 8. Dependências e Riscos
 | Risco | Probabilidade | Impacto | Mitigação |
 |---|---|---|---|
-| Falha na extração estruturada de imagem | Média | Média | Fallback para prompt textual e edição manual dos itens extraídos |
+| IA ainda retornar texto espúrio na foto | Média | Média | Validação e limpeza programática adicional pós-extração |
 
 ## 9. Perguntas em Aberto (bloqueantes)
 - [ ] Nenhuma.

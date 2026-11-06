@@ -1,24 +1,23 @@
-# Task: Catálogo Visual e Enriquecido de Produtos
+# Task: Catálogo Visual, Enriquecido e Guiado
 
 - **Slug:** visual-enriched-catalog
 - **Autor do plano:** Code-Planner (SDD)
-- **Data:** 2026-11-03
+- **Data:** 2026-11-03 (Refinado)
 - **Status:** ready
 - **Versão-alvo:** 2.3.0
 - **Tipo de mudança:** feature
 - **Impacto público (módulo):** additive
 
 ## 1. Contexto e Motivação
-- Facilitar a adição manual de produtos através de uma aba de "Catálogo" com grade visual (cards grandes) separados por seções coloridas, filtros rápidos por tags (#Vegan, #Keto, #Sem glúten, #Rico em proteína), ficha detalhada do produto (tabela nutricional, dicas de armazenamento, benefícios e riscos à saúde) e aba de itens recentes.
-- Referência ao pedido: Requisitos de Concorrentes - Item 4.
+- Substituir a adição puramente baseada em texto por uma aba "Catálogo" com grandes categorias visuais (Açougue, Hortifruti, Limpeza, Congelados) e fichas completas de produtos (dicas de armazenamento, tags nutricionais), transformando o app em um guia de compras inteligente.
+- Referência ao pedido: Refinamento de Concorrentes - Item 4 (Catálogo Visual e Enriquecido).
 - Rastreabilidade: `feature/products/`, `core/ui/`.
 
 ## 2. Escopo
 - **Inclui:**
-  - Aba de Catálogo Visual com grade de cards e seções coloridas.
-  - Filtros rápidos por tags nutricionais e dietéticas.
-  - Tela/BottomSheet de detalhes do produto com tabela nutricional, dicas de armazenamento e saúde.
-  - Aba "Recentes" para adição rápida de produtos frequentes.
+  - Aba "Catálogo" com navegação por categorias visuais e ícones marcantes.
+  - Ficha detalhada do produto ao selecionar um item (dicas de armazenamento, melhor conservação e tags nutricionais).
+  - Filtros rápidos por tags dietéticas.
 - **Exclui:**
   - Leitor de código de barras (escopo de sdd-043).
 
@@ -28,31 +27,30 @@
 - Novos arquivos:
   - `feature/products/src/main/java/br/com/brunocarvalhs/howmuch/feature/products/presentation/CatalogScreen.kt`
   - `feature/products/src/main/java/br/com/brunocarvalhs/howmuch/feature/products/presentation/ProductDetailBottomSheet.kt`
-  - `core/domain/src/main/java/br/com/brunocarvalhs/howmuch/core/domain/model/ProductDetails.kt`
 
 ## 4. Contratos e Interfaces
-- Modelos públicos de produtos e detalhes nutricionais em `core:domain`.
+- Modelos públicos de categorias visuais e fichas de produtos em `core:domain`.
 
 ## 5. Regras de Negócio Aplicáveis
 
 | # | Regra atual | Comportamento após a mudança | Origem (`arquivo:linha`) |
 |---|---|---|---|
-| 1 | Lista de produtos básica baseada em texto/busca simples | Catálogo visual rico com tags, ficha nutricional e histórico de recentes | `feature/products/...` |
+| 1 | Adição de produtos por texto simples e sem orientações | Catálogo visual por categorias e fichas de orientação de armazenamento/nutrição | `feature/products/...` |
 
 ## 6. Critérios de Aceitação
-- Performance: Carregamento otimizado de imagens nos cards com Coil e paginação/lazy loading.
+- Performance: Carregamento fluido de ícones e imagens com Coil e lazy loading.
 - Feature toggle: `feat_visual_catalog` (default: true).
-- Observabilidade: Evento `catalog_product_viewed`, `catalog_tag_filtered`.
+- Observabilidade: Evento `catalog_category_selected`, `product_detail_opened`.
 
 ## 7. Plano de Testes
-- **Unitários:** Testar filtragem por tags e recuperação de produtos recentes.
-- **Instrumentados / UI:** Testes de navegação no catálogo e abertura do bottom sheet de detalhes.
+- **Unitários:** Testar categorização e recuperação de fichas de produtos.
+- **Instrumentados / UI:** Testes de navegação no catálogo visual e abertura do bottom sheet.
 - **Lint/Detekt/Cobertura:** Validação padrão via Gradle.
 
 ## 8. Dependências e Riscos
 | Risco | Probabilidade | Impacto | Mitigação |
 |---|---|---|---|
-| Volume de dados de catálogo pesado | Baixa | Média | Paginação local em Room e cache eficiente de imagens |
+| Falta de dados de armazenamento para alguns produtos | Média | Baixa | Fallback para dicas genéricas por categoria |
 
 ## 9. Perguntas em Aberto (bloqueantes)
 - [ ] Nenhuma.
