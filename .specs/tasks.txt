@@ -77,6 +77,43 @@ Converter a tela de chat (`AiChatScreen`) em um ModalBottomSheet (com suporte a 
 
 Implementar tela de Histórico de Conversas com IA (`AiHistoryScreen`), gerenciamento de múltiplas sessões no `ChatHistoryRepository`, suporte nativo a gravação de voz (Speech-to-Text com permissão `RECORD_AUDIO`) e inclusão das animações Lottie para digitação da IA (`ai_thinking_loader.json`) e ondas de áudio (`audio_wave_micro_interaction.json`).
 
+---
+
+# Roadmap de Competidores e Novas Experiências (SDDs 038 a 044)
+
+Plano técnico SDD criado a partir da análise de concorrentes para expansão completa das funcionalidades do Cestou:
+1. **sdd-038-smart-onboarding-profiling**: Onboarding inteligente e perfilamento (quiz de 5 passos com geração automática de lista).
+2. **sdd-039-supermarket-price-comparator**: Comparador de preços por redes de supermercado com ranking e estimativa de economia.
+3. **sdd-040-contextual-ai-assistant-actions**: Assistente de IA com sugestões rápidas (chips), ações de adição direta e visão computacional (leitura de imagem).
+4. **sdd-041-visual-enriched-catalog**: Catálogo visual e enriquecido de produtos com tags nutricionais, ficha detalhada e itens recentes.
+5. **sdd-042-realtime-cart-financial-control**: Carrinho e controle financeiro em tempo real (barra inferior de Total vs. Carrinho, marcação e edição rápida).
+6. **sdd-043-practical-add-management-tools**: Ferramentas práticas de adição e gestão (leitor de código de barras CameraX, dual view e lixeira).
+7. **sdd-044-monetization-personalization-pro**: Monetização, relatórios de despesas e personalização Pro (assinaturas, backup em nuvem, múltiplos temas e ajuste de fonte).
+
+---
+
+# sdd-045-fluidez-transicoes-layout
+
+Plano técnico SDD para **Fluidez entre Telas, Transições e Polimento de Layout (Compose & Navigation 3)**:
+- Transições de entrada/saída suaves (Slide + Fade) entre destinos no Nav3.
+- Suporte completo a Edge-to-edge e tratamento de WindowInsets em todas as telas.
+- Integração com Predictive Back gestures (`NavigationEvent`).
+- Otimização de performance de rolagem em listas (`LazyColumn` com chaves estáveis).
+- Garantia de touch targets acessíveis (48dp+) e ripple effects consistentes.
+
+---
+
+# sdd-046-appfunctions-gemini-integration
+
+Plano técnico SDD para **Integração com Android AppFunctions (Gemini & System Assistant)**:
+- Exposição das principais ações do Cestou (criar lista, adicionar item, consultar saldo/total) como AppFunctions (`@AppFunctionDeclaration`).
+- KDoc refinado para descoberta automática por agentes de sistema e Gemini no Android 16+.
+- Execução em background sem necessidade de abrir a interface gráfica do app.
+- Testes instrumentados e validação via ADB.
+
+
+
+
 
 
 
