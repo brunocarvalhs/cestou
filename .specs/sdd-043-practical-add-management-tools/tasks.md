@@ -1,23 +1,23 @@
-# Task: Ferramentas Práticas de Adição e Gestão (Barcode, Dual View, Lixeira)
+# Task: Ferramentas Práticas, Leitor de Código de Barras e Lixeira (Prevenção de Erros)
 
 - **Slug:** practical-add-management-tools
 - **Autor do plano:** Code-Planner (SDD)
-- **Data:** 2026-11-03
+- **Data:** 2026-11-03 (Refinado)
 - **Status:** ready
 - **Versão-alvo:** 2.3.0
 - **Tipo de mudança:** feature
 - **Impacto público (módulo):** additive
 
 ## 1. Contexto e Motivação
-- Introduzir leitor de código de barras tradicional (CameraX) para adição instantânea de produtos, opção de alternar visualização entre "Lista de texto" compacta e "Lista visual" com imagens, e área de lixeira para recuperação de listas excluídas acidentalmente.
-- Referência ao pedido: Requisitos de Concorrentes - Item 6.
+- Adicionar o leitor de código de barras clássico (EAN) integrado a um banco de dados de produtos para reposição rápida de itens da despensa, e implementar uma área de "Lixeira" / histórico de exclusão para permitir a restauração fácil de listas deletadas por engano, prevenindo frustrações.
+- Referência ao pedido: Refinamento de Concorrentes - Itens 2 (Barcode) e 6 (Lixeira).
 - Rastreabilidade: `feature/shopping/`, `core/ui/`, `core/common/`.
 
 ## 2. Escopo
 - **Inclui:**
-  - Scanner de código de barras com CameraX integrado à adição de produtos.
-  - Alternância de visualização na lista (Modo Texto Compacto vs. Modo Visual com Cards).
-  - Tela/Área de Lixeira (Recuperação) para listas excluídas.
+  - Scanner rápido de código de barras (EAN) com CameraX para adição instantânea de produtos à lista.
+  - Tela de "Lixeira" / Histórico de exclusão para restaurar listas deletadas.
+  - Alternância de visualização na lista (Lista compacta vs. Lista visual).
 - **Exclui:**
   - Backup em nuvem avançado (escopo de sdd-044).
 
@@ -29,28 +29,28 @@
   - `feature/shopping/src/main/java/br/com/brunocarvalhs/howmuch/feature/shopping/presentation/TrashBinScreen.kt`
 
 ## 4. Contratos e Interfaces
-- Interfaces de repositório para exclusão lógica e restauração de listas em `core:domain`.
+- Interfaces de repositório para exclusão lógica (soft-delete) e restauração em `core:domain`.
 
 ## 5. Regras de Negócio Aplicáveis
 
 | # | Regra atual | Comportamento após a mudança | Origem (`arquivo:linha`) |
 |---|---|---|---|
-| 1 | Sem leitor de código de barras, visual único e exclusão definitiva | Scanner de barras, visual duplo (texto/visual) e lixeira de recuperação | `feature/shopping/...` |
+| 1 | Exclusão definitiva de listas e ausência de leitor de código de barras | Exclusão lógica com lixeira para restauração e scanner EAN integrado | `feature/shopping/...` |
 
 ## 6. Critérios de Aceitação
-- Performance: Leitura de código de barras rápida e eficiente via CameraX; transição suave entre visualizações.
+- Performance: Leitura de código de barras otimizada (<500ms); restauração de lixeira instantânea.
 - Feature toggle: `feat_practical_tools` (default: true).
 - Observabilidade: Evento `barcode_scanned`, `list_restored_from_trash`.
 
 ## 7. Plano de Testes
-- **Unitários:** Testes de lógica de soft-delete e restauração de listas na lixeira.
-- **Instrumentados / UI:** Testes de alternância de view mode com `testTag`.
+- **Unitários:** Testar lógica de soft-delete, retenção na lixeira e restauração de listas.
+- **Instrumentados / UI:** Testes do scanner de código de barras e navegação na lixeira.
 - **Lint/Detekt/Cobertura:** Validação padrão via Gradle.
 
 ## 8. Dependências e Riscos
 | Risco | Probabilidade | Impacto | Mitigação |
 |---|---|---|---|
-| Permissão de câmera negada | Média | Média | Tratamento graceful com request de permissão e fallback manual |
+| Permissão de câmera negada | Média | Média | Tratamento graceful com request e fallback manual |
 
 ## 9. Perguntas em Aberto (bloqueantes)
 - [ ] Nenhuma.

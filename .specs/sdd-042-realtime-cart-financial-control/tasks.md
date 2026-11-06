@@ -1,23 +1,23 @@
-# Task: Carrinho e Controle Financeiro em Tempo Real
+# Task: Aprimoramento do Modo Carrinho (Total vs. Carrinho)
 
 - **Slug:** realtime-cart-financial-control
 - **Autor do plano:** Code-Planner (SDD)
-- **Data:** 2026-11-03
+- **Data:** 2026-11-03 (Refinado)
 - **Status:** ready
 - **Versão-alvo:** 2.3.0
 - **Tipo de mudança:** feature
 - **Impacto público (módulo):** additive
 
 ## 1. Contexto e Motivação
-- Aprimorar a experiência de compras no corredor do supermercado dividindo visualmente a lista ou oferecendo rodapés fixos com métricas em tempo real ("Total" planejado vs. "Carrinho" dos itens já pegos), marcação de checkbox com riscado e movimentação automática para o carrinho, além de edição rápida de unidade de medida, preço, categoria e notas/fotos.
-- Referência ao pedido: Requisitos de Concorrentes - Item 5.
+- Ajudar o usuário no supermercado com agilidade e controle financeiro em tempo real, separando visualmente na barra inferior o valor planejado de toda a lista do valor acumulado no carrinho (apenas os itens já marcados/riscados como pegos), permitindo saber o gasto exato antes de chegar ao caixa.
+- Referência ao pedido: Refinamento de Concorrentes - Item 5 (Modo Carrinho).
 - Rastreabilidade: `feature/cart/`, `feature/shopping/`, `core/ui/`.
 
 ## 2. Escopo
 - **Inclui:**
-  - Barra inferior fixa com métricas "Total" e "Carrinho" em tempo real.
-  - Movimentação automática de itens riscados para a seção de carrinho.
-  - Modal/BottomSheet de edição rápida de item (unidade de medida: unidade, dúzia, litro, kg, pacote, caixa, preço, categoria, observações e foto).
+  - Barra inferior fixa exibindo métricas em tempo real: "Total Planejado" vs. "Total no Carrinho".
+  - Comportamento de risco de item ao marcar checkbox e movimentação automática para seção de carrinho.
+  - Edição rápida de item (quantidade, unidade, preço, categoria).
 - **Exclui:**
   - Relatórios avançados de despesas (escopo de sdd-044).
 
@@ -29,28 +29,28 @@
   - `feature/shopping/src/main/java/br/com/brunocarvalhs/howmuch/feature/shopping/presentation/QuickEditItemBottomSheet.kt`
 
 ## 4. Contratos e Interfaces
-- Atualização dos use cases de atualização de item para suportar unidades de medida customizadas e fotos em `core:domain`.
+- Métricas de cálculo de carrinho expostas no estado do ViewModel em `feature/cart`.
 
 ## 5. Regras de Negócio Aplicáveis
 
 | # | Regra atual | Comportamento após a mudança | Origem (`arquivo:linha`) |
 |---|---|---|---|
-| 1 | Carrinho e lista sem divisão clara em tempo real e métricas fixas | Barra de resumo financeiro fixada e separação dinâmica entre lista e carrinho | `feature/cart/...` |
+| 1 | Exibição de total único sem distinção do que já foi colocado no carrinho | Barra inferior com cálculo em tempo real separando Total Planejado e Carrinho | `feature/cart/...` |
 
 ## 6. Critérios de Aceitação
-- Performance: Atualização instantânea dos cálculos de total e carrinho sem jank em listas longas.
+- Performance: Atualização instantânea dos valores ao marcar/desmarcar itens sem jank.
 - Feature toggle: `feat_realtime_cart` (default: true).
-- Observabilidade: Evento `cart_item_checked`, `item_quick_edited`.
+- Observabilidade: Evento `cart_item_checked`, `cart_total_calculated`.
 
 ## 7. Plano de Testes
-- **Unitários:** Testes de cálculo de soma total vs carrinho e conversão de unidades.
-- **Instrumentados / UI:** Testes de marcação de checkbox e abertura da edição rápida.
+- **Unitários:** Testar soma dos itens marcados vs. total geral.
+- **Instrumentados / UI:** Testes de interação com checkbox e verificação dos valores na barra inferior.
 - **Lint/Detekt/Cobertura:** Validação padrão via Gradle.
 
 ## 8. Dependências e Riscos
 | Risco | Probabilidade | Impacto | Mitigação |
 |---|---|---|---|
-| Latência na sincronização offline-first do carrinho | Baixa | Baixa | Persistência reativa com Flow e Room |
+| Itens sem preço definido gerando soma incorreta | Alta | Baixa | Exibir aviso visual ou tratar itens sem preço como R$ 0,00 |
 
 ## 9. Perguntas em Aberto (bloqueantes)
 - [ ] Nenhuma.
