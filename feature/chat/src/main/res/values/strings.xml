@@ -44,4 +44,10 @@
     <string name="ai_notification_result_public">The AI finished your request</string>
     <string name="ai_notification_approval_title">The AI needs your approval</string>
     <string name="ai_notification_approval_text">Tap to review and decide</string>
+    <string name="ai_chat_suggestion_dinner">Dinner ideas for two</string>
+    <string name="ai_chat_suggestion_fruits">Seasonal fruits</string>
+    <string name="ai_chat_suggestion_barbecue">Barbecue list</string>
+    <string name="ai_chat_add_item_content_description">Add %1$s to the list</string>
+    <string name="ai_chat_add_all_items">Add all to the list</string>
+    <string name="ai_chat_add_items_prompt">Add these items to my list: %1$s</string>
 </resources>

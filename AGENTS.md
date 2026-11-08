@@ -36,6 +36,7 @@ Chave de configuração do pipeline: `.github/pipeline-config.yaml` (ordem: lint
   - `presentation/` — Composables, ViewModels, estado e intents.
   - `navigation/` — `NavKey` e grafo da feature.
   - `di/` — módulos Hilt.
+- **Pacotes permitidos em `:core:*`:** definidos em `CORE_LAYERS` (`app/src/test/.../architecture/ArchitectureTest.kt`); inclui `prompt` (prompts de IA compartilhados em `core:ai`) e `modifiers` (`core:ui`).
 - **Papéis dos módulos:**
   - `:core:*` — transversais (`common`, `domain`, `theme`, `ui`, `navigation`, `auth`, `data`, `ai`, `remote-config`, `analytics`, `billing`).
   - `:feature:*` — `shopping`, `products`, `settings`, `auth`, `profile`, `chat`, `cart`, `ai-agent`, `subscription`, `feedback`.
