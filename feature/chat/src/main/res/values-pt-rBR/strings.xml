@@ -44,4 +44,10 @@
     <string name="ai_notification_result_public">A IA concluiu seu pedido</string>
     <string name="ai_notification_approval_title">A IA precisa da sua aprovação</string>
     <string name="ai_notification_approval_text">Toque para ver e decidir</string>
+    <string name="ai_chat_suggestion_dinner">Ideias de jantar para dois</string>
+    <string name="ai_chat_suggestion_fruits">Frutas da estação</string>
+    <string name="ai_chat_suggestion_barbecue">Lista para churrasco</string>
+    <string name="ai_chat_add_item_content_description">Adicionar %1$s à lista</string>
+    <string name="ai_chat_add_all_items">Adicionar todos à lista</string>
+    <string name="ai_chat_add_items_prompt">Adicione estes itens à minha lista: %1$s</string>
 </resources>
