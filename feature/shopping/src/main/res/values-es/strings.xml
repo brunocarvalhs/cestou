@@ -184,4 +184,19 @@
         <item quantity="other">%d personas</item>
     </plurals>
     <string name="shopping_monthly_goal_title">Meta del mes</string>
+    <!-- Price comparator (sdd-039) -->
+    <string name="price_comparator_title">Comparar supermercados</string>
+    <string name="price_comparator_disclaimer">Estimaciones basadas en niveles medios de precio por cadena y región, no en precios en tiempo real. El total de cada cadena se aplica a los precios que ingresaste.</string>
+    <string name="price_comparator_location_title">¿Dónde compras?</string>
+    <string name="price_comparator_state_label">Estado</string>
+    <string name="price_comparator_city_label">Ciudad</string>
+    <string name="price_comparator_location_save">Comparar precios</string>
+    <string name="price_comparator_location_change">Cambiar ubicación: %1$s - %2$s</string>
+    <string name="price_comparator_cheapest">Más barato</string>
+    <string name="price_comparator_savings_headline">Podrías ahorrar hasta %1$s</string>
+    <string name="price_comparator_savings_chain">Ahorra %1$s</string>
+    <string name="price_comparator_unpriced">%1$d artículos no tienen precio y quedaron fuera de la estimación.</string>
+    <string name="price_comparator_empty_prices">Ingresa los precios de los artículos para comparar las cadenas.</string>
+    <string name="price_comparator_no_chains">Aún no hay cadenas disponibles para este estado.</string>
+    <string name="price_comparator_error">No se pudo comparar los precios. Inténtalo más tarde.</string>
 </resources>

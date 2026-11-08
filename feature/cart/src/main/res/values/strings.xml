@@ -42,4 +42,5 @@
     <string name="cart_budget_alert_list_exceeded">This list went over its budget</string>
     <string name="cart_budget_alert_month_warning">You are close to this month\'s goal</string>
     <string name="cart_budget_alert_month_exceeded">This purchase goes over this month\'s goal</string>
+    <string name="cart_menu_price_comparator">Compare supermarkets</string>
 </resources>

@@ -21,6 +21,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.usecase.ShoppingClearPurchasedUs
 import br.com.brunocarvalhs.howmuch.core.domain.usecase.SortProductsUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PriceComparator
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
@@ -71,7 +72,8 @@ internal class CartViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(
         CartUiState(
             shopping = shopping,
-            realtimeCartEnabled = featureFlags.isEnabled(FeatureFlagKeys.REALTIME_CART_ENABLED, true)
+            realtimeCartEnabled = featureFlags.isEnabled(FeatureFlagKeys.REALTIME_CART_ENABLED, true),
+            priceComparatorEnabled = featureFlags.isEnabled(FeatureFlagKeys.PRICE_COMPARATOR_ENABLED, true)
         )
     )
     val uiState = _uiState.asStateFlow()
@@ -118,6 +120,10 @@ internal class CartViewModel @Inject constructor(
             _navigator?.navigate(FinishPurchaseRoute)
         },
         onClearPurchased = { clearPurchased() },
+        onOpenPriceComparator = {
+            analyticsTracker.trackAction(AnalyticsElements.CART_PRICE_COMPARATOR, shoppingParams())
+            _navigator?.navigate(PriceComparator(shopping))
+        },
         onBudgetAlertShown = {
             _uiState.value.budgetAlert?.let { alert ->
                 analyticsTracker.trackEvent(
@@ -169,8 +175,13 @@ internal class CartViewModel @Inject constructor(
                     val totalsChanged = totals != _uiState.value.totals
                     // A flag é relida a cada emissão, então uma mudança remota vale sem reabrir a lista.
                     val realtimeEnabled = featureFlags.isEnabled(FeatureFlagKeys.REALTIME_CART_ENABLED, true)
+                    val comparatorEnabled = featureFlags.isEnabled(FeatureFlagKeys.PRICE_COMPARATOR_ENABLED, true)
                     _uiState.update {
-                        it.copy(products = stableProducts, realtimeCartEnabled = realtimeEnabled)
+                        it.copy(
+                            products = stableProducts,
+                            realtimeCartEnabled = realtimeEnabled,
+                            priceComparatorEnabled = comparatorEnabled
+                        )
                     }
                     // Só reporta quando os totais mudam: reordenar ou editar o nome não os altera.
                     if (totalsChanged && realtimeEnabled && stableProducts.isNotEmpty()) {

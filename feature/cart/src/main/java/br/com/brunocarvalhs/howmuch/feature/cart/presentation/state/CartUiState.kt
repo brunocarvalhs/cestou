@@ -35,7 +35,9 @@ internal data class CartUiState(
     val monthProgress: BudgetProgress? = null,
     val budgetAlert: BudgetAlert? = null,
     /** `false` com a flag `feat_realtime_cart` desligada: a barra volta a mostrar só o total geral. */
-    val realtimeCartEnabled: Boolean = true
+    val realtimeCartEnabled: Boolean = true,
+    /** `false` com a flag `feat_price_comparator` desligada: o item do menu que abre o comparador some. */
+    val priceComparatorEnabled: Boolean = true
 ) : AgentContext {
     /**
      * Total planejado x total no carrinho da barra inferior (sdd-042). Derivado dos [products], então

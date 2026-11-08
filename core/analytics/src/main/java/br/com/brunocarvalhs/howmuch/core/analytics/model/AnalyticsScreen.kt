@@ -21,6 +21,7 @@ enum class AnalyticsScreen(val id: String, val screenClass: String) {
     NOTIFICATIONS("notifications", "NotificationsScreen"),
     HISTORY("history", "HistoryScreen"),
     SPENDING_INSIGHTS("spending_insights", "SpendingInsightsScreen"),
+    SHOPPING_PRICE_COMPARATOR("shopping_price_comparator", "PriceComparatorScreen"),
 
     CART("cart", "CartScreen"),
     CART_FINISH_PURCHASE("cart_finish_purchase", "FinishPurchaseContent"),

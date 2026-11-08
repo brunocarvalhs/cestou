@@ -184,4 +184,19 @@
         <item quantity="other">%d people</item>
     </plurals>
     <string name="shopping_monthly_goal_title">Monthly goal</string>
+    <!-- Price comparator (sdd-039) -->
+    <string name="price_comparator_title">Compare supermarkets</string>
+    <string name="price_comparator_disclaimer">Estimates based on average price levels per chain and region, not live prices. Chain totals are applied to the prices you entered.</string>
+    <string name="price_comparator_location_title">Where do you shop?</string>
+    <string name="price_comparator_state_label">State</string>
+    <string name="price_comparator_city_label">City</string>
+    <string name="price_comparator_location_save">Compare prices</string>
+    <string name="price_comparator_location_change">Change location: %1$s - %2$s</string>
+    <string name="price_comparator_cheapest">Cheapest</string>
+    <string name="price_comparator_savings_headline">You could save up to %1$s</string>
+    <string name="price_comparator_savings_chain">Save %1$s</string>
+    <string name="price_comparator_unpriced">%1$d items have no price and were left out of the estimate.</string>
+    <string name="price_comparator_empty_prices">Add prices to your items to compare chains.</string>
+    <string name="price_comparator_no_chains">No chains available for this state yet.</string>
+    <string name="price_comparator_error">Could not compare prices. Try again later.</string>
 </resources>

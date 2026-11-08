@@ -204,7 +204,7 @@ instrumented_tests:
   # account deletion flow Play reviews. If a test process crashes at startup
   # (e.g. Firebase initializers in a library module), AGP reports success with
   # 0 tests - tests.yml's zero-test guard step fails the job on that.
-  command: "./gradlew :app:connectedDebugAndroidTest :core:ui:connectedDebugAndroidTest :feature:settings:connectedDebugAndroidTest"
+  command: "./gradlew :app:connectedDebugAndroidTest :core:ui:connectedDebugAndroidTest :feature:settings:connectedDebugAndroidTest :feature:shopping:connectedDebugAndroidTest"
   # Overrides build.default_timeout_minutes - emulator boot + test run is the
   # single slowest, most hang-prone step in the whole pipeline.
   timeout_minutes: 30

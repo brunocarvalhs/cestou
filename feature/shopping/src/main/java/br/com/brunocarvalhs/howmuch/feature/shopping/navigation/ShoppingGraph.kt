@@ -33,6 +33,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PriceComparator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
@@ -43,12 +44,14 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.sca
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.scanner.QrCodeScanner
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.HistoryScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.NotificationsScreen
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.PriceComparatorScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.ShoppingScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen.SpendingInsightsScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.EditShoppingViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.HistoryViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.JoinListViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.NotificationsViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.PriceComparatorViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ScannerViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingListViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingSubscriptionGateViewModel
@@ -100,6 +103,7 @@ fun NavGraphBuilder.shoppingGraph(
     }
 
     shoppingEditDialog(navigator)
+    priceComparatorDialog(navigator)
     shoppingOtherDialogs(navigator)
 }
 
@@ -148,6 +152,23 @@ private fun NavGraphBuilder.shoppingEditDialog(navigator: Navigator) {
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+private fun NavGraphBuilder.priceComparatorDialog(navigator: Navigator) {
+    dialog<PriceComparator>(
+        typeMap = PriceComparator.typeMap
+    ) {
+        val viewModel: PriceComparatorViewModel = hiltViewModel()
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+        CestouModalBottomSheet(
+            onDismissRequest = { navigator.goBack() },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            PriceComparatorScreen(state = uiState, intent = viewModel.intent)
         }
     }
 }

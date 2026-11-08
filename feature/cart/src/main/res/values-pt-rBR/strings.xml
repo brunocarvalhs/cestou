@@ -42,4 +42,5 @@
     <string name="cart_budget_alert_list_exceeded">Esta lista passou do orçamento</string>
     <string name="cart_budget_alert_month_warning">Você está perto da meta do mês</string>
     <string name="cart_budget_alert_month_exceeded">Esta compra passa da meta do mês</string>
+    <string name="cart_menu_price_comparator">Comparar supermercados</string>
 </resources>

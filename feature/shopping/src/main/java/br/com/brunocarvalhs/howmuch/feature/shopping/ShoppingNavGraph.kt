@@ -10,6 +10,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PriceComparator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
 import br.com.brunocarvalhs.howmuch.core.navigation.toScreenName
@@ -27,6 +28,7 @@ class ShoppingNavGraph @Inject constructor() : FeatureNavGraph {
         Notifications::class to AnalyticsScreen.NOTIFICATIONS.toScreenName(),
         History::class to AnalyticsScreen.HISTORY.toScreenName(),
         SpendingInsights::class to AnalyticsScreen.SPENDING_INSIGHTS.toScreenName(),
+        PriceComparator::class to AnalyticsScreen.SHOPPING_PRICE_COMPARATOR.toScreenName(),
         EditShopping::class to AnalyticsScreen.SHOPPING_EDIT.toScreenName(),
         QrCode::class to AnalyticsScreen.SHOPPING_QR_CODE.toScreenName(),
         Scanner::class to AnalyticsScreen.SHOPPING_JOIN_SCANNER.toScreenName(),
