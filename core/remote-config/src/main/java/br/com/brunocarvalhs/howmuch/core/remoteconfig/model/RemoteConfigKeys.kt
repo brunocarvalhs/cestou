@@ -36,6 +36,9 @@ object FeatureFlagKeys {
     /** Chips de sugestão e ações de adicionar itens no chat da IA (sdd-040). Default on. */
     const val PROACTIVE_AI_ENABLED = "feat_proactive_ai"
 
+    /** Barra inferior do carrinho com "Total planejado" e "No carrinho" em tempo real (sdd-042). Default on. */
+    const val REALTIME_CART_ENABLED = "feat_realtime_cart"
+
     /** Permite pedir a avaliação na Play Store (In-App Review). Default on. */
     const val FEEDBACK_STORE_REVIEW_ENABLED = "feedback_store_review_enabled"
 }

@@ -33,12 +33,17 @@ import br.com.brunocarvalhs.howmuch.core.ui.entity.ProductCategory
  * [expanded]/[onToggle] default to "always expanded, no-op" so existing callers that don't care
  * about collapsing keep behaving exactly as before — only [br.com.brunocarvalhs.howmuch.feature.cart.presentation.screen.CartScreen]
  * currently wires real collapse state through.
+ *
+ * [title] substitui o nome da categoria (ex.: a seção "No carrinho" do carrinho, que não é uma
+ * categoria); fica `public` porque o header é compartilhado entre módulos. Default `null` mantém o
+ * comportamento anterior.
  */
 @Composable
 fun CestouCategoryHeader(
     category: String,
     modifier: Modifier = Modifier,
     expanded: Boolean = true,
+    title: String? = null,
     onToggle: () -> Unit = {}
 ) {
     val productCategory = remember(category) { ProductCategory.fromString(category) }
@@ -68,7 +73,7 @@ fun CestouCategoryHeader(
         }
 
         Text(
-            text = stringResource(productCategory.displayNameRes).uppercase(locale),
+            text = (title ?: stringResource(productCategory.displayNameRes)).uppercase(locale),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Black,
             color = CestouTextSecondary,
