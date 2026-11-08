@@ -1,6 +1,5 @@
 package br.com.brunocarvalhs.howmuch.feature.settings.presentation.components
 
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,6 +18,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import br.com.brunocarvalhs.howmuch.core.ui.modifiers.topBarEdgePadding
 import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,7 +29,7 @@ internal fun SettingsHeader(
     onBack: () -> Unit = {},
 ) {
     LargeTopAppBar(
-        modifier = modifier.statusBarsPadding(),
+        modifier = modifier.topBarEdgePadding(),
         title = {
             Text(
                 text = title,
