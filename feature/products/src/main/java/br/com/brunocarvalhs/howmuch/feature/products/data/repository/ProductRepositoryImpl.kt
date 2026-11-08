@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.products.data.repository
 
 import android.graphics.Bitmap
+import br.com.brunocarvalhs.howmuch.core.ai.prompt.VisionExtractionPrompt
 import br.com.brunocarvalhs.howmuch.core.common.BuildConfig
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
@@ -220,8 +221,9 @@ class ProductRepositoryImpl @Inject constructor(
         return runCatching {
             val bitmap = bitmapLoader.load(imageUri) ?: throw ImageUnreadableException()
             val tag = imageTextRecognizer.recognizePriceTag(bitmap)
-            if (tag.nameCandidates.isNotEmpty()) {
-                tag.nameCandidates.map { name ->
+            val names = VisionExtractionPrompt.sanitizeNames(tag.nameCandidates)
+            if (names.isNotEmpty()) {
+                names.map { name ->
                     Product(
                         id = UUID.randomUUID().toString(),
                         name = name,
@@ -238,17 +240,9 @@ class ProductRepositoryImpl @Inject constructor(
     }
 
     private suspend fun analyzeImageWithGemini(bitmap: Bitmap): List<Product> {
-        val prompt = """
-            Analise esta imagem e identifique todos os produtos de supermercado presentes nela.
-            Para cada produto encontrado, extraia: nome, quantidade estimada, unidade de medida (un, kg, L, pct, etc) e a categoria mais provável.
-            Responda apenas com um array JSON válido no formato: [{"name": "...", "quantity": 0.0, "unit": "...", "category": "..."}]
-            Categorias válidas: Hortifruti, Carnes, Laticínios, Bebidas, Limpeza, Higiene, Mercearia, Legumes, Perecíveis, Congelados, Padaria, Outros.
-            Não inclua nenhuma outra explicação ou formatação markdown além do JSON.
-        """.trimIndent()
-
         val content = com.google.ai.client.generativeai.type.content {
             image(bitmap)
-            text(prompt)
+            text(VisionExtractionPrompt.PROMPT)
         }
 
         val response = generativeModel.generateContent(content)
@@ -260,8 +254,10 @@ class ProductRepositoryImpl @Inject constructor(
         if (startIndex == -1 || endIndex == -1 || endIndex <= startIndex) return emptyList()
 
         val jsonArray = Json.parseToJsonElement(fullText.substring(startIndex, endIndex + 1)).jsonArray
-        return jsonArray.map { element ->
-            val obj = element.jsonObject
+        return jsonArray.map { it.jsonObject }.filter { obj ->
+            /** Pós-filtro: o prompt reduz o texto espúrio, mas não garante que ele não volte. */
+            VisionExtractionPrompt.isUsefulName(obj["name"]?.jsonPrimitive?.content.orEmpty())
+        }.map { obj ->
             Product(
                 id = UUID.randomUUID().toString(),
                 name = obj["name"]?.jsonPrimitive?.content ?: "Produto Desconhecido",

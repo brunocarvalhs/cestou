@@ -33,6 +33,9 @@ object FeatureFlagKeys {
      */
     const val BUDGET_ALERTS_ENABLED = "feat_budget_alerts_enabled"
 
+    /** Chips de sugestão e ações de adicionar itens no chat da IA (sdd-040). Default on. */
+    const val PROACTIVE_AI_ENABLED = "feat_proactive_ai"
+
     /** Permite pedir a avaliação na Play Store (In-App Review). Default on. */
     const val FEEDBACK_STORE_REVIEW_ENABLED = "feedback_store_review_enabled"
 }

@@ -137,6 +137,50 @@ class AiChatViewModelTest {
     }
 
     @Test
+    fun `onSuggestionClick sends the chip text, keeps the draft and tracks the click`() = runTest {
+        coEvery { assistantUseCase("Frutas da estação", any()) } returns flowOf("- Manga")
+        viewModel.intent.onInputChange("draft")
+
+        viewModel.intent.onSuggestionClick("Frutas da estação")
+
+        assertEquals("Frutas da estação", viewModel.uiState.value.messages.first().text)
+        assertEquals("draft", viewModel.uiState.value.input)
+        verify {
+            analyticsTracker.trackEvent(AnalyticsEvents.AI_SUGGESTION_CLICKED, mapOf(AnalyticsParams.SOURCE to "chip"))
+        }
+    }
+
+    @Test
+    fun `onAddItems with several items sends one request and tracks the batch`() = runTest {
+        every { context.getString(any(), *anyVararg()) } answers {
+            "add: " + args.drop(1).flatMap { a -> if (a is Array<*>) a.toList() else listOf(a) }.joinToString()
+        }
+        coEvery { assistantUseCase(any(), any()) } returns flowOf("done")
+
+        viewModel.intent.onAddItems(listOf("Picanha", "Carvão"))
+
+        coVerify { assistantUseCase(match { it.contains("Picanha, Carvão") }, any()) }
+        verify {
+            analyticsTracker.trackEvent(AnalyticsEvents.AI_BATCH_ITEMS_ADDED, mapOf(AnalyticsParams.ITEMS_COUNT to 2))
+        }
+    }
+
+    @Test
+    fun `onAddItems with one item tracks a suggestion click, not a batch`() = runTest {
+        every { context.getString(any(), *anyVararg()) } answers {
+            "add: " + args.drop(1).flatMap { a -> if (a is Array<*>) a.toList() else listOf(a) }.joinToString()
+        }
+        coEvery { assistantUseCase(any(), any()) } returns flowOf("done")
+
+        viewModel.intent.onAddItems(listOf("Picanha"))
+
+        verify {
+            analyticsTracker.trackEvent(AnalyticsEvents.AI_SUGGESTION_CLICKED, mapOf(AnalyticsParams.SOURCE to "item"))
+        }
+        verify(exactly = 0) { analyticsTracker.trackEvent(AnalyticsEvents.AI_BATCH_ITEMS_ADDED, any()) }
+    }
+
+    @Test
     fun `onSelectHistoryItem tracks the click`() = runTest {
         viewModel.intent.onSelectHistoryItem("s1")
 

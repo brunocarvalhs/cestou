@@ -70,13 +70,16 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.AiChatUpgradeBanner
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.AiSuggestionChips
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.AnimatedColorText
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.ApprovalCard
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.ChatBubble
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.MessageFeedbackBar
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.SuggestedItemsActions
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.TypingBubble
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.activityLabelFor
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.isSheetValueAllowed
+import br.com.brunocarvalhs.howmuch.feature.chat.presentation.helper.parseSuggestedItems
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiChatIntent
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.state.AiChatUiState
 import timber.log.Timber
@@ -90,8 +93,10 @@ fun AiChatScreen(
     intent: AiChatIntent,
     modifier: Modifier = Modifier,
     isSendEnabled: Boolean = true,
+    isProactiveEnabled: Boolean = true,
     onUpgradeClick: () -> Unit = {},
 ) {
+    val isProactiveActive = isProactiveEnabled && isSendEnabled
     var isInputFocused by remember { mutableStateOf(value = false) }
     val focusRequester = remember { FocusRequester() }
     val context = LocalContext.current
@@ -213,6 +218,16 @@ fun AiChatScreen(
                         if (!isSendEnabled) {
                             AiChatUpgradeBanner(onClick = onUpgradeClick)
                         }
+                        if (isProactiveActive && state.messages.isEmpty() && !state.isLoading) {
+                            AiSuggestionChips(
+                                suggestions = listOf(
+                                    stringResource(R.string.ai_chat_suggestion_dinner),
+                                    stringResource(R.string.ai_chat_suggestion_fruits),
+                                    stringResource(R.string.ai_chat_suggestion_barbecue),
+                                ),
+                                onSuggestionClick = intent.onSuggestionClick,
+                            )
+                        }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
@@ -328,6 +343,9 @@ fun AiChatScreen(
                  * à mão, que errava a contagem dos itens fixos e parava no meio.
                  */
                 val reversedMessages = remember(state.messages) { state.messages.asReversed() }
+                val lastAssistantId = remember(state.messages) {
+                    state.messages.lastOrNull { it.sender == ChatMessage.Sender.ASSISTANT }?.id
+                }
 
                 // Nova mensagem ou indicador de digitação: volta para a base, onde está a mais recente.
                 LaunchedEffect(state.messages.size, state.isLoading) {
@@ -384,16 +402,33 @@ fun AiChatScreen(
                             val showFeedback = state.feedbackEnabled &&
                                 message.sender == ChatMessage.Sender.ASSISTANT &&
                                 state.turns.containsKey(message.id)
+
+                            /** Só a última resposta oferece adicionar: as antigas já foram decididas. */
+                            val isLastAssistant = message.id == lastAssistantId
+                            val suggestedItems = if (isProactiveActive && !state.isLoading && isLastAssistant) {
+                                remember(message.text) { parseSuggestedItems(message.text) }
+                            } else {
+                                emptyList()
+                            }
                             ChatBubble(
                                 message = message,
-                                footer = if (showFeedback) {
+                                footer = if (showFeedback || suggestedItems.isNotEmpty()) {
                                     {
-                                        MessageFeedbackBar(
-                                            messageId = message.id,
-                                            vote = state.votes[message.id],
-                                            onVote = intent.onMessageVote,
-                                            onReason = intent.onMessageVoteReason,
-                                        )
+                                        if (suggestedItems.isNotEmpty()) {
+                                            SuggestedItemsActions(
+                                                items = suggestedItems,
+                                                onAddItem = { intent.onAddItems(listOf(it)) },
+                                                onAddAll = intent.onAddItems,
+                                            )
+                                        }
+                                        if (showFeedback) {
+                                            MessageFeedbackBar(
+                                                messageId = message.id,
+                                                vote = state.votes[message.id],
+                                                onVote = intent.onMessageVote,
+                                                onReason = intent.onMessageVoteReason,
+                                            )
+                                        }
                                     }
                                 } else {
                                     null

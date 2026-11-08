@@ -147,6 +147,10 @@ object AnalyticsEvents {
     const val AI_SESSION_SELECTED = "ai_session_selected"
     const val AI_TRIAL_MESSAGE_USED = "ai_trial_message_used"
 
+    /** Chat proativo (sdd-040): toque num chip ou no "+" de um item, e adição em lote. Só contagens. */
+    const val AI_SUGGESTION_CLICKED = "ai_suggestion_clicked"
+    const val AI_BATCH_ITEMS_ADDED = "ai_batch_items_added"
+
     /** Satisfação (sdd-034): só nota e enums, nunca texto digitado nem conteúdo de mensagem da IA. */
     const val FEEDBACK_PROMPT_SHOWN = "feedback_prompt_shown"
     const val FEEDBACK_PROMPT_DISMISSED = "feedback_prompt_dismissed"

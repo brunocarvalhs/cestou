@@ -59,6 +59,7 @@ fun NavGraphBuilder.chatGraph(navigator: Navigator) {
 
         AiChatScreen(
             state = uiState,
+            isProactiveEnabled = gateViewModel.isProactiveEnabled,
             intent = viewModel.intent.copy(
                 onSettings = { navigator.navigate(AiSettings) },
                 onBack = {
