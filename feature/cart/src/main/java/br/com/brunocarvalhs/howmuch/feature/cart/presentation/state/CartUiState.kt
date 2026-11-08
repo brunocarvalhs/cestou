@@ -9,6 +9,8 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
+import br.com.brunocarvalhs.howmuch.feature.cart.presentation.helper.CartTotals
+import br.com.brunocarvalhs.howmuch.feature.cart.presentation.helper.computeCartTotals
 
 @Stable
 internal data class CartUiState(
@@ -31,8 +33,18 @@ internal data class CartUiState(
     val listBudgetProgress: BudgetProgress? = null,
     /** Meta do mês projetada com esta lista (finalizadas do mês + total da lista); `null` sem meta. */
     val monthProgress: BudgetProgress? = null,
-    val budgetAlert: BudgetAlert? = null
+    val budgetAlert: BudgetAlert? = null,
+    /** `false` com a flag `feat_realtime_cart` desligada: a barra volta a mostrar só o total geral. */
+    val realtimeCartEnabled: Boolean = true,
+    /** `false` com a flag `feat_price_comparator` desligada: o item do menu que abre o comparador some. */
+    val priceComparatorEnabled: Boolean = true
 ) : AgentContext {
+    /**
+     * Total planejado x total no carrinho da barra inferior (sdd-042). Derivado dos [products], então
+     * nunca fica fora de sincronia com a lista; calculado uma vez por instância, só quando lido.
+     */
+    val totals: CartTotals by lazy(LazyThreadSafetyMode.NONE) { computeCartTotals(products) }
+
     override fun toMetadata(): Map<String, Any?> =
         mapOf(
             "shopping_id" to (shopping?.id ?: ""),

@@ -5,6 +5,10 @@
     <string name="cart_ai_voice_input">Entrada de voz</string>
     <string name="cart_assistant_status">En línea • IA activa</string>
     <string name="cart_assistant_title">Asistente Cestou</string>
+    <string name="cart_section_in_cart">En el carrito</string>
+    <string name="cart_total_in_cart">En el carrito</string>
+    <string name="cart_total_planned">Total planificado</string>
+    <string name="cart_total_unpriced_hint">Los artículos sin precio cuentan como 0,00</string>
     <string name="cart_checkout">Finalizar</string>
     <string name="cart_error_finish_purchase">No se pudo finalizar la compra. Inténtalo de nuevo.</string>
     <string name="cart_item_delete_description">Eliminar artículo</string>
@@ -38,4 +42,5 @@
     <string name="cart_budget_alert_list_exceeded">Esta lista superó su presupuesto</string>
     <string name="cart_budget_alert_month_warning">Estás cerca de la meta del mes</string>
     <string name="cart_budget_alert_month_exceeded">Esta compra supera la meta del mes</string>
+    <string name="cart_menu_price_comparator">Comparar supermercados</string>
 </resources>

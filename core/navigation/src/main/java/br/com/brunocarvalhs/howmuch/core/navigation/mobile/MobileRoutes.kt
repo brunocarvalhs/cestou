@@ -51,6 +51,16 @@ data object LinkPhone : NavKey
 @Serializable
 data object LinkWearDevice : NavKey
 
+/** Bottom sheet comparing the list's estimated cost across supermarket chains (sdd-039). */
+@Serializable
+data class PriceComparator(val shopping: Shopping) : NavKey {
+    companion object {
+        val typeMap = mapOf(
+            typeOf<Shopping>() to navTypeSerializer<Shopping>()
+        )
+    }
+}
+
 @Serializable
 data class CartFlow(val shopping: Shopping) : NavKey {
     companion object {

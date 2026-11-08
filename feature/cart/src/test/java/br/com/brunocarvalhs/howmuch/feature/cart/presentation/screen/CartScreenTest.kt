@@ -1,7 +1,9 @@
 package br.com.brunocarvalhs.howmuch.feature.cart.presentation.screen
 
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.test.core.app.ApplicationProvider
@@ -165,5 +167,48 @@ class CartScreenTest {
         }
 
         composeTestRule.onNodeWithText(categoryHeaderText("Mercearia")).assertExists()
+    }
+
+    private fun showCart(products: List<Product>, realtimeCartEnabled: Boolean = true) {
+        composeTestRule.setContent {
+            CestouTheme {
+                CartScreen(
+                    uiState = CartUiState(
+                        shopping = shopping,
+                        products = StableList(products),
+                        realtimeCartEnabled = realtimeCartEnabled
+                    ),
+                    intent = CartIntent()
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `bottom bar shows planned and in-cart totals separately`() {
+        showCart(
+            listOf(
+                Product(id = "p1", name = "Arroz", quantity = 1.0, price = 20.0, isPurchased = true),
+                Product(id = "p2", name = "Feijão", quantity = 1.0, price = 30.0)
+            )
+        )
+
+        composeTestRule.onNodeWithTag("cart_total_planned").assertTextContains("50", substring = true)
+        composeTestRule.onNodeWithTag("cart_total_in_cart").assertTextContains("20", substring = true)
+    }
+
+    @Test
+    fun `bottom bar warns about items without a price`() {
+        showCart(listOf(Product(id = "p1", name = "Sal", quantity = 1.0, price = null)))
+
+        composeTestRule.onNodeWithTag("cart_total_unpriced_hint").assertExists()
+    }
+
+    @Test
+    fun `bottom bar hides the in-cart total when the realtime flag is off`() {
+        showCart(listOf(Product(id = "p1", name = "Arroz", quantity = 1.0, price = 20.0)), realtimeCartEnabled = false)
+
+        composeTestRule.onNodeWithTag("cart_total_in_cart").assertDoesNotExist()
+        composeTestRule.onNodeWithTag("cart_finish_button").assertExists()
     }
 }

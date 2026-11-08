@@ -18,6 +18,11 @@ object AnalyticsEvents {
     const val BUDGET_ALERT_SHOWN = "budget_alert_shown"
 
     const val CART_PRODUCT_DELETED = "cart_product_deleted"
+    const val CART_ITEM_CHECKED = "cart_item_checked"
+    const val CART_TOTAL_CALCULATED = "cart_total_calculated"
+    const val PRICE_COMPARISON_EXECUTED = "price_comparison_executed"
+    const val PRICE_COMPARATOR_LOCATION_SAVED = "price_comparator_location_saved"
+    const val PRICE_COMPARATOR_LOCATION_EDIT = "price_comparator_location_edit"
     const val CART_FINISH_PURCHASE_STARTED = "cart_finish_purchase_started"
     const val CART_FINISH_PURCHASE_COMPLETED = "cart_finish_purchase_completed"
 
@@ -182,6 +187,11 @@ object AnalyticsParams {
     const val AMOUNT = "amount"
     const val ITEMS_COUNT = "items_count"
     const val UNREAD_COUNT = "unread_count"
+    const val UNPRICED_COUNT = "unpriced_count"
+
+    /** UF escolhida no comparador de preços; a cidade não é enviada. */
+    const val STATE = "state"
+    const val SAVINGS = "savings"
     const val NOTIFICATION_TYPE = "notification_type"
     const val SOURCE = "source"
     const val SECTION_ID = "section_id"

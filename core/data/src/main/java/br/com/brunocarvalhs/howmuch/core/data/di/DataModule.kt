@@ -14,6 +14,7 @@ import br.com.brunocarvalhs.howmuch.core.data.repository.AiModelRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.data.repository.AiTrialRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.data.repository.MonthlyGoalRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.data.repository.NotificationRepositoryImpl
+import br.com.brunocarvalhs.howmuch.core.data.repository.SupermarketRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.data.repository.UserRepositoryImpl
 import br.com.brunocarvalhs.howmuch.core.data.security.Encryptor
 import br.com.brunocarvalhs.howmuch.core.data.service.DataStoreStorageService
@@ -21,6 +22,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.AiModelRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.MonthlyGoalRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.NotificationRepository
+import br.com.brunocarvalhs.howmuch.core.domain.repository.SupermarketRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.NetworkService
 import br.com.brunocarvalhs.howmuch.core.domain.services.StorageService
@@ -76,6 +78,10 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindAiModelRepository(impl: AiModelRepositoryImpl): AiModelRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSupermarketRepository(impl: SupermarketRepositoryImpl): SupermarketRepository
 
     companion object {
         private const val REQUEST_TIMEOUT_MILLIS = 60_000L

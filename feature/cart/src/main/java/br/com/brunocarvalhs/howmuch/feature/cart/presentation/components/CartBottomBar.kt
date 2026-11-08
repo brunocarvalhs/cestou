@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -35,6 +36,8 @@ internal fun CartBottomBar(
     modifier: Modifier = Modifier,
     currencyFormatter: CurrencyFormatter,
     totalAmount: Double,
+    cartAmount: Double? = null,
+    hasUnpricedItems: Boolean = false,
     onFinished: () -> Unit,
     onAdd: () -> Unit
 ) {
@@ -44,6 +47,15 @@ internal fun CartBottomBar(
             .navigationBarsPadding()
             .padding(16.dp)
     ) {
+        if (cartAmount != null) {
+            CartTotalsRow(
+                currencyFormatter = currencyFormatter,
+                plannedAmount = totalAmount,
+                cartAmount = cartAmount,
+                hasUnpricedItems = hasUnpricedItems
+            )
+            Spacer(Modifier.height(12.dp))
+        }
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
@@ -78,12 +90,67 @@ internal fun CartBottomBar(
     }
 }
 
+@Composable
+private fun CartTotalsRow(
+    currencyFormatter: CurrencyFormatter,
+    plannedAmount: Double,
+    cartAmount: Double,
+    hasUnpricedItems: Boolean
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            TotalColumn(
+                label = stringResource(R.string.cart_total_planned),
+                value = currencyFormatter.format(plannedAmount),
+                tag = "cart_total_planned"
+            )
+            TotalColumn(
+                label = stringResource(R.string.cart_total_in_cart),
+                value = currencyFormatter.format(cartAmount),
+                tag = "cart_total_in_cart",
+                horizontalAlignment = Alignment.End
+            )
+        }
+        if (hasUnpricedItems) {
+            Text(
+                text = stringResource(R.string.cart_total_unpriced_hint),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp).testTag("cart_total_unpriced_hint")
+            )
+        }
+    }
+}
+
+@Composable
+private fun TotalColumn(
+    label: String,
+    value: String,
+    tag: String,
+    horizontalAlignment: Alignment.Horizontal = Alignment.Start
+) {
+    Column(horizontalAlignment = horizontalAlignment) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.testTag(tag)
+        )
+    }
+}
+
 @Preview
 @Composable
 private fun CartBottomBarPreview() {
     CartBottomBar(
         currencyFormatter = rememberCurrencyFormatter(),
         totalAmount = 0.0,
+        cartAmount = 0.0,
         onFinished = {},
         onAdd = {}
     )

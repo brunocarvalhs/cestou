@@ -20,6 +20,7 @@ object AnalyticsElements {
 
     const val CART_ADD_PRODUCT = "cart.add_product"
     const val CART_SHARE = "cart.share"
+    const val CART_PRICE_COMPARATOR = "cart.price_comparator"
     const val CART_EDIT_PRODUCT = "cart.edit_product"
     const val CART_PRODUCT_HISTORY = "cart.product_history"
 

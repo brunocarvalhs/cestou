@@ -5,6 +5,10 @@
     <string name="cart_ai_voice_input">Voice input</string>
     <string name="cart_assistant_status">Online • AI active</string>
     <string name="cart_assistant_title">Cestou Assistant</string>
+    <string name="cart_section_in_cart">In cart</string>
+    <string name="cart_total_in_cart">In cart</string>
+    <string name="cart_total_planned">Planned total</string>
+    <string name="cart_total_unpriced_hint">Items without a price count as $0.00</string>
     <string name="cart_checkout">Checkout</string>
     <string name="cart_error_finish_purchase">Could not finish the purchase. Please try again.</string>
     <string name="cart_item_delete_description">Delete item</string>
@@ -38,4 +42,5 @@
     <string name="cart_budget_alert_list_exceeded">This list went over its budget</string>
     <string name="cart_budget_alert_month_warning">You are close to this month\'s goal</string>
     <string name="cart_budget_alert_month_exceeded">This purchase goes over this month\'s goal</string>
+    <string name="cart_menu_price_comparator">Compare supermarkets</string>
 </resources>

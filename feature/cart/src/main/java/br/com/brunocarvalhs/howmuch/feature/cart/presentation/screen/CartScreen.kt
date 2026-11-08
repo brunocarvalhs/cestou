@@ -72,10 +72,28 @@ import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.CartUiState
 import kotlin.collections.component1
 import kotlin.collections.component2
 
+/** Chave da seção dos itens já pegos; o caractere nulo evita colidir com uma categoria real. */
+internal const val IN_CART_SECTION_KEY = "\u0000in_cart"
+
+/**
+ * Agrupa por categoria; com o carrinho em tempo real, os itens marcados saem das categorias e vão
+ * para uma seção própria no fim da lista.
+ */
+internal fun groupCartProducts(
+    products: List<Product>,
+    isCategorized: Boolean,
+    separateInCart: Boolean
+): Map<String, List<Product>> {
+    val (inCart, pending) = if (separateInCart) {
+        products.partition { it.isPurchased }
+    } else {
+        emptyList<Product>() to products
+    }
+    val grouped = if (isCategorized) pending.groupBy { it.category } else mapOf("" to pending)
+    return if (inCart.isEmpty()) grouped else grouped + (IN_CART_SECTION_KEY to inCart)
+}
+
 private data class CartSummary(
-    val totalAmount: Double,
-    val cartAmount: Double,
-    val purchasedCount: Int,
     val currencyFormatter: CurrencyFormatter,
     val isCategorized: Boolean,
     val groupedProducts: Map<String, List<Product>>
@@ -108,20 +126,15 @@ internal fun CartScreen(
     val currencyFormatter: CurrencyFormatter = rememberCurrencyFormatter()
 
     val isCategorized = uiState.shopping?.isCategorized ?: true
-    val cartSummary = remember(uiState.products, currencyFormatter, isCategorized) {
+    val realtimeCart = uiState.realtimeCartEnabled
+    val cartSummary = remember(uiState.products, currencyFormatter, isCategorized, realtimeCart) {
         CartSummary(
-            totalAmount = uiState.products.sumOf { it.total },
-            cartAmount = uiState.products.sumOf { if (it.isPurchased) it.total else 0.0 },
-            purchasedCount = uiState.products.count { it.isPurchased },
             currencyFormatter = currencyFormatter,
             isCategorized = isCategorized,
-            groupedProducts = if (isCategorized) {
-                uiState.products.asReversed().groupBy { it.category }
-            } else {
-                mapOf("" to uiState.products.asReversed())
-            }
+            groupedProducts = groupCartProducts(uiState.products.asReversed(), isCategorized, realtimeCart)
         )
     }
+    val inCartTitle = stringResource(R.string.cart_section_in_cart)
 
     val listUpdatedMessage = stringResource(R.string.shopping_list_updated)
     val budgetAlertMessage = uiState.budgetAlert?.let { budgetAlertText(it) }
@@ -218,6 +231,16 @@ internal fun CartScreen(
                                     onEditShopping()
                                 }
                             )
+                            if (uiState.priceComparatorEnabled) {
+                                DropdownMenuItem(
+                                    text = { Text(text = stringResource(R.string.cart_menu_price_comparator)) },
+                                    modifier = Modifier.testTag("cart_menu_price_comparator"),
+                                    onClick = {
+                                        isUiVisible = false
+                                        intent.onOpenPriceComparator()
+                                    }
+                                )
+                            }
                             if (!isLocked) {
                                 DropdownMenuItem(
                                     text = { Text(text = stringResource(R.string.shopping_list_menu_clear_purchased)) },
@@ -240,7 +263,9 @@ internal fun CartScreen(
                     AnimatedVisibility(visible = !isLocked && !isExpanded) {
                         CartBottomBar(
                             currencyFormatter = currencyFormatter,
-                            totalAmount = cartSummary.totalAmount,
+                            totalAmount = uiState.totals.planned,
+                            cartAmount = uiState.totals.inCart.takeIf { uiState.realtimeCartEnabled },
+                            hasUnpricedItems = uiState.totals.unpricedCount > 0,
                             onFinished = { intent.onToggleFinishPurchaseSheet() },
                             onAdd = { intent.onToggleProductPicker() }
                         )
@@ -283,12 +308,15 @@ internal fun CartScreen(
                     }
 
                     cartSummary.groupedProducts.forEach { (category, products) ->
-                        val isCollapsed = cartSummary.isCategorized && category in collapsedCategories
+                        val isCartSection = category == IN_CART_SECTION_KEY
+                        val showHeader = cartSummary.isCategorized || isCartSection
+                        val isCollapsed = showHeader && category in collapsedCategories
 
-                        if (cartSummary.isCategorized) {
+                        if (showHeader) {
                             item(key = "header_$category") {
                                 CestouCategoryHeader(
                                     category = category,
+                                    title = inCartTitle.takeIf { isCartSection },
                                     expanded = !isCollapsed,
                                     onToggle = {
                                         collapsedCategories = if (category in collapsedCategories) {

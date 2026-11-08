@@ -3,6 +3,7 @@ package br.com.brunocarvalhs.howmuch.feature.cart.presentation.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.budget.MonthlySpendingCalculator
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
@@ -15,11 +16,14 @@ import br.com.brunocarvalhs.howmuch.core.domain.usecase.ProductsUseCase
 import br.com.brunocarvalhs.howmuch.core.domain.usecase.ShoppingClearPurchasedUseCase
 import br.com.brunocarvalhs.howmuch.core.domain.usecase.SortProductsUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PriceComparator
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
@@ -34,6 +38,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -183,5 +188,113 @@ class CartViewModelObserveDataTest {
 
         assertEquals(products.sortedBy { it.name }, vm.uiState.value.products.toList())
         assertEquals(EXPECTED_TOTAL, vm.uiState.value.products.sumOf { it.total }, 0.0)
+    }
+
+    @Test
+    fun `totals separate the planned list from the items already in the cart`() = runTest {
+        val products = listOf(
+            Product(id = "p1", name = "Milk", quantity = 2.0, price = 5.0, isPurchased = true),
+            Product(id = "p2", name = "Bread", quantity = 1.0, price = 3.0),
+            Product(id = "p3", name = "Salt", quantity = 1.0, price = null)
+        )
+        coEvery { productsUseCase(shopping.id) } returns flowOf(products)
+        every { sortProductsUseCase(any(), any()) } returns products
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(sortingMode = "CATEGORY"))
+
+        val vm = viewModel()
+
+        val totals = vm.uiState.value.totals
+        assertEquals(13.0, totals.planned, 0.0)
+        assertEquals(10.0, totals.inCart, 0.0)
+        assertEquals(1, totals.unpricedCount)
+        verify {
+            analyticsTracker.trackEvent(AnalyticsEvents.CART_TOTAL_CALCULATED, any())
+        }
+    }
+
+    @Test
+    fun `realtime totals event is not tracked when the flag is off`() = runTest {
+        every { featureFlags.isEnabled(FeatureFlagKeys.REALTIME_CART_ENABLED, true) } returns false
+        val products = listOf(Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0))
+        coEvery { productsUseCase(shopping.id) } returns flowOf(products)
+        every { sortProductsUseCase(any(), any()) } returns products
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(sortingMode = "CATEGORY"))
+
+        val vm = viewModel()
+
+        assertFalse(vm.uiState.value.realtimeCartEnabled)
+        verify(exactly = 0) {
+            analyticsTracker.trackEvent(AnalyticsEvents.CART_TOTAL_CALCULATED, any())
+        }
+    }
+
+    @Test
+    fun `totals event is not repeated when a new emission leaves the totals unchanged`() = runTest {
+        val products = listOf(Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0))
+        coEvery { productsUseCase(shopping.id) } returns flowOf(products)
+        every { sortProductsUseCase(any(), any()) } returns products
+        val settingsFlow = MutableSharedFlow<AppSettings>(replay = 1)
+        every { settingsRepository.getSettings() } returns settingsFlow
+        settingsFlow.tryEmit(AppSettings(sortingMode = "CATEGORY"))
+
+        viewModel()
+        settingsFlow.tryEmit(AppSettings(sortingMode = "NAME"))
+
+        verify(exactly = 1) {
+            analyticsTracker.trackEvent(AnalyticsEvents.CART_TOTAL_CALCULATED, any())
+        }
+    }
+
+    @Test
+    fun `a remote flag change is picked up on the next products emission`() = runTest {
+        val products = listOf(Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0))
+        val productsFlow = MutableSharedFlow<List<Product>>(replay = 1)
+        coEvery { productsUseCase(shopping.id) } returns productsFlow
+        every { sortProductsUseCase(any(), any()) } returns products
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(sortingMode = "CATEGORY"))
+        productsFlow.tryEmit(products)
+
+        val vm = viewModel()
+        assertTrue(vm.uiState.value.realtimeCartEnabled)
+
+        every { featureFlags.isEnabled(FeatureFlagKeys.REALTIME_CART_ENABLED, true) } returns false
+        productsFlow.tryEmit(products)
+
+        assertFalse(vm.uiState.value.realtimeCartEnabled)
+    }
+
+    @Test
+    fun `price comparator entry follows its flag`() = runTest {
+        every { featureFlags.isEnabled(FeatureFlagKeys.PRICE_COMPARATOR_ENABLED, true) } returns false
+        coEvery { productsUseCase(shopping.id) } returns flowOf(emptyList())
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(sortingMode = "CATEGORY"))
+
+        assertFalse(viewModel().uiState.value.priceComparatorEnabled)
+    }
+
+    @Test
+    fun `opening the price comparator tracks the action and navigates with the list`() = runTest {
+        coEvery { productsUseCase(shopping.id) } returns flowOf(emptyList())
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(sortingMode = "CATEGORY"))
+        val vm = viewModel()
+
+        vm.intent.onOpenPriceComparator()
+
+        verify { navigator.navigate(PriceComparator(shopping)) }
+        verify { analyticsTracker.trackEvent(any(), any()) }
+    }
+
+    @Test
+    fun `price comparator flag is re-read on each products emission`() = runTest {
+        val products = MutableStateFlow(emptyList<Product>())
+        coEvery { productsUseCase(shopping.id) } returns products
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(sortingMode = "CATEGORY"))
+        val vm = viewModel()
+        assertTrue(vm.uiState.value.priceComparatorEnabled)
+
+        every { featureFlags.isEnabled(FeatureFlagKeys.PRICE_COMPARATOR_ENABLED, true) } returns false
+        products.value = listOf(Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0))
+
+        assertFalse(vm.uiState.value.priceComparatorEnabled)
     }
 }

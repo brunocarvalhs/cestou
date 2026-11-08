@@ -87,6 +87,8 @@ class CartViewModelBudgetTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        every { featureFlags.isEnabled(FeatureFlagKeys.REALTIME_CART_ENABLED, true) } returns true
+        every { featureFlags.isEnabled(FeatureFlagKeys.PRICE_COMPARATOR_ENABLED, true) } returns true
         every { featureFlags.isEnabled(FeatureFlagKeys.BUDGET_ALERTS_ENABLED, true) } returns true
         every { repository.observeAll() } returns others
     }

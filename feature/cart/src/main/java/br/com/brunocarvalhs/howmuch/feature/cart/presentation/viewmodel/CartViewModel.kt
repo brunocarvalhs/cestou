@@ -21,6 +21,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.usecase.ShoppingClearPurchasedUs
 import br.com.brunocarvalhs.howmuch.core.domain.usecase.SortProductsUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PriceComparator
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
@@ -32,6 +33,7 @@ import br.com.brunocarvalhs.howmuch.feature.cart.navigation.ShareOptionsRoute
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.helper.BudgetAlertTracker
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.helper.BudgetInputs
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.helper.computeCartBudget
+import br.com.brunocarvalhs.howmuch.feature.cart.presentation.helper.computeCartTotals
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.intent.CartIntent
 import br.com.brunocarvalhs.howmuch.feature.cart.presentation.state.CartUiState
 import br.com.brunocarvalhs.howmuch.feature.products.navigation.ProductPickerRoute
@@ -69,7 +71,9 @@ internal class CartViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(
         CartUiState(
-            shopping = shopping
+            shopping = shopping,
+            realtimeCartEnabled = featureFlags.isEnabled(FeatureFlagKeys.REALTIME_CART_ENABLED, true),
+            priceComparatorEnabled = featureFlags.isEnabled(FeatureFlagKeys.PRICE_COMPARATOR_ENABLED, true)
         )
     )
     val uiState = _uiState.asStateFlow()
@@ -116,6 +120,10 @@ internal class CartViewModel @Inject constructor(
             _navigator?.navigate(FinishPurchaseRoute)
         },
         onClearPurchased = { clearPurchased() },
+        onOpenPriceComparator = {
+            analyticsTracker.trackAction(AnalyticsElements.CART_PRICE_COMPARATOR, shoppingParams())
+            _navigator?.navigate(PriceComparator(shopping))
+        },
         onBudgetAlertShown = {
             _uiState.value.budgetAlert?.let { alert ->
                 analyticsTracker.trackEvent(
@@ -162,7 +170,27 @@ internal class CartViewModel @Inject constructor(
                 .collect { (sortingMode, products) ->
                     val sortedProducts = sortProductsUseCase(products, sortingMode)
                     productsLoaded = true
-                    _uiState.update { it.copy(products = StableList(sortedProducts)) }
+                    val stableProducts = StableList(sortedProducts)
+                    val totals = computeCartTotals(stableProducts)
+                    val totalsChanged = totals != _uiState.value.totals
+                    // A flag é relida a cada emissão, então uma mudança remota vale sem reabrir a lista.
+                    val realtimeEnabled = featureFlags.isEnabled(FeatureFlagKeys.REALTIME_CART_ENABLED, true)
+                    val comparatorEnabled = featureFlags.isEnabled(FeatureFlagKeys.PRICE_COMPARATOR_ENABLED, true)
+                    _uiState.update {
+                        it.copy(
+                            products = stableProducts,
+                            realtimeCartEnabled = realtimeEnabled,
+                            priceComparatorEnabled = comparatorEnabled
+                        )
+                    }
+                    // Só reporta quando os totais mudam: reordenar ou editar o nome não os altera.
+                    if (totalsChanged && realtimeEnabled && stableProducts.isNotEmpty()) {
+                        analyticsTracker.trackEvent(
+                            AnalyticsEvents.CART_TOTAL_CALCULATED,
+                            shoppingParams() + (AnalyticsParams.ITEMS_COUNT to stableProducts.size) +
+                                (AnalyticsParams.UNPRICED_COUNT to totals.unpricedCount)
+                        )
+                    }
                     resolveMemberProfiles()
                 }
         }
@@ -271,6 +299,10 @@ internal class CartViewModel @Inject constructor(
     }
 
     private fun trackPurchasedToggled(purchased: Boolean) {
+        analyticsTracker.trackEvent(
+            AnalyticsEvents.CART_ITEM_CHECKED,
+            shoppingParams() + (AnalyticsParams.ENABLED to purchased)
+        )
         analyticsTracker.trackEvent(
             AnalyticsEvents.PRODUCT_PURCHASED_TOGGLED,
             shoppingParams() + (AnalyticsParams.ENABLED to purchased)
