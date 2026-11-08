@@ -4,6 +4,8 @@ import app.cash.turbine.test
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -23,12 +25,14 @@ class ChatAiGateViewModelTest {
     private val usedFlow = MutableSharedFlow<Boolean>(replay = 1)
     private val subscriptionRepository = mockk<SubscriptionRepository>()
     private val aiTrialRepository = mockk<AiTrialRepository>()
+    private val featureFlagService = mockk<FeatureFlagService>()
 
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         every { subscriptionRepository.observeStatus() } returns statusFlow
         every { aiTrialRepository.hasUsedFreeMessage() } returns usedFlow
+        every { featureFlagService.isEnabled(any(), any()) } returns true
     }
 
     @After
@@ -36,7 +40,7 @@ class ChatAiGateViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel() = ChatAiGateViewModel(subscriptionRepository, aiTrialRepository)
+    private fun viewModel() = ChatAiGateViewModel(subscriptionRepository, aiTrialRepository, featureFlagService)
 
     @Test
     fun `Free user who has not used the trial can send`() = runTest {
@@ -69,5 +73,12 @@ class ChatAiGateViewModelTest {
         viewModel.isSendEnabled.test {
             assertEquals(true, awaitItem())
         }
+    }
+
+    @Test
+    fun `proactive AI follows the feat_proactive_ai flag`() {
+        every { featureFlagService.isEnabled(FeatureFlagKeys.PROACTIVE_AI_ENABLED, true) } returns false
+
+        assertEquals(false, viewModel().isProactiveEnabled)
     }
 }

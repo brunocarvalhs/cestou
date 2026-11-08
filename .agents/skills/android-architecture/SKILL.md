@@ -26,7 +26,7 @@ Persona: especialista de arquitetura Android do projeto.
 | `:core:theme` / `:core:ui` | Tema Material 3 e componentes reutilizáveis. |
 | `:core:navigation` | Base de navegação Nav3. |
 | `:core:auth` | Sessão e credenciais. |
-| `:core:ai` | Clientes de IA (OpenRouter/Gemini). |
+| `:core:ai` | Clientes de IA (OpenRouter/Gemini) e prompts compartilhados (`prompt/`, ex.: `VisionExtractionPrompt`). |
 | `:core:remote-config` | Feature toggles e configuração remota. |
 | `:core:analytics` | Eventos e telemetria. |
 | `:core:billing` | Google Play Billing. |

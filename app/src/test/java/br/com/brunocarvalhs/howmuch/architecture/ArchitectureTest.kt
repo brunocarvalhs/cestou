@@ -220,7 +220,7 @@ class ArchitectureTest {
 
         val CORE_LAYERS = setOf(
             "annotation", "base", "budget", "cloud", "components", "contract", "di", "dragdrop", "entity",
-            "exception", "extensions", "initializer", "mobile", "model", "network", "registry",
+            "exception", "extensions", "initializer", "mobile", "model", "modifiers", "network", "prompt", "registry",
             "repository", "security", "service", "services", "usecase", "util", "utils", "wear",
             "wearable",
         )
