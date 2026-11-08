@@ -189,6 +189,18 @@ class ProductRepositoryImplTest {
     }
 
     @Test
+    fun `analyzeImage drops nutrition table and code noise from OCR candidates`() = runTest {
+        val bitmap = mockk<Bitmap>()
+        coEvery { bitmapLoader.load("content://photo") } returns bitmap
+        coEvery { imageTextRecognizer.recognizePriceTag(bitmap) } returns
+            PriceTagResult(nameCandidates = listOf("1a00", "Sódio 200mg", "Arroz Branco"), price = SCANNED_PRICE)
+
+        val products = repository.analyzeImage("content://photo").getOrThrow()
+
+        assertEquals(listOf("Arroz Branco"), products.map { it.name })
+    }
+
+    @Test
     fun `analyzeImage fails when OCR throws`() = runTest {
         val bitmap = mockk<Bitmap>()
         coEvery { bitmapLoader.load("content://photo") } returns bitmap

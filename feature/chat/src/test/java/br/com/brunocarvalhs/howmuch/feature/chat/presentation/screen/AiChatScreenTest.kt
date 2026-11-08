@@ -155,4 +155,51 @@ class AiChatScreenTest {
 
         composeTestRule.onNodeWithTag("ai_chat_send_button").assertIsEnabled()
     }
+
+    @Test
+    fun `empty chat shows suggestion chips that send their text`() {
+        val clicked = mutableListOf<String>()
+        val dinner = ApplicationProvider.getApplicationContext<android.content.Context>()
+            .getString(R.string.ai_chat_suggestion_dinner)
+
+        composeTestRule.setContent {
+            CestouTheme {
+                AiChatScreen(
+                    state = AiChatUiState(),
+                    intent = AiChatIntent(onSuggestionClick = { clicked += it }),
+                )
+            }
+        }
+        composeTestRule.onNodeWithTag("ai_suggestion_chip_0").performClick()
+
+        assertEquals(listOf(dinner), clicked)
+    }
+
+    @Test
+    fun `chips are hidden when the proactive flag is off or the chat has messages`() {
+        composeTestRule.setContent {
+            CestouTheme {
+                AiChatScreen(state = AiChatUiState(), intent = AiChatIntent(), isProactiveEnabled = false)
+            }
+        }
+
+        composeTestRule.onNodeWithTag("ai_suggestion_chips").assertDoesNotExist()
+    }
+
+    @Test
+    fun `last assistant list offers add all and reports the items`() {
+        val added = mutableListOf<List<String>>()
+        val state = AiChatUiState(
+            messages = listOf(ChatMessage(text = "- Picanha\n- Carvão", sender = ChatMessage.Sender.ASSISTANT)),
+        )
+
+        composeTestRule.setContent {
+            CestouTheme {
+                AiChatScreen(state = state, intent = AiChatIntent(onAddItems = { added += it }))
+            }
+        }
+        composeTestRule.onNodeWithTag("ai_suggested_items_add_all").performClick()
+
+        assertEquals(listOf(listOf("Picanha", "Carvão")), added)
+    }
 }
