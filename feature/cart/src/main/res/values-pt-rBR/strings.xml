@@ -5,6 +5,10 @@
     <string name="cart_ai_voice_input">Entrada por voz</string>
     <string name="cart_assistant_status">Online • IA ativa</string>
     <string name="cart_assistant_title">Assistente Cestou</string>
+    <string name="cart_section_in_cart">No carrinho</string>
+    <string name="cart_total_in_cart">No carrinho</string>
+    <string name="cart_total_planned">Total planejado</string>
+    <string name="cart_total_unpriced_hint">Itens sem preço contam como R$ 0,00</string>
     <string name="cart_checkout">Finalizar</string>
     <string name="cart_error_finish_purchase">Não foi possível finalizar a compra. Tente novamente.</string>
     <string name="cart_item_delete_description">Excluir item</string>

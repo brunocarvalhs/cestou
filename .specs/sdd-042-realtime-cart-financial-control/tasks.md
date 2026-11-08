@@ -25,8 +25,10 @@
 - Módulos afetados: `feature/cart`, `feature/shopping`, `core:domain`, `core:ui`.
 - Padrão aplicado: Clean Architecture + MVI, Nav3.
 - Novos arquivos:
-  - `feature/cart/src/main/java/br/com/brunocarvalhs/howmuch/feature/cart/presentation/CartBottomBar.kt`
-  - `feature/shopping/src/main/java/br/com/brunocarvalhs/howmuch/feature/shopping/presentation/QuickEditItemBottomSheet.kt`
+  - `feature/cart/src/main/java/br/com/brunocarvalhs/howmuch/feature/cart/presentation/components/CartBottomBar.kt` (já existia; ganha a linha de totais)
+  - `feature/cart/src/main/java/br/com/brunocarvalhs/howmuch/feature/cart/presentation/helper/CartTotals.kt` (totais derivados dos produtos)
+- Edição rápida: **não** cria `QuickEditItemBottomSheet`; o sheet existente (`EditItemRoute`/`EditItemContent`, em `feature/cart`) já edita nome, categoria, preço e quantidade. `Product` não tem campo de unidade.
+- `core:ui`: `CestouCategoryHeader` ganha o parâmetro opcional `title` (aditivo) para a seção "No carrinho".
 
 ## 4. Contratos e Interfaces
 - Métricas de cálculo de carrinho expostas no estado do ViewModel em `feature/cart`.
@@ -40,11 +42,13 @@
 ## 6. Critérios de Aceitação
 - Performance: Atualização instantânea dos valores ao marcar/desmarcar itens sem jank.
 - Feature toggle: `feat_realtime_cart` (default: true).
-- Observabilidade: Evento `cart_item_checked`, `cart_total_calculated`.
+- Observabilidade: Evento `cart_item_checked`, `cart_total_calculated` (só quando os totais mudam).
+  `cart_item_checked` é emitido junto de `product_purchased_toggled` de propósito: o segundo é legado e alimenta as explorações do GA4; o novo é o nome definido por esta spec.
+- Flag relida a cada emissão de produtos, então uma mudança remota vale sem reabrir a lista.
 
 ## 7. Plano de Testes
 - **Unitários:** Testar soma dos itens marcados vs. total geral.
-- **Instrumentados / UI:** Testes de interação com checkbox e verificação dos valores na barra inferior.
+- **UI:** Testes de layout via Robolectric (`CartScreenTest`, padrão do módulo, sem emulador) com `testTag` para a barra inferior; agrupamento em `CartGroupingTest`.
 - **Lint/Detekt/Cobertura:** Validação padrão via Gradle.
 
 ## 8. Dependências e Riscos
