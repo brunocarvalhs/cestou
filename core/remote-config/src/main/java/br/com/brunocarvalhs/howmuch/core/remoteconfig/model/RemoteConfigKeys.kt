@@ -176,6 +176,37 @@ object FeatureFlagKeys {
 
     /** Wear OS notifications and alerts. Default on. */
     const val WEAR_NOTIFICATIONS_ENABLED = "feat_wear_notifications"
+
+    // ============================================================================
+    // CATEGORY 6: API & Network Configuration (Timeouts, Retries, Resilience)
+    // ============================================================================
+
+    /** Fallback to Gemini Vision API for photo OCR (disable if API broken). Default on. */
+    const val FEAT_AI_VISION_FALLBACK_ENABLED = "feat_ai_vision_fallback_enabled"
+
+    /** Skip onboarding screen on first launch. Default off. */
+    const val FEAT_ONBOARDING_SKIP_ENABLED = "feat_onboarding_skip_enabled"
+
+    /** Show tips during onboarding. Default on. */
+    const val FEAT_ONBOARDING_SHOW_TIPS = "feat_onboarding_show_tips"
+
+    /** Aggressive CTA (call-to-action) in empty state to drive activation. Default off. */
+    const val FEAT_EMPTY_STATE_CTA_AGGRESSIVE = "feat_empty_state_cta_aggressive"
+
+    /** Auto-add sample products when creating first list to reduce friction. Default off. */
+    const val FEAT_AUTO_ADD_SAMPLE_PRODUCTS = "feat_auto_add_sample_products"
+
+    /** Show notification badge on AI Chat FAB. Default on. */
+    const val AI_CHAT_FAB_SHOW_BADGE = "ai_chat_fab_show_badge"
+
+    /** Show first message suggestions in AI Chat (to improve engagement). Default on. */
+    const val FEAT_AI_CHAT_FIRST_MESSAGE_SUGGESTION = "feat_ai_chat_first_message_suggestion"
+
+    /** Enable animations in shopping lists (disable on slow devices). Default on. */
+    const val FEAT_ENABLE_LIST_ANIMATIONS = "feat_enable_list_animations"
+
+    /** Enable offline vision mode (cache vision results for later). Default off. */
+    const val FEAT_AI_VISION_OFFLINE_MODE_ENABLED = "feat_ai_vision_offline_mode_enabled"
 }
 
 /**
@@ -251,4 +282,58 @@ object RemoteVariableKeys {
 
     /** Wear OS sync interval in minutes. Default: 15. */
     const val WEAR_SYNC_INTERVAL_MINUTES = "wear_sync_interval_minutes"
+
+    // ============================================================================
+    // API & Network Configuration
+    // ============================================================================
+
+    /** Timeout for API requests in seconds. Default: 30. */
+    const val API_REQUEST_TIMEOUT_SECONDS = "api_request_timeout_seconds"
+
+    /** Maximum retry attempts for failed API calls. Default: 3. */
+    const val API_RETRY_MAX_ATTEMPTS = "api_retry_max_attempts"
+
+    /** Exponential backoff multiplier for retries (e.g., 1.5 → 1s, 1.5s, 2.25s, ...). Default: "1.5". */
+    const val API_RETRY_BACKOFF_MULTIPLIER = "api_retry_backoff_multiplier"
+
+    /** Timeout specific to Gemini Vision API calls in seconds. Default: 10. */
+    const val AI_VISION_TIMEOUT_SECONDS = "ai_vision_timeout_seconds"
+
+    /** Number of retries for photo OCR scan. Default: 2. */
+    const val PHOTO_SCAN_RETRY_COUNT = "photo_scan_retry_count"
+
+    // ============================================================================
+    // UX & Onboarding Configuration
+    // ============================================================================
+
+    /** Number of sample products to auto-add on first list creation. Default: 3. */
+    const val SAMPLE_PRODUCTS_COUNT = "sample_products_count"
+
+    /** Examples for AI Chat first message suggestions (comma-separated). Default: "add,search,recipe". */
+    const val AI_CHAT_SUGGESTION_EXAMPLES = "ai_chat_suggestion_examples"
+
+    /** Duration of list animations in milliseconds. Default: 300. */
+    const val ANIMATION_DURATION_MS = "animation_duration_ms"
+
+    // ============================================================================
+    // Data & Sync Configuration (Firestore, Cache, Wear OS)
+    // ============================================================================
+
+    /** Batch size for Firestore queries. Default: 25. */
+    const val FIRESTORE_BATCH_SIZE = "firestore_batch_size"
+
+    /** TTL (time to live) for local cache in minutes. Default: 60. */
+    const val LOCAL_CACHE_TTL_MINUTES = "local_cache_ttl_minutes"
+
+    /** Maximum pending changes allowed in offline mode before error. Default: 100. */
+    const val OFFLINE_MODE_MAX_PENDING_CHANGES = "offline_mode_max_pending_changes"
+
+    /** Full sync interval for Wear OS in minutes (heavy operation). Default: 15. */
+    const val WEAR_FULL_SYNC_INTERVAL_MINUTES = "wear_full_sync_interval_minutes"
+
+    /** Delta (incremental) sync interval for Wear OS in seconds (lightweight). Default: 30. */
+    const val WEAR_DELTA_SYNC_INTERVAL_SECONDS = "wear_delta_sync_interval_seconds"
+
+    /** Conflict resolution strategy for shared lists. Options: last_write_wins, merge. Default: last_write_wins. */
+    const val SHARED_LIST_CONFLICT_RESOLUTION = "shared_list_conflict_resolution"
 }
