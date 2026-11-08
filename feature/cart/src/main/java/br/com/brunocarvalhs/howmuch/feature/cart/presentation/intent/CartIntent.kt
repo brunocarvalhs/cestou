@@ -15,5 +15,6 @@ internal data class CartIntent(
     val onShowShareOptions: () -> Unit = {},
     val onMoveProduct: (Product, String) -> Unit = { _, _ -> },
     val onShowProductHistory: (Product) -> Unit = {},
-    val onBudgetAlertShown: () -> Unit = {}
+    val onBudgetAlertShown: () -> Unit = {},
+    val onOpenPriceComparator: () -> Unit = {}
 )

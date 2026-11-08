@@ -231,6 +231,16 @@ internal fun CartScreen(
                                     onEditShopping()
                                 }
                             )
+                            if (uiState.priceComparatorEnabled) {
+                                DropdownMenuItem(
+                                    text = { Text(text = stringResource(R.string.cart_menu_price_comparator)) },
+                                    modifier = Modifier.testTag("cart_menu_price_comparator"),
+                                    onClick = {
+                                        isUiVisible = false
+                                        intent.onOpenPriceComparator()
+                                    }
+                                )
+                            }
                             if (!isLocked) {
                                 DropdownMenuItem(
                                     text = { Text(text = stringResource(R.string.shopping_list_menu_clear_purchased)) },

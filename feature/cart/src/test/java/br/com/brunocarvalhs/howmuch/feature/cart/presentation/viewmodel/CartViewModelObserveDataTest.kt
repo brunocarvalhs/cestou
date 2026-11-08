@@ -16,6 +16,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.usecase.ProductsUseCase
 import br.com.brunocarvalhs.howmuch.core.domain.usecase.ShoppingClearPurchasedUseCase
 import br.com.brunocarvalhs.howmuch.core.domain.usecase.SortProductsUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PriceComparator
 import br.com.brunocarvalhs.howmuch.core.navigation.navJson
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
@@ -260,5 +261,40 @@ class CartViewModelObserveDataTest {
         productsFlow.tryEmit(products)
 
         assertFalse(vm.uiState.value.realtimeCartEnabled)
+    }
+
+    @Test
+    fun `price comparator entry follows its flag`() = runTest {
+        every { featureFlags.isEnabled(FeatureFlagKeys.PRICE_COMPARATOR_ENABLED, true) } returns false
+        coEvery { productsUseCase(shopping.id) } returns flowOf(emptyList())
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(sortingMode = "CATEGORY"))
+
+        assertFalse(viewModel().uiState.value.priceComparatorEnabled)
+    }
+
+    @Test
+    fun `opening the price comparator tracks the action and navigates with the list`() = runTest {
+        coEvery { productsUseCase(shopping.id) } returns flowOf(emptyList())
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(sortingMode = "CATEGORY"))
+        val vm = viewModel()
+
+        vm.intent.onOpenPriceComparator()
+
+        verify { navigator.navigate(PriceComparator(shopping)) }
+        verify { analyticsTracker.trackEvent(any(), any()) }
+    }
+
+    @Test
+    fun `price comparator flag is re-read on each products emission`() = runTest {
+        val products = MutableStateFlow(emptyList<Product>())
+        coEvery { productsUseCase(shopping.id) } returns products
+        every { settingsRepository.getSettings() } returns flowOf(AppSettings(sortingMode = "CATEGORY"))
+        val vm = viewModel()
+        assertTrue(vm.uiState.value.priceComparatorEnabled)
+
+        every { featureFlags.isEnabled(FeatureFlagKeys.PRICE_COMPARATOR_ENABLED, true) } returns false
+        products.value = listOf(Product(id = "p1", name = "Milk", quantity = 1.0, price = 5.0))
+
+        assertFalse(vm.uiState.value.priceComparatorEnabled)
     }
 }
