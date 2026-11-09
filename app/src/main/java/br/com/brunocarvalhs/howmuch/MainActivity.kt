@@ -45,6 +45,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
+import br.com.brunocarvalhs.howmuch.core.navigation.TransitionExtensions
 import br.com.brunocarvalhs.howmuch.core.navigation.isProtectedRoute
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.FeedbackSurvey
@@ -53,6 +54,8 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.StoreReview
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouBottomNavigation
 import br.com.brunocarvalhs.howmuch.core.ui.utils.exposeTestTags
@@ -74,6 +77,12 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     internal lateinit var screenTracker: ScreenTracker
+
+    @Inject
+    internal lateinit var featureFlagService: FeatureFlagService
+
+    private val fluidTransitions: Boolean
+        get() = featureFlagService.isEnabled(FeatureFlagKeys.FLUID_TRANSITIONS_ENABLED, default = true)
 
     private val viewModel: MainViewModel by viewModels()
 
@@ -333,7 +342,11 @@ class MainActivity : AppCompatActivity() {
                     }
                     NavHost(
                         navController = navController,
-                        startDestination = startDestination
+                        startDestination = startDestination,
+                        enterTransition = { TransitionExtensions.forwardEnter(fluidTransitions) },
+                        exitTransition = { TransitionExtensions.forwardExit(fluidTransitions) },
+                        popEnterTransition = { TransitionExtensions.backEnter(fluidTransitions) },
+                        popExitTransition = { TransitionExtensions.backExit(fluidTransitions) }
                     ) {
                         featureNavGraphs.forEach {
                             it.registerGraph(this, navigator, windowSizeClass)

@@ -36,6 +36,9 @@ object FeatureFlagKeys {
     /** Chips de sugestão e ações de adicionar itens no chat da IA (sdd-040). Default on. */
     const val PROACTIVE_AI_ENABLED = "feat_proactive_ai"
 
+    /** Transições de slide entre telas (sdd-045); desligada, o `NavHost` volta ao fade padrão. Default on. */
+    const val FLUID_TRANSITIONS_ENABLED = "feat_fluid_transitions"
+
     /** Permite pedir a avaliação na Play Store (In-App Review). Default on. */
     const val FEEDBACK_STORE_REVIEW_ENABLED = "feedback_store_review_enabled"
 }
