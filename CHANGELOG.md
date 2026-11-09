@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.5.0] - 2026-11-09
+
+* feat(core): add AppFunctions and retry logic for Gemini integration (#275)
+* feat(ui): slide transitions and edge-to-edge insets (#273)
+* feat(chat): proactive AI suggestions and refined photo extraction (#272)
+* Merge pull request #271 from brunocarvalhs/feature/sdd-concorrentes-appfunctions-fluidity
+* refactor(sdd): update SDD plans with refined requirements for proactive chat, vision filtering, onboarding, visual catalog, cart control, and trash bin
+* chore(sdd): add SDD plans for competitor features, fluidity, and AppFunctions
+* ci(release): disable wear release build and Play upload
+* chore(release): prepare dev version 2.4.2 [skip ci]
+
+
 ## [2.4.2] - 2026-11-05
 
 * fix(ci): keep wear versionCode in step with app on release
