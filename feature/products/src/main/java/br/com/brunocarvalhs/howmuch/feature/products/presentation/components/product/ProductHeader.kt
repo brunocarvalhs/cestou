@@ -2,7 +2,6 @@ package br.com.brunocarvalhs.howmuch.feature.products.presentation.components.pr
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -19,6 +18,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import br.com.brunocarvalhs.howmuch.core.ui.modifiers.topBarEdgePadding
 import br.com.brunocarvalhs.howmuch.feature.products.R
 import br.com.brunocarvalhs.howmuch.core.ui.R as CoreR
 
@@ -38,7 +38,7 @@ internal fun ProductHeader(
 ) {
     Column(
         modifier = modifier
-            .statusBarsPadding()
+            .topBarEdgePadding()
             .background(
                 TopAppBarDefaults.topAppBarColors().containerColor
             )
