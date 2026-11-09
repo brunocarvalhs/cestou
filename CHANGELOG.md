@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.1] - 2026-11-09
+
+* Merge pull request #276 from brunocarvalhs/fix/ci-size-baseline-gh-token
+* fix(ci): pass GH_TOKEN to APK size baseline step
+* chore(release): prepare dev version 2.5.0 [skip ci]
+
+
 ## [2.5.0] - 2026-11-09
 
 * feat(core): add AppFunctions and retry logic for Gemini integration (#275)
