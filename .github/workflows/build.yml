@@ -336,6 +336,8 @@ jobs:
           path: output/
 
       - name: ${{ needs.prepare.outputs.step_size_update_baseline }}
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
         run: |
           GLOB="${{ needs.prepare.outputs.size_apk_glob }}"
           APK_FILE=$(find output/ -iname "$(basename "$GLOB")" | head -n 1)
