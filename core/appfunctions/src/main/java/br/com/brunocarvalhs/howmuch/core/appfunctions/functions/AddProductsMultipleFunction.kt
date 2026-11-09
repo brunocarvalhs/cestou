@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.core.appfunctions.functions
 
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
@@ -93,6 +94,6 @@ class AddProductsMultipleFunction @Inject constructor(
             params[AnalyticsParams.REASON] to reason
             crashlytics.log("add_products_multiple failed: $reason")
         }
-        analyticsTracker.trackEvent("app_function_invoked", params)
+        analyticsTracker.trackEvent(AnalyticsEvents.APP_FUNCTION_INVOKED, params)
     }
 }

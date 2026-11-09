@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.core.appfunctions.functions
 
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -57,6 +58,6 @@ class ListListMembersFunction @Inject constructor(
             params[AnalyticsParams.REASON] to reason
             crashlytics.log("list_list_members failed: $reason")
         }
-        analyticsTracker.trackEvent("app_function_invoked", params)
+        analyticsTracker.trackEvent(AnalyticsEvents.APP_FUNCTION_INVOKED, params)
     }
 }
