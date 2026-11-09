@@ -177,6 +177,9 @@ object FeatureFlagKeys {
     /** Wear OS notifications and alerts. Default on. */
     const val WEAR_NOTIFICATIONS_ENABLED = "feat_wear_notifications"
 
+    /** Transições de slide entre telas (sdd-045); desligada, o `NavHost` volta ao fade padrão. Default on. */
+    const val FLUID_TRANSITIONS_ENABLED = "feat_fluid_transitions"
+
     // ============================================================================
     // CATEGORY 6: API & Network Configuration (Timeouts, Retries, Resilience)
     // ============================================================================
