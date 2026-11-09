@@ -23,6 +23,7 @@ dependencies {
     implementation(libs.androidx.startup)
     implementation(project(":core:common"))
     implementation(project(":core:domain"))
+    implementation(project(":core:network"))
 
     // Network
     implementation(libs.retrofit)
