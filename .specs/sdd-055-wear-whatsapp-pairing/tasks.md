@@ -385,7 +385,7 @@ Não bloqueantes, para o maintainer decidir:
 - [x] Novo cache: nenhum. Chaves em memória, descartadas no fim da sessão (justificativa: segredo efêmero, não persistir).
 - [x] Perguntas em aberto: nenhuma bloqueante; itens não bloqueantes em P-1 a P-7. P-3 e P-8 passam a ser bloqueantes para o merge (seção 11).
 - [ ] Atualizar `architecture/04-integracoes-externas.md` §6 e `architecture/05-decisoes-arquiteturais.md` (AD-009 e uma AD nova para o pareamento por SAS) no mesmo PR.
-- [ ] Atualizar `CHANGELOG.md` no processo de release (AGENTS §6 item 5) e bump de versão (P-3).
+- [ ] Atualizar `CHANGELOG.md` e bump de versão no processo de release (AGENTS §6 itens 5 e 6). Não entram neste PR.
 - [ ] Marcar `sdd-054-wear-bluetooth-sync` como superado (R-8).
 
 ## 11. Revisão de código (code-reviewer, 2026-11-10)
@@ -400,7 +400,7 @@ Revisão da branch `feat/wear-whatsapp-pairing` contra `develop`, incluindo o co
 
 ### 11.2 Itens bloqueantes para o merge
 
-- [ ] **B-1 Versão e registro de release** (P-3 e P-8). Quebra de protocolo sem bump em `app/build.gradle.kts` (`versionName = "2.5.1"`) e sem entrada no `CHANGELOG.md` (AGENTS §6, itens 5 e 6). Decisão do maintainer: `2.6.0` ou `3.0.0`.
+- [x] **B-1 Versão e registro de release** (P-3 e P-8). Fora deste PR: `CHANGELOG.md` e `versionName` são responsabilidade do processo de release, não de PRs de feature. Ficam para o release, junto com o `versionCode` do `:wear` (P-8).
 - [x] **B-2 Teste de redação de log (R-7).** `core/data/.../WearableSyncLogRedactionTest.kt`: falhas de envio de `/auth/pair` e `/pairing/error` não logam `sid`, token nem uid, na mensagem nem na exceção. Cobre o celular e o caminho de envio. O listener do relógio (`WearAuthListenerService`) é um `Service` Android e não está coberto por este teste.
 - [x] **B-3 Teste de regressão do `requestPhonePairing`.** A montagem do intent virou `buildPhonePairingIntent` (`WearableSyncServiceImpl.kt`). `core/data/.../BuildPhonePairingIntentTest.kt` verifica `ACTION_VIEW`, `CATEGORY_BROWSABLE`, `setPackage(PHONE_APPLICATION_ID)` e os parâmetros `sid`, `k`, `n` do deeplink. Robolectric com `@Config(sdk = [34])`, como o resto do projeto.
 
