@@ -19,6 +19,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -187,6 +188,25 @@ class PhoneWearPairingViewModelTest {
 
         coVerify { wearableSyncService.sendPairingError(WATCH_NODE, SESSION, PairingFailure.CANCELED.name) }
         coVerify(exactly = 0) { wearableSyncService.sendAuthPair(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `closing while the sign-in is being sent does not cancel the watch`() = runTest(dispatcher) {
+        givenPhoneCanStartPairing()
+        coEvery { wearableSyncService.sendAuthPair(any(), any(), any(), any()) } coAnswers {
+            awaitCancellation()
+        }
+        viewModel.start(SESSION, watchKey(), WATCH_NODE)
+        waitUntil { viewModel.uiState.value.stage == PhoneWearPairingStage.CODE }
+        viewModel.confirm(context)
+        waitUntil { viewModel.uiState.value.isPhoneConfirmed }
+        watchConfirmations.emit(WearPairingMessage.WatchConfirmed(SESSION, WATCH_NODE))
+        waitUntil { viewModel.uiState.value.stage == PhoneWearPairingStage.SYNCING }
+
+        viewModel.cancel()
+        runCurrent()
+
+        coVerify(exactly = 0) { wearableSyncService.sendPairingError(any(), any(), PairingFailure.CANCELED.name) }
     }
 
     private fun givenPhoneCanStartPairing(credentialEmail: String = EMAIL) {

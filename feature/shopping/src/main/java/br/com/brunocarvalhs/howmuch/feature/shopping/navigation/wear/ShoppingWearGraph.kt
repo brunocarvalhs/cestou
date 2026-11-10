@@ -16,6 +16,7 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.Sh
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.ShoppingWearScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.LastListViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.ShoppingDetailViewModel
+import androidx.navigation.compose.composable as typedComposable
 
 fun NavGraphBuilder.shoppingWearGraph(navigator: Navigator) {
     composable(ShoppingList::class.java.name) {
@@ -36,7 +37,8 @@ fun NavGraphBuilder.shoppingWearGraph(navigator: Navigator) {
         )
     }
 
-    composable(ShoppingDetail::class.java.name) {
+    // Typed, not by name: ShoppingDetailViewModel reads shoppingId with toRoute<ShoppingDetail>().
+    typedComposable<ShoppingDetail> {
         val viewModel: ShoppingDetailViewModel = hiltViewModel()
         viewModel.setNavigator(navigator)
         ShoppingDetailScreen(viewModel = viewModel)

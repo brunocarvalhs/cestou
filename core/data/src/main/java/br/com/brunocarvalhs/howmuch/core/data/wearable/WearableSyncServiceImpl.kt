@@ -112,7 +112,11 @@ internal class WearableSyncServiceImpl @Inject constructor(
                 .appendQueryParameter(PARAM_WATCH_KEY, watchPublicKey)
                 .appendQueryParameter(PARAM_WATCH_NODE, watchNodeId)
                 .build()
-            val intent = Intent(Intent.ACTION_VIEW, uri).setPackage(WearablePaths.PHONE_APPLICATION_ID)
+            // RemoteActivityHelper rejects an ACTION_VIEW intent without BROWSABLE. The phone's
+            // deeplink filter (app manifest, cestou://wear/pair) declares it too.
+            val intent = Intent(Intent.ACTION_VIEW, uri)
+                .addCategory(Intent.CATEGORY_BROWSABLE)
+                .setPackage(WearablePaths.PHONE_APPLICATION_ID)
             RemoteActivityHelper(context, context.mainExecutor).startRemoteActivity(intent, phoneNode.id).await()
             true
         }

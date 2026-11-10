@@ -141,14 +141,17 @@ internal class PhoneWearPairingViewModel @Inject constructor(
         }
     }
 
-    /** Leaves the pairing and tells the watch. Safe to call more than once. */
+    /**
+     * Leaves the pairing. Tells the watch only while the code is still waiting for both taps: once
+     * the sign-in material is being sent (SYNCING), closing this screen must not cancel the watch.
+     * Safe to call more than once.
+     */
     fun cancel() {
         val currentSessionId = sessionId
         val nodeId = watchNodeId
-        val state = _uiState.value
-        val finished = state.stage == PhoneWearPairingStage.DONE || state.stage == PhoneWearPairingStage.ERROR
+        val notifyWatch = _uiState.value.stage == PhoneWearPairingStage.CODE
         endSession()
-        if (!finished && currentSessionId != null && nodeId != null) {
+        if (notifyWatch && currentSessionId != null && nodeId != null) {
             viewModelScope.launch {
                 wearableSyncService.sendPairingError(nodeId, currentSessionId, PairingFailure.CANCELED.name)
             }
@@ -172,7 +175,8 @@ internal class PhoneWearPairingViewModel @Inject constructor(
         pendingAuth = null
         _uiState.update { it.copy(stage = PhoneWearPairingStage.SYNCING) }
 
-        viewModelScope.launch {
+        // Not viewModelScope: closing the screen clears the ViewModel, and the sign-in must still reach the watch.
+        authSendScope.launch {
             val sent = wearableSyncService.sendAuthPair(nodeId, currentSessionId, auth.userId, auth.googleIdToken)
             if (sent) {
                 session?.cancel()
@@ -245,6 +249,9 @@ internal class PhoneWearPairingViewModel @Inject constructor(
     private class PendingAuth(val userId: String, val googleIdToken: String)
 
     private companion object {
+        /** Outlives the screen: a one-shot send of the sign-in material, no UI state of its own. */
+        val authSendScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
         /** How long the phone waits, from showing the code, for the phone user to tap "Parear". */
         const val SESSION_TIMEOUT_MS = 120_000L
 

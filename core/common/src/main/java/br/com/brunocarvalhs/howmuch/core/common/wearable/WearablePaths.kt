@@ -29,10 +29,9 @@ object WearablePaths {
     const val WEAR_CAPABILITY = "howmuch_wear_app"
 
     /**
-     * The phone app's applicationId. Wear intentionally has its own, distinct
-     * applicationId (for separate Firebase App Distribution / Play Console
-     * identity) - this constant is needed wherever wear-side code used to
-     * assume `context.packageName` also identified the phone app.
+     * The phone app's applicationId. Wear now shares it (same Play listing, same Data Layer
+     * routing), so this is also the watch's package. Kept as a named constant for the
+     * `setPackage` target of the phone deeplink intent.
      */
     const val PHONE_APPLICATION_ID = "br.com.brunocarvalhs.howmuch"
 
