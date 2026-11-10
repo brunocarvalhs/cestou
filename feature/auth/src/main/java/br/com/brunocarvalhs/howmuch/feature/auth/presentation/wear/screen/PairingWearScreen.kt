@@ -1,7 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -28,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.CircularProgressIndicator
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.MaterialTheme
-import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
 import br.com.brunocarvalhs.howmuch.core.common.wearable.PairingFailure
@@ -37,6 +35,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
 import br.com.brunocarvalhs.howmuch.feature.auth.R
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.WearPairingCode
+import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.WearScrollableScreen
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.messageRes
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.state.PairingStage
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.state.PairingUiState
@@ -78,34 +77,33 @@ private fun PairingWearContent(
     onRetry: () -> Unit,
     onExit: () -> Unit
 ) {
-    ScreenScaffold { contentPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding)
-                .padding(horizontal = 16.dp)
-                .testTag(TAG_ROOT),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            when (state.stage) {
-                PairingStage.IDLE, PairingStage.CONNECTING -> Progress(
-                    icon = Icons.AutoMirrored.Filled.Login,
-                    body = stringResource(R.string.wear_pair_connecting)
-                )
+    WearScrollableScreen(modifier = Modifier.testTag(TAG_ROOT)) {
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                when (state.stage) {
+                    PairingStage.IDLE, PairingStage.CONNECTING -> Progress(
+                        icon = Icons.AutoMirrored.Filled.Login,
+                        body = stringResource(R.string.wear_pair_connecting)
+                    )
 
-                PairingStage.SYNCING -> Progress(
-                    icon = Icons.AutoMirrored.Filled.Login,
-                    body = stringResource(R.string.wear_pair_syncing)
-                )
+                    PairingStage.SYNCING -> Progress(
+                        icon = Icons.AutoMirrored.Filled.Login,
+                        body = stringResource(R.string.wear_pair_syncing)
+                    )
 
-                PairingStage.CODE -> CodeStep(code = state.code, onConfirm = onConfirm)
+                    PairingStage.CODE -> CodeStep(code = state.code, onConfirm = onConfirm)
 
-                PairingStage.ERROR -> ErrorStep(
-                    failure = state.failure ?: PairingFailure.TIMEOUT,
-                    onRetry = onRetry,
-                    onExit = onExit
-                )
+                    PairingStage.ERROR -> ErrorStep(
+                        failure = state.failure ?: PairingFailure.TIMEOUT,
+                        onRetry = onRetry,
+                        onExit = onExit
+                    )
+                }
             }
         }
     }

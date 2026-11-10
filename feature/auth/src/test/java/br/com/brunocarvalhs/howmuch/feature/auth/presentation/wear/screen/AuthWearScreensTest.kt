@@ -1,10 +1,16 @@
 package br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.screen
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.common.wearable.PairingFailure
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
@@ -80,6 +86,31 @@ class AuthWearScreensTest {
     }
 
     @Test
+    fun `the error actions scroll into view on a small watch`() {
+        composeTestRule.setContent {
+            SmallWatch {
+                PairingWearScreen(
+                    viewModel = viewModel(PairingUiState(stage = PairingStage.ERROR, failure = PairingFailure.TIMEOUT)),
+                    navigator = mockk(relaxed = true)
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag(TAG_EXIT).performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun `the link phone action scrolls into view on a small watch`() {
+        composeTestRule.setContent {
+            SmallWatch {
+                LinkPhoneWearScreen(navigator = mockk(relaxed = true))
+            }
+        }
+
+        composeTestRule.onNodeWithTag(TAG_LINK_PHONE).performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
     fun `an error without a known failure falls back to the timeout message`() {
         composeTestRule.setContent {
             PairingWearScreen(
@@ -115,12 +146,21 @@ class AuthWearScreensTest {
         verify { navigator.navigate(PairingWear::class.java.name, any()) }
     }
 
+    /** A small round watch: content taller than this must scroll. */
+    @Composable
+    private fun SmallWatch(content: @Composable () -> Unit) {
+        Box(modifier = Modifier.size(SMALL_WATCH_DP)) { content() }
+    }
+
     private companion object {
+        val SMALL_WATCH_DP = 180.dp
+
         const val TAG_ROOT = "wear_pair_root"
         const val TAG_CODE = "wear_pair_code"
         const val TAG_CONFIRM = "wear_pair_confirm"
         const val TAG_ERROR = "wear_pair_error"
         const val TAG_RETRY = "wear_pair_retry"
+        const val TAG_EXIT = "wear_pair_exit"
         const val TAG_LINK_PHONE = "wear_link_phone"
     }
 }
