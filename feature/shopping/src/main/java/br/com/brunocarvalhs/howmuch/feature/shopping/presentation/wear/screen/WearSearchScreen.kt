@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
@@ -21,6 +22,10 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.intent.WearSearchIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.state.WearSearchUiState
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearSearchViewModel
+
+/** Tags da tela de pesquisa, para os testes de UI (AGENTS §5: sem asserts de texto). */
+internal const val TAG_SEARCH_EMPTY = "wear_search_empty"
+internal const val TAG_SEARCH_ROW_PREFIX = "wear_search_row_"
 
 /** Pesquisar (sdd-056, Q13): lista completa das listas, ativas e arquivadas, com busca por título. */
 @Composable
@@ -85,7 +90,8 @@ private fun WearSearchContent(
                     onClick = { onNavigateToDetail(shopping.id) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .transformedHeight(this, spec),
+                        .transformedHeight(this, spec)
+                        .testTag("$TAG_SEARCH_ROW_PREFIX${shopping.id}"),
                     transformation = SurfaceTransformation(spec)
                 )
             }
@@ -114,7 +120,8 @@ private fun WearSearchContent(
                         onClick = { onNavigateToDetail(shopping.id) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .transformedHeight(this, spec),
+                            .transformedHeight(this, spec)
+                            .testTag("$TAG_SEARCH_ROW_PREFIX${shopping.id}"),
                         transformation = SurfaceTransformation(spec)
                     )
                 }
@@ -124,7 +131,8 @@ private fun WearSearchContent(
                 item {
                     Text(
                         text = stringResource(emptyMessage(state.query)),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.testTag(TAG_SEARCH_EMPTY)
                     )
                 }
             }

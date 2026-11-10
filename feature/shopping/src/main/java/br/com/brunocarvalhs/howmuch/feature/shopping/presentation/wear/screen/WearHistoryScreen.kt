@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,6 +28,10 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.domain.model.HistoryMonth
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.state.WearHistoryUiState
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearHistoryViewModel
 import java.time.format.DateTimeFormatter
+
+/** Tags da tela de histórico, para os testes de UI (AGENTS §5: sem asserts de texto). */
+internal const val TAG_HISTORY_EMPTY = "wear_history_empty"
+internal const val TAG_HISTORY_MONTH_PREFIX = "wear_history_month_"
 
 /** Histórico (sdd-056): quanto foi pago em cada mês, com a compra mais recente primeiro. */
 @Composable
@@ -61,7 +66,8 @@ private fun WearHistoryContent(state: WearHistoryUiState) {
                 item {
                     Text(
                         text = stringResource(R.string.shopping_wear_history_empty),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.testTag(TAG_HISTORY_EMPTY)
                     )
                 }
             }
@@ -80,7 +86,7 @@ private fun HistoryMonthRow(month: HistoryMonth) {
         month.key.format(DateTimeFormatter.ofPattern("MMMM yyyy", locale))
             .replaceFirstChar { it.titlecase(locale) }
     }
-    Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+    Column(modifier = Modifier.padding(horizontal = 8.dp).testTag("$TAG_HISTORY_MONTH_PREFIX${month.key}")) {
         Text(text = label, style = MaterialTheme.typography.bodyMedium)
         Text(
             text = month.total.formatPrice(LocalCurrency.current),
