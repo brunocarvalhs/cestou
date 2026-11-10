@@ -10,6 +10,10 @@ import br.com.brunocarvalhs.howmuch.core.common.wearable.WearPairingMessage
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearablePaths
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.local.WearListStore
+import br.com.brunocarvalhs.howmuch.feature.shopping.data.local.WearSubscriptionStore
+import com.google.android.gms.wearable.DataEvent
+import com.google.android.gms.wearable.DataEventBuffer
+import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.WearableListenerService
 import dagger.hilt.android.AndroidEntryPoint
@@ -43,7 +47,24 @@ class WearAuthListenerService : WearableListenerService() {
     @Inject
     lateinit var wearAiInbox: WearAiInbox
 
+    @Inject
+    lateinit var wearSubscriptionStore: WearSubscriptionStore
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    override fun onDataChanged(dataEvents: DataEventBuffer) {
+        try {
+            dataEvents.forEach { event ->
+                val item = event.dataItem
+                if (event.type == DataEvent.TYPE_CHANGED && item.uri.path == WearablePaths.SUBSCRIPTION_PATH) {
+                    val isPro = DataMapItem.fromDataItem(item).dataMap.getBoolean("isPro")
+                    scope.launch { wearSubscriptionStore.save(isPro) }
+                }
+            }
+        } finally {
+            dataEvents.release()
+        }
+    }
 
     override fun onMessageReceived(messageEvent: MessageEvent) {
         when (messageEvent.path) {

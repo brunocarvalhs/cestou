@@ -23,6 +23,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
+import br.com.brunocarvalhs.howmuch.wear.WearSubscriptionSync
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -52,6 +53,7 @@ class MainViewModelTest {
     private val authService = mockk<AuthService>()
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val wearableSyncService = mockk<WearableSyncService>(relaxed = true)
+    private val wearSubscriptionSync = mockk<WearSubscriptionSync>(relaxed = true)
     private val userRepository = mockk<UserRepository> {
         coEvery { saveProfile(any()) } returns Result.success(Unit)
     }
@@ -95,7 +97,8 @@ class MainViewModelTest {
             userPropertiesSync,
             appUsageTracker,
             feedbackPromptRequester,
-            chatTurnTracker
+            chatTurnTracker,
+            wearSubscriptionSync
         )
     }
 

@@ -3,8 +3,8 @@ package br.com.brunocarvalhs.howmuch.core.common.wearable
 import kotlinx.coroutines.flow.Flow
 
 interface WearableSyncService {
-    suspend fun syncAuthStatus(isAuthenticated: Boolean, userId: String?)
-    suspend fun syncShoppingLists(shoppingListsJson: String)
+    /** Phone: publishes whether the account has PRO. The watch shows its content only when it is true. */
+    suspend fun syncSubscription(isPro: Boolean)
     suspend fun notifySignOut()
 
     /**

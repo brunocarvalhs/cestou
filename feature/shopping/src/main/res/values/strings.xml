@@ -144,6 +144,10 @@
     <string name="shopping_wear_ai_no_provider">No AI configured on the phone</string>
     <string name="shopping_wear_ai_failed">I couldn\'t answer</string>
     <string name="shopping_wear_ai_timeout">The phone took too long to answer</string>
+    <string name="shopping_wear_pro_title">PRO subscription</string>
+    <string name="shopping_wear_pro_required">The watch only works with a PRO subscription. Subscribe on your phone.</string>
+    <string name="shopping_wear_pro_open">Open on phone</string>
+    <string name="shopping_wear_tile_pro_required">Subscription required, subscribe on the phone</string>
     <string name="shopping_wear_ai_suggestion_spent">How much did I spend this month?</string>
     <string name="shopping_wear_ai_suggestion_lists">Which lists are active?</string>
     <string name="shopping_wear_ai_suggestion_budget">How much is left in the budget?</string>

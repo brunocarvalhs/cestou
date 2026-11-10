@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.navigation.wear
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -15,6 +16,7 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.We
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.WearHistoryScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.WearMenuScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.WearNotificationsScreen
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.WearProGate
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.WearSearchScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.ShoppingDetailViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearAiViewModel
@@ -22,15 +24,17 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearHomeViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearMenuViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearNotificationsViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearProViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearSearchViewModel
 import androidx.navigation.compose.composable as typedComposable
 
 /**
- * Relógio (sdd-056). A home abre direto na lista de listas (Q2): o salto automático para a última
- * lista saiu. Pesquisar e Histórico são rotas internas; Configurações é o perfil já existente.
+ * Relógio. A home abre direto na lista de listas. Toda tela de conteúdo passa por [WearProGate]:
+ * sem assinatura PRO, mostra a tela de assinatura. Configurações é o perfil já existente, e fica
+ * fora do gate para o usuário continuar podendo sair e revisar a conta.
  */
 fun NavGraphBuilder.shoppingWearGraph(navigator: Navigator) {
-    composable(ShoppingList::class.java.name) {
+    gatedComposable(ShoppingList::class.java.name) {
         val viewModel: WearHomeViewModel = hiltViewModel()
         ShoppingWearScreen(
             viewModel = viewModel,
@@ -41,8 +45,8 @@ fun NavGraphBuilder.shoppingWearGraph(navigator: Navigator) {
         )
     }
 
-    // String routes, like the home: typed object routes crash the watch NavHost at start (sdd-056).
-    composable(WearSearch::class.java.name) {
+    // String routes, like the home: typed object routes crash the watch NavHost at start.
+    gatedComposable(WearSearch::class.java.name) {
         val viewModel: WearSearchViewModel = hiltViewModel()
         WearSearchScreen(
             viewModel = viewModel,
@@ -50,37 +54,53 @@ fun NavGraphBuilder.shoppingWearGraph(navigator: Navigator) {
         )
     }
 
-    composable(WearMenu::class.java.name) {
+    gatedComposable(WearMenu::class.java.name) {
         val menuViewModel: WearMenuViewModel = hiltViewModel()
-        val menuState by menuViewModel.uiState.collectAsStateWithLifecycle()
-        WearMenuScreen(
-            showAi = menuState.showAi,
-            onNavigateToNotifications = { navigator.navigate(WearNotifications::class.java.name) },
-            onNavigateToAi = { navigator.navigate(WearAi::class.java.name) },
-            onNavigateToHistory = { navigator.navigate(WearHistory::class.java.name) },
-            onNavigateToSettings = { navigator.navigate(Profile) }
-        )
+        WearMenuRoute(menuViewModel = menuViewModel, navigator = navigator)
     }
 
-    composable(WearNotifications::class.java.name) {
+    gatedComposable(WearNotifications::class.java.name) {
         val viewModel: WearNotificationsViewModel = hiltViewModel()
         WearNotificationsScreen(viewModel = viewModel)
     }
 
-    composable(WearAi::class.java.name) {
+    gatedComposable(WearAi::class.java.name) {
         val viewModel: WearAiViewModel = hiltViewModel()
         WearAiScreen(viewModel = viewModel)
     }
 
-    composable(WearHistory::class.java.name) {
+    gatedComposable(WearHistory::class.java.name) {
         val viewModel: WearHistoryViewModel = hiltViewModel()
         WearHistoryScreen(viewModel = viewModel)
     }
 
     // Typed, not by name: ShoppingDetailViewModel reads shoppingId with toRoute<ShoppingDetail>().
     typedComposable<ShoppingDetail> {
-        val viewModel: ShoppingDetailViewModel = hiltViewModel()
-        viewModel.setNavigator(navigator)
-        ShoppingDetailScreen(viewModel = viewModel)
+        WearProGate(viewModel = hiltViewModel<WearProViewModel>()) {
+            val viewModel: ShoppingDetailViewModel = hiltViewModel()
+            viewModel.setNavigator(navigator)
+            ShoppingDetailScreen(viewModel = viewModel)
+        }
     }
+}
+
+/** A route whose content is shown only with the PRO subscription. */
+private fun NavGraphBuilder.gatedComposable(route: String, content: @Composable () -> Unit) {
+    composable(route) {
+        WearProGate(viewModel = hiltViewModel<WearProViewModel>()) {
+            content()
+        }
+    }
+}
+
+@Composable
+private fun WearMenuRoute(menuViewModel: WearMenuViewModel, navigator: Navigator) {
+    val menuState by menuViewModel.uiState.collectAsStateWithLifecycle()
+    WearMenuScreen(
+        showAi = menuState.showAi,
+        onNavigateToNotifications = { navigator.navigate(WearNotifications::class.java.name) },
+        onNavigateToAi = { navigator.navigate(WearAi::class.java.name) },
+        onNavigateToHistory = { navigator.navigate(WearHistory::class.java.name) },
+        onNavigateToSettings = { navigator.navigate(Profile) }
+    )
 }

@@ -29,6 +29,7 @@ import br.com.brunocarvalhs.howmuch.deeplink.PendingWearPairing
 import br.com.brunocarvalhs.howmuch.deeplink.ShoppingCreateLink
 import br.com.brunocarvalhs.howmuch.deeplink.WearPairingLink
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
+import br.com.brunocarvalhs.howmuch.wear.WearSubscriptionSync
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -57,7 +58,8 @@ internal class MainViewModel @Inject constructor(
     private val userPropertiesSync: UserPropertiesSync,
     private val appUsageTracker: AppUsageTracker,
     private val feedbackPromptRequester: FeedbackPromptRequester,
-    private val chatTurnTracker: ChatTurnTracker
+    private val chatTurnTracker: ChatTurnTracker,
+    private val wearSubscriptionSync: WearSubscriptionSync
 ) : ViewModel() {
 
     init {
@@ -65,6 +67,7 @@ internal class MainViewModel @Inject constructor(
         userPropertiesSync.start(viewModelScope)
         syncUserProfile()
         signOutWatchOnSignOut()
+        wearSubscriptionSync.start(viewModelScope)
     }
 
     /**
@@ -83,6 +86,7 @@ internal class MainViewModel @Inject constructor(
                 .filter { signedIn -> !signedIn }
                 .collect {
                     wearableSyncService.notifySignOut()
+                    wearableSyncService.syncSubscription(isPro = false)
                     chatTurnTracker.cancelAll()
                     aiSession.clearHistory()
                 }

@@ -22,6 +22,9 @@ object WearablePaths {
     /** Phone -> watch, only after both sides confirmed: sessionId, userId, Google ID token. */
     const val AUTH_PAIR = "/auth/pair"
 
+    /** DataItem with the account's PRO state (`isPro`), published by the phone and read by the watch. */
+    const val SUBSCRIPTION_PATH = "/subscription"
+
     /** Sent by the phone when it signs out, so the watch drops its own Firebase session too. */
     const val AUTH_SIGN_OUT = "/auth/sign-out"
 

@@ -9,7 +9,6 @@ import br.com.brunocarvalhs.howmuch.core.common.wearable.WearPairingMessage
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearablePaths
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
@@ -29,44 +28,19 @@ internal class WearableSyncServiceImpl @Inject constructor(
     private val wearPairingInbox: WearPairingInbox
 ) : WearableSyncService {
 
-    override suspend fun syncAuthStatus(isAuthenticated: Boolean, userId: String?) {
-        val request = PutDataMapRequest.create("/auth").apply {
-            dataMap.putBoolean("authenticated", isAuthenticated)
-            dataMap.putString("userId", userId.orEmpty())
+    override suspend fun syncSubscription(isPro: Boolean) {
+        val request = PutDataMapRequest.create(WearablePaths.SUBSCRIPTION_PATH).apply {
+            dataMap.putBoolean("isPro", isPro)
             dataMap.putLong("timestamp", System.currentTimeMillis())
         }.asPutDataRequest().setUrgent()
 
         try {
             Wearable.getDataClient(context).putDataItem(request).await()
-            Timber.tag("WearableSync").d("Auth status synced: $isAuthenticated")
+            Timber.tag("WearableSync").d("Subscription synced")
         } catch (e: ApiException) {
-            if (e.statusCode == CommonStatusCodes.API_NOT_CONNECTED) {
-                Timber.tag("WearableSync").w("Error syncing auth status: Wearable API not connected (Code 17)")
-            } else {
-                Timber.tag("WearableSync").e(e, "Error syncing auth status")
-            }
+            Timber.tag("WearableSync").e(e, "Error syncing subscription (status ${e.statusCode})")
         } catch (e: Exception) {
-            Timber.tag("WearableSync").e(e, "Error syncing auth status")
-        }
-    }
-
-    override suspend fun syncShoppingLists(shoppingListsJson: String) {
-        val request = PutDataMapRequest.create("/shopping_lists").apply {
-            dataMap.putString("json", shoppingListsJson)
-            dataMap.putLong("timestamp", System.currentTimeMillis())
-        }.asPutDataRequest().setUrgent()
-
-        try {
-            Wearable.getDataClient(context).putDataItem(request).await()
-            Timber.tag("WearableSync").d("Shopping lists synced")
-        } catch (e: ApiException) {
-            if (e.statusCode == CommonStatusCodes.API_NOT_CONNECTED) {
-                Timber.tag("WearableSync").w("Error syncing shopping lists: Wearable API not connected (Code 17)")
-            } else {
-                Timber.tag("WearableSync").e(e, "Error syncing shopping lists")
-            }
-        } catch (e: Exception) {
-            Timber.tag("WearableSync").e(e, "Error syncing shopping lists")
+            Timber.tag("WearableSync").e(e, "Error syncing subscription")
         }
     }
 
