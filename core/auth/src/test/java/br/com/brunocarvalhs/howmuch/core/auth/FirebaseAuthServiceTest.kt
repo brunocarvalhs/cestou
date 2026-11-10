@@ -21,6 +21,7 @@ import io.mockk.slot
 import io.mockk.unmockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -258,6 +259,39 @@ class FirebaseAuthServiceTest {
 
         every { auth.currentUser } returns null
         assertFalse(service.hasRecentLogin())
+    }
+
+    @Test
+    fun `after sign-out, the listener FirebaseAuth publishes clears currentUser and authState`() = runTest {
+        val listenerSlot = slot<FirebaseAuth.AuthStateListener>()
+        every { auth.addAuthStateListener(capture(listenerSlot)) } returns Unit
+        every { auth.currentUser } returns fakeUser("user-4")
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        every { auth.currentUser } returns null
+        service.signOut()
+        listenerSlot.captured.onAuthStateChanged(auth)
+
+        assertNull(service.currentUser)
+        assertNull(service.authState.first())
+    }
+
+    @Test
+    fun `after sign-out and a new sign-in, the uid is the newly signed-in account`() = runTest {
+        val listenerSlot = slot<FirebaseAuth.AuthStateListener>()
+        every { auth.addAuthStateListener(capture(listenerSlot)) } returns Unit
+        every { auth.currentUser } returns fakeUser("user-4")
+        val service = FirebaseAuthService(auth, crashlytics, storage)
+
+        every { auth.currentUser } returns null
+        service.signOut()
+        listenerSlot.captured.onAuthStateChanged(auth)
+
+        every { auth.currentUser } returns fakeUser("user-5")
+        listenerSlot.captured.onAuthStateChanged(auth)
+
+        assertEquals("user-5", service.currentUser?.id)
+        assertEquals("user-5", service.authState.first()?.id)
     }
 
     @Test
