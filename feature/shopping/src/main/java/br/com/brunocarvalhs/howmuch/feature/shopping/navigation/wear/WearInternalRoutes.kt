@@ -13,3 +13,11 @@ internal data object WearHistory
 /** Relógio: menu com as funcionalidades secundárias (Histórico, Configurações). Interna ao módulo. */
 @Serializable
 internal data object WearMenu
+
+/** Relógio: notificações não lidas da conta. Interna ao módulo. */
+@Serializable
+internal data object WearNotifications
+
+/** Relógio: entrada rápida de IA, resposta do celular. Interna ao módulo. */
+@Serializable
+internal data object WearAi

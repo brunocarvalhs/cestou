@@ -2,6 +2,9 @@ package br.com.brunocarvalhs.howmuch.wear.presentation.service
 
 import br.com.brunocarvalhs.howmuch.core.common.wearable.PairingFailure
 import br.com.brunocarvalhs.howmuch.core.common.wearable.PairingSessionHolder
+import br.com.brunocarvalhs.howmuch.core.common.wearable.WearAiCodec
+import br.com.brunocarvalhs.howmuch.core.common.wearable.WearAiInbox
+import br.com.brunocarvalhs.howmuch.core.common.wearable.WearAiMessage
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearPairingInbox
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearPairingMessage
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearablePaths
@@ -37,6 +40,9 @@ class WearAuthListenerService : WearableListenerService() {
     @Inject
     lateinit var wearListStore: WearListStore
 
+    @Inject
+    lateinit var wearAiInbox: WearAiInbox
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun onMessageReceived(messageEvent: MessageEvent) {
@@ -45,6 +51,37 @@ class WearAuthListenerService : WearableListenerService() {
             WearablePaths.PAIRING_ERROR -> onPairingError(messageEvent)
             WearablePaths.AUTH_PAIR -> onAuthPair(messageEvent)
             WearablePaths.AUTH_SIGN_OUT -> onSignOut()
+            WearablePaths.AI_REPLY -> onAiReply(messageEvent)
+            WearablePaths.AI_CONFIRM_REQUEST -> onAiConfirmRequest(messageEvent)
+            WearablePaths.AI_FAILURE -> onAiFailure(messageEvent)
+        }
+    }
+
+    private fun onAiReply(messageEvent: MessageEvent) {
+        val decoded = WearAiCodec.decodeReply(messageEvent.data)
+        if (decoded == null) {
+            logMalformed(messageEvent)
+        } else {
+            wearAiInbox.emit(WearAiMessage.Reply(decoded.first, decoded.second))
+        }
+    }
+
+    private fun onAiConfirmRequest(messageEvent: MessageEvent) {
+        val decoded = WearAiCodec.decodeConfirmRequest(messageEvent.data)
+        if (decoded == null) {
+            logMalformed(messageEvent)
+        } else {
+            val (requestId, actionId, summary) = decoded
+            wearAiInbox.emit(WearAiMessage.ConfirmRequest(requestId, actionId, summary))
+        }
+    }
+
+    private fun onAiFailure(messageEvent: MessageEvent) {
+        val decoded = WearAiCodec.decodeFailure(messageEvent.data)
+        if (decoded == null) {
+            logMalformed(messageEvent)
+        } else {
+            wearAiInbox.emit(WearAiMessage.Failure(decoded.first, decoded.second))
         }
     }
 

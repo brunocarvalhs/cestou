@@ -7,7 +7,7 @@ package br.com.brunocarvalhs.howmuch.core.common.wearable
  * for the pairing handshake to match.
  *
  * Payloads are UTF-8 fields joined by '\n'. Session ids are base64url, so
- * they never contain the separator.
+ * they never contain the separator. The AI relay's payloads are in [WearAiCodec].
  */
 object WearablePaths {
     /** Phone -> watch: sessionId, phone public key (base64url). */
@@ -24,6 +24,24 @@ object WearablePaths {
 
     /** Sent by the phone when it signs out, so the watch drops its own Firebase session too. */
     const val AUTH_SIGN_OUT = "/auth/sign-out"
+
+    /**
+     * Watch -> phone: requestId, then the prompt (free text, last field, may contain the separator).
+     * The phone runs the agent with its own key; the key never goes to the watch.
+     */
+    const val AI_PROMPT = "/ai/prompt"
+
+    /** Phone -> watch: requestId, then the answer text (free text, last field). */
+    const val AI_REPLY = "/ai/reply"
+
+    /** Phone -> watch: requestId, actionId, then the approval summary (free text, last field). */
+    const val AI_CONFIRM_REQUEST = "/ai/confirm-request"
+
+    /** Watch -> phone: requestId, actionId, approved ("1" or "0"). */
+    const val AI_CONFIRM = "/ai/confirm"
+
+    /** Phone -> watch: requestId, then the failure reason (an [AiFailure] name). */
+    const val AI_FAILURE = "/ai/failure"
 
     /** Must match the <item> value in wear/src/main/res/values/wear.xml. */
     const val WEAR_CAPABILITY = "howmuch_wear_app"

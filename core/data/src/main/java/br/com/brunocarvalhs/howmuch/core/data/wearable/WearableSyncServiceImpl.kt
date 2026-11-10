@@ -14,6 +14,7 @@ import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
@@ -164,23 +165,26 @@ internal class WearableSyncServiceImpl @Inject constructor(
             .take(1)
 
     /** One attempt, no retry: the pairing session has its own timeouts, so a failed send ends it. */
-    private suspend fun sendMessage(nodeId: String, path: String, payload: ByteArray): Boolean {
-        val messageClient: MessageClient = Wearable.getMessageClient(context)
-        return try {
-            messageClient.sendMessage(nodeId, path, payload).await()
-            true
-        } catch (e: ApiException) {
-            Timber.tag("WearableSync").e(e, "Error sending $path (status ${e.statusCode})")
-            false
-        } catch (e: Exception) {
-            Timber.tag("WearableSync").e(e, "Unexpected error sending $path")
-            false
-        }
-    }
+    private suspend fun sendMessage(nodeId: String, path: String, payload: ByteArray): Boolean =
+        sendWearableMessage(context, nodeId, path, payload)
+}
+
+/**
+ * Sends one Data Layer message, with no retry. Shared by the pairing and the AI relay
+ * ([WearableAiLinkImpl]). Returns false when the send failed.
+ */
+internal suspend fun sendWearableMessage(context: Context, nodeId: String, path: String, payload: ByteArray): Boolean {
+    val messageClient: MessageClient = Wearable.getMessageClient(context)
+    val failure = runCatching { messageClient.sendMessage(nodeId, path, payload).await() }.exceptionOrNull()
+        ?: return true
+    if (failure is CancellationException) throw failure
+    val status = (failure as? ApiException)?.statusCode
+    Timber.tag("WearableSync").e(failure, "Error sending $path (status $status)")
+    return false
 }
 
 /** The nearest connected phone; `null` when none is reachable. */
-private suspend fun connectedPhoneNodeId(context: Context): String? {
+internal suspend fun connectedPhoneNodeId(context: Context): String? {
     val nodes = Wearable.getNodeClient(context).connectedNodes.await()
     return (nodes.firstOrNull { it.isNearby } ?: nodes.firstOrNull())?.id
 }
