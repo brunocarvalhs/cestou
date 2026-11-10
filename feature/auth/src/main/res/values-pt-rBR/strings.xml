@@ -90,6 +90,10 @@
     <string name="welcome_language_content_description">Idioma</string>
     <string name="link_wear_title">Vincular Relógio</string>
     <string name="link_wear_instructions">Abra o Cestou no seu relógio e toque em Vincular celular. Seu celular vai mostrar um código para confirmar.</string>
+    <string name="wear_link_phone_title">Vincular celular</string>
+    <string name="wear_link_phone_step_1">Mantenha o celular por perto e conectado à internet.</string>
+    <string name="wear_link_phone_step_2">Entre no Cestou no celular com a sua conta Google.</string>
+    <string name="wear_link_phone_step_3">Confirme o mesmo código nos dois aparelhos.</string>
     <string name="wear_link_phone">Vincular Celular</string>
     <string name="phone_pair_title">Vincular relógio</string>
     <string name="phone_pair_connecting">Preparando o pareamento…</string>

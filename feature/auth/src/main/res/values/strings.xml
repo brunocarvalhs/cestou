@@ -90,6 +90,10 @@
     <string name="welcome_language_content_description">Language</string>
     <string name="link_wear_title">Link watch</string>
     <string name="link_wear_instructions">Open Cestou on your watch and tap Link phone. Your phone will show a code to confirm.</string>
+    <string name="wear_link_phone_title">Link your phone</string>
+    <string name="wear_link_phone_step_1">Keep your phone nearby and connected to the internet.</string>
+    <string name="wear_link_phone_step_2">Sign in to Cestou on your phone with your Google account.</string>
+    <string name="wear_link_phone_step_3">Confirm the same code on both devices.</string>
     <string name="wear_link_phone">Link phone</string>
     <string name="phone_pair_title">Link watch</string>
     <string name="phone_pair_connecting">Preparing the pairing…</string>

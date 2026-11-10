@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -78,33 +77,24 @@ private fun PairingWearContent(
     onExit: () -> Unit
 ) {
     WearScrollableScreen(modifier = Modifier.testTag(TAG_ROOT)) {
-        item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                when (state.stage) {
-                    PairingStage.IDLE, PairingStage.CONNECTING -> Progress(
-                        icon = Icons.AutoMirrored.Filled.Login,
-                        body = stringResource(R.string.wear_pair_connecting)
-                    )
+        when (state.stage) {
+            PairingStage.IDLE, PairingStage.CONNECTING -> Progress(
+                icon = Icons.AutoMirrored.Filled.Login,
+                body = stringResource(R.string.wear_pair_connecting)
+            )
 
-                    PairingStage.SYNCING -> Progress(
-                        icon = Icons.AutoMirrored.Filled.Login,
-                        body = stringResource(R.string.wear_pair_syncing)
-                    )
+            PairingStage.SYNCING -> Progress(
+                icon = Icons.AutoMirrored.Filled.Login,
+                body = stringResource(R.string.wear_pair_syncing)
+            )
 
-                    PairingStage.CODE -> CodeStep(code = state.code, onConfirm = onConfirm)
+            PairingStage.CODE -> CodeStep(code = state.code, onConfirm = onConfirm)
 
-                    PairingStage.ERROR -> ErrorStep(
-                        failure = state.failure ?: PairingFailure.TIMEOUT,
-                        onRetry = onRetry,
-                        onExit = onExit
-                    )
-                }
-            }
+            PairingStage.ERROR -> ErrorStep(
+                failure = state.failure ?: PairingFailure.TIMEOUT,
+                onRetry = onRetry,
+                onExit = onExit
+            )
         }
     }
 }
