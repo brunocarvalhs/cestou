@@ -203,6 +203,8 @@
   purchases lives in `core:billing`, bound via Hilt in `BillingModule`. Status starts `FREE` and
   only changes when the wrapper re-reads Play's local purchase cache after a real purchase — there
   is no free trial, promo grant, or sign-in-based auto-upgrade to `PRO` anywhere in this contract.
+  **Revised by sdd-058 (see below):** `PRO` belongs to the Cestou account, not to the Google account
+  on the device.
 - **Reason**: Isolate the third-party Play Billing SDK and its `Activity`-scoped purchase flow to
   one module (`core:billing`), so every other paid-feature gate (`ShoppingSubscriptionGateViewModel`,
   `CartSubscriptionGateViewModel`, `GeminiAgent`/`OpenRouterAgent`'s dispatch gating) depends on
@@ -213,6 +215,19 @@
 - **Scope**: `core/domain` (contract), `core/billing` (impl), `:app` and `feature/subscription`
   (the only modules that depend on `core:billing` directly — everyone else only sees
   `SubscriptionRepository`).
+- **Revisão sdd-058 (2026-11-10)**: Play's purchase cache is per Google account on the device, so
+  the original "status = any purchase on this device" rule gave `PRO` to every Cestou account that
+  logged in there (false positive). Now a purchase counts only for the Cestou account it was bound to
+  at purchase time through `BillingFlowParams.Builder.setObfuscatedAccountId(uid)`, checked against
+  `Purchase.accountIdentifiers.obfuscatedAccountId` (`core/billing/.../PurchaseMapper.kt`). The
+  repository observes `AuthService.authState` (`core/domain`): sign-out and account switches
+  recalculate the status, and the per-account cache (`BillingStatusCache`) answers only for its
+  owner. Purchases with no binding (bought before this rule) are grandfathered: they give `PRO` to any
+  signed-in account on the device, until they lapse, which reopens the cross-account false positive
+  for that group only. Acknowledgement still runs for every purchase, so Google does not auto-refund
+  them. A purchase bound to another account gives no `PRO`. A purchase that exists
+  but is not bound to the signed-in account emits `entitlement_account_mismatch` (no uid, no token).
+  The `SubscriptionRepository` contract itself is unchanged.
 - **Date**: 2026-09-27 (commit `ad3c4c1e`, "feat(billing): entitlement contract + Play Billing repo
   + Paywall route")
 - **Status**: active — **backfilled here 2026-09-29**. This decision was referenced as "AD-010" in
