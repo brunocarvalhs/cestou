@@ -401,8 +401,8 @@ Revisão da branch `feat/wear-whatsapp-pairing` contra `develop`, incluindo o co
 ### 11.2 Itens bloqueantes para o merge
 
 - [ ] **B-1 Versão e registro de release** (P-3 e P-8). Quebra de protocolo sem bump em `app/build.gradle.kts` (`versionName = "2.5.1"`) e sem entrada no `CHANGELOG.md` (AGENTS §6, itens 5 e 6). Decisão do maintainer: `2.6.0` ou `3.0.0`.
-- [ ] **B-2 Teste de redação de log (R-7).** Falta o teste que garante que `sid` e token não aparecem em `Timber`.
-- [ ] **B-3 Teste de regressão do `requestPhonePairing`.** Falta um teste que isole a montagem do intent e verifique `CATEGORY_BROWSABLE` e `setPackage(PHONE_APPLICATION_ID)`.
+- [x] **B-2 Teste de redação de log (R-7).** `core/data/.../WearableSyncLogRedactionTest.kt`: falhas de envio de `/auth/pair` e `/pairing/error` não logam `sid`, token nem uid, na mensagem nem na exceção. Cobre o celular e o caminho de envio. O listener do relógio (`WearAuthListenerService`) é um `Service` Android e não está coberto por este teste.
+- [x] **B-3 Teste de regressão do `requestPhonePairing`.** A montagem do intent virou `buildPhonePairingIntent` (`WearableSyncServiceImpl.kt`). `core/data/.../BuildPhonePairingIntentTest.kt` verifica `ACTION_VIEW`, `CATEGORY_BROWSABLE`, `setPackage(PHONE_APPLICATION_ID)` e os parâmetros `sid`, `k`, `n` do deeplink. Robolectric com `@Config(sdk = [34])`, como o resto do projeto.
 
 ### 11.3 Avisos (não bloqueantes)
 

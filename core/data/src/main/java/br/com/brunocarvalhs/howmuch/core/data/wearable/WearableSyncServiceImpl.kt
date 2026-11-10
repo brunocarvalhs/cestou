@@ -104,19 +104,7 @@ internal class WearableSyncServiceImpl @Inject constructor(
             false
         } else {
             val watchNodeId = nodeClient.localNode.await().id
-            val uri = Uri.Builder()
-                .scheme(WEAR_DEEPLINK_SCHEME)
-                .authority(WEAR_DEEPLINK_HOST)
-                .path(WEAR_DEEPLINK_PATH)
-                .appendQueryParameter(PARAM_SESSION, sessionId)
-                .appendQueryParameter(PARAM_WATCH_KEY, watchPublicKey)
-                .appendQueryParameter(PARAM_WATCH_NODE, watchNodeId)
-                .build()
-            // RemoteActivityHelper rejects an ACTION_VIEW intent without BROWSABLE. The phone's
-            // deeplink filter (app manifest, cestou://wear/pair) declares it too.
-            val intent = Intent(Intent.ACTION_VIEW, uri)
-                .addCategory(Intent.CATEGORY_BROWSABLE)
-                .setPackage(WearablePaths.PHONE_APPLICATION_ID)
+            val intent = buildPhonePairingIntent(sessionId, watchPublicKey, watchNodeId)
             RemoteActivityHelper(context, context.mainExecutor).startRemoteActivity(intent, phoneNode.id).await()
             true
         }
@@ -173,13 +161,30 @@ internal class WearableSyncServiceImpl @Inject constructor(
             false
         }
     }
+}
 
-    private companion object {
-        const val WEAR_DEEPLINK_SCHEME = "cestou"
-        const val WEAR_DEEPLINK_HOST = "wear"
-        const val WEAR_DEEPLINK_PATH = "pair"
-        const val PARAM_SESSION = "sid"
-        const val PARAM_WATCH_KEY = "k"
-        const val PARAM_WATCH_NODE = "n"
-    }
+private const val WEAR_DEEPLINK_SCHEME = "cestou"
+private const val WEAR_DEEPLINK_HOST = "wear"
+private const val WEAR_DEEPLINK_PATH = "pair"
+private const val PARAM_SESSION = "sid"
+private const val PARAM_WATCH_KEY = "k"
+private const val PARAM_WATCH_NODE = "n"
+
+/**
+ * The intent the watch sends to the phone for a pairing (sdd-055). It is `ACTION_VIEW` with
+ * [Intent.CATEGORY_BROWSABLE], because `RemoteActivityHelper` rejects an `ACTION_VIEW` intent
+ * without it. The phone's deeplink filter (`cestou://wear/pair`) declares the same category.
+ */
+internal fun buildPhonePairingIntent(sessionId: String, watchPublicKey: String, watchNodeId: String): Intent {
+    val uri = Uri.Builder()
+        .scheme(WEAR_DEEPLINK_SCHEME)
+        .authority(WEAR_DEEPLINK_HOST)
+        .path(WEAR_DEEPLINK_PATH)
+        .appendQueryParameter(PARAM_SESSION, sessionId)
+        .appendQueryParameter(PARAM_WATCH_KEY, watchPublicKey)
+        .appendQueryParameter(PARAM_WATCH_NODE, watchNodeId)
+        .build()
+    return Intent(Intent.ACTION_VIEW, uri)
+        .addCategory(Intent.CATEGORY_BROWSABLE)
+        .setPackage(WearablePaths.PHONE_APPLICATION_ID)
 }
