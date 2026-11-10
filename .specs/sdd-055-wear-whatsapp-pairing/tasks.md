@@ -3,7 +3,7 @@
 - **Slug:** wear-whatsapp-pairing
 - **Autor do plano:** Code-Planner (SDD)
 - **Data:** 2026-11-10
-- **Status:** ready
+- **Status:** ready, com ajustes pendentes da revisão (`AJUSTES NECESSARIOS`, seção 11). Não mergear antes dos itens bloqueantes.
 - **Versão-alvo:** 2.6.0 (feature). Atenção: o template pede `major` para breaking; a quebra de protocolo entre o app do celular e o `:wear` é breaking. Ver pergunta não bloqueante P-3 (seção 9).
 - **Tipo de mudança:** breaking-change (protocolo de pareamento entre `:app` e `:wear`), com feature nova.
 - **Impacto público (módulo):** breaking. `WearableSyncService`, `WearablePaths`, `PairingCodeHolder` (vira `PairingSessionHolder`), `MobileRoutes` (`PairingCode` removido, `WearPairing` criado) e o deeplink `cestou://wear/pair`.
@@ -56,7 +56,7 @@ Rastreabilidade adicional:
 | `:core:data` | `data` (infra do canal) | `WearableSyncServiceImpl`: remove código de 6 dígitos; adiciona envio e recebimento por sessão; `openPhoneApp` → `requestPhonePairing` |
 | `:core:navigation` | rotas | `MobileRoutes.kt`: remove `PairingCode`; adiciona `WearPairing(sessionId, wearPublicKey, wearNodeId)` |
 | `:feature:auth` | `domain` (pura, internal), `presentation` | Handshake (`internal`), `PairingViewModel` (relógio, MVI), `PhoneWearPairingViewModel` (celular, MVI), telas e estados |
-| `:wear` | apresentação / serviço | `WearAuthListenerService` roteia mensagens para `PairingSessionHolder`; valida `sid` e confirmação antes de `signInWithGoogleIdToken` |
+| `:wear` | apresentação / serviço | `WearAuthListenerService` roteia mensagens para `PairingSessionHolder`; valida `sid` e confirmação antes de `signInWithGoogleIdToken`. **`applicationId` igual ao do `:app`** (`br.com.brunocarvalhs.howmuch`), decisão da seção 11. O `namespace` continua `br.com.brunocarvalhs.howmuch.wear` |
 | `:app` | entrypoint | `AndroidManifest.xml` (intent-filter `cestou://wear/pair`); `MainViewModel.onDeepLink` (novo caso); `MainActivity` (navega para `WearPairing` quando autenticado) |
 
 - Padrão: Clean Arch + MVI nas duas telas, Hilt em todas as ViewModels. Nenhuma instância manual de repositório.
@@ -242,6 +242,7 @@ internal class PhoneWearPairingViewModel @Inject constructor(...)  // celular, M
 | 8 | Gate de Pro só na tela de Perfil (`ProfileScreen.kt:94-98`). | Pro é checado também no celular ao receber o deeplink. Sem Pro ⇒ erro `NOT_PRO` no relógio. | `ProfileScreen.kt:94-98`; `ProfileGraph.kt:38-42`; `CHANGELOG.md:416` |
 | 9 | Falha de pareamento não tem mensagem para o relógio (não há ack; `LinkWearViewModel` só mostra erro no celular). | Toda falha gera `/pairing/error` e a tela do relógio mostra motivo + "Tentar novamente" + "Sair". Ver mapeamento abaixo. | `LinkWearViewModel.kt:66-70`; `WearableSyncServiceImpl.kt:188-190` |
 | 10 | Ao abrir o app depois de pareado, a home é o destino inicial quando há usuário. | Mantido: relógio abre direto em `ShoppingList` sempre que `authService.currentUser != null`. Pareamento não é refeito. | `wear/.../MainActivity.kt:35-39` |
+| 11 | Fechar a tela de pareamento no celular depois das duas confirmações (etapa `SYNCING`) não cancela o relógio, e o envio do token não é cancelado junto com a tela. Só antes da confirmação (`CODE`) o celular envia `CANCELED`. | Ajustado após teste manual (seção 11). | `PhoneWearPairingViewModel.cancel()` e `authSendScope` |
 
 Mapeamento de motivos (`PairingFailure` ⇒ mensagem no relógio, em `strings.xml` pt-BR e en-US):
 
@@ -347,6 +348,7 @@ Limites de tempo: relógio espera `PhoneKey` 30 s e sign-in 30 s após confirmar
 | R-7 | Token ou chave em log/analytics. | baixa | alto | Teste que verifica que `sid` e token não aparecem em `Timber` (não logar). Revisão do diff. |
 | R-8 | Conflito com `sdd-054` (não versionado). | alta | médio | Marcar `sdd-054` como superado ao aprovar. Não implementar os dois em paralelo. |
 | R-9 | Flag `wear_login_enabled` é a mesma que o relógio ignora hoje; desligar no celular não avisa o relógio ao vivo. | média | baixo | Erro `DISABLED` enviado ao relógio (regra 3). |
+| R-11 | `applicationId` do relógio igual ao do celular: o relógio antigo `.wear` deixa de existir, e a Play trata os dois formatos como um único app. | alta (certa, com a troca) | médio | Desinstalar o `.wear` do relógio de teste. Listagem Play única (Wear OS já aparece na listagem do Cestou). Ver P-8 para o `versionCode`. |
 | R-10 | Documentação desatualizada (`architecture/04` §6, `05` AD-009) leva a desenho errado no futuro. | alta | médio | Atualizar as duas no mesmo PR (seção 10). |
 
 Dependências externas: Wearable Data Layer (`libs.play.services.wearable`, `gradle/libs.versions.toml:200`), `androidx.wear.remote.interactions.RemoteActivityHelper` (já usado em `WearableSyncServiceImpl.kt:199`).
@@ -369,6 +371,7 @@ Não bloqueantes, para o maintainer decidir:
 - [ ] **P-4:** O celular deve poder iniciar o pareamento sozinho (sem o relógio)? Hoje o plano não cobre isso.
 - [ ] **P-5:** `syncShoppingLists` e `syncAuthStatus` (`WearableSyncServiceImpl.kt:37-75`) não têm chamador. Remover em um PR separado ou manter? O plano mantém.
 - [ ] **P-6:** Celular em segundo plano durante o pareamento (R-2): aceitar `TIMEOUT` nesta versão, ou criar `WearableListenerService` no `:app` agora?
+- [ ] **P-8 (bloqueante, seção 11):** `versionCode` do `:wear` (17) é diferente do `:app` (20). Com o mesmo pacote, a Play exige códigos únicos e crescentes no app inteiro. Escolher o valor e ajustar `.github/scripts/version.sh` e `1c29aad0` (`keep wear versionCode in step`).
 - [ ] **P-7:** Ao atualizar o `:wear` e o app, relógios antigos sem novo app ficam sem pareamento até atualizar. Aviso na loja (`fastlane/metadata`) ou só no CHANGELOG?
 
 ## 10. Checklist de Conformidade
@@ -380,7 +383,36 @@ Não bloqueantes, para o maintainer decidir:
 - [x] Novo deeplink e nova rota `WearPairing` marcados `public` com justificativa (seção 4.2 e 4.4).
 - [x] Novo endpoint / remote-config: toggle reutilizado (`wear_login_enabled`), observabilidade definida (seção 4.5 e 6).
 - [x] Novo cache: nenhum. Chaves em memória, descartadas no fim da sessão (justificativa: segredo efêmero, não persistir).
-- [x] Perguntas em aberto: nenhuma bloqueante; itens não bloqueantes em P-1 a P-7.
+- [x] Perguntas em aberto: nenhuma bloqueante; itens não bloqueantes em P-1 a P-7. P-3 e P-8 passam a ser bloqueantes para o merge (seção 11).
 - [ ] Atualizar `architecture/04-integracoes-externas.md` §6 e `architecture/05-decisoes-arquiteturais.md` (AD-009 e uma AD nova para o pareamento por SAS) no mesmo PR.
 - [ ] Atualizar `CHANGELOG.md` no processo de release (AGENTS §6 item 5) e bump de versão (P-3).
 - [ ] Marcar `sdd-054-wear-bluetooth-sync` como superado (R-8).
+
+## 11. Revisão de código (code-reviewer, 2026-11-10)
+
+Revisão da branch `feat/wear-whatsapp-pairing` contra `develop`, incluindo o commit `41708729`. Resultado: **AJUSTES NECESSARIOS**.
+
+### 11.1 Decisões tomadas durante a implementação
+
+- **`applicationId` do relógio = `br.com.brunocarvalhs.howmuch`** (commit `41708729`). Motivo: a Wearable Data Layer entrega mensagens pelo nome do pacote. Com um `applicationId` próprio, as mensagens do celular para `/pairing/phone-key` e `/auth/pair` não chegavam ao `WearAuthListenerService`, e o relógio ficava em "Conectando". Evidência: log do GMS no relógio com `Failed to deliver message to AppKey[<hidden>, e38239ae...]`, e o serviço nunca era instanciado. Ver também R-11.
+- **Rota de detalhe do relógio é tipada** (`ShoppingWearGraph.kt`, `composable<ShoppingDetail>`). Motivo: a rota por string não casava com `toRoute<ShoppingDetail>()` no ViewModel, e o app fechava ao abrir a última lista.
+- **Intent do deeplink com `CATEGORY_BROWSABLE`** (`WearableSyncServiceImpl.requestPhonePairing`). Motivo: `RemoteActivityHelper` rejeita `ACTION_VIEW` sem essa categoria.
+
+### 11.2 Itens bloqueantes para o merge
+
+- [ ] **B-1 Versão e registro de release** (P-3 e P-8). Quebra de protocolo sem bump em `app/build.gradle.kts` (`versionName = "2.5.1"`) e sem entrada no `CHANGELOG.md` (AGENTS §6, itens 5 e 6). Decisão do maintainer: `2.6.0` ou `3.0.0`.
+- [ ] **B-2 Teste de redação de log (R-7).** Falta o teste que garante que `sid` e token não aparecem em `Timber`.
+- [ ] **B-3 Teste de regressão do `requestPhonePairing`.** Falta um teste que isole a montagem do intent e verifique `CATEGORY_BROWSABLE` e `setPackage(PHONE_APPLICATION_ID)`.
+
+### 11.3 Avisos (não bloqueantes)
+
+- [ ] **A-1** AD-009 em `architecture/05-decisoes-arquiteturais.md` diz que o pareamento copia só o uid, mas o código envia `idToken`. Atualizar junto com a seção 10.
+- [ ] **A-2** `authSendScope` em `PhoneWearPairingViewModel` é um escopo fora de Hilt. Trocar por um escopo de aplicação injetado, se o projeto tiver um.
+- [ ] **A-3** Cliente `br.com.brunocarvalhs.howmuch.wear` do Firebase ficou sem uso. Remover quando for seguro.
+
+### 11.4 Verificações que passaram
+
+- Fluxo antigo de 6 dígitos sem referências restantes (`updatePairingCode`, `PAIRING_VERIFY`, `PairingCodeHolder`).
+- Sem `@Suppress` novo, sem texto literal em Composables novos, sem token em log.
+- `values`, `values-pt-rBR` e `values-es` com as mesmas 120 chaves em `feature/auth`.
+- `./gradlew lintDebug testDebug` e `./gradlew detekt` com exit 0 na árvore do commit `41708729`.
