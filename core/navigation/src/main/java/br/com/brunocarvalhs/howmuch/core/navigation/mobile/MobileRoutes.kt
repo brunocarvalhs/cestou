@@ -42,8 +42,29 @@ data object AiSettings : NavKey
 @Serializable
 data class QrCode(val token: String) : NavKey
 
+/**
+ * Watch only: the screen that starts a pairing session (sdd-055). Replaces the old 6-digit
+ * `PairingCode` route.
+ */
 @Serializable
-data object PairingCode : NavKey
+data object PairingWear : NavKey
+
+/**
+ * Phone only: the pairing screen opened by the watch's deeplink `cestou://wear/pair` (sdd-055).
+ * Public because `:app` navigates to it and `:feature:auth` registers it.
+ *
+ * @param sessionId base64url id chosen by the watch; every message of the session carries it.
+ * @param wearPublicKey the watch's ephemeral EC P-256 public key, base64url (X.509).
+ * @param wearNodeId the watch's Wearable node id, where the phone sends its answer.
+ */
+@Serializable
+data class WearPairing(
+    val sessionId: String,
+    val wearPublicKey: String,
+    val wearNodeId: String
+) : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}
 
 @Serializable
 data object LinkPhone : NavKey

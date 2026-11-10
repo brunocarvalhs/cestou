@@ -259,7 +259,7 @@ class MainViewModelTest {
     // region deep link join token (sdd-004-navigator-deeplink)
 
     private fun inviteIntent(token: String?, path: List<String> = listOf("join", token.orEmpty())): Intent {
-        val uri = mockk<Uri> {
+        val uri = mockk<Uri>(relaxed = true) {
             every { host } returns InviteLink.HOST
             every { pathSegments } returns path
             every { getQueryParameter("token") } returns null
@@ -271,7 +271,7 @@ class MainViewModelTest {
     }
 
     private fun chatIntent(sessionId: String?): Intent {
-        val uri = mockk<Uri> {
+        val uri = mockk<Uri>(relaxed = true) {
             every { scheme } returns "cestou"
             every { host } returns "chat"
             every { pathSegments } returns listOfNotNull(sessionId)
@@ -335,7 +335,7 @@ class MainViewModelTest {
     @Test
     fun `onDeepLink ignores a VIEW intent for an unrelated link`() {
         val vm = viewModel()
-        val uri = mockk<Uri> {
+        val uri = mockk<Uri>(relaxed = true) {
             every { host } returns "example.com"
             every { pathSegments } returns listOf("other")
         }

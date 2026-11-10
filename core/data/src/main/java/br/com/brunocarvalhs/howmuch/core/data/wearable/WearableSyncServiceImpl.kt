@@ -2,36 +2,30 @@ package br.com.brunocarvalhs.howmuch.core.data.wearable
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.wear.remote.interactions.RemoteActivityHelper
-import br.com.brunocarvalhs.howmuch.core.common.wearable.PairingCodeHolder
+import br.com.brunocarvalhs.howmuch.core.common.wearable.WearPairingInbox
+import br.com.brunocarvalhs.howmuch.core.common.wearable.WearPairingMessage
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearablePaths
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.CommonStatusCodes
-import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.guava.await
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.milliseconds
-
-// Pairing codes are always 6 digits.
-private const val PAIRING_CODE_MIN = 100_000
-private const val PAIRING_CODE_MAX = 999_999
 
 internal class WearableSyncServiceImpl @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val pairingCodeHolder: PairingCodeHolder
+    private val wearPairingInbox: WearPairingInbox
 ) : WearableSyncService {
 
     override suspend fun syncAuthStatus(isAuthenticated: Boolean, userId: String?) {
@@ -75,109 +69,13 @@ internal class WearableSyncServiceImpl @Inject constructor(
         }
     }
 
-    override suspend fun updatePairingCode(code: String) {
-        // Stored in memory only - the wear app advertises itself via the
-        // "howmuch_wear_app" capability (see wear/res/values/wear.xml)
-        // instead of publishing the code through DataClient, since
-        // DataClient item sync requires both devices' apps to share the same
-        // applicationId, which is no longer true (wear has its own).
-        pairingCodeHolder.currentCode = code
-        Timber.tag("WearableSync").d("Pairing code stored locally: $code")
-    }
-
-    override suspend fun findNodeByPairingCode(code: String): String? {
-        Timber.tag("WearableSync").d("Searching for a wear node with pairing code: $code")
-
-        val candidateNodes = try {
-            Wearable.getCapabilityClient(context)
-                .getCapability(WearablePaths.WEAR_CAPABILITY, CapabilityClient.FILTER_REACHABLE)
-                .await()
-                .nodes
-        } catch (e: ApiException) {
-            if (e.statusCode == CommonStatusCodes.API_NOT_CONNECTED) {
-                Timber.tag("WearableSync").w("Wearable API not connected (Code 17). Is Wear OS app installed?")
-            } else {
-                Timber.tag("WearableSync").e(e, "Error querying the wear capability")
-            }
-            return null
-        } catch (e: Exception) {
-            Timber.tag("WearableSync").e(e, "Unexpected error querying the wear capability")
-            return null
-        }
-
-        if (candidateNodes.isEmpty()) {
-            Timber.tag("WearableSync").w("No reachable node advertises the wear capability. Pairing might not work.")
-            return null
-        }
-
-        for (node in candidateNodes) {
-            if (verifyPairingCodeWithNode(node.id, code)) {
-                Timber.tag("WearableSync").d("Pairing code confirmed by node: ${node.id}")
-                return node.id
-            }
-        }
-        Timber.tag("WearableSync").w("No node confirmed pairing code: $code")
-        return null
-    }
-
-    /**
-     * Sends the code to [nodeId] and waits for that same node to confirm it
-     * matches what it currently has stored (see WearAuthListenerService).
-     * Uses MessageClient rather than DataClient because message delivery is
-     * routed by manifest intent-filter, not by matching applicationId.
-     */
-    private suspend fun verifyPairingCodeWithNode(nodeId: String, code: String): Boolean {
-        val messageClient = Wearable.getMessageClient(context)
-        return try {
-            withTimeout(5000.milliseconds) {
-                val confirmed = CompletableDeferred<Boolean>()
-                val listener = MessageClient.OnMessageReceivedListener { event ->
-                    if (event.sourceNodeId == nodeId && event.path == WearablePaths.PAIRING_CONFIRM) {
-                        confirmed.complete(true)
-                    }
-                }
-                messageClient.addListener(listener)
-                try {
-                    messageClient.sendMessage(nodeId, WearablePaths.PAIRING_VERIFY, code.toByteArray()).await()
-                    confirmed.await()
-                } finally {
-                    messageClient.removeListener(listener)
-                }
-            }
-        } catch (_: TimeoutCancellationException) {
-            Timber.tag("WearableSync").d("Node $nodeId did not confirm pairing code $code in time")
-            false
-        } catch (e: ApiException) {
-            Timber.tag("WearableSync").e(e, "Error verifying pairing code with node $nodeId")
-            false
-        } catch (e: Exception) {
-            Timber.tag("WearableSync").e(e, "Unexpected error verifying pairing code with node $nodeId")
-            false
-        }
-    }
-
-    override suspend fun sendAuthPairToNode(nodeId: String, userId: String, googleIdToken: String) {
-        try {
-            Timber.tag("WearableSync").d("Sending auth pair to node: $nodeId")
-            Wearable.getMessageClient(context)
-                .sendMessage(nodeId, WearablePaths.AUTH_PAIR, WearablePaths.encodeAuthPair(userId, googleIdToken))
-                .await()
-            Timber.tag("WearableSync").d("Auth pair sent successfully")
-        } catch (e: ApiException) {
-            if (e.statusCode == CommonStatusCodes.API_NOT_CONNECTED) {
-                Timber.tag("WearableSync").w("Error sending auth pair: Wearable API not connected (Code 17)")
-            } else {
-                Timber.tag("WearableSync").e(e, "Error sending auth pair")
-            }
-        } catch (e: Exception) {
-            Timber.tag("WearableSync").e(e, "Error sending auth pair")
-        }
-    }
-
     override suspend fun notifySignOut() {
         try {
             Wearable.getCapabilityClient(context)
-                .getCapability(WearablePaths.WEAR_CAPABILITY, CapabilityClient.FILTER_REACHABLE)
+                .getCapability(
+                    WearablePaths.WEAR_CAPABILITY,
+                    com.google.android.gms.wearable.CapabilityClient.FILTER_REACHABLE
+                )
                 .await()
                 .nodes
                 .forEach { node ->
@@ -186,48 +84,98 @@ internal class WearableSyncServiceImpl @Inject constructor(
                         .await()
                 }
         } catch (e: Exception) {
-            // ponytail: an unreachable watch keeps its session until it next pairs; queue it if that matters.
+            // An unreachable watch keeps its session until it next pairs.
             Timber.tag("WearableSync").w(e, "Could not notify the watch of the sign-out")
         }
     }
 
-    override suspend fun openPhoneApp() {
-        try {
-            val nodes = Wearable.getNodeClient(context).connectedNodes.await()
-            val phoneNode = nodes.firstOrNull { it.isNearby } ?: nodes.firstOrNull()
-            if (phoneNode != null) {
-                val remoteActivityHelper = RemoteActivityHelper(context, context.mainExecutor)
-                // Package-only (no explicit component): wear no longer shares
-                // the phone app's applicationId, so context.packageName no
-                // longer identifies it. RemoteActivityHelper resolves this
-                // intent on the remote (phone) node using its own
-                // PackageManager, so a package-targeted MAIN/LAUNCHER intent
-                // resolves correctly there regardless of wear's own package.
-                val intent = Intent(Intent.ACTION_MAIN).apply {
-                    addCategory(Intent.CATEGORY_LAUNCHER)
-                    setPackage(WearablePaths.PHONE_APPLICATION_ID)
-                }
-                Timber.tag("WearableSync").d("Opening phone app on node: ${phoneNode.id}")
-                remoteActivityHelper.startRemoteActivity(intent, phoneNode.id).await()
-            } else {
-                Timber.tag("WearableSync").w("No connected nodes found to open phone app")
-            }
+    /**
+     * Opens the phone app on the nearest phone with a deeplink that carries the session:
+     * `cestou://wear/pair?sid=...&k=...&n=...`. [RemoteActivityHelper] resolves the intent on the
+     * phone; the phone answers later with its key over MessageClient.
+     */
+    override suspend fun requestPhonePairing(sessionId: String, watchPublicKey: String): Boolean = try {
+        val nodeClient = Wearable.getNodeClient(context)
+        val phoneNode = nodeClient.connectedNodes.await().let { nodes ->
+            nodes.firstOrNull { it.isNearby } ?: nodes.firstOrNull()
+        }
+        if (phoneNode == null) {
+            Timber.tag("WearableSync").w("No connected phone node for pairing")
+            false
+        } else {
+            val watchNodeId = nodeClient.localNode.await().id
+            val uri = Uri.Builder()
+                .scheme(WEAR_DEEPLINK_SCHEME)
+                .authority(WEAR_DEEPLINK_HOST)
+                .path(WEAR_DEEPLINK_PATH)
+                .appendQueryParameter(PARAM_SESSION, sessionId)
+                .appendQueryParameter(PARAM_WATCH_KEY, watchPublicKey)
+                .appendQueryParameter(PARAM_WATCH_NODE, watchNodeId)
+                .build()
+            val intent = Intent(Intent.ACTION_VIEW, uri).setPackage(WearablePaths.PHONE_APPLICATION_ID)
+            RemoteActivityHelper(context, context.mainExecutor).startRemoteActivity(intent, phoneNode.id).await()
+            true
+        }
+    } catch (e: ApiException) {
+        Timber.tag("WearableSync").e(e, "Error requesting the phone pairing")
+        false
+    } catch (e: Exception) {
+        Timber.tag("WearableSync").e(e, "Unexpected error requesting the phone pairing")
+        false
+    }
+
+    override suspend fun sendWearConfirm(phoneNodeId: String, sessionId: String): Boolean =
+        sendMessage(phoneNodeId, WearablePaths.PAIRING_WEAR_CONFIRM, WearablePaths.encodeWearConfirm(sessionId))
+
+    override suspend fun sendPhoneKey(watchNodeId: String, sessionId: String, phonePublicKey: String): Boolean =
+        sendMessage(
+            watchNodeId,
+            WearablePaths.PAIRING_PHONE_KEY,
+            WearablePaths.encodePhoneKey(sessionId, phonePublicKey)
+        )
+
+    override suspend fun sendAuthPair(
+        watchNodeId: String,
+        sessionId: String,
+        userId: String,
+        googleIdToken: String
+    ): Boolean = sendMessage(
+        watchNodeId,
+        WearablePaths.AUTH_PAIR,
+        WearablePaths.encodeAuthPair(sessionId, userId, googleIdToken)
+    )
+
+    override suspend fun sendPairingError(nodeId: String, sessionId: String, reason: String) {
+        sendMessage(nodeId, WearablePaths.PAIRING_ERROR, WearablePaths.encodeError(sessionId, reason))
+    }
+
+    override fun observeWatchConfirm(sessionId: String): Flow<WearPairingMessage.WatchConfirmed> =
+        wearPairingInbox.messages
+            .filterIsInstance<WearPairingMessage.WatchConfirmed>()
+            .filter { it.sessionId == sessionId }
+            .take(1)
+
+    /** One attempt, no retry: the pairing session has its own timeouts, so a failed send ends it. */
+    private suspend fun sendMessage(nodeId: String, path: String, payload: ByteArray): Boolean {
+        val messageClient: MessageClient = Wearable.getMessageClient(context)
+        return try {
+            messageClient.sendMessage(nodeId, path, payload).await()
+            true
         } catch (e: ApiException) {
-            if (e.statusCode == CommonStatusCodes.API_NOT_CONNECTED) {
-                Timber.tag("WearableSync").w("Error opening phone app: Wearable API not connected (Code 17)")
-            } else {
-                Timber.tag("WearableSync").e(e, "Error opening phone app")
-            }
+            Timber.tag("WearableSync").e(e, "Error sending $path (status ${e.statusCode})")
+            false
         } catch (e: Exception) {
-            Timber.tag("WearableSync").e(e, "Error opening phone app")
+            Timber.tag("WearableSync").e(e, "Unexpected error sending $path")
+            false
         }
     }
 
-    override fun generatePairingCode(): String {
-        val code = (PAIRING_CODE_MIN..PAIRING_CODE_MAX).random().toString()
-        CoroutineScope(Dispatchers.IO).launch {
-            updatePairingCode(code)
-        }
-        return code
+    private companion object {
+        const val WEAR_DEEPLINK_SCHEME = "cestou"
+        const val WEAR_DEEPLINK_HOST = "wear"
+        const val WEAR_DEEPLINK_PATH = "pair"
+        const val PARAM_SESSION = "sid"
+        const val PARAM_WATCH_KEY = "k"
+        const val PARAM_WATCH_NODE = "n"
     }
 }

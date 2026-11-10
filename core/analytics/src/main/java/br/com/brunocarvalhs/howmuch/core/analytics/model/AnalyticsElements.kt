@@ -50,6 +50,4 @@ object AnalyticsElements {
     const val AI_CHAT_SELECT_HISTORY = "ai_chat.select_history"
     const val AI_HISTORY_DELETE_SESSION = "ai_history.delete_session"
     const val WELCOME_LANGUAGE = "welcome.language"
-
-    const val WEAR_LINK_CODE_SUBMIT = "link_wear.submit"
 }

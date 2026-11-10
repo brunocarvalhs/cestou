@@ -6,24 +6,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingCode
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingWear
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
 import br.com.brunocarvalhs.howmuch.feature.auth.R
-import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.viewmodel.PairingViewModel
+
+private const val TAG_LINK_PHONE = "wear_link_phone"
 
 @Composable
 internal fun LinkPhoneWearScreen(
-    viewModel: PairingViewModel,
     navigator: Navigator
 ) {
     LinkPhoneWearContent(
         onLinkClick = {
-            navigator.navigate(PairingCode::class.java.name)
+            navigator.navigate(PairingWear::class.java.name)
         }
     )
 }
@@ -40,7 +41,8 @@ private fun LinkPhoneWearContent(
     ) {
         CestouButton(
             text = stringResource(R.string.wear_link_phone),
-            onClick = onLinkClick
+            onClick = onLinkClick,
+            modifier = Modifier.testTag(TAG_LINK_PHONE)
         )
     }
 }

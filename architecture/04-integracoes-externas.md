@@ -73,8 +73,15 @@ Implementação da entrada por código: `feature/shopping/domain/usecase/Shoppin
 
 ## 6. Wear OS (sincronização)
 
-- Pareamento com código de 6 dígitos (100000 a 999999): `core/data/.../wearable/WearableSyncServiceImpl.kt`.
-- Pareamento só ocorre se `wear_login_enabled` estiver ligada.
+- Pareamento em estilo WhatsApp (sdd-055): o relógio abre o celular por deeplink
+  (`cestou://wear/pair`) via `RemoteActivityHelper`; os dois aparelhos derivam o mesmo código de
+  8 letras (ECDH P-256 + HKDF-SHA256, `feature/auth/.../domain/wear/PairingHandshake.kt`) e cada um
+  confirma com "Parear". O token só é enviado depois das duas confirmações.
+  Transporte: Wearable Data Layer (`core/data/.../wearable/WearableSyncServiceImpl.kt`).
+- Pareamento só começa se `wear_login_enabled` estiver ligada e o usuário tiver plano PRO
+  (verificado no celular ao receber o deeplink).
+- Mensagens do relógio para o celular chegam por `app/.../wear/WearPairingListenerService.kt`;
+  as esperas têm timeout (30 s por chave, 120 s por sessão, 60 s pela confirmação do relógio).
 
 ## 7. WorkManager
 

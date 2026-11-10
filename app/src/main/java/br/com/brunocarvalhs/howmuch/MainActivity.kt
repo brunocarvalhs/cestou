@@ -245,6 +245,19 @@ class MainActivity : AppCompatActivity() {
             }
 
             /**
+             * Pareamento pedido pelo relógio (sdd-055). Espera o login e o nome, como o convite: sem
+             * login, a ViewModel já respondeu NOT_SIGNED_IN ao relógio.
+             */
+            val pendingWearPairing by viewModel.pendingWearPairing.request.collectAsStateWithLifecycle()
+            LaunchedEffect(pendingWearPairing, isAuthenticated, requiresName) {
+                val request = pendingWearPairing
+                if (request != null && isAuthenticated && !requiresName) {
+                    navigator.navigate(request) { launchSingleTop = true }
+                    viewModel.pendingWearPairing.consume()
+                }
+            }
+
+            /**
              * Toque numa notificação da IA: abre a conversa. Espera o login e o nome (como o
              * convite acima) para não navegar por cima da tela de boas-vindas.
              */
