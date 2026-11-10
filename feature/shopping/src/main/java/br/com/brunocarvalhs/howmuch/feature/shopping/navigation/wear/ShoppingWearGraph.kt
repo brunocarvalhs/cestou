@@ -1,40 +1,58 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.navigation.wear
 
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.wear.compose.navigation.composable
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
 import br.com.brunocarvalhs.howmuch.core.navigation.wear.ShoppingDetail
-import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingListViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.ShoppingDetailScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.ShoppingWearScreen
-import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.LastListViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.WearHistoryScreen
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.WearMenuScreen
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.WearSearchScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.ShoppingDetailViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearHistoryViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearHomeViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearSearchViewModel
 import androidx.navigation.compose.composable as typedComposable
 
+/**
+ * Relógio (sdd-056). A home abre direto na lista de listas (Q2): o salto automático para a última
+ * lista saiu. Pesquisar e Histórico são rotas internas; Configurações é o perfil já existente.
+ */
 fun NavGraphBuilder.shoppingWearGraph(navigator: Navigator) {
     composable(ShoppingList::class.java.name) {
-        val viewModel: ShoppingListViewModel = hiltViewModel()
-        viewModel.setNavigator(navigator)
-        val lastListViewModel: LastListViewModel = hiltViewModel()
-        // Once per launch: jump into the last list; swiping back lands on all lists.
-        var openedLastList by rememberSaveable { mutableStateOf(false) }
-        LaunchedEffect(Unit) {
-            if (!openedLastList) {
-                openedLastList = true
-                lastListViewModel.lastListId()?.let { navigator.navigate(ShoppingDetail(it)) }
-            }
-        }
+        val viewModel: WearHomeViewModel = hiltViewModel()
         ShoppingWearScreen(
+            viewModel = viewModel,
+            onNavigateToDetail = { id -> navigator.navigate(ShoppingDetail(id)) },
+            onNavigateToSearch = { navigator.navigate(WearSearch::class.java.name) },
+            onNavigateToMenu = { navigator.navigate(WearMenu::class.java.name) },
+            onNavigateToSettings = { navigator.navigate(Profile) }
+        )
+    }
+
+    // String routes, like the home: typed object routes crash the watch NavHost at start (sdd-056).
+    composable(WearSearch::class.java.name) {
+        val viewModel: WearSearchViewModel = hiltViewModel()
+        WearSearchScreen(
             viewModel = viewModel,
             onNavigateToDetail = { id -> navigator.navigate(ShoppingDetail(id)) }
         )
+    }
+
+    composable(WearMenu::class.java.name) {
+        WearMenuScreen(
+            onNavigateToHistory = { navigator.navigate(WearHistory::class.java.name) },
+            onNavigateToSettings = { navigator.navigate(Profile) }
+        )
+    }
+
+    composable(WearHistory::class.java.name) {
+        val viewModel: WearHistoryViewModel = hiltViewModel()
+        WearHistoryScreen(viewModel = viewModel)
     }
 
     // Typed, not by name: ShoppingDetailViewModel reads shoppingId with toRoute<ShoppingDetail>().

@@ -31,6 +31,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.CartFlow
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.NewShopping
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
@@ -66,6 +67,19 @@ fun NavGraphBuilder.shoppingGraph(
         val viewModel: ShoppingListViewModel = hiltViewModel()
         viewModel.setNavigator(navigator)
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        ShoppingScreen(
+            uiState = uiState,
+            windowSizeClass = windowSizeClass,
+            intent = viewModel.intent
+        )
+    }
+
+    // Pedido do relógio (sdd-056, cestou://shopping/new): a home de compras com o sheet de criar aberto.
+    composable<NewShopping> {
+        val viewModel: ShoppingListViewModel = hiltViewModel()
+        viewModel.setNavigator(navigator)
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        LaunchedEffect(Unit) { viewModel.intent.onCreate() }
         ShoppingScreen(
             uiState = uiState,
             windowSizeClass = windowSizeClass,

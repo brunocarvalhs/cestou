@@ -126,6 +126,20 @@
     <string name="shopping_wear_tile_label">Lista atual</string>
     <string name="shopping_wear_tile_empty">Abra uma lista no relógio</string>
     <string name="shopping_wear_tile_signed_out">Vincule com o celular</string>
+    <string name="shopping_wear_home_search">Pesquisar</string>
+    <string name="shopping_wear_home_history">Histórico</string>
+    <string name="shopping_wear_menu">Menu</string>
+    <string name="shopping_wear_create_on_phone">Criar lista no celular</string>
+    <string name="shopping_wear_more">Mais</string>
+    <string name="shopping_wear_less">Menos</string>
+    <string name="shopping_wear_settings">Configurações</string>
+    <string name="shopping_wear_phone_unavailable">Não encontramos o celular</string>
+    <string name="shopping_wear_search_hint">Buscar listas</string>
+    <string name="shopping_wear_archived_header">Arquivadas</string>
+    <string name="shopping_wear_paid">Pago %1$s</string>
+    <string name="shopping_wear_pinned">Fixada</string>
+    <string name="shopping_wear_search_empty">Nenhuma lista encontrada</string>
+    <string name="shopping_wear_history_empty">Nenhuma compra finalizada ainda</string>
 
     <!-- Notifications -->
     <plurals name="shopping_notifications_bell_unread">

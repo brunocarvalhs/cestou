@@ -95,17 +95,14 @@ internal class WearableSyncServiceImpl @Inject constructor(
      * phone; the phone answers later with its key over MessageClient.
      */
     override suspend fun requestPhonePairing(sessionId: String, watchPublicKey: String): Boolean = try {
-        val nodeClient = Wearable.getNodeClient(context)
-        val phoneNode = nodeClient.connectedNodes.await().let { nodes ->
-            nodes.firstOrNull { it.isNearby } ?: nodes.firstOrNull()
-        }
-        if (phoneNode == null) {
+        val phoneNodeId = connectedPhoneNodeId(context)
+        if (phoneNodeId == null) {
             Timber.tag("WearableSync").w("No connected phone node for pairing")
             false
         } else {
-            val watchNodeId = nodeClient.localNode.await().id
+            val watchNodeId = Wearable.getNodeClient(context).localNode.await().id
             val intent = buildPhonePairingIntent(sessionId, watchPublicKey, watchNodeId)
-            RemoteActivityHelper(context, context.mainExecutor).startRemoteActivity(intent, phoneNode.id).await()
+            RemoteActivityHelper(context, context.mainExecutor).startRemoteActivity(intent, phoneNodeId).await()
             true
         }
     } catch (e: ApiException) {
@@ -113,6 +110,25 @@ internal class WearableSyncServiceImpl @Inject constructor(
         false
     } catch (e: Exception) {
         Timber.tag("WearableSync").e(e, "Unexpected error requesting the phone pairing")
+        false
+    }
+
+    override suspend fun openPhoneApp(path: String): Boolean = try {
+        val phoneNodeId = connectedPhoneNodeId(context)
+        if (phoneNodeId == null) {
+            Timber.tag("WearableSync").w("No connected phone node to open the app")
+            false
+        } else {
+            RemoteActivityHelper(context, context.mainExecutor)
+                .startRemoteActivity(buildPhoneAppIntent(path), phoneNodeId)
+                .await()
+            true
+        }
+    } catch (e: ApiException) {
+        Timber.tag("WearableSync").e(e, "Error opening the phone app")
+        false
+    } catch (e: Exception) {
+        Timber.tag("WearableSync").e(e, "Unexpected error opening the phone app")
         false
     }
 
@@ -163,12 +179,29 @@ internal class WearableSyncServiceImpl @Inject constructor(
     }
 }
 
+/** The nearest connected phone; `null` when none is reachable. */
+private suspend fun connectedPhoneNodeId(context: Context): String? {
+    val nodes = Wearable.getNodeClient(context).connectedNodes.await()
+    return (nodes.firstOrNull { it.isNearby } ?: nodes.firstOrNull())?.id
+}
+
 private const val WEAR_DEEPLINK_SCHEME = "cestou"
 private const val WEAR_DEEPLINK_HOST = "wear"
 private const val WEAR_DEEPLINK_PATH = "pair"
 private const val PARAM_SESSION = "sid"
 private const val PARAM_WATCH_KEY = "k"
 private const val PARAM_WATCH_NODE = "n"
+
+/**
+ * The intent the watch sends to open a phone screen (sdd-056): `cestou://[path]`, e.g. `shopping/new`.
+ * Same `ACTION_VIEW` + [Intent.CATEGORY_BROWSABLE] shape as the pairing intent below.
+ */
+internal fun buildPhoneAppIntent(path: String): Intent {
+    val uri = Uri.parse("$WEAR_DEEPLINK_SCHEME://$path")
+    return Intent(Intent.ACTION_VIEW, uri)
+        .addCategory(Intent.CATEGORY_BROWSABLE)
+        .setPackage(WearablePaths.PHONE_APPLICATION_ID)
+}
 
 /**
  * The intent the watch sends to the phone for a pairing (sdd-055). It is `ACTION_VIEW` with

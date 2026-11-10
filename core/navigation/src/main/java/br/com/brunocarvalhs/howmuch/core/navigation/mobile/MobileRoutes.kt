@@ -66,6 +66,16 @@ data class WearPairing(
     override val routeType: RouteType = RouteType.PROTECTED
 }
 
+/**
+ * Phone only: opens the "create list" sheet on the shopping home, asked by the watch through the
+ * deeplink `cestou://shopping/new` (sdd-056). Public because `:app` navigates to it and
+ * `:feature:shopping` registers it. Protected: without sign-in, the app asks for it first.
+ */
+@Serializable
+data object NewShopping : NavKey, RouteProtocol {
+    override val routeType: RouteType = RouteType.PROTECTED
+}
+
 @Serializable
 data object LinkPhone : NavKey
 

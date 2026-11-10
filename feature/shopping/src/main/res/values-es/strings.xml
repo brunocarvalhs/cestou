@@ -184,4 +184,18 @@
         <item quantity="other">%d personas</item>
     </plurals>
     <string name="shopping_monthly_goal_title">Meta del mes</string>
+    <string name="shopping_wear_home_search">Buscar</string>
+    <string name="shopping_wear_home_history">Historial</string>
+    <string name="shopping_wear_menu">Menú</string>
+    <string name="shopping_wear_create_on_phone">Crear lista en el teléfono</string>
+    <string name="shopping_wear_more">Más</string>
+    <string name="shopping_wear_less">Menos</string>
+    <string name="shopping_wear_settings">Configuración</string>
+    <string name="shopping_wear_phone_unavailable">No encontramos el teléfono</string>
+    <string name="shopping_wear_search_hint">Buscar listas</string>
+    <string name="shopping_wear_archived_header">Archivadas</string>
+    <string name="shopping_wear_paid">Pagado %1$s</string>
+    <string name="shopping_wear_pinned">Fijada</string>
+    <string name="shopping_wear_search_empty">No se encontraron listas</string>
+    <string name="shopping_wear_history_empty">Aún no hay compras finalizadas</string>
 </resources>

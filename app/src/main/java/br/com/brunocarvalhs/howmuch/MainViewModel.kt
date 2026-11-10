@@ -24,7 +24,9 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import br.com.brunocarvalhs.howmuch.core.navigation.AiChatLaunch
+import br.com.brunocarvalhs.howmuch.deeplink.PendingNewShopping
 import br.com.brunocarvalhs.howmuch.deeplink.PendingWearPairing
+import br.com.brunocarvalhs.howmuch.deeplink.ShoppingCreateLink
 import br.com.brunocarvalhs.howmuch.deeplink.WearPairingLink
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -175,6 +177,9 @@ internal class MainViewModel @Inject constructor(
      */
     val pendingWearPairing = PendingWearPairing(savedStateHandle, viewModelScope)
 
+    /** Pedido do relógio para criar lista (sdd-056). Espera o login e o nome, como o pareamento. */
+    val pendingNewShopping = PendingNewShopping(savedStateHandle)
+
     /** A Activity reporta ida e volta do app; a ViewModel decide o que é sessão. */
     fun onForeground() {
         appUsageTracker.onForeground()
@@ -212,6 +217,14 @@ internal class MainViewModel @Inject constructor(
             } else {
                 pendingWearPairing.store(request)
             }
+            return
+        }
+        if (ShoppingCreateLink.matches(data)) {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.DEEP_LINK_OPENED,
+                mapOf(AnalyticsParams.SOURCE to "shopping_create")
+            )
+            pendingNewShopping.store()
             return
         }
         AiChatLaunch.sessionIdFrom(data)?.let {

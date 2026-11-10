@@ -114,6 +114,21 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="cestou" android:host="chat" />
             </intent-filter>
+
+            <!-- Relógio (sdd-056): cestou://shopping/new abre criar lista; cestou://home só abre o app. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="cestou" android:host="shopping" android:path="/new" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="cestou" android:host="home" />
+            </intent-filter>
         </activity>
 
         <!-- Mensagens do relógio durante o pareamento (sdd-055): só o "Parear" do relógio (/pairing/wear-confirm). -->

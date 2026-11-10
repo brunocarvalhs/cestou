@@ -13,6 +13,12 @@ interface WearableSyncService {
      */
     suspend fun requestPhonePairing(sessionId: String, watchPublicKey: String): Boolean
 
+    /**
+     * Watch: opens the phone app on `cestou://[path]` (e.g. `shopping/new`, `home`). Returns false
+     * when no phone is reachable or the phone could not start the activity (sdd-056).
+     */
+    suspend fun openPhoneApp(path: String): Boolean
+
     /** Watch: tells the phone the user tapped "Parear". Returns false when the send failed. */
     suspend fun sendWearConfirm(phoneNodeId: String, sessionId: String): Boolean
 

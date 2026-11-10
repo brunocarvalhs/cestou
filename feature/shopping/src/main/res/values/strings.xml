@@ -126,6 +126,20 @@
     <string name="shopping_wear_tile_label">Current list</string>
     <string name="shopping_wear_tile_empty">Open a list on your watch</string>
     <string name="shopping_wear_tile_signed_out">Pair with your phone</string>
+    <string name="shopping_wear_home_search">Search</string>
+    <string name="shopping_wear_home_history">History</string>
+    <string name="shopping_wear_menu">Menu</string>
+    <string name="shopping_wear_create_on_phone">Create list on phone</string>
+    <string name="shopping_wear_more">More</string>
+    <string name="shopping_wear_less">Less</string>
+    <string name="shopping_wear_settings">Settings</string>
+    <string name="shopping_wear_phone_unavailable">Couldn\'t reach your phone</string>
+    <string name="shopping_wear_search_hint">Search lists</string>
+    <string name="shopping_wear_archived_header">Archived</string>
+    <string name="shopping_wear_paid">Paid %1$s</string>
+    <string name="shopping_wear_pinned">Pinned</string>
+    <string name="shopping_wear_search_empty">No lists match</string>
+    <string name="shopping_wear_history_empty">No finished purchases yet</string>
 
     <!-- Notifications -->
     <plurals name="shopping_notifications_bell_unread">

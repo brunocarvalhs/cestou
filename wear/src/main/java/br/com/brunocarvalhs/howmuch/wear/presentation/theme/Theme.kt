@@ -16,6 +16,8 @@ import br.com.brunocarvalhs.howmuch.core.theme.CestouTextTertiary
 import br.com.brunocarvalhs.howmuch.core.theme.SurfaceDark
 import br.com.brunocarvalhs.howmuch.core.theme.Error as CestouError
 
+private val CardSurfaceDark = Color(0xFF1F2937)
+
 private val WearDarkColorScheme = ColorScheme(
     primary = CestouBrightGreen,
     onPrimary = Color.White,
@@ -32,6 +34,8 @@ private val WearDarkColorScheme = ColorScheme(
     background = BackgroundDark,
     onBackground = Color.White,
     surfaceContainer = SurfaceDark,
+    // Cards neutros: sem isso o Wear M3 usa um tom derivado do primary (verde).
+    surfaceContainerHigh = CardSurfaceDark,
     onSurface = Color.White,
     onSurfaceVariant = CestouTextTertiary,
     outline = BorderDark

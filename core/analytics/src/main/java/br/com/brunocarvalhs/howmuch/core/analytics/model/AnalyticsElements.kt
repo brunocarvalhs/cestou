@@ -35,6 +35,7 @@ object AnalyticsElements {
 
     const val PROFILE_LINK_WEAR = "profile.link_wear"
     const val PROFILE_LINK_MOBILE = "profile.link_mobile"
+    const val PROFILE_OPEN_PHONE = "profile.open_phone"
     const val PROFILE_MANAGE_SUBSCRIPTION = "profile.manage_subscription"
     const val AI_SETTINGS_OPEN_PAYWALL = "ai_settings.open_paywall"
     const val SETTINGS_OPEN_URL = "settings.open_url"

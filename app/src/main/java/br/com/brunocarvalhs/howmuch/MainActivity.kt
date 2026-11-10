@@ -51,6 +51,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.FeedbackSurvey
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.NewShopping
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.StoreReview
@@ -211,11 +212,13 @@ class MainActivity : AppCompatActivity() {
 
             // AiChat's shoppingId here is a throwaway placeholder: rootRoutes only matches by
             // route::class (see hasRoute/isProtectedRoute below), never by field value.
-            val rootRoutes = remember { listOf(ShoppingList, History, AiChat(shoppingId = ""), Profile) }
+            val rootRoutes = remember { listOf(ShoppingList, History, AiChat(shoppingId = ""), Profile, NewShopping) }
 
             val currentRoute = rootRoutes.find { route ->
                 currentDestination?.hierarchy?.any { it.hasRoute(route::class) } == true
             }
+            // "Criar lista" (sdd-056) é uma tela de Compras: a barra continua com a aba de Compras marcada.
+            val barRoute = if (currentRoute is NewShopping) ShoppingList else currentRoute
 
             val isOnProtectedRoute = currentDestination?.isProtectedRoute(rootRoutes + SpendingInsights) == true
 
@@ -274,6 +277,15 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            /** Pedido do relógio para criar lista (sdd-056, cestou://shopping/new). Espera login e nome. */
+            val pendingNewShopping by viewModel.pendingNewShopping.requested.collectAsStateWithLifecycle()
+            LaunchedEffect(pendingNewShopping, isAuthenticated, requiresName) {
+                if (pendingNewShopping && isAuthenticated && !requiresName) {
+                    navigator.navigate(NewShopping) { launchSingleTop = true }
+                    viewModel.pendingNewShopping.consume()
+                }
+            }
+
             /**
              * Pede a permissão de notificações uma vez por instalação, depois do login: sem ela os
              * lembretes e os avisos da IA não aparecem. Recusar não bloqueia nada.
@@ -329,7 +341,7 @@ class MainActivity : AppCompatActivity() {
             Scaffold(
                 bottomBar = {
                     CestouBottomNavigation(
-                        currentRoute = currentRoute,
+                        currentRoute = barRoute,
                         photoUrl = photoUrl,
                         visible = currentRoute != null && currentRoute !is AiChat,
                         onNavigate = { route ->

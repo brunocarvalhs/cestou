@@ -6,6 +6,7 @@ import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.extensions.trackAction
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsElements
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
@@ -26,7 +27,8 @@ import javax.inject.Inject
 internal class ProfileViewModel @Inject constructor(
     private val authService: AuthService,
     private val userRepository: UserRepository,
-    private val analyticsTracker: AnalyticsTracker
+    private val analyticsTracker: AnalyticsTracker,
+    private val wearableSyncService: WearableSyncService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -47,6 +49,10 @@ internal class ProfileViewModel @Inject constructor(
         onLinkMobileDevice = {
             analyticsTracker.trackAction(AnalyticsElements.PROFILE_LINK_MOBILE)
             _navigator?.navigate(PairingWear)
+        },
+        onOpenPhone = {
+            analyticsTracker.trackAction(AnalyticsElements.PROFILE_OPEN_PHONE)
+            viewModelScope.launch { wearableSyncService.openPhoneApp(PATH_PHONE_HOME) }
         }
     )
 
@@ -85,5 +91,10 @@ internal class ProfileViewModel @Inject constructor(
 
     fun setNavigator(navigator: Navigator) {
         _navigator = navigator
+    }
+
+    private companion object {
+        /** Home do app no celular, pelo deeplink `cestou://home` (sdd-056). */
+        const val PATH_PHONE_HOME = "home"
     }
 }
