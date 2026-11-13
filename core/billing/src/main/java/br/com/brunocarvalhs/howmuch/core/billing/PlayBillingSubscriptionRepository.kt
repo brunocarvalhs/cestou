@@ -14,6 +14,7 @@ import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.PendingPurchasesParams
+import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
@@ -132,61 +133,50 @@ class PlayBillingSubscriptionRepository @Inject constructor(
     }
 
     /**
-     * The price to show on the Paywall before purchase, exactly as Play will charge it —
-     * resolved via `queryProductDetails`, never hardcoded (AD-010). `null` when the product
-     * isn't configured in the Play Console yet or has no subscription offer.
+     * The plans to show on the Paywall, each with the price Play will charge for its recurring
+     * phase (AD-010, sdd-059). Uses one `queryProductDetails` call for the whole product and keeps
+     * only the known base plans that Play returns, in [BillingConstants.KNOWN_BASE_PLANS] order. A
+     * base plan missing in the Play Console is left out without breaking the others. Empty when
+     * the connection fails or the product isn't configured yet.
      */
-    suspend fun queryFormattedPrice(productId: String = BillingConstants.PRO_MONTHLY): String? {
-        if (!ensureConnected()) return null
-        return try {
-            val offer = queryProductDetails(productId)?.subscriptionOfferDetails?.firstOrNull()
-            offer?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice
-        } catch (e: Exception) {
-            Timber.tag(TAG).w(e, "queryFormattedPrice failed for %s", productId)
-            null
+    suspend fun queryPlans(productId: String = BillingConstants.PRO_MONTHLY): List<PlanOffer> {
+        if (!ensureConnected()) return emptyList()
+        val offers = queryProductDetails(productId)?.subscriptionOfferDetails.orEmpty()
+        return BillingConstants.KNOWN_BASE_PLANS.mapNotNull { basePlanId ->
+            offers
+                .firstOrNull { it.basePlanId == basePlanId && it.offerId == null }
+                ?.toPlanOffer(productId)
         }
     }
 
     /**
      * The Activity-bound purchase entry point. Looks up [productId]'s current price/offer via
      * `queryProductDetails` and launches Play's purchase UI on top of [activity], bound to the
-     * signed-in account (sdd-058). The result of the purchase itself arrives asynchronously through
-     * [purchasesUpdatedListener], not through this function's return value.
+     * signed-in account (sdd-058). With [basePlanId], buys that base plan's offer; without it, keeps
+     * the first offer of the product. The result of the purchase itself arrives asynchronously
+     * through [purchasesUpdatedListener], not through this function's return value.
      */
     suspend fun purchase(
         activity: Activity,
-        productId: String = BillingConstants.PRO_MONTHLY
+        productId: String = BillingConstants.PRO_MONTHLY,
+        basePlanId: String? = null
     ): BillingResult {
         val accountId = authService.currentUser?.id
-            ?: return unavailableResult("No signed-in account to bind the purchase to")
-
-        if (!ensureConnected()) {
-            return unavailableResult("BillingClient connection unavailable")
-        }
-
-        return try {
-            val productDetails = queryProductDetails(productId)
-                ?: return unavailableResult("Product $productId not found in Play Console")
-
-            val offerToken = productDetails.subscriptionOfferDetails?.firstOrNull()?.offerToken
-                ?: return unavailableResult("Product $productId has no subscription offer")
-
-            val params = BillingFlowParams.newBuilder()
-                .setProductDetailsParamsList(
-                    listOf(
-                        BillingFlowParams.ProductDetailsParams.newBuilder()
-                            .setProductDetails(productDetails)
-                            .setOfferToken(offerToken)
-                            .build()
-                    )
+        return when {
+            accountId == null -> unavailableResult("No signed-in account to bind the purchase to")
+            !ensureConnected() -> unavailableResult("BillingClient connection unavailable")
+            else -> try {
+                billingClient.launchOfferFlow(
+                    activity,
+                    queryProductDetails(productId),
+                    productId,
+                    basePlanId,
+                    accountId
                 )
-                .setObfuscatedAccountId(accountId)
-                .build()
-
-            billingClient.launchBillingFlow(activity, params)
-        } catch (e: Exception) {
-            Timber.tag(TAG).w(e, "launchBillingFlow failed for %s", productId)
-            unavailableResult("Failed to launch billing flow: ${e.message}")
+            } catch (e: Exception) {
+                Timber.tag(TAG).w(e, "launchBillingFlow failed for %s", productId)
+                unavailableResult("Failed to launch billing flow: ${e.message}")
+            }
         }
     }
 
@@ -351,6 +341,70 @@ class PlayBillingSubscriptionRepository @Inject constructor(
 }
 
 private const val TAG = "PlayBillingSubscriptionRepository"
+
+/**
+ * Launches Play's purchase UI for [productDetails] using the offer of [basePlanId], bound to
+ * [accountId] (sdd-058, sdd-059). Returns an unavailable result when the product or offer is missing.
+ */
+private fun BillingClient.launchOfferFlow(
+    activity: Activity,
+    productDetails: ProductDetails?,
+    productId: String,
+    basePlanId: String?,
+    accountId: String
+): BillingResult {
+    val offerToken = productDetails?.let { offerTokenFor(it, basePlanId) }
+    return when {
+        productDetails == null -> unavailableResult("Product $productId not found in Play Console")
+        offerToken == null ->
+            unavailableResult("Product $productId has no subscription offer for base plan $basePlanId")
+
+        else -> {
+            val params = BillingFlowParams.newBuilder()
+                .setProductDetailsParamsList(
+                    listOf(
+                        BillingFlowParams.ProductDetailsParams.newBuilder()
+                            .setProductDetails(productDetails)
+                            .setOfferToken(offerToken)
+                            .build()
+                    )
+                )
+                .setObfuscatedAccountId(accountId)
+                .build()
+
+            launchBillingFlow(activity, params)
+        }
+    }
+}
+
+/**
+ * The offer token of the base plan [basePlanId] (its base offer, without a promotion). Without a
+ * base plan, the first offer of the product, as before base plans existed (sdd-059).
+ */
+private fun offerTokenFor(productDetails: ProductDetails, basePlanId: String?): String? {
+    val offers = productDetails.subscriptionOfferDetails.orEmpty()
+    val offer = if (basePlanId == null) {
+        offers.firstOrNull()
+    } else {
+        offers.firstOrNull { it.basePlanId == basePlanId && it.offerId == null }
+    }
+    return offer?.offerToken
+}
+
+/**
+ * Builds the [PlanOffer] for this base plan's offer. The price is the last pricing phase, which is
+ * the recurring one: a free trial comes first and must not be shown as the plan price (sdd-059).
+ */
+private fun ProductDetails.SubscriptionOfferDetails.toPlanOffer(productId: String): PlanOffer? {
+    val recurringPhase = pricingPhases.pricingPhaseList.lastOrNull() ?: return null
+    return PlanOffer(
+        productId = productId,
+        basePlanId = basePlanId,
+        offerToken = offerToken,
+        formattedPrice = recurringPhase.formattedPrice,
+        billingPeriod = recurringPhase.billingPeriod
+    )
+}
 
 private fun unavailableResult(message: String): BillingResult {
     Timber.tag(TAG).w(message)

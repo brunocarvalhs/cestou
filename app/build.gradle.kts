@@ -151,6 +151,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.play.app.update.ktx)
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))

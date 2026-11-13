@@ -8,4 +8,7 @@
     <string name="error_not_found">Elemento no encontrado.</string>
     <string name="error_permission_denied">No tiene permiso para acceder a esto.</string>
     <string name="error_unknown">Algo salió mal. Inténtelo de nuevo.</string>
+    <string name="force_update_blocked_title">Actualiza Cestou para continuar</string>
+    <string name="force_update_blocked_message">Esta versión ya no es compatible. Instala la versión más reciente desde Google Play para seguir usando Cestou.</string>
+    <string name="force_update_blocked_button">Abrir Google Play</string>
 </resources>

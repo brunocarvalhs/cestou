@@ -34,6 +34,13 @@ object FeatureFlagKeys {
     /** Entrada rápida de IA no relógio. Default off: o relógio só mostra a entrada com a flag ligada. */
     const val WEAR_AI_QUICK_ENTRY = "wear_ai_quick_entry"
 
+    /**
+     * Paywall com todos os planos (mensal, semestral e anual). Um toggle só para todos. Default off:
+     * sem a flag, o paywall mostra só o mensal, como antes. Permite publicar o código antes de os
+     * planos estarem ativos no Play Console.
+     */
+    const val PAYWALL_MULTI_PLANS_ENABLED = "paywall_multi_plans_enabled"
+
     // ============================================================================
     // CATEGORY 2: Authentication & Identity
     // ============================================================================
@@ -295,6 +302,13 @@ object RemoteVariableKeys {
 
     /** Timeout for API requests in seconds. Default: 30. */
     const val API_REQUEST_TIMEOUT_SECONDS = "api_request_timeout_seconds"
+
+    /**
+     * Versão mínima (versionCode) exigida pelo force update via Play In-App Updates. Abaixo dela o
+     * app é atualizado antes de continuar. Default: 0 (sem force update). Só aumente depois que a
+     * versão nova estiver publicada na Play, para não bloquear quem não tem como atualizar.
+     */
+    const val APP_MIN_VERSION_CODE = "app_min_version_code"
 
     /** Maximum retry attempts for failed API calls. Default: 3. */
     const val API_RETRY_MAX_ATTEMPTS = "api_retry_max_attempts"

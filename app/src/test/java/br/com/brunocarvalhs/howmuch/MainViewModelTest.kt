@@ -22,7 +22,9 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
+import br.com.brunocarvalhs.howmuch.deeplink.DeepLinkParserImpl
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
+import br.com.brunocarvalhs.howmuch.session.SessionSyncImpl
 import br.com.brunocarvalhs.howmuch.wear.WearSubscriptionSync
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -90,15 +92,14 @@ class MainViewModelTest {
             savedStateHandle,
             settingsRepository,
             authService,
-            userRepository,
             analyticsTracker,
             wearableSyncService,
-            aiSession,
             userPropertiesSync,
             appUsageTracker,
             feedbackPromptRequester,
-            chatTurnTracker,
-            wearSubscriptionSync
+            wearSubscriptionSync,
+            SessionSyncImpl(authService, userRepository, wearableSyncService, chatTurnTracker, aiSession),
+            DeepLinkParserImpl(analyticsTracker)
         )
     }
 
@@ -273,6 +274,18 @@ class MainViewModelTest {
         }
     }
 
+    private fun subscriptionIntent(): Intent {
+        val uri = mockk<Uri>(relaxed = true) {
+            every { scheme } returns "cestou"
+            every { host } returns "subscription"
+            every { pathSegments } returns emptyList()
+        }
+        return mockk {
+            every { action } returns Intent.ACTION_VIEW
+            every { data } returns uri
+        }
+    }
+
     private fun chatIntent(sessionId: String?): Intent {
         val uri = mockk<Uri>(relaxed = true) {
             every { scheme } returns "cestou"
@@ -311,6 +324,25 @@ class MainViewModelTest {
         vm.onDeepLink(chatIntent(null))
 
         assertNull(vm.pendingAiChatSession.value)
+    }
+
+    @Test
+    fun `onDeepLink marks the paywall as requested from a watch subscription link`() {
+        val vm = viewModel()
+
+        vm.onDeepLink(subscriptionIntent())
+
+        assertTrue(vm.pendingPaywall.requested.value)
+    }
+
+    @Test
+    fun `the paywall request is consumed once`() {
+        val vm = viewModel()
+        vm.onDeepLink(subscriptionIntent())
+
+        vm.pendingPaywall.consume()
+
+        assertFalse(vm.pendingPaywall.requested.value)
     }
 
     @Test
