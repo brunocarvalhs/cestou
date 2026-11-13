@@ -86,8 +86,7 @@ jobs:
           echo "play_status=$(yq '.release.google_play.status' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "play_user_fraction=$(yq '.release.google_play.user_fraction // ""' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "play_changes_not_sent_for_review=$(yq '.release.google_play.changes_not_sent_for_review // false' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "play_environment_name=$(yq '.release.google_play.environment_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "step_checkout=$(yq '.build.step_names.checkout' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "play_environment_name=$(yq '.release.google_play.environment_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT          echo "step_checkout=$(yq '.build.step_names.checkout' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_setup_env=$(yq '.build.step_names.setup_environment' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_run_check=$(yq '.build.step_names.run_check' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_load_config=$(yq '.git.step_names.load_config' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
@@ -366,11 +365,18 @@ jobs:
               --label "sync,conflict"
           fi
 
+  # One job per target, each with its own Play upload: a single upload-google-play
+  # call sending several AABs at once fails as a whole, so a failure in one target
+  # must not block or break the others. fail-fast is off for the same reason.
   deploy:
     runs-on: ubuntu-24.04
     timeout-minutes: ${{ fromJson(needs.prepare.outputs.default_timeout) }}
-    name: 🏁 Google Play Deployment
+    name: 🏁 Google Play Deployment (${{ matrix.target_name }})
     needs: [prepare, release]
+    strategy:
+      fail-fast: false
+      matrix:
+        target_name: ${{ fromJson(needs.prepare.outputs.target_names) }}
     environment: ${{ needs.prepare.outputs.play_environment_name }}
     steps:
       - name: ${{ needs.prepare.outputs.step_checkout }}
@@ -379,6 +385,7 @@ jobs:
       - name: ${{ needs.prepare.outputs.step_deploy_download_aab }}
         uses: actions/download-artifact@v8
         with:
+          name: ${{ needs.prepare.outputs.app_name }}-${{ matrix.target_name }}
           path: output/
 
       - name: ${{ needs.prepare.outputs.step_deploy_upload_play }}
