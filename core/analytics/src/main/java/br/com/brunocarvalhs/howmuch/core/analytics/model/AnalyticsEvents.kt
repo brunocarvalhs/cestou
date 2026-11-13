@@ -53,6 +53,15 @@ object AnalyticsEvents {
 
     const val PAYWALL_SUBSCRIBE_CLICKED = "paywall_subscribe_clicked"
     const val PAYWALL_PURCHASE_FAILED = "paywall_purchase_failed"
+
+    /** Usuário trocou o plano selecionado no paywall. Leva `plan_id`. */
+    const val PAYWALL_PLAN_SELECTED = "paywall_plan_selected"
+
+    /** Force update exigido: versão instalada abaixo de `app_min_version_code`. Leva os dois códigos. */
+    const val FORCE_UPDATE_REQUIRED = "force_update_required"
+
+    /** Force update sem atualização disponível no Play: o app ficou bloqueado com link para a Play Store. */
+    const val FORCE_UPDATE_BLOCKED = "force_update_blocked"
     const val MANAGE_SUBSCRIPTION_PLAY_STORE_OPENED = "manage_subscription_play_store_opened"
 
     // History and spending insights never carry amounts, establishments or category names.
@@ -182,6 +191,9 @@ object AnalyticsEvents {
 object AnalyticsParams {
     const val SHOPPING_ID = "shopping_id"
     const val PRODUCT_ID = "product_id"
+    const val PLAN_ID = "plan_id"
+    const val MIN_VERSION_CODE = "min_version_code"
+    const val INSTALLED_VERSION_CODE = "installed_version_code"
     const val SEARCH_MODE = "search_mode"
     const val QUERY_LENGTH = "query_length"
     const val RESULT_COUNT = "result_count"

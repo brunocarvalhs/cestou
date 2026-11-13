@@ -8,4 +8,7 @@
     <string name="error_not_found">Item não encontrado.</string>
     <string name="error_permission_denied">Você não tem permissão para acessar isto.</string>
     <string name="error_unknown">Algo deu errado. Tente novamente.</string>
+    <string name="force_update_blocked_title">Atualize o Cestou para continuar</string>
+    <string name="force_update_blocked_message">Esta versão não é mais compatível. Instale a versão mais recente pelo Google Play para continuar usando o Cestou.</string>
+    <string name="force_update_blocked_button">Abrir o Google Play</string>
 </resources>
