@@ -351,12 +351,15 @@ jobs:
           git config user.name "${{ needs.prepare.outputs.bot_name }}"
           git config user.email "${{ needs.prepare.outputs.bot_email }}"
 
+          # Branch from the current dev branch, not from the run's checkout,
+          # so the PR contains only the baseline commit.
+          BRANCH="ci/update-size-baseline-${{ github.run_id }}"
+          git fetch --quiet origin "$DEV_BRANCH"
+          git checkout -q -b "$BRANCH" "origin/$DEV_BRANCH"
+
           yq -i ".size_check.baseline_bytes = $NEW_BYTES" .github/pipeline-config.yaml
           git add .github/pipeline-config.yaml
           git commit --quiet -m "chore(ci): update APK size baseline to $NEW_BYTES bytes"
-
-          BRANCH="ci/update-size-baseline-${{ github.run_id }}"
-          git checkout -b "$BRANCH"
           git push origin "$BRANCH" --force
 
           EXISTING=$(gh pr list --head "$BRANCH" --base "$DEV_BRANCH" --json number --jq 'length')
