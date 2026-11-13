@@ -52,6 +52,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.FeedbackSurvey
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.NewShopping
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.StoreReview
@@ -283,6 +284,15 @@ class MainActivity : AppCompatActivity() {
                 if (pendingNewShopping && isAuthenticated && !requiresName) {
                     navigator.navigate(NewShopping) { launchSingleTop = true }
                     viewModel.pendingNewShopping.consume()
+                }
+            }
+
+            /** Assinatura PRO no relógio (cestou://subscription): abre o paywall. Espera login e nome. */
+            val pendingPaywall by viewModel.pendingPaywall.requested.collectAsStateWithLifecycle()
+            LaunchedEffect(pendingPaywall, isAuthenticated, requiresName) {
+                if (pendingPaywall && isAuthenticated && !requiresName) {
+                    navigator.navigate(Paywall(source = "wear")) { launchSingleTop = true }
+                    viewModel.pendingPaywall.consume()
                 }
             }
 

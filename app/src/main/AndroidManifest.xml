@@ -129,6 +129,14 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="cestou" android:host="home" />
             </intent-filter>
+
+            <!-- Relógio sem assinatura PRO: cestou://subscription abre o paywall. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="cestou" android:host="subscription" />
+            </intent-filter>
         </activity>
 
         <!-- Mensagens do relógio durante o pareamento (sdd-055): só o "Parear" do relógio (/pairing/wear-confirm). -->
