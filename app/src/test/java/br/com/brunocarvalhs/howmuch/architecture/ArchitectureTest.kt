@@ -279,6 +279,7 @@ class ArchitectureTest {
             "SettingsIntent.onBack",
             "ShoppingDetailIntent.onAddItem",
             "ShoppingDetailIntent.onBack",
+            "ShoppingDetailIntent.onSaveDetails",
             "ShoppingDetailIntent.onToggle",
             "ShoppingListIntent.onFetchAll",
             "ShoppingListIntent.onQueryChange",
