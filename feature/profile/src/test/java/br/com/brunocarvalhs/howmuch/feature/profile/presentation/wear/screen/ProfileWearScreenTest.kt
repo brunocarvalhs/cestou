@@ -36,13 +36,13 @@ class ProfileWearScreenTest {
             user = AuthenticatedUser(id = "1", email = "bruno@example.com", displayName = "Bruno Carvalho")
         )
         composeTestRule.setContent { ProfileWearScreen(viewModel = viewModel(state)) }
-        composeTestRule.onNodeWithText(string(R.string.profile_title)).assertExists()
+        composeTestRule.onNodeWithText(string(R.string.profile_wear_settings_title)).assertExists()
         composeTestRule.onNodeWithText(string(R.string.profile_menu_sign_out)).assertExists()
     }
 
     @Test
     fun `renders without a signed-in user`() {
         composeTestRule.setContent { ProfileWearScreen(viewModel = viewModel(ProfileUiState())) }
-        composeTestRule.onNodeWithText(string(R.string.profile_title)).assertExists()
+        composeTestRule.onNodeWithText(string(R.string.profile_wear_settings_title)).assertExists()
     }
 }

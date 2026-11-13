@@ -9,6 +9,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.ScreenName
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.NewShopping
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.QrCode
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
@@ -24,6 +25,7 @@ class ShoppingNavGraph @Inject constructor() : FeatureNavGraph {
 
     override val screenNames: Map<KClass<*>, ScreenName> = mapOf(
         ShoppingList::class to AnalyticsScreen.SHOPPING_LIST.toScreenName(),
+        NewShopping::class to AnalyticsScreen.SHOPPING_LIST.toScreenName(),
         Notifications::class to AnalyticsScreen.NOTIFICATIONS.toScreenName(),
         History::class to AnalyticsScreen.HISTORY.toScreenName(),
         SpendingInsights::class to AnalyticsScreen.SPENDING_INSIGHTS.toScreenName(),
