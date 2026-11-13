@@ -27,13 +27,13 @@ class WearProViewModel @Inject constructor(
         initialValue = null
     )
 
-    /** Opens the phone app, where the subscription is bought. Nothing happens if no phone is reachable. */
+    /** Opens the phone's paywall, where the subscription is bought. Nothing happens if no phone is reachable. */
     fun openPhone() {
-        viewModelScope.launch { wearableSyncService.openPhoneApp(PATH_PHONE_HOME) }
+        viewModelScope.launch { wearableSyncService.openPhoneApp(PATH_PHONE_SUBSCRIPTION) }
     }
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
-        const val PATH_PHONE_HOME = "home"
+        const val PATH_PHONE_SUBSCRIPTION = "subscription"
     }
 }

@@ -58,11 +58,11 @@ class WearProViewModelTest {
     }
 
     @Test
-    fun `opens the phone home when asked`() = runTest(dispatcher) {
+    fun `opens the phone paywall when asked`() = runTest(dispatcher) {
         every { store.isPro } returns flowOf(false)
 
         viewModel().openPhone()
 
-        coVerify { wearableSync.openPhoneApp("home") }
+        coVerify { wearableSync.openPhoneApp("subscription") }
     }
 }
