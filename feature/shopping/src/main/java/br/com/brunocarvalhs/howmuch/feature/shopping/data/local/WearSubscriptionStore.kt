@@ -28,6 +28,9 @@ class WearSubscriptionStore @Inject constructor(
 
     suspend fun save(isPro: Boolean) = storage.save(KEY, WearSubscriptionState(isPro))
 
+    /** Sem status até o celular publicar de novo: o gate PRO volta a esperar. */
+    suspend fun clear() = storage.remove(KEY)
+
     private companion object {
         const val KEY = "subscription_state"
     }

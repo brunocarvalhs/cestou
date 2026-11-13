@@ -1,5 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel
 
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
@@ -9,6 +11,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -57,7 +60,9 @@ class WearHomeViewModelTest {
     )
 
     /** `uiState` é `WhileSubscribed`: sem um coletor, `value` fica no inicial. Este coletor mantém a leitura. */
-    private fun viewModel() = WearHomeViewModel(repository, wearableSyncService).also { vm ->
+    private val analytics = mockk<AnalyticsTracker>(relaxed = true)
+
+    private fun viewModel() = WearHomeViewModel(repository, wearableSyncService, analytics).also { vm ->
         CoroutineScope(dispatcher).launch { vm.uiState.collect {} }
     }
 
@@ -135,5 +140,12 @@ class WearHomeViewModelTest {
 
         assertTrue(state.lists.items.isEmpty())
         assertFalse(state.hasMore)
+    }
+
+    @Test
+    fun `showing all lists is tracked with the new state`() {
+        viewModel().onIntent(WearHomeIntent.ToggleShowAll)
+
+        verify { analytics.trackEvent(AnalyticsEvents.WEAR_HOME_SHOW_ALL_TOGGLED, mapOf("expanded" to true)) }
     }
 }

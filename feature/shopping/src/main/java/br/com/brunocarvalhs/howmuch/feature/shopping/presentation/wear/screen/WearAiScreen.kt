@@ -1,11 +1,30 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,22 +36,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
-import androidx.wear.compose.foundation.lazy.TransformingLazyColumnScope
-import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.Button
-import androidx.wear.compose.material3.ListHeader
+import androidx.wear.compose.material3.Icon
+import androidx.wear.compose.material3.IconButton
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.OutlinedButton
 import androidx.wear.compose.material3.ScreenScaffold
-import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.Text
-import androidx.wear.compose.material3.lazy.TransformationSpec
-import androidx.wear.compose.material3.lazy.rememberTransformationSpec
-import androidx.wear.compose.material3.lazy.transformedHeight
 import br.com.brunocarvalhs.howmuch.core.common.wearable.AiFailure
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouAiLoader
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.intent.WearAiIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.state.WearAiUiState
@@ -47,13 +65,21 @@ internal const val TAG_AI_CONFIRM = "wear_ai_confirm"
 internal const val TAG_AI_REJECT = "wear_ai_reject"
 internal const val TAG_AI_ANSWER = "wear_ai_answer"
 internal const val TAG_AI_FAILED = "wear_ai_failed"
+internal const val TAG_AI_NEW = "wear_ai_new"
 internal const val TAG_AI_SUGGESTION_PREFIX = "wear_ai_suggestion_"
 
 private val FieldRadius = 50.dp
+private val LoaderSize = 32.dp
+private val ThinkingLoaderSize = 64.dp
+private val SuggestionsHeight = 60.dp
+private val SuggestionWidth = 128.dp
+private val FieldHeight = 44.dp
+private val SendSize = 32.dp
 
 /**
- * Entrada rápida de IA: um prompt curto, ditado ou digitado no teclado do relógio.
- * A resposta vem do celular; ações de escrita só rodam depois da confirmação na tela.
+ * Assistente no relógio, em duas telas. Na inicial: o ícone de IA, a saudação, as perguntas
+ * prontas e o campo embaixo. Ao perguntar, a tela vira só a resposta: o ícone animado fica no
+ * centro enquanto pensa, e a resposta ocupa a tela, rolável. "Nova pergunta" volta à inicial.
  */
 @Composable
 internal fun WearAiScreen(viewModel: WearAiViewModel) {
@@ -66,154 +92,231 @@ private fun WearAiContent(
     state: WearAiUiState,
     onIntent: (WearAiIntent) -> Unit
 ) {
-    val listState = rememberTransformingLazyColumnState()
-    val spec = rememberTransformationSpec()
     var prompt by rememberSaveable { mutableStateOf("") }
-    val busy = state is WearAiUiState.Waiting || state is WearAiUiState.Confirming
+    val assistantTitle = stringResource(R.string.shopping_wear_ai_title)
 
-    ScreenScaffold(scrollState = listState) { contentPadding ->
-        TransformingLazyColumn(
-            state = listState,
-            contentPadding = contentPadding
-        ) {
-            item {
-                ListHeader(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .transformedHeight(this, spec),
-                    transformation = SurfaceTransformation(spec)
-                ) {
-                    Text(stringResource(R.string.shopping_wear_ai_title))
-                }
+    fun send() {
+        val text = prompt.trim()
+        if (text.isEmpty()) return
+        onIntent(WearAiIntent.Send(prompt))
+        prompt = ""
+    }
+
+    ScreenScaffold { contentPadding ->
+        AnimatedContent(
+            targetState = state is WearAiUiState.Idle,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(contentPadding),
+            transitionSpec = {
+                (fadeIn() + scaleIn(initialScale = 0.94f)).togetherWith(fadeOut())
             }
-
-            if (!busy) {
-                suggestionItems(onIntent = onIntent, spec = spec)
-            }
-
-            item {
-                PromptField(
-                    value = prompt,
-                    onValueChange = { if (it.length <= WEAR_AI_MAX_PROMPT_LENGTH) prompt = it },
-                    enabled = !busy,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .transformedHeight(this, spec)
+        ) { idle ->
+            if (idle) {
+                HomeView(
+                    title = assistantTitle,
+                    prompt = prompt,
+                    onPromptChange = { if (it.length <= WEAR_AI_MAX_PROMPT_LENGTH) prompt = it },
+                    onSend = ::send,
+                    onIntent = onIntent
                 )
+            } else {
+                ResponseView(state = state, title = assistantTitle, onIntent = onIntent)
             }
-
-            item {
-                Button(
-                    onClick = {
-                        onIntent(WearAiIntent.Send(prompt))
-                        prompt = ""
-                    },
-                    enabled = prompt.isNotBlank() && !busy,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .transformedHeight(this, spec)
-                        .testTag(TAG_AI_SEND),
-                    colors = wearCardColors(),
-                    transformation = SurfaceTransformation(spec)
-                ) {
-                    Text(stringResource(R.string.shopping_wear_ai_send))
-                }
-            }
-
-            stateItems(state = state, onIntent = onIntent, spec = spec)
         }
     }
 }
 
+/** Tela inicial: ícone, saudação, perguntas prontas em carrossel e o campo fixo no fim. */
+@Composable
+private fun HomeView(
+    title: String,
+    prompt: String,
+    onPromptChange: (String) -> Unit,
+    onSend: () -> Unit,
+    onIntent: (WearAiIntent) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CestouAiLoader(
+            size = LoaderSize,
+            modifier = Modifier.semantics { contentDescription = title }
+        )
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(R.string.shopping_wear_ai_greeting),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+        SuggestionRow(onIntent = onIntent)
+        PromptField(
+            value = prompt,
+            onValueChange = onPromptChange,
+            enabled = true,
+            sendEnabled = prompt.isNotBlank(),
+            onSend = onSend,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp)
+        )
+    }
+}
+
 /**
- * Perguntas prontas, todas de consulta: nenhuma executa escrita.
+ * Tela de resposta: ocupa a tela toda. Resposta e falha ficam no topo e rolam, com "Nova
+ * pergunta" no fim da rolagem. Pensando e confirmação ficam no centro, sem rolagem.
  */
+@Composable
+private fun ResponseView(
+    state: WearAiUiState,
+    title: String,
+    onIntent: (WearAiIntent) -> Unit
+) {
+    when (state) {
+        is WearAiUiState.Answer, is WearAiUiState.Failed -> Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (state is WearAiUiState.Answer) {
+                Text(
+                    text = state.text,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .testTag(TAG_AI_ANSWER)
+                )
+            } else if (state is WearAiUiState.Failed) {
+                Text(
+                    text = stringResource(failureMessage(state.reason)),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .testTag(TAG_AI_FAILED)
+                )
+            }
+            Button(
+                onClick = { onIntent(WearAiIntent.Reset) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = 12.dp)
+                    .testTag(TAG_AI_NEW),
+                colors = wearCardColors()
+            ) {
+                Text(stringResource(R.string.shopping_wear_ai_new))
+            }
+        }
+        else -> Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            when (state) {
+                WearAiUiState.Waiting -> ThinkingBlock(title)
+                is WearAiUiState.Confirming -> ConfirmBlock(state, onIntent)
+                else -> Unit
+            }
+        }
+    }
+}
+
+/** Ícone animado de IA com o "pensando" embaixo, no centro da tela. */
+@Composable
+private fun ThinkingBlock(title: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        CestouAiLoader(
+            size = ThinkingLoaderSize,
+            modifier = Modifier.semantics { contentDescription = title }
+        )
+        Text(
+            text = stringResource(R.string.shopping_wear_ai_thinking),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.testTag(TAG_AI_WAITING)
+        )
+    }
+}
+
+/** Ação de escrita pedida pelo agente: resumo e as duas escolhas, no centro da tela. */
+@Composable
+private fun ConfirmBlock(state: WearAiUiState.Confirming, onIntent: (WearAiIntent) -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.shopping_wear_ai_confirm_title),
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = state.summary,
+            style = MaterialTheme.typography.labelSmall,
+            textAlign = TextAlign.Center
+        )
+        Button(
+            onClick = { onIntent(WearAiIntent.Decide(approved = true)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(TAG_AI_CONFIRM),
+            colors = wearCardColors()
+        ) {
+            Text(stringResource(R.string.shopping_wear_ai_confirm))
+        }
+        OutlinedButton(
+            onClick = { onIntent(WearAiIntent.Decide(approved = false)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(TAG_AI_REJECT)
+        ) {
+            Text(stringResource(R.string.shopping_wear_ai_reject))
+        }
+    }
+}
+
+/** Perguntas prontas, todas de consulta: nenhuma executa escrita. */
 private val SuggestionLabels = listOf(
     R.string.shopping_wear_ai_suggestion_spent,
     R.string.shopping_wear_ai_suggestion_lists,
     R.string.shopping_wear_ai_suggestion_budget
 )
 
-private fun TransformingLazyColumnScope.suggestionItems(
-    onIntent: (WearAiIntent) -> Unit,
-    spec: TransformationSpec
-) {
-    SuggestionLabels.forEachIndexed { index, label ->
-        item {
+/** Perguntas prontas em carrossel horizontal: deslize para o lado para ver as outras. */
+@Composable
+private fun SuggestionRow(onIntent: (WearAiIntent) -> Unit) {
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(SuggestionsHeight),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        itemsIndexed(SuggestionLabels) { index, label ->
             val question = stringResource(label)
             Button(
                 onClick = { onIntent(WearAiIntent.Send(question)) },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .transformedHeight(this, spec)
+                    .width(SuggestionWidth)
                     .testTag("$TAG_AI_SUGGESTION_PREFIX$index"),
-                colors = wearCardColors(),
-                transformation = SurfaceTransformation(spec)
+                colors = wearCardColors()
             ) {
-                Text(text = question, maxLines = 2)
+                Text(text = question, maxLines = 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
             }
-        }
-    }
-}
-
-/** A área de resposta: uma só por vez, conforme o estado. */
-private fun TransformingLazyColumnScope.stateItems(
-    state: WearAiUiState,
-    onIntent: (WearAiIntent) -> Unit,
-    spec: TransformationSpec
-) {
-    when (state) {
-        WearAiUiState.Idle -> Unit
-        WearAiUiState.Waiting -> item {
-            Text(
-                text = stringResource(R.string.shopping_wear_ai_thinking),
-                modifier = Modifier.testTag(TAG_AI_WAITING)
-            )
-        }
-        is WearAiUiState.Confirming -> {
-            item {
-                Text(text = stringResource(R.string.shopping_wear_ai_confirm_title))
-            }
-            item {
-                Text(text = state.summary, style = MaterialTheme.typography.labelSmall)
-            }
-            item {
-                Button(
-                    onClick = { onIntent(WearAiIntent.Decide(approved = true)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .transformedHeight(this, spec)
-                        .testTag(TAG_AI_CONFIRM),
-                    colors = wearCardColors(),
-                    transformation = SurfaceTransformation(spec)
-                ) {
-                    Text(stringResource(R.string.shopping_wear_ai_confirm))
-                }
-            }
-            item {
-                OutlinedButton(
-                    onClick = { onIntent(WearAiIntent.Decide(approved = false)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .transformedHeight(this, spec)
-                        .testTag(TAG_AI_REJECT),
-                    transformation = SurfaceTransformation(spec)
-                ) {
-                    Text(stringResource(R.string.shopping_wear_ai_reject))
-                }
-            }
-        }
-        is WearAiUiState.Answer -> item {
-            Text(
-                text = state.text,
-                modifier = Modifier.testTag(TAG_AI_ANSWER)
-            )
-        }
-        is WearAiUiState.Failed -> item {
-            Text(
-                text = stringResource(failureMessage(state.reason)),
-                modifier = Modifier.testTag(TAG_AI_FAILED)
-            )
         }
     }
 }
@@ -226,34 +329,59 @@ private fun failureMessage(reason: String): Int = when (reason) {
     else -> R.string.shopping_wear_ai_failed
 }
 
-/** Campo do prompt, com dica quando vazio. Mesmo visual dos campos de busca do relógio. */
+/**
+ * Barra de pergunta fixa no fim da tela inicial: uma pílula com o campo e o botão de enviar
+ * dentro dela. A dica some quando há texto.
+ */
 @Composable
 private fun PromptField(
     value: String,
     onValueChange: (String) -> Unit,
     enabled: Boolean,
+    sendEnabled: Boolean,
+    onSend: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val hint = stringResource(R.string.shopping_wear_ai_hint)
-    BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
-        enabled = enabled,
-        singleLine = true,
-        textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+    Row(
         modifier = modifier
+            .height(FieldHeight)
             .clip(RoundedCornerShape(FieldRadius))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .padding(horizontal = 16.dp, vertical = 10.dp)
-            .testTag(TAG_AI_FIELD),
-        decorationBox = { inner ->
-            Box(contentAlignment = Alignment.CenterStart) {
-                if (value.isEmpty()) {
-                    Text(text = hint)
+            .padding(start = 14.dp, end = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            enabled = enabled,
+            singleLine = true,
+            textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+            modifier = Modifier
+                .weight(1f)
+                .testTag(TAG_AI_FIELD),
+            decorationBox = { inner ->
+                Box(contentAlignment = Alignment.CenterStart) {
+                    if (value.isEmpty()) {
+                        Text(text = hint, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    inner()
                 }
-                inner()
             }
+        )
+        IconButton(
+            onClick = onSend,
+            enabled = sendEnabled,
+            modifier = Modifier
+                .size(SendSize)
+                .testTag(TAG_AI_SEND)
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Send,
+                contentDescription = stringResource(R.string.shopping_wear_ai_send),
+                modifier = Modifier.size(18.dp)
+            )
         }
-    )
+    }
 }
