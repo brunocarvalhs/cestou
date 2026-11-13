@@ -29,7 +29,6 @@ paths:
 build:
   java-distribution: "temurin"
   java-version: "17"
-  gradle-version: "8.3.1"
   # Heap maior: com 3 GB o KSP2 perdia a resolução de tipos de forma intermitente (Dagger/MissingBinding e
   # "could not be resolved") nas builds limpas do CI, que passam de 800 tarefas.
   gradle_opts: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4096m -Dkotlin.daemon.jvm.options=-Xmx2048m"
@@ -116,8 +115,9 @@ build:
         - name: "release"
           description: "Production Ready APK"
           gradle_task: "assembleRelease"
-          # Desabilitado: o AAB do wear não é publicado no Play por enquanto.
-          enabled: false
+          # Gera o AAB do wear em release.yml; o deploy sobe cada target em um job próprio
+          # (um AAB por upload), então a falha de um não afeta o outro.
+          enabled: true
           path: "wear/build/outputs/apk/release/*.apk"
           artifact_name: "HowMuch-wear-release"
           deploy:
