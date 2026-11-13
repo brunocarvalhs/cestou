@@ -3,8 +3,11 @@ package br.com.brunocarvalhs.howmuch.core.billing
 import android.app.Activity
 import android.app.Application
 import android.content.Context
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
@@ -26,6 +29,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
@@ -43,27 +48,37 @@ import kotlin.coroutines.resume
  * acknowledges new purchases inline — required within 3 days or Google auto-refunds them, so
  * this is not optional polish.
  *
+ * Pro belongs to the Cestou account, not to the Google account on the device (sdd-058). A purchase
+ * is bound to the signed-in account when it is bought, and [observeStatus] reports Pro only for
+ * the account it is bound to. Switching accounts or signing out recalculates the status.
+ *
  * [purchase] is the Activity-bound entry point: it looks up the real, current price via
  * `queryProductDetails` (never a hardcoded value) and launches Play's own purchase UI.
  *
- * There is no explicit "restore purchases" action: [refresh], called from [purchase]'s caller
- * on every app resume, re-runs `queryPurchasesAsync` against Play's local cache, which *is*
- * restore on Android.
+ * There is no explicit "restore purchases" action: [refresh], called on every app resume, re-runs
+ * `queryPurchasesAsync` against Play's local cache, which *is* restore on Android.
  */
 @Singleton
 class PlayBillingSubscriptionRepository @Inject constructor(
-    @ApplicationContext context: Context
+    @ApplicationContext context: Context,
+    private val authService: AuthService,
+    private val analyticsTracker: AnalyticsTracker
 ) : SubscriptionRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val statusCache = BillingStatusCache(context)
     private val connectionMutex = Mutex()
 
-    private val _status = MutableStateFlow(statusCache.load())
+    // Free until the signed-in account is known; init loads that account's cached status.
+    private val _status = MutableStateFlow(SubscriptionStatus.FREE)
+
+    @Volatile
+    private var mismatchReported = false
 
     private val purchasesUpdatedListener = PurchasesUpdatedListener { result, purchases ->
         if (result.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {
-            scope.launch { handlePurchases(purchases) }
+            val accountId = authService.currentUser?.id
+            scope.launch { handlePurchases(purchases, accountId) }
         } else {
             Timber.tag(TAG).w(
                 "onPurchasesUpdated: responseCode=%d debugMessage=%s",
@@ -88,8 +103,14 @@ class PlayBillingSubscriptionRepository @Inject constructor(
 
     init {
         scope.launch {
-            ensureConnected()
-            refresh()
+            authService.authState
+                .map { it?.id }
+                .distinctUntilChanged()
+                .collect { accountId ->
+                    // Show the account's cached status at once, then confirm it with Play. Signed out is Free.
+                    _status.value = accountId?.let { statusCache.load(it) } ?: SubscriptionStatus.FREE
+                    if (accountId != null) queryAndApply(accountId)
+                }
         }
         (context.applicationContext as? Application)?.registerActivityLifecycleCallbacks(
             BillingLifecycleObserver {
@@ -101,35 +122,13 @@ class PlayBillingSubscriptionRepository @Inject constructor(
     override fun observeStatus(): Flow<SubscriptionStatus> = _status.asStateFlow()
 
     /**
-     * Re-reads Play's local purchase cache and updates [observeStatus] accordingly. Call this
-     * on every app resume — it is the app's entire "restore purchases" story (AD-010).
+     * Re-reads Play's local purchase cache and updates [observeStatus] for the signed-in account.
+     * Call this on every app resume — it is the app's entire "restore purchases" story (AD-010).
+     * Does nothing when no account is signed in: that state is already Free.
      */
     suspend fun refresh() {
-        if (!ensureConnected()) {
-            Timber.tag(TAG).w("refresh skipped: could not connect to BillingClient")
-            return
-        }
-        val result = try {
-            billingClient.queryPurchasesAsync(
-                QueryPurchasesParams.newBuilder()
-                    .setProductType(BillingClient.ProductType.SUBS)
-                    .build()
-            )
-        } catch (e: Exception) {
-            Timber.tag(TAG).w(e, "queryPurchasesAsync threw an exception")
-            return
-        }
-
-        if (result.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-            handlePurchases(result.purchasesList)
-        } else {
-            Timber.tag(TAG).w(
-                "queryPurchasesAsync failed: responseCode=%d debugMessage=%s (retaining current status: %s)",
-                result.billingResult.responseCode,
-                result.billingResult.debugMessage,
-                _status.value
-            )
-        }
+        val accountId = authService.currentUser?.id ?: return
+        queryAndApply(accountId)
     }
 
     /**
@@ -150,14 +149,17 @@ class PlayBillingSubscriptionRepository @Inject constructor(
 
     /**
      * The Activity-bound purchase entry point. Looks up [productId]'s current price/offer via
-     * `queryProductDetails` and launches Play's purchase UI on top of [activity]. The result of
-     * the purchase itself arrives asynchronously through [purchasesUpdatedListener], not through
-     * this function's return value.
+     * `queryProductDetails` and launches Play's purchase UI on top of [activity], bound to the
+     * signed-in account (sdd-058). The result of the purchase itself arrives asynchronously through
+     * [purchasesUpdatedListener], not through this function's return value.
      */
     suspend fun purchase(
         activity: Activity,
         productId: String = BillingConstants.PRO_MONTHLY
     ): BillingResult {
+        val accountId = authService.currentUser?.id
+            ?: return unavailableResult("No signed-in account to bind the purchase to")
+
         if (!ensureConnected()) {
             return unavailableResult("BillingClient connection unavailable")
         }
@@ -178,12 +180,41 @@ class PlayBillingSubscriptionRepository @Inject constructor(
                             .build()
                     )
                 )
+                .setObfuscatedAccountId(accountId)
                 .build()
 
             billingClient.launchBillingFlow(activity, params)
         } catch (e: Exception) {
             Timber.tag(TAG).w(e, "launchBillingFlow failed for %s", productId)
             unavailableResult("Failed to launch billing flow: ${e.message}")
+        }
+    }
+
+    private suspend fun queryAndApply(accountId: String) {
+        if (!ensureConnected()) {
+            Timber.tag(TAG).w("refresh skipped: could not connect to BillingClient")
+            return
+        }
+        val result = try {
+            billingClient.queryPurchasesAsync(
+                QueryPurchasesParams.newBuilder()
+                    .setProductType(BillingClient.ProductType.SUBS)
+                    .build()
+            )
+        } catch (e: Exception) {
+            Timber.tag(TAG).w(e, "queryPurchasesAsync threw an exception")
+            return
+        }
+
+        if (result.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+            handlePurchases(result.purchasesList, accountId)
+        } else {
+            Timber.tag(TAG).w(
+                "queryPurchasesAsync failed: responseCode=%d debugMessage=%s (retaining current status: %s)",
+                result.billingResult.responseCode,
+                result.billingResult.debugMessage,
+                _status.value
+            )
         }
     }
 
@@ -205,10 +236,28 @@ class PlayBillingSubscriptionRepository @Inject constructor(
         null
     }
 
-    private suspend fun handlePurchases(purchases: List<Purchase>) {
-        val newStatus = purchases.toSubscriptionStatus()
-        _status.value = newStatus
-        statusCache.save(newStatus)
+    /**
+     * Applies what Play reported for [accountId] and acknowledges new purchases. Acknowledgement
+     * runs for every purchase, including ones bound to another account or to none: skipping it
+     * would let Google auto-refund a purchase that belongs to the Play account on this device.
+     */
+    private suspend fun handlePurchases(purchases: List<Purchase>, accountId: String?) {
+        val newStatus = purchases.toSubscriptionStatus(accountId)
+        // Publish only while [accountId] is still the signed-in account, so a late Play answer for
+        // a previous account cannot grant or revoke Pro for the current one.
+        if (accountId != null && accountId == authService.currentUser?.id) {
+            _status.value = newStatus
+            statusCache.save(accountId, newStatus)
+        }
+
+        // A purchase exists on this device but is not bound to the signed-in account.
+        val mismatch = accountId != null &&
+            newStatus == SubscriptionStatus.FREE &&
+            purchases.any { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+        if (mismatch && !mismatchReported) {
+            analyticsTracker.trackEvent(AnalyticsEvents.ENTITLEMENT_ACCOUNT_MISMATCH)
+        }
+        mismatchReported = mismatch
 
         purchases
             .filter { it.purchaseState == Purchase.PurchaseState.PURCHASED && !it.isAcknowledged }
@@ -294,18 +343,19 @@ class PlayBillingSubscriptionRepository @Inject constructor(
         }
     }
 
-    private fun unavailableResult(message: String): BillingResult {
-        Timber.tag(TAG).w(message)
-        return BillingResult.newBuilder()
-            .setResponseCode(BillingClient.BillingResponseCode.ITEM_UNAVAILABLE)
-            .setDebugMessage(message)
-            .build()
-    }
-
     companion object {
-        private const val TAG = "PlayBillingSubscriptionRepository"
         private const val CONNECT_TIMEOUT_MS = 10_000L
         private const val MAX_CONNECT_RETRIES = 3
         private const val INITIAL_BACKOFF_MS = 500L
     }
+}
+
+private const val TAG = "PlayBillingSubscriptionRepository"
+
+private fun unavailableResult(message: String): BillingResult {
+    Timber.tag(TAG).w(message)
+    return BillingResult.newBuilder()
+        .setResponseCode(BillingClient.BillingResponseCode.ITEM_UNAVAILABLE)
+        .setDebugMessage(message)
+        .build()
 }

@@ -122,6 +122,9 @@ object AnalyticsEvents {
     const val PLAN_CHANGED = "plan_changed"
     const val SUBSCRIPTION_STARTED = "subscription_started"
 
+    /** Compra no Play sem vínculo com a conta Cestou logada (sdd-058). Sem uid nem token. */
+    const val ENTITLEMENT_ACCOUNT_MISMATCH = "entitlement_account_mismatch"
+
     /** Configurações e privacidade. */
     const val SETTINGS_THEME_CHANGED = "settings_theme_changed"
     const val SETTINGS_AI_CHANGED = "settings_ai_changed"
