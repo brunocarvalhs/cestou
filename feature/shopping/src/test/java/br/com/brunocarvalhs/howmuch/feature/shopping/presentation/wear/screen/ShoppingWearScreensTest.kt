@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen
 
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -10,13 +11,15 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
-import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingListUiState
-import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.viewmodel.ShoppingListViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.intent.ShoppingDetailIntent
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.intent.WearHomeIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.state.ShoppingDetailUiState
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.state.WearHomeUiState
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.ShoppingDetailViewModel
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearHomeViewModel
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -32,7 +35,7 @@ class ShoppingWearScreensTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    private fun listViewModel(state: ShoppingListUiState) = mockk<ShoppingListViewModel>(relaxed = true) {
+    private fun homeViewModel(state: WearHomeUiState) = mockk<WearHomeViewModel>(relaxed = true) {
         every { uiState } returns MutableStateFlow(state)
     }
 
@@ -55,12 +58,15 @@ class ShoppingWearScreensTest {
     )
 
     @Test
-    fun `list screen shows the lists and navigates to the detail`() {
+    fun `home shows the lists and opens the detail`() {
         var opened: String? = null
         composeTestRule.setContent {
             ShoppingWearScreen(
-                viewModel = listViewModel(ShoppingListUiState(list = StableList(listOf(shopping)))),
-                onNavigateToDetail = { opened = it }
+                viewModel = homeViewModel(WearHomeUiState(lists = StableList(listOf(shopping)), isLoading = false)),
+                onNavigateToDetail = { opened = it },
+                onNavigateToSearch = {},
+                onNavigateToMenu = {},
+                onNavigateToSettings = {}
             )
         }
         composeTestRule.onNodeWithText("Café da manhã", substring = true).performClick()
@@ -68,14 +74,52 @@ class ShoppingWearScreensTest {
     }
 
     @Test
-    fun `list screen shows the empty message`() {
+    fun `home shows the empty message when there are no lists`() {
         composeTestRule.setContent {
-            ShoppingWearScreen(viewModel = listViewModel(ShoppingListUiState()), onNavigateToDetail = {})
+            ShoppingWearScreen(
+                viewModel = homeViewModel(WearHomeUiState(isLoading = false)),
+                onNavigateToDetail = {},
+                onNavigateToSearch = {},
+                onNavigateToMenu = {},
+                onNavigateToSettings = {}
+            )
         }
         composeTestRule.onNodeWithText(
             ApplicationProvider.getApplicationContext<android.content.Context>()
                 .getString(R.string.shopping_wear_no_lists)
-        ).assertExists()
+        ).assertIsDisplayed()
+    }
+
+    @Test
+    fun `create on phone button sends the user to the phone`() {
+        val viewModel = homeViewModel(WearHomeUiState(isLoading = false))
+        composeTestRule.setContent {
+            ShoppingWearScreen(
+                viewModel = viewModel,
+                onNavigateToDetail = {},
+                onNavigateToSearch = {},
+                onNavigateToMenu = {},
+                onNavigateToSettings = {}
+            )
+        }
+        composeTestRule.onNodeWithTag("wear_home_create_on_phone").performClick()
+        verify { viewModel.onIntent(WearHomeIntent.CreateListOnPhone) }
+    }
+
+    @Test
+    fun `more button shows when there are more lists than the home shows`() {
+        val viewModel = homeViewModel(WearHomeUiState(isLoading = false, hasMore = true))
+        composeTestRule.setContent {
+            ShoppingWearScreen(
+                viewModel = viewModel,
+                onNavigateToDetail = {},
+                onNavigateToSearch = {},
+                onNavigateToMenu = {},
+                onNavigateToSettings = {}
+            )
+        }
+        composeTestRule.onNodeWithTag("wear_home_more_button").performClick()
+        verify { viewModel.onIntent(WearHomeIntent.ToggleShowAll) }
     }
 
     @Test
@@ -111,18 +155,6 @@ class ShoppingWearScreensTest {
         }
         composeTestRule.onNodeWithTag("wear_item_1").performClick()
         assertEquals(pao, toggled)
-    }
-
-    @Test
-    fun `list screen hides finished lists`() {
-        val finished = shopping.copy(id = "s2", title = "Feira antiga", status = Shopping.Status.FINISH)
-        composeTestRule.setContent {
-            ShoppingWearScreen(
-                viewModel = listViewModel(ShoppingListUiState(list = StableList(listOf(shopping, finished)))),
-                onNavigateToDetail = {}
-            )
-        }
-        composeTestRule.onNodeWithText("Feira antiga", substring = true).assertDoesNotExist()
     }
 
     @Test

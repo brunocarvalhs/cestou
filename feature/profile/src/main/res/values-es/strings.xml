@@ -7,4 +7,9 @@
     <string name="profile_subscription_free_subtitle">Desbloquea funciones Pro</string>
     <string name="profile_link_wear_device">Vincular reloj (Wear OS)</string>
     <string name="profile_wear_link_phone">Vincular teléfono</string>
+    <string name="profile_wear_settings_title">Configuración</string>
+    <string name="profile_wear_open_phone">Abrir en el teléfono</string>
+    <string name="profile_wear_cancel">Cancelar</string>
+    <string name="profile_wear_sign_out_title">¿Cerrar sesión en el reloj?</string>
+    <string name="profile_wear_sign_out_message">Para volver a ver tus listas aquí, tendrás que vincularlo con el teléfono.</string>
 </resources>

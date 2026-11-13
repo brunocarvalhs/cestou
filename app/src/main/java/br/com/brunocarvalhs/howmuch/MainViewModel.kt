@@ -11,6 +11,7 @@ import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsParams
 import br.com.brunocarvalhs.howmuch.core.common.util.InviteLink
+import br.com.brunocarvalhs.howmuch.core.common.wearable.PairingFailure
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
@@ -23,7 +24,14 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
 import br.com.brunocarvalhs.howmuch.core.navigation.AiChatLaunch
+import br.com.brunocarvalhs.howmuch.deeplink.PendingNewShopping
+import br.com.brunocarvalhs.howmuch.deeplink.PendingPaywall
+import br.com.brunocarvalhs.howmuch.deeplink.PendingWearPairing
+import br.com.brunocarvalhs.howmuch.deeplink.ShoppingCreateLink
+import br.com.brunocarvalhs.howmuch.deeplink.SubscriptionLink
+import br.com.brunocarvalhs.howmuch.deeplink.WearPairingLink
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
+import br.com.brunocarvalhs.howmuch.wear.WearSubscriptionSync
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -52,7 +60,8 @@ internal class MainViewModel @Inject constructor(
     private val userPropertiesSync: UserPropertiesSync,
     private val appUsageTracker: AppUsageTracker,
     private val feedbackPromptRequester: FeedbackPromptRequester,
-    private val chatTurnTracker: ChatTurnTracker
+    private val chatTurnTracker: ChatTurnTracker,
+    private val wearSubscriptionSync: WearSubscriptionSync
 ) : ViewModel() {
 
     init {
@@ -60,6 +69,7 @@ internal class MainViewModel @Inject constructor(
         userPropertiesSync.start(viewModelScope)
         syncUserProfile()
         signOutWatchOnSignOut()
+        wearSubscriptionSync.start(viewModelScope)
     }
 
     /**
@@ -78,6 +88,7 @@ internal class MainViewModel @Inject constructor(
                 .filter { signedIn -> !signedIn }
                 .collect {
                     wearableSyncService.notifySignOut()
+                    wearableSyncService.syncSubscription(isPro = false)
                     chatTurnTracker.cancelAll()
                     aiSession.clearHistory()
                 }
@@ -166,6 +177,18 @@ internal class MainViewModel @Inject constructor(
     /** Conversa da IA a abrir, vinda do toque numa notificação; consumida uma única vez. */
     val pendingAiChatSession: StateFlow<String?> = savedStateHandle.getStateFlow(KEY_PENDING_AI_CHAT, null)
 
+    /**
+     * Pareamento pedido pelo relógio (sdd-055). A tela só abre depois do login; sem login, o
+     * celular já respondeu `NOT_SIGNED_IN` (ver [onDeepLink]).
+     */
+    val pendingWearPairing = PendingWearPairing(savedStateHandle, viewModelScope)
+
+    /** Pedido do relógio para criar lista (sdd-056). Espera o login e o nome, como o pareamento. */
+    val pendingNewShopping = PendingNewShopping(savedStateHandle)
+
+    /** Pedido do relógio para abrir o plano (cestou://subscription). Espera o login e o nome. */
+    val pendingPaywall = PendingPaywall(savedStateHandle)
+
     /** A Activity reporta ida e volta do app; a ViewModel decide o que é sessão. */
     fun onForeground() {
         appUsageTracker.onForeground()
@@ -186,6 +209,41 @@ internal class MainViewModel @Inject constructor(
     fun onDeepLink(intent: Intent) {
         if (intent.action != Intent.ACTION_VIEW) return
         val data = intent.data ?: return
+        WearPairingLink.parse(data)?.let { request ->
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.DEEP_LINK_OPENED,
+                mapOf(AnalyticsParams.SOURCE to "wear_pairing")
+            )
+            if (authService.currentUser == null) {
+                // Answer now: the watch would otherwise wait for a key that never comes.
+                viewModelScope.launch {
+                    wearableSyncService.sendPairingError(
+                        nodeId = request.wearNodeId,
+                        sessionId = request.sessionId,
+                        reason = PairingFailure.NOT_SIGNED_IN.name
+                    )
+                }
+            } else {
+                pendingWearPairing.store(request)
+            }
+            return
+        }
+        if (ShoppingCreateLink.matches(data)) {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.DEEP_LINK_OPENED,
+                mapOf(AnalyticsParams.SOURCE to "shopping_create")
+            )
+            pendingNewShopping.store()
+            return
+        }
+        if (SubscriptionLink.matches(data)) {
+            analyticsTracker.trackEvent(
+                AnalyticsEvents.DEEP_LINK_OPENED,
+                mapOf(AnalyticsParams.SOURCE to "wear_subscription")
+            )
+            pendingPaywall.store()
+            return
+        }
         AiChatLaunch.sessionIdFrom(data)?.let {
             analyticsTracker.trackEvent(AnalyticsEvents.DEEP_LINK_OPENED, mapOf(AnalyticsParams.SOURCE to "ai_chat"))
             savedStateHandle[KEY_PENDING_AI_CHAT] = it

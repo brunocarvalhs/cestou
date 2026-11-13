@@ -31,6 +31,9 @@ object FeatureFlagKeys {
     /** Legacy alias for all proactive AI features. Maps to suggestions. */
     const val PROACTIVE_AI_ENABLED = PROACTIVE_AI_SUGGESTIONS_ENABLED
 
+    /** Entrada rápida de IA no relógio. Default off: o relógio só mostra a entrada com a flag ligada. */
+    const val WEAR_AI_QUICK_ENTRY = "wear_ai_quick_entry"
+
     // ============================================================================
     // CATEGORY 2: Authentication & Identity
     // ============================================================================
