@@ -23,7 +23,7 @@ class WearMenuViewModel @Inject constructor(
 ) : ViewModel() {
 
     val uiState: StateFlow<WearMenuUiState> = MutableStateFlow(
-        WearMenuUiState(showAi = featureFlags.isEnabled(FeatureFlagKeys.WEAR_AI_QUICK_ENTRY, default = false))
+        WearMenuUiState(showAi = featureFlags.isEnabled(FeatureFlagKeys.WEAR_AI_QUICK_ENTRY, default = true))
     ).asStateFlow()
 
     init {

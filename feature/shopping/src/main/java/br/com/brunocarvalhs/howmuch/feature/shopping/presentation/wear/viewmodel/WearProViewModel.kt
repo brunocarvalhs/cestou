@@ -2,6 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmode
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.local.WearSubscriptionStore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class WearProViewModel @Inject constructor(
     store: WearSubscriptionStore,
-    private val wearableSyncService: WearableSyncService
+    private val wearableSyncService: WearableSyncService,
+    private val analytics: AnalyticsTracker
 ) : ViewModel() {
 
     val isPro: StateFlow<Boolean?> = store.isPro.stateIn(
@@ -29,6 +32,7 @@ class WearProViewModel @Inject constructor(
 
     /** Opens the phone's paywall, where the subscription is bought. Nothing happens if no phone is reachable. */
     fun openPhone() {
+        analytics.trackEvent(AnalyticsEvents.WEAR_PRO_OPEN_PHONE_CLICKED)
         viewModelScope.launch { wearableSyncService.openPhoneApp(PATH_PHONE_SUBSCRIPTION) }
     }
 

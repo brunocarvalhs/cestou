@@ -1,12 +1,16 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel
 
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.local.WearSubscriptionStore
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -35,7 +39,17 @@ class WearProViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel() = WearProViewModel(store, wearableSync)
+    private val analytics = mockk<AnalyticsTracker>(relaxed = true)
+
+    private fun viewModel() = WearProViewModel(store, wearableSync, analytics)
+
+    @Test
+    fun `opening the phone paywall is tracked`() {
+        every { store.isPro } returns MutableStateFlow(false)
+        viewModel().openPhone()
+
+        verify { analytics.trackEvent(AnalyticsEvents.WEAR_PRO_OPEN_PHONE_CLICKED, any()) }
+    }
 
     @Test
     fun `emits null until the phone has published the state`() = runTest(dispatcher) {

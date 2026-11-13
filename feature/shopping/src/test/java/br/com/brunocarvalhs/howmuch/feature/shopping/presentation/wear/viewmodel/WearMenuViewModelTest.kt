@@ -15,7 +15,7 @@ class WearMenuViewModelTest {
     private val analytics = mockk<AnalyticsTracker>(relaxed = true)
 
     private fun flags(aiEnabled: Boolean): FeatureFlagService = mockk {
-        every { isEnabled(FeatureFlagKeys.WEAR_AI_QUICK_ENTRY, default = false) } returns aiEnabled
+        every { isEnabled(FeatureFlagKeys.WEAR_AI_QUICK_ENTRY, default = true) } returns aiEnabled
     }
 
     @Test

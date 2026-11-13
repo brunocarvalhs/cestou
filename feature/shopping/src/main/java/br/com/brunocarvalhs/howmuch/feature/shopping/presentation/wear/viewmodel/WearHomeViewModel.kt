@@ -2,6 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmode
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
@@ -25,7 +27,8 @@ import javax.inject.Inject
 @HiltViewModel
 internal class WearHomeViewModel @Inject constructor(
     shoppingRepository: ShoppingRepository,
-    private val wearableSyncService: WearableSyncService
+    private val wearableSyncService: WearableSyncService,
+    private val analytics: AnalyticsTracker
 ) : ViewModel() {
 
     private val showAll = MutableStateFlow(false)
@@ -48,8 +51,14 @@ internal class WearHomeViewModel @Inject constructor(
 
     fun onIntent(intent: WearHomeIntent) {
         when (intent) {
-            WearHomeIntent.ToggleShowAll -> showAll.update { !it }
-            WearHomeIntent.CreateListOnPhone -> openOnPhone(PATH_CREATE_LIST)
+            WearHomeIntent.ToggleShowAll -> {
+                showAll.update { !it }
+                analytics.trackEvent(AnalyticsEvents.WEAR_HOME_SHOW_ALL_TOGGLED, mapOf("expanded" to showAll.value))
+            }
+            WearHomeIntent.CreateListOnPhone -> {
+                analytics.trackEvent(AnalyticsEvents.WEAR_HOME_CREATE_ON_PHONE_CLICKED)
+                openOnPhone(PATH_CREATE_LIST)
+            }
         }
     }
 

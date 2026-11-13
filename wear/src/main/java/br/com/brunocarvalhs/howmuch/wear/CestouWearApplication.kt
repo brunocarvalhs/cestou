@@ -2,8 +2,11 @@ package br.com.brunocarvalhs.howmuch.wear
 
 import android.app.Application
 import androidx.wear.tiles.TileService
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsUserProperties
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.local.WearListStore
 import br.com.brunocarvalhs.howmuch.wear.presentation.tile.LastListTileService
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +23,9 @@ class CestouWearApplication : Application() {
     @Inject
     lateinit var wearListStore: WearListStore
 
+    @Inject
+    lateinit var analyticsTracker: AnalyticsTracker
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override fun onCreate() {
@@ -27,6 +33,16 @@ class CestouWearApplication : Application() {
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
+        // O wear compartilha o applicationId do celular: sem essa marca, GA4 e Crashlytics
+        // misturam os dados dos dois dispositivos.
+        analyticsTracker.setUserProperty(
+            AnalyticsUserProperties.FORM_FACTOR,
+            AnalyticsUserProperties.FORM_FACTOR_WEAR
+        )
+        FirebaseCrashlytics.getInstance().setCustomKey(
+            AnalyticsUserProperties.FORM_FACTOR,
+            AnalyticsUserProperties.FORM_FACTOR_WEAR
+        )
         refreshTileOnListChange()
     }
 

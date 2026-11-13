@@ -76,6 +76,7 @@ android {
 dependencies {
     implementation(project(":core:theme"))
     implementation(project(":core:common"))
+    implementation(project(":core:analytics"))
     implementation(project(":core:domain"))
     implementation(project(":core:auth"))
     implementation(project(":core:navigation"))

@@ -19,6 +19,9 @@ object AnalyticsUserProperties {
     const val REMINDERS_ENABLED = "reminders_enabled"
     const val SORTING_MODE = "sorting_mode"
     const val NPS_CLASS = "nps_class"
+    const val FORM_FACTOR = "form_factor"
+
+    const val FORM_FACTOR_WEAR = "wear"
 
     const val PLAN_FREE = "free"
     const val PLAN_PRO = "pro"

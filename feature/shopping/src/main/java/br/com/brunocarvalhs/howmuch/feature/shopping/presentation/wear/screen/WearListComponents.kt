@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
@@ -31,6 +34,7 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.R
 private val CoverSize = 36.dp
 private val CoverRadius = 8.dp
 private val PillRadius = 50.dp
+private const val SKELETON_ALPHA = 0.15f
 
 /** Tag do campo de busca, para os testes de UI (AGENTS §5: sem asserts de texto). */
 internal const val TAG_SEARCH_FIELD = "wear_search_field"
@@ -97,13 +101,41 @@ internal fun WearListRow(
     }
 }
 
-/** Barra cinza de carregamento, no padrão de esqueleto do Spotify (sdd-056). */
+/**
+ * Linha de esqueleto no mesmo formato de [WearListRow]: capa e duas barras cinzas (sdd-056).
+ * Tem conteúdo com tamanho próprio de propósito: um `Box` vazio mede altura zero, então a linha
+ * sumia e a lista não tinha o que rolar.
+ */
 @Composable
 internal fun WearSkeletonRow(modifier: Modifier = Modifier) {
-    Box(
+    Row(
         modifier = modifier
             .clip(RoundedCornerShape(PillRadius))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(CoverSize)
+                .clip(RoundedCornerShape(CoverRadius))
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = SKELETON_ALPHA))
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            SkeletonBar(width = 80.dp, height = 10.dp)
+            SkeletonBar(width = 48.dp, height = 8.dp)
+        }
+    }
+}
+
+@Composable
+private fun SkeletonBar(width: Dp, height: Dp) {
+    Box(
+        modifier = Modifier
+            .size(width = width, height = height)
+            .clip(RoundedCornerShape(PillRadius))
+            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = SKELETON_ALPHA))
     )
 }
 
@@ -112,23 +144,27 @@ internal fun WearSkeletonRow(modifier: Modifier = Modifier) {
 internal fun WearSearchField(
     query: String,
     onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    hint: String = stringResource(R.string.shopping_wear_search_hint),
+    tag: String = TAG_SEARCH_FIELD,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default
 ) {
     BasicTextField(
         value = query,
         onValueChange = onQueryChange,
         singleLine = true,
+        keyboardOptions = keyboardOptions,
         textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         modifier = modifier
             .clip(RoundedCornerShape(PillRadius))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .padding(horizontal = 16.dp, vertical = 10.dp)
-            .testTag(TAG_SEARCH_FIELD),
+            .testTag(tag),
         decorationBox = { inner ->
             Box(contentAlignment = Alignment.CenterStart) {
                 if (query.isEmpty()) {
-                    Text(text = stringResource(R.string.shopping_wear_search_hint))
+                    Text(text = hint)
                 }
                 inner()
             }

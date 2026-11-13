@@ -100,6 +100,15 @@ object AnalyticsEvents {
     const val WEAR_AI_PROMPT_SENT = "wear_ai_prompt_sent"
     const val WEAR_AI_ACTION_CONFIRMED = "wear_ai_action_confirmed"
 
+    /** Home e detalhe da lista no relógio. Parâmetros só booleanos: nunca nome, preço ou id. */
+    const val WEAR_LIST_OPENED = "wear_list_opened"
+    const val WEAR_HOME_SHOW_ALL_TOGGLED = "wear_home_show_all_toggled"
+    const val WEAR_HOME_CREATE_ON_PHONE_CLICKED = "wear_home_create_on_phone_clicked"
+    const val WEAR_PRO_OPEN_PHONE_CLICKED = "wear_pro_open_phone_clicked"
+    const val WEAR_PRODUCT_PURCHASED_TOGGLED = "wear_product_purchased_toggled"
+    const val WEAR_ITEM_ADDED = "wear_item_added"
+    const val WEAR_PRODUCT_VALUE_SAVED = "wear_product_value_saved"
+
     /** Retenção: em quantos dias o cliente volta. */
     const val RETURNED_AFTER_DAYS = "returned_after_days"
 

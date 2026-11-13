@@ -55,7 +55,7 @@ internal fun ShoppingDetailScreen(
 
 /** Opens the system text input, which offers both voice and keyboard on Wear OS. */
 @Composable
-private fun rememberItemInput(onText: (String) -> Unit): () -> Unit {
+internal fun rememberItemInput(onText: (String) -> Unit): () -> Unit {
     val label = stringResource(R.string.shopping_wear_add_item_hint)
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         result.data
@@ -196,7 +196,7 @@ private fun ShoppingDetailContent(
 }
 
 @Composable
-private fun ProductButton(
+internal fun ProductButton(
     product: Product,
     onClick: () -> Unit,
     modifier: Modifier,

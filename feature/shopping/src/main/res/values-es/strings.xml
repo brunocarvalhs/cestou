@@ -193,6 +193,8 @@
     <string name="shopping_wear_notifications_mark_read">Marcar como leídas</string>
     <string name="shopping_wear_ai_title">Asistente</string>
     <string name="shopping_wear_ai_hint">Ej.: agregar leche</string>
+    <string name="shopping_wear_ai_greeting">¿En qué puedo ayudarte?</string>
+    <string name="shopping_wear_ai_new">Nueva pregunta</string>
     <string name="shopping_wear_ai_send">Enviar</string>
     <string name="shopping_wear_ai_thinking">Pensando…</string>
     <string name="shopping_wear_ai_confirm_title">¿Confirmar acción?</string>
@@ -220,4 +222,13 @@
     <string name="shopping_wear_pinned">Fijada</string>
     <string name="shopping_wear_search_empty">No se encontraron listas</string>
     <string name="shopping_wear_history_empty">Aún no hay compras finalizadas</string>
+    <string name="shopping_wear_detail_budget_title">Presupuesto</string>
+    <string name="shopping_wear_detail_no_budget">Esta lista no tiene presupuesto definido</string>
+    <string name="shopping_wear_detail_search_hint">Buscar productos</string>
+    <string name="shopping_wear_detail_close_search">Cerrar búsqueda</string>
+    <string name="shopping_wear_detail_value_title">Indica el precio y la cantidad</string>
+    <string name="shopping_wear_detail_price_hint">Precio</string>
+    <string name="shopping_wear_detail_quantity_hint">Cantidad</string>
+    <string name="shopping_wear_detail_save">Guardar</string>
+    <string name="shopping_wear_detail_cancel">Cancelar</string>
 </resources>
