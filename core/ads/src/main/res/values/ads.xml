@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        App ID do AdMob (teste oficial do Google). Fica no manifesto porque o SDK o lê na
+        inicialização, antes de qualquer Remote Config. Antes do release, trocar pelo App ID de
+        produção. Os IDs de unidade vêm do Remote Config (RemoteConfigDefaults).
+    -->
+    <string name="ads_app_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
+</resources>

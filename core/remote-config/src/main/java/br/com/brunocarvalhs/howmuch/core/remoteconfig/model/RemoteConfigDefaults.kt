@@ -38,6 +38,14 @@ object RemoteConfigDefaults {
     const val AUTH_MICROSOFT_ENABLED_DEFAULT = false
     const val AUTH_FACEBOOK_ENABLED_DEFAULT = false
     const val AUTH_GITHUB_ENABLED_DEFAULT = false
+
+    const val ADS_ENABLED_DEFAULT = false
+    const val ADS_BANNER_ENABLED_DEFAULT = false
+    const val ADS_AI_INTERSTITIAL_ENABLED_DEFAULT = false
+
+    /** IDs de teste oficiais do AdMob: seguros de usar enquanto o remote config não tem os de produção. */
+    const val ADS_BANNER_UNIT_ID_DEFAULT = "ca-app-pub-3940256099942544/9214589741"
+    const val ADS_INTERSTITIAL_UNIT_ID_DEFAULT = "ca-app-pub-3940256099942544/1033173712"
     const val WEAR_LOGIN_ENABLED_DEFAULT = true
 
     // ============================================================================

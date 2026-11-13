@@ -30,6 +30,7 @@ Persona: especialista de arquitetura Android do projeto.
 | `:core:remote-config` | Feature toggles e configuração remota. |
 | `:core:analytics` | Eventos e telemetria. |
 | `:core:billing` | Google Play Billing. |
+| `:core:ads` | SDK de anúncios (AdMob + consentimento UMP) do plano FREE. Só o `:app` depende dele; features usam `LocalAdBanner`/`LocalAiInterstitial` de `:core:ui`. |
 | `:feature:*` | Features independentes (shopping, products, settings, auth, profile, chat, cart, ai-agent, subscription, feedback). |
 | `:wear` | Wear OS standalone. |
 

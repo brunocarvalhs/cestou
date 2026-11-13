@@ -10,6 +10,8 @@
     <ID>ComposableParamOrder:Suggestions.kt$Suggestions</ID>
     <ID>CompositionLocalAllowlist:DragDropUtils.kt$LocalDragTargetInfo</ID>
     <ID>CompositionLocalAllowlist:LocalCurrency.kt$LocalCurrency</ID>
+    <ID>CompositionLocalAllowlist:AdsLocals.kt$LocalAdBanner</ID>
+    <ID>CompositionLocalAllowlist:AdsLocals.kt$LocalAiInterstitial</ID>
     <ID>LambdaParameterInRestartableEffect:DragDropUtils.kt$onDataDropped</ID>
     <ID>MatchingDeclarationName:CestouBottomNavigation.kt$BottomNavItem</ID>
     <ID>ModifierMissing:CestouEmptyState.kt$CestouEmptyState</ID>

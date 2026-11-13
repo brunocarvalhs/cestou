@@ -35,8 +35,9 @@ Entitlement reduzido a dois estados, sem dados de compra (`core/domain/.../model
 
 | # | Recurso | Regra | Origem |
 |---|---|---|---|
-| 3.1 | Listas de compras (feature shopping) | Gate PRO aplicado na navegação; o `isPro` vem do `SubscriptionRepository`. | `feature/shopping/presentation/viewmodel/ShoppingSubscriptionGateViewModel.kt`; `feature/shopping/navigation/ShoppingGraph.kt` |
-| 3.2 | Carrinho | Mesmo padrão de gate PRO. | `feature/cart/presentation/viewmodel/CartSubscriptionGateViewModel.kt`; `feature/cart/navigation/CartGraph.kt` |
+| 3.1 | Listas de compras (feature shopping) | **Só o convite por QR code é PRO.** A lista em si é acessível ao FREE. | `feature/shopping/presentation/viewmodel/ShoppingSubscriptionGateViewModel.kt:19` |
+| 3.2 | Carrinho | **Só compartilhar a lista é PRO.** O carrinho em si é acessível ao FREE. | `feature/cart/presentation/viewmodel/CartSubscriptionGateViewModel.kt:20`; `feature/cart/navigation/CartGraph.kt:80-91` |
+| 3.6 | Anúncios para FREE (sdd-059) | FREE vê banner no carrinho e no histórico de listas, e um intersticial depois da 1ª resposta da IA. PRO não vê nenhum. Tudo controlado por flags do Remote Config (`ads_enabled`, `ads_banner_enabled`, `ads_ai_interstitial_enabled`) e IDs de unidade remotos. | `core/ads/.../service/AdsPolicy.kt`; `feature/chat/.../ChatAiGateViewModel.kt` |
 | 3.3 | Chat com IA | PRO: mensagens ilimitadas. FREE: **uma** mensagem gratuita, controlada por `AiTrialRepository`. Enviar fica bloqueado quando não é PRO e a mensagem gratuita já foi usada. | `feature/chat/.../ChatAiGateViewModel.kt` |
 | 3.4 | Ações de IA marcadas com `requiresPro` | Se a ação exige PRO e o usuário não é PRO, a ação não é executada. | `feature/ai_agent/data/service/GeminiAgent.kt` (~linha 134); `OpenRouterAgent.kt` (~linha 176) |
 | 3.5 | Tela de assinatura | Mostra o estado PRO e o botão de assinar quando é FREE. | `feature/subscription/presentation/screen/PaywallScreen.kt`; `feature/profile/presentation/screen/ProfileScreen.kt` |

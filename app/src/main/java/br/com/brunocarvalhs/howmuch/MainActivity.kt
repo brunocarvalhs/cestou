@@ -23,6 +23,7 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +41,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import br.com.brunocarvalhs.howmuch.analytics.ScreenTracker
+import br.com.brunocarvalhs.howmuch.core.ads.components.AdBanner
 import br.com.brunocarvalhs.howmuch.core.domain.model.SurveyKind
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
@@ -60,6 +62,9 @@ import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagServic
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouBottomNavigation
+import br.com.brunocarvalhs.howmuch.core.ui.contract.AiInterstitialHook
+import br.com.brunocarvalhs.howmuch.core.ui.contract.LocalAdBanner
+import br.com.brunocarvalhs.howmuch.core.ui.contract.LocalAiInterstitial
 import br.com.brunocarvalhs.howmuch.core.ui.utils.exposeTestTags
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.CompleteName
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.Welcome
@@ -83,6 +88,10 @@ class MainActivity : AppCompatActivity() {
     @Inject
     internal lateinit var featureFlagService: FeatureFlagService
 
+    /** Implementação do SDK de anúncios (core:ads). Fornecida às features via [LocalAiInterstitial]. */
+    @Inject
+    internal lateinit var aiInterstitial: AiInterstitialHook
+
     private val fluidTransitions: Boolean
         get() = featureFlagService.isEnabled(FeatureFlagKeys.FLUID_TRANSITIONS_ENABLED, default = true)
 
@@ -95,9 +104,16 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         consumeDeepLinkIntent()
         setContent {
-            /** Expõe os testTags como resource-id para o Maestro, que não depende do idioma do aparelho. */
-            Box(modifier = Modifier.fillMaxSize().exposeTestTags()) {
-                CestouApp(windowSizeClass = calculateWindowSizeClass(this@MainActivity))
+            // Anúncios entram só pelo app: os módulos de feature (inclusive os compartilhados com
+            // o :wear) recebem um padrão vazio e nunca dependem do SDK. Sdd-059.
+            CompositionLocalProvider(
+                LocalAdBanner provides { placement, modifier -> AdBanner(placement, modifier) },
+                LocalAiInterstitial provides aiInterstitial,
+            ) {
+                /** Expõe os testTags como resource-id para o Maestro, que não depende do idioma do aparelho. */
+                Box(modifier = Modifier.fillMaxSize().exposeTestTags()) {
+                    CestouApp(windowSizeClass = calculateWindowSizeClass(this@MainActivity))
+                }
             }
         }
     }

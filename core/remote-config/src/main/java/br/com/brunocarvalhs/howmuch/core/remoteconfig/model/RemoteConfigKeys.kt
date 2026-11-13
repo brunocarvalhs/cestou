@@ -60,6 +60,23 @@ object FeatureFlagKeys {
     /** GitHub authentication. Default off. */
     const val AUTH_GITHUB_ENABLED = "auth_github_enabled"
 
+    // --- Ads (plano FREE, sdd-059). Todas default off: ligar só com consentimento e unidades reais. ---
+
+    /** Kill switch global de anúncios para usuários FREE. Default off. */
+    const val ADS_ENABLED = "ads_enabled"
+
+    /** Banner no carrinho e no histórico de listas. Default off. */
+    const val ADS_BANNER_ENABLED = "ads_banner_enabled"
+
+    /** Intersticial após a primeira resposta da IA do FREE. Default off. */
+    const val ADS_AI_INTERSTITIAL_ENABLED = "ads_ai_interstitial_enabled"
+
+    /** ID da unidade de banner do AdMob. Trocar pelo ID de produção sem republicar o app. */
+    const val ADS_BANNER_UNIT_ID = "ads_banner_unit_id"
+
+    /** ID da unidade de intersticial do AdMob. Trocar pelo ID de produção sem republicar o app. */
+    const val ADS_INTERSTITIAL_UNIT_ID = "ads_interstitial_unit_id"
+
     // --- Platform-Specific Auth ---
     /** Pairing (and signing in) a Wear OS watch from the phone. Default on. */
     const val WEAR_LOGIN_ENABLED = "wear_login_enabled"

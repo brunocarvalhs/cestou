@@ -55,9 +55,11 @@ import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCategoryHeader
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouEmptyState
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouLockedBanner
+import br.com.brunocarvalhs.howmuch.core.ui.contract.LocalAdBanner
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.CurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
+import br.com.brunocarvalhs.howmuch.core.ui.model.AdPlacement
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.exposeTestTags
 import br.com.brunocarvalhs.howmuch.feature.cart.R
@@ -237,6 +239,8 @@ internal fun CartScreen(
             },
             bottomBar = {
                 Column {
+                    // Banner só para FREE: o provedor (LocalAdBanner) decide; sem provedor não desenha nada.
+                    LocalAdBanner.current(AdPlacement.CART, Modifier)
                     AnimatedVisibility(visible = !isLocked && !isExpanded) {
                         CartBottomBar(
                             currencyFormatter = currencyFormatter,

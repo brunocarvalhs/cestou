@@ -22,6 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
+import br.com.brunocarvalhs.howmuch.core.ui.contract.LocalAdBanner
+import br.com.brunocarvalhs.howmuch.core.ui.model.AdPlacement
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.history.HistoryEmptyState
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.history.HistoryErrorState
@@ -61,7 +63,9 @@ internal fun HistoryScreen(
                     }
                 }
             )
-        }
+        },
+        // Banner só para FREE; sem provedor de anúncios (ex.: :wear) não ocupa espaço.
+        bottomBar = { LocalAdBanner.current(AdPlacement.HISTORY, Modifier) }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when {

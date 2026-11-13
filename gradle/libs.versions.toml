@@ -51,6 +51,8 @@ textRecognition = "16.0.1"
 timber = "5.0.1"
 hilt = "2.60.1"
 hiltNavigationCompose = "1.4.0"
+playServicesAds = "25.5.0"
+userMessagingPlatform = "4.0.0"
 firebaseBom = "34.19.0"
 # Pinned to what FirebaseUI Auth already resolves at runtime, so declaring them changes nothing in the APK.
 androidxCredentials = "1.7.0-alpha03"
@@ -148,6 +150,8 @@ timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "tim
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+google-play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
+google-user-messaging-platform = { group = "com.google.android.ump", name = "user-messaging-platform", version.ref = "userMessagingPlatform" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
 androidx-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltWork" }
 androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltWork" }

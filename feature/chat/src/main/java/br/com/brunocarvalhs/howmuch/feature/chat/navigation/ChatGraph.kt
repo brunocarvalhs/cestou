@@ -1,8 +1,10 @@
 package br.com.brunocarvalhs.howmuch.feature.chat.navigation
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
@@ -16,6 +18,8 @@ import br.com.brunocarvalhs.howmuch.core.navigation.RouteType
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiSettings
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
+import br.com.brunocarvalhs.howmuch.core.ui.contract.LocalAiInterstitial
+import br.com.brunocarvalhs.howmuch.core.ui.util.findActivity
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.screen.AiChatScreen
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.screen.AiHistoryScreen
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.viewmodel.AiChatViewModel
@@ -30,15 +34,38 @@ data object AiHistory : NavKey, RouteProtocol {
     override val routeType: RouteType = RouteType.PROTECTED
 }
 
+/**
+ * Intersticial de IA do plano FREE (sdd-059). Prepara o anúncio (consentimento e carregamento)
+ * ao abrir o chat e o mostra quando o ViewModel sinaliza o primeiro uso da mensagem gratuita.
+ * Sem provedor de anúncios (ex.: `:wear`), [LocalAiInterstitial] não faz nada.
+ */
+@Composable
+private fun AiInterstitialEffects(gateViewModel: ChatAiGateViewModel) {
+    val activity = LocalContext.current.findActivity()
+    val aiInterstitial = LocalAiInterstitial.current
+
+    LaunchedEffect(activity) {
+        if (activity != null && gateViewModel.isAiInterstitialEligible()) {
+            aiInterstitial.prepare(activity)
+        }
+    }
+    LaunchedEffect(activity) {
+        gateViewModel.aiInterstitialRequests.collect {
+            if (activity != null && gateViewModel.isAiInterstitialEligible()) {
+                aiInterstitial.showIfReady(activity)
+            }
+        }
+    }
+}
+
 fun NavGraphBuilder.chatGraph(navigator: Navigator) {
     dialog<AiChat> { backStackEntry ->
         val route: AiChat = backStackEntry.toRoute()
         val viewModel: AiChatViewModel = hiltViewModel()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-        val gateViewModel: ChatAiGateViewModel = hiltViewModel()
+        // `also` é inline: os efeitos do intersticial (sdd-059) compõem junto com o ViewModel.
+        val gateViewModel = hiltViewModel<ChatAiGateViewModel>().also { AiInterstitialEffects(it) }
         val isSendEnabled by gateViewModel.isSendEnabled.collectAsStateWithLifecycle()
-
         LaunchedEffect(route.shoppingId, route.sessionId) {
             val sessionId = route.sessionId
             val shoppingId = route.shoppingId

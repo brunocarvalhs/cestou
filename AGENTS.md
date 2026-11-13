@@ -38,7 +38,7 @@ Chave de configuração do pipeline: `.github/pipeline-config.yaml` (ordem: lint
   - `di/` — módulos Hilt.
 - **Pacotes permitidos em `:core:*`:** definidos em `CORE_LAYERS` (`app/src/test/.../architecture/ArchitectureTest.kt`); inclui `prompt` (prompts de IA compartilhados em `core:ai`) e `modifiers` (`core:ui`).
 - **Papéis dos módulos:**
-  - `:core:*` — transversais (`common`, `domain`, `theme`, `ui`, `navigation`, `auth`, `data`, `ai`, `remote-config`, `analytics`, `billing`).
+  - `:core:*` — transversais (`common`, `domain`, `theme`, `ui`, `navigation`, `auth`, `data`, `ai`, `remote-config`, `analytics`, `billing`, `ads`). `:core:ads` (sdd-059) é o SDK de anúncios do plano FREE; só o `:app` depende dele, e as features usam as interfaces e `CompositionLocal`s de `:core:ui` (`contract/`).
   - `:feature:*` — `shopping`, `products`, `settings`, `auth`, `profile`, `chat`, `cart`, `ai-agent`, `subscription`, `feedback`.
   - `:app` — entrypoint; orquestra features via `FeatureInitializer`.
   - `:wear` — módulo Wear OS standalone, com `applicationId` e pareamento próprios.
@@ -61,7 +61,7 @@ Chave de configuração do pipeline: `.github/pipeline-config.yaml` (ordem: lint
 app/                      entrypoint Android (Application, FeatureInitializer)
 core/
 ├── common/ domain/ data/ theme/ ui/ navigation/
-├── auth/ ai/ remote-config/ analytics/ billing/
+├── auth/ ai/ remote-config/ analytics/ billing/ ads/
 feature/
 ├── shopping/ products/ settings/ auth/ profile/
 ├── chat/ cart/ ai-agent/ subscription/ feedback/
