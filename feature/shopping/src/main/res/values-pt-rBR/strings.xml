@@ -135,6 +135,7 @@
     <string name="shopping_wear_notifications_mark_read">Marcar lidas</string>
     <string name="shopping_wear_ai_title">Assistente</string>
     <string name="shopping_wear_ai_hint">Ex.: adicionar leite</string>
+    <string name="shopping_wear_ai_greeting">Como posso ajudar?</string>
     <string name="shopping_wear_ai_send">Enviar</string>
     <string name="shopping_wear_ai_thinking">Pensando…</string>
     <string name="shopping_wear_ai_confirm_title">Confirmar ação?</string>
