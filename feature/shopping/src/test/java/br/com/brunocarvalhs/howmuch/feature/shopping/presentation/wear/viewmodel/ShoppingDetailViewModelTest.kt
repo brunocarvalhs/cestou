@@ -145,6 +145,20 @@ class ShoppingDetailViewModelTest {
     }
 
     @Test
+    fun `saving a value keeps the price and quantity and records the edit`() {
+        val updated = slot<Product>()
+        coEvery { productsUseCase.update(capture(updated), "list1") } returns Result.success(Unit)
+
+        viewModel().intent.onSaveDetails(salt.copy(price = 12.5, quantity = 2.0))
+
+        assertEquals(12.5, updated.captured.price ?: 0.0, 0.0001)
+        assertEquals(2.0, updated.captured.quantity, 0.0001)
+        assertEquals(false, updated.captured.isPurchased)
+        assertEquals(ProductActivity.Action.EDITED, updated.captured.history.last().action)
+        assertEquals("u1", updated.captured.history.last().userId)
+    }
+
+    @Test
     fun `voice or keyboard text becomes a new item`() {
         val saved = slot<Product>()
         coEvery { productsUseCase.save(capture(saved), "list1") } returns Result.success(Unit)

@@ -162,6 +162,15 @@
     <string name="shopping_wear_pinned">Pinned</string>
     <string name="shopping_wear_search_empty">No lists match</string>
     <string name="shopping_wear_history_empty">No finished purchases yet</string>
+    <string name="shopping_wear_detail_budget_title">Budget</string>
+    <string name="shopping_wear_detail_no_budget">No budget set for this list</string>
+    <string name="shopping_wear_detail_search_hint">Search products</string>
+    <string name="shopping_wear_detail_close_search">Close search</string>
+    <string name="shopping_wear_detail_value_title">Enter the price and quantity</string>
+    <string name="shopping_wear_detail_price_hint">Price</string>
+    <string name="shopping_wear_detail_quantity_hint">Quantity</string>
+    <string name="shopping_wear_detail_save">Save</string>
+    <string name="shopping_wear_detail_cancel">Cancel</string>
 
     <!-- Notifications -->
     <plurals name="shopping_notifications_bell_unread">

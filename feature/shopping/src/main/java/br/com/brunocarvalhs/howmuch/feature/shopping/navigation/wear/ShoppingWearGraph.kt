@@ -5,12 +5,14 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.wear.compose.navigation.composable
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
 import br.com.brunocarvalhs.howmuch.core.navigation.wear.ShoppingDetail
-import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.ShoppingDetailScreen
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.ShoppingDetailPagerScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.ShoppingWearScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.WearAiScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.WearHistoryScreen
@@ -18,6 +20,7 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.We
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.WearNotificationsScreen
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.WearProGate
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.screen.WearSearchScreen
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.SHOPPING_DETAIL_ARG_ID
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.ShoppingDetailViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearAiViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearHistoryViewModel
@@ -26,7 +29,6 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearNotificationsViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearProViewModel
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmodel.WearSearchViewModel
-import androidx.navigation.compose.composable as typedComposable
 
 /**
  * Relógio. A home abre direto na lista de listas. Toda tela de conteúdo passa por [WearProGate]:
@@ -38,10 +40,10 @@ fun NavGraphBuilder.shoppingWearGraph(navigator: Navigator) {
         val viewModel: WearHomeViewModel = hiltViewModel()
         ShoppingWearScreen(
             viewModel = viewModel,
-            onNavigateToDetail = { id -> navigator.navigate(ShoppingDetail(id)) },
+            onNavigateToDetail = { id -> navigator.navigate(shoppingDetailRoute(id)) },
             onNavigateToSearch = { navigator.navigate(WearSearch::class.java.name) },
             onNavigateToMenu = { navigator.navigate(WearMenu::class.java.name) },
-            onNavigateToSettings = { navigator.navigate(Profile) }
+            onNavigateToSettings = { navigator.navigate(Profile::class.java.name) }
         )
     }
 
@@ -50,7 +52,7 @@ fun NavGraphBuilder.shoppingWearGraph(navigator: Navigator) {
         val viewModel: WearSearchViewModel = hiltViewModel()
         WearSearchScreen(
             viewModel = viewModel,
-            onNavigateToDetail = { id -> navigator.navigate(ShoppingDetail(id)) }
+            onNavigateToDetail = { id -> navigator.navigate(shoppingDetailRoute(id)) }
         )
     }
 
@@ -74,15 +76,26 @@ fun NavGraphBuilder.shoppingWearGraph(navigator: Navigator) {
         WearHistoryScreen(viewModel = viewModel)
     }
 
-    // Typed, not by name: ShoppingDetailViewModel reads shoppingId with toRoute<ShoppingDetail>().
-    typedComposable<ShoppingDetail> {
+    // String route with the id as an argument. The typed ShoppingDetail route is silently ignored
+    // by this watch NavHost (navigate() does nothing), so the detail never opened.
+    composable(
+        route = shoppingDetailRoutePattern(),
+        arguments = listOf(navArgument(SHOPPING_DETAIL_ARG_ID) { type = NavType.StringType })
+    ) {
         WearProGate(viewModel = hiltViewModel<WearProViewModel>()) {
             val viewModel: ShoppingDetailViewModel = hiltViewModel()
             viewModel.setNavigator(navigator)
-            ShoppingDetailScreen(viewModel = viewModel)
+            ShoppingDetailPagerScreen(
+                viewModel = viewModel,
+                onNavigateToAi = { navigator.navigate(WearAi::class.java.name) }
+            )
         }
     }
 }
+
+private fun shoppingDetailRoutePattern(): String = "${ShoppingDetail::class.java.name}/{$SHOPPING_DETAIL_ARG_ID}"
+
+private fun shoppingDetailRoute(shoppingId: String): String = "${ShoppingDetail::class.java.name}/$shoppingId"
 
 /** A route whose content is shown only with the PRO subscription. */
 private fun NavGraphBuilder.gatedComposable(route: String, content: @Composable () -> Unit) {
@@ -101,6 +114,6 @@ private fun WearMenuRoute(menuViewModel: WearMenuViewModel, navigator: Navigator
         onNavigateToNotifications = { navigator.navigate(WearNotifications::class.java.name) },
         onNavigateToAi = { navigator.navigate(WearAi::class.java.name) },
         onNavigateToHistory = { navigator.navigate(WearHistory::class.java.name) },
-        onNavigateToSettings = { navigator.navigate(Profile) }
+        onNavigateToSettings = { navigator.navigate(Profile::class.java.name) }
     )
 }
