@@ -1,43 +1,34 @@
 package br.com.brunocarvalhs.howmuch.feature.auth.presentation.screen
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
-import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
 import br.com.brunocarvalhs.howmuch.feature.auth.R
-import br.com.brunocarvalhs.howmuch.feature.auth.presentation.intent.LinkWearIntent
-import br.com.brunocarvalhs.howmuch.feature.auth.presentation.state.LinkWearUiState
 
+/**
+ * Profile entry for the watch (sdd-055). The watch starts the pairing, so this screen only
+ * explains the steps; there is nothing to type.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun LinkWearDeviceScreen(
-    state: LinkWearUiState,
-    intent: LinkWearIntent,
     onBack: () -> Unit
 ) {
     Scaffold(
@@ -59,86 +50,24 @@ internal fun LinkWearDeviceScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(24.dp)
         ) {
             Text(
                 text = stringResource(R.string.link_wear_instructions),
                 style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                modifier = Modifier.testTag(TAG_INSTRUCTIONS)
             )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            OutlinedTextField(
-                value = state.code,
-                onValueChange = { intent.onCodeChange(it) },
-                label = { Text(stringResource(R.string.pairing_code_label)) },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                isError = state.error != null,
-                supportingText = {
-                    if (state.error != null) {
-                        Text(text = state.error, color = MaterialTheme.colorScheme.error)
-                    }
-                }
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            val context = LocalContext.current
-            if (state.isLoading) {
-                CircularProgressIndicator()
-            } else if (state.isSuccess) {
-                Text(
-                    text = stringResource(R.string.link_wear_success),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            } else {
-                CestouButton(
-                    text = stringResource(R.string.link_wear_action),
-                    onClick = { intent.onLinkClick(context) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
         }
     }
 }
+
+private const val TAG_INSTRUCTIONS = "link_wear_instructions"
 
 @PreviewCestouScreens
 @Composable
 private fun LinkWearDeviceScreenPreview() {
     CestouTheme {
-        LinkWearDeviceScreen(
-            state = LinkWearUiState(code = "123456"),
-            intent = LinkWearIntent(),
-            onBack = {}
-        )
-    }
-}
-
-@PreviewCestouScreens
-@Composable
-private fun LinkWearDeviceScreenLoadingPreview() {
-    CestouTheme {
-        LinkWearDeviceScreen(
-            state = LinkWearUiState(code = "123456", isLoading = true),
-            intent = LinkWearIntent(),
-            onBack = {}
-        )
-    }
-}
-
-@PreviewCestouScreens
-@Composable
-private fun LinkWearDeviceScreenErrorPreview() {
-    CestouTheme {
-        LinkWearDeviceScreen(
-            state = LinkWearUiState(code = "000000", error = "Código inválido"),
-            intent = LinkWearIntent(),
-            onBack = {}
-        )
+        LinkWearDeviceScreen(onBack = {})
     }
 }

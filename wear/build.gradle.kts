@@ -39,7 +39,9 @@ android {
     val devBuildNumber = providers.gradleProperty("devBuildNumber").orNull
 
     defaultConfig {
-        applicationId = "br.com.brunocarvalhs.howmuch.wear"
+        // Same applicationId as the phone app: Wear Data Layer messages (MessageClient, DataClient)
+        // are routed by package name, so a different id never receives the phone's messages.
+        applicationId = "br.com.brunocarvalhs.howmuch"
         minSdk = 30
         targetSdk = 37
         versionCode = 17

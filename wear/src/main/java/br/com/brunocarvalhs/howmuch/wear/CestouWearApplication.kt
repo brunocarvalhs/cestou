@@ -24,7 +24,7 @@ class CestouWearApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        if (br.com.brunocarvalhs.howmuch.wear.BuildConfig.DEBUG) {
+        if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
         refreshTileOnListChange()

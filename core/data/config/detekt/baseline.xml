@@ -2,7 +2,6 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>ReturnCount:WearableSyncServiceImpl.kt$WearableSyncServiceImpl$override suspend fun findNodeByPairingCode(code: String): String?</ID>
     <ID>SpreadOperator:FirestoreClient.kt$FirestoreClient$(*value.toTypedArray())</ID>
     <ID>SpreadOperator:FirestoreClient.kt$FirestoreClient$(*value.values.toTypedArray())</ID>
     <ID>SwallowedException:AiModelRepositoryImpl.kt$AiModelRepositoryImpl$e: Exception</ID>

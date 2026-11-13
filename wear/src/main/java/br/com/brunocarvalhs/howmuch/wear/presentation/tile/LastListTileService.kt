@@ -17,6 +17,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.local.WearListStore
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.local.WearListSummary
+import br.com.brunocarvalhs.howmuch.feature.shopping.data.local.WearSubscriptionStore
 import br.com.brunocarvalhs.howmuch.wear.presentation.MainActivity
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
@@ -52,13 +53,17 @@ class LastListTileService : TileService() {
     @Inject
     lateinit var authService: AuthService
 
+    @Inject
+    lateinit var wearSubscriptionStore: WearSubscriptionStore
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     override fun onTileRequest(requestParams: TileRequest): ListenableFuture<Tile> = scope.future {
-        val summary = if (authService.currentUser != null) wearListStore.lastList() else null
+        val isPro = wearSubscriptionStore.isPro() == true
+        val summary = if (authService.currentUser != null && isPro) wearListStore.lastList() else null
         Tile.Builder()
             .setResourcesVersion(RESOURCES_VERSION)
-            .setTileTimeline(Timeline.fromLayoutElement(layout(this@LastListTileService, summary)))
+            .setTileTimeline(Timeline.fromLayoutElement(layout(this@LastListTileService, summary, isPro)))
             .build()
     }
 
@@ -70,11 +75,16 @@ class LastListTileService : TileService() {
         scope.cancel()
     }
 
-    private fun layout(context: Context, summary: WearListSummary?): LayoutElementBuilders.LayoutElement {
+    private fun layout(
+        context: Context,
+        summary: WearListSummary?,
+        isPro: Boolean
+    ): LayoutElementBuilders.LayoutElement {
         val column = LayoutElementBuilders.Column.Builder()
             .setHorizontalAlignment(LayoutElementBuilders.HORIZONTAL_ALIGN_CENTER)
         when {
             authService.currentUser == null -> column.addContent(hint(context, R.string.shopping_wear_tile_signed_out))
+            !isPro -> column.addContent(hint(context, R.string.shopping_wear_tile_pro_required))
             summary == null -> column.addContent(hint(context, R.string.shopping_wear_tile_empty))
             else -> summary.lines(context).forEach { column.addContent(it) }
         }

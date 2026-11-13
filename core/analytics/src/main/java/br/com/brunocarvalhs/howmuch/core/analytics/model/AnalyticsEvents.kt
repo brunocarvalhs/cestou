@@ -79,6 +79,18 @@ object AnalyticsEvents {
     const val APP_BACKGROUND = "app_background"
     const val DEEP_LINK_OPENED = "deep_link_opened"
 
+    /** Pareamento do Wear OS (sdd-055). Nunca enviar sessão, chave, uid ou token. */
+    const val WEAR_PAIR_START = "wear_pair_start"
+    const val WEAR_PAIR_CONFIRM = "wear_pair_confirm"
+    const val WEAR_PAIR_SUCCESS = "wear_pair_success"
+    const val WEAR_PAIR_ERROR = "wear_pair_error"
+
+    /** Funcionalidades secundárias do Wear OS. Nunca enviar texto de prompt nem de notificação. */
+    const val WEAR_MENU_OPEN = "wear_menu_open"
+    const val WEAR_NOTIFICATIONS_OPEN = "wear_notifications_open"
+    const val WEAR_AI_PROMPT_SENT = "wear_ai_prompt_sent"
+    const val WEAR_AI_ACTION_CONFIRMED = "wear_ai_action_confirmed"
+
     /** Retenção: em quantos dias o cliente volta. */
     const val RETURNED_AFTER_DAYS = "returned_after_days"
 

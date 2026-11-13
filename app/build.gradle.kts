@@ -114,6 +114,8 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":core:auth"))
     implementation(project(":core:data"))
+    // WearableListenerService for the watch pairing messages (sdd-055).
+    implementation(libs.play.services.wearable)
     implementation(project(":core:ai"))
     implementation(project(":core:remote-config"))
     implementation(project(":core:analytics"))

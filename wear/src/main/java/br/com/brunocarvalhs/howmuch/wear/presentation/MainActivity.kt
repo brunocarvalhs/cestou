@@ -57,10 +57,6 @@ fun WearApp(
     CestouTheme {
         AppScaffold {
             val navController = rememberSwipeDismissableNavController()
-
-            // Bind síncrono (ver justificativa em app/.../MainActivity.kt): precisa acontecer
-            // antes do SwipeDismissableNavHost, na mesma composição, para que destinos
-            // restaurados no primeiro frame nunca leiam um Navigator ainda desvinculado.
             navigator.bind(navController)
 
             DisposableEffect(navController) {

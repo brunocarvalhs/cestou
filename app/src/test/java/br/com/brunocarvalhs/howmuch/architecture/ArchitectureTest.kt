@@ -259,7 +259,6 @@ class ArchitectureTest {
             "DataSettingsIntent.onReauthConfirmed",
             "DataSettingsIntent.onReauthDismissed",
             "HistoryIntent.onRetry",
-            "LinkWearIntent.onCodeChange",
             "ManageSubscriptionIntent.onBack",
             "NotificationSettingsIntent.onBack",
             "NotificationsIntent.onBack",

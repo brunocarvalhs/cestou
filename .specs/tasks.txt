@@ -117,3 +117,16 @@ Plano técnico SDD para **Integração com Android AppFunctions (Gemini & System
 
 
 
+
+---
+
+# sdd-057-wear-secondary-features
+
+Relógio: funcionalidades secundárias no menu. Na home do Wear, o ícone de menu passa a abrir uma tela de menu
+(`WearMenu`, já implementada na etapa 1 com Histórico e Configurações). Esta tarefa cobre a etapa 2: decidir e
+planejar as funcionalidades secundárias que hoje existem só no celular e que faltam no relógio, em especial IA
+(assistente de chat) e notificações (configurações de lembrete e central de notificações do sino, sdd-028).
+Análise de gastos (sdd-031) já existe no relógio como Histórico (`WearHistoryScreen`, sdd-029/sdd-056).
+Planejar: quais funções entram no relógio, o que é só leitura, o que é sincronizado do celular (via
+`WearableSyncService`) e o que fica só no celular. Telas atuais no celular: `feature/settings`
+(`AiSettingsViewModel`, configurações de notificação) e `feature/ai-agent`/`feature/chat`.

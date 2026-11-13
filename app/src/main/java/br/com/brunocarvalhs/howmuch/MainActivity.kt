@@ -51,6 +51,8 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.FeedbackSurvey
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.NewShopping
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.StoreReview
@@ -211,11 +213,13 @@ class MainActivity : AppCompatActivity() {
 
             // AiChat's shoppingId here is a throwaway placeholder: rootRoutes only matches by
             // route::class (see hasRoute/isProtectedRoute below), never by field value.
-            val rootRoutes = remember { listOf(ShoppingList, History, AiChat(shoppingId = ""), Profile) }
+            val rootRoutes = remember { listOf(ShoppingList, History, AiChat(shoppingId = ""), Profile, NewShopping) }
 
             val currentRoute = rootRoutes.find { route ->
                 currentDestination?.hierarchy?.any { it.hasRoute(route::class) } == true
             }
+            // "Criar lista" (sdd-056) é uma tela de Compras: a barra continua com a aba de Compras marcada.
+            val barRoute = if (currentRoute is NewShopping) ShoppingList else currentRoute
 
             val isOnProtectedRoute = currentDestination?.isProtectedRoute(rootRoutes + SpendingInsights) == true
 
@@ -245,6 +249,19 @@ class MainActivity : AppCompatActivity() {
             }
 
             /**
+             * Pareamento pedido pelo relógio (sdd-055). Espera o login e o nome, como o convite: sem
+             * login, a ViewModel já respondeu NOT_SIGNED_IN ao relógio.
+             */
+            val pendingWearPairing by viewModel.pendingWearPairing.request.collectAsStateWithLifecycle()
+            LaunchedEffect(pendingWearPairing, isAuthenticated, requiresName) {
+                val request = pendingWearPairing
+                if (request != null && isAuthenticated && !requiresName) {
+                    navigator.navigate(request) { launchSingleTop = true }
+                    viewModel.pendingWearPairing.consume()
+                }
+            }
+
+            /**
              * Toque numa notificação da IA: abre a conversa. Espera o login e o nome (como o
              * convite acima) para não navegar por cima da tela de boas-vindas.
              */
@@ -258,6 +275,24 @@ class MainActivity : AppCompatActivity() {
                         launchSingleTop = true
                     }
                     viewModel.consumePendingAiChatSession()
+                }
+            }
+
+            /** Pedido do relógio para criar lista (sdd-056, cestou://shopping/new). Espera login e nome. */
+            val pendingNewShopping by viewModel.pendingNewShopping.requested.collectAsStateWithLifecycle()
+            LaunchedEffect(pendingNewShopping, isAuthenticated, requiresName) {
+                if (pendingNewShopping && isAuthenticated && !requiresName) {
+                    navigator.navigate(NewShopping) { launchSingleTop = true }
+                    viewModel.pendingNewShopping.consume()
+                }
+            }
+
+            /** Assinatura PRO no relógio (cestou://subscription): abre o paywall. Espera login e nome. */
+            val pendingPaywall by viewModel.pendingPaywall.requested.collectAsStateWithLifecycle()
+            LaunchedEffect(pendingPaywall, isAuthenticated, requiresName) {
+                if (pendingPaywall && isAuthenticated && !requiresName) {
+                    navigator.navigate(Paywall(source = "wear")) { launchSingleTop = true }
+                    viewModel.pendingPaywall.consume()
                 }
             }
 
@@ -316,7 +351,7 @@ class MainActivity : AppCompatActivity() {
             Scaffold(
                 bottomBar = {
                     CestouBottomNavigation(
-                        currentRoute = currentRoute,
+                        currentRoute = barRoute,
                         photoUrl = photoUrl,
                         visible = currentRoute != null && currentRoute !is AiChat,
                         onNavigate = { route ->

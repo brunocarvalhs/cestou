@@ -7,4 +7,9 @@
     <string name="profile_subscription_free_subtitle">Desbloqueie recursos Pro</string>
     <string name="profile_link_wear_device">Vincular Relógio (Wear OS)</string>
     <string name="profile_wear_link_phone">Vincular Celular</string>
+    <string name="profile_wear_settings_title">Configurações</string>
+    <string name="profile_wear_open_phone">Abrir no celular</string>
+    <string name="profile_wear_cancel">Cancelar</string>
+    <string name="profile_wear_sign_out_title">Sair do relógio?</string>
+    <string name="profile_wear_sign_out_message">Para ver suas listas aqui de novo, será preciso parear com o celular.</string>
 </resources>

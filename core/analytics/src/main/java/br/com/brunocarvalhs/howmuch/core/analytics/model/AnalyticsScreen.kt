@@ -12,6 +12,7 @@ enum class AnalyticsScreen(val id: String, val screenClass: String) {
     PASSWORD_RESET("password_reset", "PasswordResetScreen"),
     COMPLETE_NAME("complete_name", "CompleteNameScreen"),
     LINK_WEAR_DEVICE("link_wear_device", "LinkWearDeviceScreen"),
+    WEAR_PAIRING("wear_pairing", "WearPairingScreen"),
 
     SHOPPING_LIST("shopping_list", "ShoppingScreen"),
     SHOPPING_EDIT("shopping_edit", "EditShoppingContent"),
