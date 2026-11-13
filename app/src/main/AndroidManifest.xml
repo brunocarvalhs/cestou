@@ -28,6 +28,20 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Cestou">
 
+        <!--
+          FirebaseUI declares the Facebook login activities, but the Facebook SDK is not a dependency
+          of this app, so their classes are missing. Any intent that resolves to them crashes with
+          ClassNotFoundException (Crashlytics: "Didn't find class com.facebook.FacebookActivity").
+          Facebook sign-in stays off (AUTH_FACEBOOK_ENABLED) and the provider is never registered.
+          Re-add the SDK and drop these removals before enabling Facebook.
+        -->
+        <activity
+            android:name="com.facebook.FacebookActivity"
+            tools:node="remove" />
+        <activity
+            android:name="com.facebook.CustomTabActivity"
+            tools:node="remove" />
+
         <meta-data
             android:name="google_analytics_automatic_screen_reporting_enabled"
             android:value="false" />
