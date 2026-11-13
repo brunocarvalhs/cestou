@@ -123,6 +123,7 @@ object RemoteConfigDefaults {
     // ============================================================================
 
     const val API_REQUEST_TIMEOUT_SECONDS_DEFAULT = 30
+    const val APP_MIN_VERSION_CODE_DEFAULT = 0L
     const val API_RETRY_MAX_ATTEMPTS_DEFAULT = 3
     const val API_RETRY_BACKOFF_MULTIPLIER_DEFAULT = "1.5"
     const val FEAT_AI_VISION_FALLBACK_ENABLED_DEFAULT = true
@@ -155,4 +156,10 @@ object RemoteConfigDefaults {
     const val WEAR_FULL_SYNC_INTERVAL_MINUTES_DEFAULT = 15
     const val WEAR_DELTA_SYNC_INTERVAL_SECONDS_DEFAULT = 30
     const val SHARED_LIST_CONFLICT_RESOLUTION_DEFAULT = "last_write_wins"
+
+    // ============================================================================
+    // CATEGORY 9: Paywall & Subscription
+    // ============================================================================
+
+    const val PAYWALL_MULTI_PLANS_ENABLED_DEFAULT = false
 }
