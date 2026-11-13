@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.7.0] - 2026-11-13
+
+* feat(wear): detalhe da lista em visões, entrada de valor e loading do PRO (#284)
+* chore(release): prepare dev version 2.6.1 [skip ci]
+
+
 ## [2.6.1] - 2026-11-13
 
 * ci(build): branch the APK size baseline update from develop (#288)
