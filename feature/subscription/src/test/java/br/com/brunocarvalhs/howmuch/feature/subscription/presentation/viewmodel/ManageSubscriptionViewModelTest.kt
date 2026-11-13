@@ -8,6 +8,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.billing.BillingConstants
+import br.com.brunocarvalhs.howmuch.core.billing.PlanOffer
 import br.com.brunocarvalhs.howmuch.core.billing.PlayBillingSubscriptionRepository
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -38,7 +39,15 @@ class ManageSubscriptionViewModelTest {
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
 
     private fun viewModel(): ManageSubscriptionViewModel {
-        coEvery { billingRepository.queryFormattedPrice() } returns "R$ 9,90"
+        coEvery { billingRepository.queryPlans() } returns listOf(
+            PlanOffer(
+                productId = BillingConstants.PRO_MONTHLY,
+                basePlanId = BillingConstants.BASE_PLAN_MONTHLY,
+                offerToken = "token",
+                formattedPrice = "R$ 9,90",
+                billingPeriod = "P1M"
+            )
+        )
         return ManageSubscriptionViewModel(context, billingRepository, analyticsTracker)
     }
 

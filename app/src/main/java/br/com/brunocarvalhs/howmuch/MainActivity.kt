@@ -6,6 +6,8 @@ import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -32,7 +34,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.os.LocaleListCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.DialogNavigator
@@ -65,7 +70,11 @@ import br.com.brunocarvalhs.howmuch.feature.auth.navigation.CompleteName
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.Welcome
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.isAuthFlow
 import br.com.brunocarvalhs.howmuch.notifications.NotificationPermissionRequester
+import br.com.brunocarvalhs.howmuch.update.ForceUpdateBlockedScreen
+import br.com.brunocarvalhs.howmuch.update.ForceUpdateState
+import br.com.brunocarvalhs.howmuch.update.presentation.viewmodel.ForceUpdateViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -87,6 +96,17 @@ class MainActivity : AppCompatActivity() {
         get() = featureFlagService.isEnabled(FeatureFlagKeys.FLUID_TRANSITIONS_ENABLED, default = true)
 
     private val viewModel: MainViewModel by viewModels()
+    private val forceUpdateViewModel: ForceUpdateViewModel by viewModels()
+
+    /**
+     * Abre a atualização IMMEDIATE do Play no force update (sdd-059). Registrado na inicialização,
+     * porque o registro não pode acontecer depois que a Activity passa do estado CREATED.
+     */
+    private val forceUpdateLauncher: ActivityResultLauncher<IntentSenderRequest> =
+        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+            // Sem sucesso (o usuário saiu da tela do Play), reabre: a atualização continua obrigatória.
+            if (result.resultCode != RESULT_OK) forceUpdateViewModel.start(forceUpdateLauncher)
+        }
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,11 +120,19 @@ class MainActivity : AppCompatActivity() {
                 CestouApp(windowSizeClass = calculateWindowSizeClass(this@MainActivity))
             }
         }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                forceUpdateViewModel.state.collect { state ->
+                    if (state is ForceUpdateState.Required) forceUpdateViewModel.start(forceUpdateLauncher)
+                }
+            }
+        }
     }
 
     override fun onStart() {
         super.onStart()
         viewModel.onForeground()
+        forceUpdateViewModel.check()
     }
 
     /** Rotação e troca de tema recriam a Activity sem o app ir para segundo plano. */
@@ -157,6 +185,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         CestouTheme(darkTheme = darkTheme) {
+            val forceUpdate by forceUpdateViewModel.state.collectAsStateWithLifecycle()
+            if (forceUpdate is ForceUpdateState.Blocked) {
+                ForceUpdateBlockedScreen()
+                return@CestouTheme
+            }
+
             val navController = rememberNavController()
 
             // Bind síncrono, direto no corpo da composição: precisa estar concluído ANTES do

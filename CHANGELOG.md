@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.6.0] - 2026-11-13
+
+* feat(paywall): multiple plans and force update via Play In-App Updates (#282)
+* feat(wear): pair the watch, redesign the home, add watch AI, notifications and PRO gate (#280)
+* fix(billing): vincula o entitlement PRO à conta Cestou (#281)
+* chore(deps): bump gradle-wrapper from 9.8.2 to 9.9.0 (#279)
+* chore(deps): bump agp from 9.5.0 to 9.5.1 (#278)
+* chore(release): prepare dev version 2.5.1 [skip ci]
+
+
 ## [2.5.1] - 2026-11-09
 
 * Merge pull request #276 from brunocarvalhs/fix/ci-size-baseline-gh-token
