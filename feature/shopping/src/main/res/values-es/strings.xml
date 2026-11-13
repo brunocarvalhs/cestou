@@ -194,6 +194,7 @@
     <string name="shopping_wear_ai_title">Asistente</string>
     <string name="shopping_wear_ai_hint">Ej.: agregar leche</string>
     <string name="shopping_wear_ai_greeting">¿En qué puedo ayudarte?</string>
+    <string name="shopping_wear_ai_new">Nueva pregunta</string>
     <string name="shopping_wear_ai_send">Enviar</string>
     <string name="shopping_wear_ai_thinking">Pensando…</string>
     <string name="shopping_wear_ai_confirm_title">¿Confirmar acción?</string>

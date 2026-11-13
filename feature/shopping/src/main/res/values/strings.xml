@@ -136,6 +136,7 @@
     <string name="shopping_wear_ai_title">Assistant</string>
     <string name="shopping_wear_ai_hint">e.g. add milk</string>
     <string name="shopping_wear_ai_greeting">How can I help?</string>
+    <string name="shopping_wear_ai_new">New question</string>
     <string name="shopping_wear_ai_send">Send</string>
     <string name="shopping_wear_ai_thinking">Thinking…</string>
     <string name="shopping_wear_ai_confirm_title">Confirm action?</string>

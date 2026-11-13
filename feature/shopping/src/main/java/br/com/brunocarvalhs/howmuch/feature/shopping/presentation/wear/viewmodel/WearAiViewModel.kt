@@ -49,6 +49,7 @@ class WearAiViewModel @Inject constructor(
         when (intent) {
             is WearAiIntent.Send -> send(intent.prompt)
             is WearAiIntent.Decide -> decide(intent.approved)
+            WearAiIntent.Reset -> reset()
         }
     }
 
@@ -89,6 +90,13 @@ class WearAiViewModel @Inject constructor(
             is WearAiMessage.Reply -> WearAiUiState.Answer(message.text)
             is WearAiMessage.Failure -> WearAiUiState.Failed(message.reason)
             else -> WearAiUiState.Failed(WearAiUiState.TIMEOUT)
+        }
+    }
+
+    private fun reset() {
+        val current = _uiState.value
+        if (current is WearAiUiState.Answer || current is WearAiUiState.Failed) {
+            _uiState.value = WearAiUiState.Idle
         }
     }
 

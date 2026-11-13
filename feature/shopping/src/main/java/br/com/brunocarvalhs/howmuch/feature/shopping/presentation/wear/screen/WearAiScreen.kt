@@ -65,19 +65,21 @@ internal const val TAG_AI_CONFIRM = "wear_ai_confirm"
 internal const val TAG_AI_REJECT = "wear_ai_reject"
 internal const val TAG_AI_ANSWER = "wear_ai_answer"
 internal const val TAG_AI_FAILED = "wear_ai_failed"
+internal const val TAG_AI_NEW = "wear_ai_new"
 internal const val TAG_AI_SUGGESTION_PREFIX = "wear_ai_suggestion_"
 
 private val FieldRadius = 50.dp
 private val LoaderSize = 32.dp
+private val ThinkingLoaderSize = 64.dp
 private val SuggestionsHeight = 60.dp
 private val SuggestionWidth = 128.dp
 private val FieldHeight = 44.dp
 private val SendSize = 32.dp
 
 /**
- * Assistente no relógio, em layout de IA: o ícone animado fica no topo, a resposta aparece no
- * centro e as perguntas prontas rolam embaixo. A resposta do celular entra com animação no lugar
- * do estado anterior. Ações de escrita só rodam depois da confirmação na tela.
+ * Assistente no relógio, em duas telas. Na inicial: o ícone de IA, a saudação, as perguntas
+ * prontas e o campo embaixo. Ao perguntar, a tela vira só a resposta: o ícone animado fica no
+ * centro enquanto pensa, e a resposta ocupa a tela, rolável. "Nova pergunta" volta à inicial.
  */
 @Composable
 internal fun WearAiScreen(viewModel: WearAiViewModel) {
@@ -92,7 +94,6 @@ private fun WearAiContent(
 ) {
     var prompt by rememberSaveable { mutableStateOf("") }
     val assistantTitle = stringResource(R.string.shopping_wear_ai_title)
-    val busy = state is WearAiUiState.Waiting || state is WearAiUiState.Confirming
 
     fun send() {
         val text = prompt.trim()
@@ -102,97 +103,156 @@ private fun WearAiContent(
     }
 
     ScreenScaffold { contentPadding ->
-        Column(
+        AnimatedContent(
+            targetState = state is WearAiUiState.Idle,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(contentPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            CestouAiLoader(
-                size = LoaderSize,
-                modifier = Modifier.semantics {
-                    contentDescription = assistantTitle
-                }
-            )
-
-            AnswerArea(
-                state = state,
-                onIntent = onIntent,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp)
-            )
-
-            if (!busy) {
-                SuggestionRow(onIntent = onIntent)
+            transitionSpec = {
+                (fadeIn() + scaleIn(initialScale = 0.94f)).togetherWith(fadeOut())
             }
+        ) { idle ->
+            if (idle) {
+                HomeView(
+                    title = assistantTitle,
+                    prompt = prompt,
+                    onPromptChange = { if (it.length <= WEAR_AI_MAX_PROMPT_LENGTH) prompt = it },
+                    onSend = ::send,
+                    onIntent = onIntent
+                )
+            } else {
+                ResponseView(state = state, title = assistantTitle, onIntent = onIntent)
+            }
+        }
+    }
+}
 
-            PromptField(
-                value = prompt,
-                onValueChange = { if (it.length <= WEAR_AI_MAX_PROMPT_LENGTH) prompt = it },
-                enabled = !busy,
-                sendEnabled = prompt.isNotBlank() && !busy,
-                onSend = ::send,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
+/** Tela inicial: ícone, saudação, perguntas prontas em carrossel e o campo fixo no fim. */
+@Composable
+private fun HomeView(
+    title: String,
+    prompt: String,
+    onPromptChange: (String) -> Unit,
+    onSend: () -> Unit,
+    onIntent: (WearAiIntent) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CestouAiLoader(
+            size = LoaderSize,
+            modifier = Modifier.semantics { contentDescription = title }
+        )
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(R.string.shopping_wear_ai_greeting),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium
             )
         }
+        SuggestionRow(onIntent = onIntent)
+        PromptField(
+            value = prompt,
+            onValueChange = onPromptChange,
+            enabled = true,
+            sendEnabled = prompt.isNotBlank(),
+            onSend = onSend,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp)
+        )
     }
 }
 
 /**
- * Área central: a resposta entra com animação no lugar da anterior. Cada estado ocupa a área
- * toda, e o conteúdo rola se a resposta for longa.
+ * Tela de resposta: ocupa a tela toda. Resposta e falha ficam no topo e rolam, com "Nova
+ * pergunta" no fim da rolagem. Pensando e confirmação ficam no centro, sem rolagem.
  */
 @Composable
-private fun AnswerArea(
+private fun ResponseView(
     state: WearAiUiState,
-    onIntent: (WearAiIntent) -> Unit,
-    modifier: Modifier = Modifier
+    title: String,
+    onIntent: (WearAiIntent) -> Unit
 ) {
-    AnimatedContent(
-        targetState = state,
-        modifier = modifier,
-        transitionSpec = {
-            (fadeIn() + scaleIn(initialScale = 0.92f)).togetherWith(fadeOut())
-        }
-    ) { current ->
-        Box(
+    when (state) {
+        is WearAiUiState.Answer, is WearAiUiState.Failed -> Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(horizontal = 12.dp)
                 .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (state is WearAiUiState.Answer) {
+                Text(
+                    text = state.text,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .testTag(TAG_AI_ANSWER)
+                )
+            } else if (state is WearAiUiState.Failed) {
+                Text(
+                    text = stringResource(failureMessage(state.reason)),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                        .testTag(TAG_AI_FAILED)
+                )
+            }
+            Button(
+                onClick = { onIntent(WearAiIntent.Reset) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = 12.dp)
+                    .testTag(TAG_AI_NEW),
+                colors = wearCardColors()
+            ) {
+                Text(stringResource(R.string.shopping_wear_ai_new))
+            }
+        }
+        else -> Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp),
             contentAlignment = Alignment.Center
         ) {
-            when (current) {
-                WearAiUiState.Idle -> Text(
-                    text = stringResource(R.string.shopping_wear_ai_greeting),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                WearAiUiState.Waiting -> Text(
-                    text = stringResource(R.string.shopping_wear_ai_thinking),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.testTag(TAG_AI_WAITING)
-                )
-                is WearAiUiState.Answer -> Text(
-                    text = current.text,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.testTag(TAG_AI_ANSWER)
-                )
-                is WearAiUiState.Failed -> Text(
-                    text = stringResource(failureMessage(current.reason)),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.testTag(TAG_AI_FAILED)
-                )
-                is WearAiUiState.Confirming -> ConfirmBlock(current, onIntent)
+            when (state) {
+                WearAiUiState.Waiting -> ThinkingBlock(title)
+                is WearAiUiState.Confirming -> ConfirmBlock(state, onIntent)
+                else -> Unit
             }
         }
     }
 }
 
-/** Ação de escrita pedida pelo agente: resumo e as duas escolhas, sempre na área central. */
+/** Ícone animado de IA com o "pensando" embaixo, no centro da tela. */
+@Composable
+private fun ThinkingBlock(title: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        CestouAiLoader(
+            size = ThinkingLoaderSize,
+            modifier = Modifier.semantics { contentDescription = title }
+        )
+        Text(
+            text = stringResource(R.string.shopping_wear_ai_thinking),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.testTag(TAG_AI_WAITING)
+        )
+    }
+}
+
+/** Ação de escrita pedida pelo agente: resumo e as duas escolhas, no centro da tela. */
 @Composable
 private fun ConfirmBlock(state: WearAiUiState.Confirming, onIntent: (WearAiIntent) -> Unit) {
     Column(
@@ -270,8 +330,8 @@ private fun failureMessage(reason: String): Int = when (reason) {
 }
 
 /**
- * Barra de pergunta fixa no fim da tela: uma pílula com o campo e o botão de enviar dentro dela.
- * A dica some quando há texto.
+ * Barra de pergunta fixa no fim da tela inicial: uma pílula com o campo e o botão de enviar
+ * dentro dela. A dica some quando há texto.
  */
 @Composable
 private fun PromptField(

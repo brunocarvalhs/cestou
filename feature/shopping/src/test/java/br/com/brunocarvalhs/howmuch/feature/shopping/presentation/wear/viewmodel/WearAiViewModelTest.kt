@@ -68,6 +68,18 @@ class WearAiViewModelTest {
     }
 
     @Test
+    fun `reset goes back to the start after an answer`() {
+        phoneReachable()
+        val vm = viewModel()
+        vm.onIntent(WearAiIntent.Send("adicionar leite"))
+        messages.tryEmit(WearAiMessage.Reply(requestId, "Leite adicionado"))
+
+        vm.onIntent(WearAiIntent.Reset)
+
+        assertEquals(WearAiUiState.Idle, vm.uiState.value)
+    }
+
+    @Test
     fun `does not send a blank prompt`() {
         phoneReachable()
         val vm = viewModel()
