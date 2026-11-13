@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.6.1] - 2026-11-13
+
+* ci(build): branch the APK size baseline update from develop (#288)
+* fix(ci): corrige mensagem de falha do gate de cobertura (#283)
+* ci(release): remove app_id do target wear no Firebase
+* chore(release): prepare dev version 2.6.0 [skip ci]
+
+
 ## [2.6.0] - 2026-11-13
 
 * feat(paywall): multiple plans and force update via Play In-App Updates (#282)
