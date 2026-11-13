@@ -3,6 +3,8 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmode
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
@@ -42,7 +44,8 @@ internal class ShoppingDetailViewModel @Inject constructor(
     private val shoppingRepository: ShoppingRepository,
     private val productsUseCase: ProductsUseCase,
     private val authService: AuthService,
-    private val wearListStore: WearListStore
+    private val wearListStore: WearListStore,
+    private val analytics: AnalyticsTracker
 ) : ViewModel() {
 
     private val shoppingId: String = checkNotNull(savedStateHandle.get<String>(SHOPPING_DETAIL_ARG_ID)) {
@@ -61,6 +64,7 @@ internal class ShoppingDetailViewModel @Inject constructor(
     )
 
     init {
+        analytics.trackEvent(AnalyticsEvents.WEAR_LIST_OPENED)
         observeList()
     }
 
@@ -99,6 +103,7 @@ internal class ShoppingDetailViewModel @Inject constructor(
             if (it.isPurchased && userId != null) it.withActivity(ProductActivity.Action.PURCHASED, userId) else it
         }
         // ponytail: no price prompt on the watch; an unpriced item is just marked and adds 0 to the total.
+        analytics.trackEvent(AnalyticsEvents.WEAR_PRODUCT_PURCHASED_TOGGLED, mapOf("purchased" to updated.isPurchased))
         viewModelScope.launch { productsUseCase.update(updated, shoppingId) }
     }
 
@@ -106,6 +111,7 @@ internal class ShoppingDetailViewModel @Inject constructor(
     private fun saveDetails(product: Product) {
         val userId = authService.currentUser?.id
         val updated = userId?.let { product.withActivity(ProductActivity.Action.EDITED, it) } ?: product
+        analytics.trackEvent(AnalyticsEvents.WEAR_PRODUCT_VALUE_SAVED)
         viewModelScope.launch { productsUseCase.update(updated, shoppingId) }
     }
 
@@ -115,6 +121,7 @@ internal class ShoppingDetailViewModel @Inject constructor(
         val product = Product(id = UUID.randomUUID().toString(), name = name, quantity = 1.0).let { new ->
             authService.currentUser?.id?.let { new.withActivity(ProductActivity.Action.ADDED, it) } ?: new
         }
+        analytics.trackEvent(AnalyticsEvents.WEAR_ITEM_ADDED)
         viewModelScope.launch { productsUseCase.save(product, shoppingId) }
     }
 

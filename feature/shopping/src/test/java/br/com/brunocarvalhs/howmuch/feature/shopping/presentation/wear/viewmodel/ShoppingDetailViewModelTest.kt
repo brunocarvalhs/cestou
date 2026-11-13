@@ -2,6 +2,8 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmode
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
@@ -81,8 +83,11 @@ class ShoppingDetailViewModelTest {
         shoppingRepository,
         productsUseCase,
         authService,
-        wearListStore
+        wearListStore,
+        analytics
     )
+
+    private val analytics = mockk<AnalyticsTracker>(relaxed = true)
 
     @Test
     fun `shows the total, budget left and pending items first`() {
@@ -189,6 +194,23 @@ class ShoppingDetailViewModelTest {
 
         coVerify { wearListStore.clear() }
         verify { navigator.goBack() }
+    }
+
+    @Test
+    fun `saving a value is tracked without the price`() {
+        val updated = slot<Product>()
+        coEvery { productsUseCase.update(capture(updated), "list1") } returns Result.success(Unit)
+
+        viewModel().intent.onSaveDetails(salt.copy(price = 9.9, quantity = 1.0))
+
+        verify { analytics.trackEvent(AnalyticsEvents.WEAR_PRODUCT_VALUE_SAVED) }
+    }
+
+    @Test
+    fun `opening the list is tracked`() {
+        viewModel()
+
+        verify { analytics.trackEvent(AnalyticsEvents.WEAR_LIST_OPENED) }
     }
 }
 
