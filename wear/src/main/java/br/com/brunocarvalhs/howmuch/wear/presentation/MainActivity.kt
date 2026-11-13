@@ -50,12 +50,14 @@ class MainActivity : ComponentActivity() {
             LinkPhone::class.java.name
         }
 
+        val signedIn = authService.authState.map { it != null }
+
         setContent {
             WearApp(
                 navigator = navigator,
                 featureNavGraphs = featureNavGraphs,
                 startDestination = startDestination,
-                signedIn = authService.authState.map { it != null },
+                signedIn = signedIn,
                 onSignedOut = { lifecycleScope.launch { sessionCleaner.clear() } }
             )
         }
