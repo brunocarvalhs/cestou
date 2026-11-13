@@ -7,8 +7,13 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 data class PaywallUiState(
     val source: String = "",
     val status: SubscriptionStatus = SubscriptionStatus.FREE,
-    val formattedPrice: String? = null,
-    val isLoadingPrice: Boolean = true,
+    val plans: List<PlanUi> = emptyList(),
+    val selectedPlanId: String? = null,
+    val isLoadingPlans: Boolean = true,
     val isPurchasing: Boolean = false,
     val errorMessage: String? = null
-)
+) {
+    /** O plano selecionado, ou `null` quando nenhum plano foi carregado do Play. */
+    val selectedPlan: PlanUi?
+        get() = plans.firstOrNull { it.basePlanId == selectedPlanId }
+}

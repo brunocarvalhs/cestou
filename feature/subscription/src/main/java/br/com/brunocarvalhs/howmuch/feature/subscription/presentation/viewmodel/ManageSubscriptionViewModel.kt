@@ -45,7 +45,10 @@ class ManageSubscriptionViewModel @Inject constructor(
 
     private fun loadPrice() {
         viewModelScope.launch {
-            val price = billingRepository.queryFormattedPrice()
+            // A tela de gerenciamento mostra o preço mensal (manage_subscription_price, "/mês").
+            val price = billingRepository.queryPlans()
+                .firstOrNull { it.basePlanId == BillingConstants.BASE_PLAN_MONTHLY }
+                ?.formattedPrice
             _uiState.update { it.copy(formattedPrice = price, isLoadingPrice = false) }
         }
     }
