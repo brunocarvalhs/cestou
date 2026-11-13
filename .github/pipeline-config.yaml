@@ -29,7 +29,6 @@ paths:
 build:
   java-distribution: "temurin"
   java-version: "17"
-  gradle-version: "8.3.1"
   # Heap maior: com 3 GB o KSP2 perdia a resolução de tipos de forma intermitente (Dagger/MissingBinding e
   # "could not be resolved") nas builds limpas do CI, que passam de 800 tarefas.
   gradle_opts: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4096m -Dkotlin.daemon.jvm.options=-Xmx2048m"
