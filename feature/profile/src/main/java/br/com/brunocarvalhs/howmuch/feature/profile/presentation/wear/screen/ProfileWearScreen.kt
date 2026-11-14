@@ -2,15 +2,20 @@ package br.com.brunocarvalhs.howmuch.feature.profile.presentation.wear.screen
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
+import androidx.wear.compose.material3.AlertDialog
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.MaterialTheme
+import androidx.wear.compose.material3.OutlinedButton
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.Text
@@ -22,15 +27,20 @@ import br.com.brunocarvalhs.howmuch.feature.profile.R
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.state.ProfileUiState
 import br.com.brunocarvalhs.howmuch.feature.profile.presentation.viewmodel.ProfileViewModel
 
+/**
+ * Configurações do relógio (sdd-056, Q14): o perfil já existente, com "Abrir no celular" e um
+ * alerta antes de "Sair". Sair é só do relógio.
+ */
 @Composable
 internal fun ProfileWearScreen(
     viewModel: ProfileViewModel
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     ProfileWearContent(
         state = state,
         onLogout = { viewModel.intent.onSignOut() },
-        onLinkAccount = { viewModel.intent.onLinkMobileDevice() }
+        onLinkAccount = { viewModel.intent.onLinkMobileDevice() },
+        onOpenPhone = { viewModel.intent.onOpenPhone() }
     )
 }
 
@@ -38,10 +48,12 @@ internal fun ProfileWearScreen(
 private fun ProfileWearContent(
     state: ProfileUiState,
     onLogout: () -> Unit,
-    onLinkAccount: () -> Unit
+    onLinkAccount: () -> Unit,
+    onOpenPhone: () -> Unit
 ) {
     val listState = rememberTransformingLazyColumnState()
     val transformationSpec = rememberTransformationSpec()
+    var confirmSignOut by rememberSaveable { mutableStateOf(false) }
 
     ScreenScaffold(scrollState = listState) { contentPadding ->
         TransformingLazyColumn(
@@ -55,7 +67,7 @@ private fun ProfileWearContent(
                         .transformedHeight(this, transformationSpec),
                     transformation = SurfaceTransformation(transformationSpec)
                 ) {
-                    Text(stringResource(R.string.profile_title))
+                    Text(stringResource(R.string.profile_wear_settings_title))
                 }
             }
 
@@ -64,6 +76,18 @@ private fun ProfileWearContent(
                     text = state.user?.displayName ?: "Usuário",
                     modifier = Modifier.fillMaxWidth()
                 )
+            }
+
+            item {
+                Button(
+                    onClick = onOpenPhone,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .transformedHeight(this, transformationSpec),
+                    transformation = SurfaceTransformation(transformationSpec)
+                ) {
+                    Text(stringResource(R.string.profile_wear_open_phone))
+                }
             }
 
             item {
@@ -79,8 +103,8 @@ private fun ProfileWearContent(
             }
 
             item {
-                Button(
-                    onClick = onLogout,
+                OutlinedButton(
+                    onClick = { confirmSignOut = true },
                     modifier = Modifier
                         .fillMaxWidth()
                         .transformedHeight(this, transformationSpec),
@@ -91,6 +115,26 @@ private fun ProfileWearContent(
             }
         }
     }
+
+    AlertDialog(
+        visible = confirmSignOut,
+        onDismissRequest = { confirmSignOut = false },
+        confirmButton = {
+            Button(onClick = {
+                confirmSignOut = false
+                onLogout()
+            }) {
+                Text(stringResource(R.string.profile_menu_sign_out))
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = { confirmSignOut = false }) {
+                Text(stringResource(R.string.profile_wear_cancel))
+            }
+        },
+        title = { Text(stringResource(R.string.profile_wear_sign_out_title)) },
+        text = { Text(stringResource(R.string.profile_wear_sign_out_message)) }
+    )
 }
 
 @WearPreviewDevices
@@ -106,7 +150,8 @@ private fun ProfileWearContentPreview() {
                 )
             ),
             onLogout = {},
-            onLinkAccount = {}
+            onLinkAccount = {},
+            onOpenPhone = {}
         )
     }
 }
@@ -118,7 +163,8 @@ private fun ProfileWearContentNoUserPreview() {
         ProfileWearContent(
             state = ProfileUiState(),
             onLogout = {},
-            onLinkAccount = {}
+            onLinkAccount = {},
+            onOpenPhone = {}
         )
     }
 }

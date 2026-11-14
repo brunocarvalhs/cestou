@@ -46,8 +46,8 @@ android {
         applicationId = "br.com.brunocarvalhs.howmuch"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 18
-        versionName = "2.3.3"
+        versionCode = 23
+        versionName = "2.7.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -114,6 +114,8 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":core:auth"))
     implementation(project(":core:data"))
+    // WearableListenerService for the watch pairing messages (sdd-055).
+    implementation(libs.play.services.wearable)
     implementation(project(":core:ai"))
     implementation(project(":core:remote-config"))
     implementation(project(":core:analytics"))
@@ -149,6 +151,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.play.app.update.ktx)
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))

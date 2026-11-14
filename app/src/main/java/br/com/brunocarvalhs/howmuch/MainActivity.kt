@@ -6,6 +6,8 @@ import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -32,7 +34,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.os.LocaleListCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.DialogNavigator
@@ -45,14 +50,19 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
+import br.com.brunocarvalhs.howmuch.core.navigation.TransitionExtensions
 import br.com.brunocarvalhs.howmuch.core.navigation.isProtectedRoute
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.AiChat
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.FeedbackSurvey
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.NewShopping
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.StoreReview
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouBottomNavigation
 import br.com.brunocarvalhs.howmuch.core.ui.utils.exposeTestTags
@@ -60,7 +70,11 @@ import br.com.brunocarvalhs.howmuch.feature.auth.navigation.CompleteName
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.Welcome
 import br.com.brunocarvalhs.howmuch.feature.auth.navigation.isAuthFlow
 import br.com.brunocarvalhs.howmuch.notifications.NotificationPermissionRequester
+import br.com.brunocarvalhs.howmuch.update.ForceUpdateBlockedScreen
+import br.com.brunocarvalhs.howmuch.update.ForceUpdateState
+import br.com.brunocarvalhs.howmuch.update.presentation.viewmodel.ForceUpdateViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -75,7 +89,24 @@ class MainActivity : AppCompatActivity() {
     @Inject
     internal lateinit var screenTracker: ScreenTracker
 
+    @Inject
+    internal lateinit var featureFlagService: FeatureFlagService
+
+    private val fluidTransitions: Boolean
+        get() = featureFlagService.isEnabled(FeatureFlagKeys.FLUID_TRANSITIONS_ENABLED, default = true)
+
     private val viewModel: MainViewModel by viewModels()
+    private val forceUpdateViewModel: ForceUpdateViewModel by viewModels()
+
+    /**
+     * Abre a atualização IMMEDIATE do Play no force update (sdd-059). Registrado na inicialização,
+     * porque o registro não pode acontecer depois que a Activity passa do estado CREATED.
+     */
+    private val forceUpdateLauncher: ActivityResultLauncher<IntentSenderRequest> =
+        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+            // Sem sucesso (o usuário saiu da tela do Play), reabre: a atualização continua obrigatória.
+            if (result.resultCode != RESULT_OK) forceUpdateViewModel.start(forceUpdateLauncher)
+        }
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -89,11 +120,19 @@ class MainActivity : AppCompatActivity() {
                 CestouApp(windowSizeClass = calculateWindowSizeClass(this@MainActivity))
             }
         }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                forceUpdateViewModel.state.collect { state ->
+                    if (state is ForceUpdateState.Required) forceUpdateViewModel.start(forceUpdateLauncher)
+                }
+            }
+        }
     }
 
     override fun onStart() {
         super.onStart()
         viewModel.onForeground()
+        forceUpdateViewModel.check()
     }
 
     /** Rotação e troca de tema recriam a Activity sem o app ir para segundo plano. */
@@ -146,6 +185,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         CestouTheme(darkTheme = darkTheme) {
+            val forceUpdate by forceUpdateViewModel.state.collectAsStateWithLifecycle()
+            if (forceUpdate is ForceUpdateState.Blocked) {
+                ForceUpdateBlockedScreen()
+                return@CestouTheme
+            }
+
             val navController = rememberNavController()
 
             // Bind síncrono, direto no corpo da composição: precisa estar concluído ANTES do
@@ -202,11 +247,13 @@ class MainActivity : AppCompatActivity() {
 
             // AiChat's shoppingId here is a throwaway placeholder: rootRoutes only matches by
             // route::class (see hasRoute/isProtectedRoute below), never by field value.
-            val rootRoutes = remember { listOf(ShoppingList, History, AiChat(shoppingId = ""), Profile) }
+            val rootRoutes = remember { listOf(ShoppingList, History, AiChat(shoppingId = ""), Profile, NewShopping) }
 
             val currentRoute = rootRoutes.find { route ->
                 currentDestination?.hierarchy?.any { it.hasRoute(route::class) } == true
             }
+            // "Criar lista" (sdd-056) é uma tela de Compras: a barra continua com a aba de Compras marcada.
+            val barRoute = if (currentRoute is NewShopping) ShoppingList else currentRoute
 
             val isOnProtectedRoute = currentDestination?.isProtectedRoute(rootRoutes + SpendingInsights) == true
 
@@ -236,6 +283,19 @@ class MainActivity : AppCompatActivity() {
             }
 
             /**
+             * Pareamento pedido pelo relógio (sdd-055). Espera o login e o nome, como o convite: sem
+             * login, a ViewModel já respondeu NOT_SIGNED_IN ao relógio.
+             */
+            val pendingWearPairing by viewModel.pendingWearPairing.request.collectAsStateWithLifecycle()
+            LaunchedEffect(pendingWearPairing, isAuthenticated, requiresName) {
+                val request = pendingWearPairing
+                if (request != null && isAuthenticated && !requiresName) {
+                    navigator.navigate(request) { launchSingleTop = true }
+                    viewModel.pendingWearPairing.consume()
+                }
+            }
+
+            /**
              * Toque numa notificação da IA: abre a conversa. Espera o login e o nome (como o
              * convite acima) para não navegar por cima da tela de boas-vindas.
              */
@@ -249,6 +309,24 @@ class MainActivity : AppCompatActivity() {
                         launchSingleTop = true
                     }
                     viewModel.consumePendingAiChatSession()
+                }
+            }
+
+            /** Pedido do relógio para criar lista (sdd-056, cestou://shopping/new). Espera login e nome. */
+            val pendingNewShopping by viewModel.pendingNewShopping.requested.collectAsStateWithLifecycle()
+            LaunchedEffect(pendingNewShopping, isAuthenticated, requiresName) {
+                if (pendingNewShopping && isAuthenticated && !requiresName) {
+                    navigator.navigate(NewShopping) { launchSingleTop = true }
+                    viewModel.pendingNewShopping.consume()
+                }
+            }
+
+            /** Assinatura PRO no relógio (cestou://subscription): abre o paywall. Espera login e nome. */
+            val pendingPaywall by viewModel.pendingPaywall.requested.collectAsStateWithLifecycle()
+            LaunchedEffect(pendingPaywall, isAuthenticated, requiresName) {
+                if (pendingPaywall && isAuthenticated && !requiresName) {
+                    navigator.navigate(Paywall(source = "wear")) { launchSingleTop = true }
+                    viewModel.pendingPaywall.consume()
                 }
             }
 
@@ -307,7 +385,7 @@ class MainActivity : AppCompatActivity() {
             Scaffold(
                 bottomBar = {
                     CestouBottomNavigation(
-                        currentRoute = currentRoute,
+                        currentRoute = barRoute,
                         photoUrl = photoUrl,
                         visible = currentRoute != null && currentRoute !is AiChat,
                         onNavigate = { route ->
@@ -333,7 +411,11 @@ class MainActivity : AppCompatActivity() {
                     }
                     NavHost(
                         navController = navController,
-                        startDestination = startDestination
+                        startDestination = startDestination,
+                        enterTransition = { TransitionExtensions.forwardEnter(fluidTransitions) },
+                        exitTransition = { TransitionExtensions.forwardExit(fluidTransitions) },
+                        popEnterTransition = { TransitionExtensions.backEnter(fluidTransitions) },
+                        popExitTransition = { TransitionExtensions.backExit(fluidTransitions) }
                     ) {
                         featureNavGraphs.forEach {
                             it.registerGraph(this, navigator, windowSizeClass)

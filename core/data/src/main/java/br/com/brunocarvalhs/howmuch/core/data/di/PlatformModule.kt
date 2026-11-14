@@ -1,8 +1,10 @@
 package br.com.brunocarvalhs.howmuch.core.data.di
 
 import br.com.brunocarvalhs.howmuch.core.common.contract.CrashReporter
+import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableAiLink
 import br.com.brunocarvalhs.howmuch.core.common.wearable.WearableSyncService
 import br.com.brunocarvalhs.howmuch.core.data.service.FirebaseCrashReporter
+import br.com.brunocarvalhs.howmuch.core.data.wearable.WearableAiLinkImpl
 import br.com.brunocarvalhs.howmuch.core.data.wearable.WearableSyncServiceImpl
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -27,6 +29,10 @@ abstract class PlatformModule {
     @Binds
     @Singleton
     internal abstract fun bindWearableSyncService(impl: WearableSyncServiceImpl): WearableSyncService
+
+    @Binds
+    @Singleton
+    internal abstract fun bindWearableAiLink(impl: WearableAiLinkImpl): WearableAiLink
 
     companion object {
         @Provides

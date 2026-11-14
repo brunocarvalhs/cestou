@@ -21,42 +21,47 @@ class BillingStatusCacheTest {
         every { context.getSharedPreferences("billing_preferences", Context.MODE_PRIVATE) } returns prefs
         every { prefs.edit() } returns editor
         every { editor.putString(any(), any()) } returns editor
+        every { editor.remove(any()) } returns editor
     }
 
     @Test
     fun `load returns FREE when no status is cached`() {
-        every { prefs.getString("cached_subscription_status", null) } returns null
+        every { prefs.getString("cached_subscription_owner", null) } returns null
 
-        val cache = BillingStatusCache(context)
-
-        assertEquals(SubscriptionStatus.FREE, cache.load())
+        assertEquals(SubscriptionStatus.FREE, BillingStatusCache(context).load("uid-a"))
     }
 
     @Test
-    fun `load returns PRO when PRO is cached`() {
-        every { prefs.getString("cached_subscription_status", null) } returns "PRO"
+    fun `load returns PRO for the account that owns the cached PRO`() {
+        every { prefs.getString("cached_subscription_owner", null) } returns "uid-a"
+        every { prefs.getString("cached_subscription_status_v2", null) } returns "PRO"
 
-        val cache = BillingStatusCache(context)
+        assertEquals(SubscriptionStatus.PRO, BillingStatusCache(context).load("uid-a"))
+    }
 
-        assertEquals(SubscriptionStatus.PRO, cache.load())
+    @Test
+    fun `a cached PRO does not leak to another account`() {
+        every { prefs.getString("cached_subscription_owner", null) } returns "uid-a"
+        every { prefs.getString("cached_subscription_status_v2", null) } returns "PRO"
+
+        assertEquals(SubscriptionStatus.FREE, BillingStatusCache(context).load("uid-b"))
     }
 
     @Test
     fun `load returns FREE when cached string is invalid enum`() {
-        every { prefs.getString("cached_subscription_status", null) } returns "INVALID_STATUS"
+        every { prefs.getString("cached_subscription_owner", null) } returns "uid-a"
+        every { prefs.getString("cached_subscription_status_v2", null) } returns "INVALID_STATUS"
 
-        val cache = BillingStatusCache(context)
-
-        assertEquals(SubscriptionStatus.FREE, cache.load())
+        assertEquals(SubscriptionStatus.FREE, BillingStatusCache(context).load("uid-a"))
     }
 
     @Test
-    fun `save stores status in SharedPreferences`() {
-        val cache = BillingStatusCache(context)
+    fun `save stores the owning account and the status`() {
+        BillingStatusCache(context).save("uid-a", SubscriptionStatus.PRO)
 
-        cache.save(SubscriptionStatus.PRO)
-
-        verify { editor.putString("cached_subscription_status", "PRO") }
+        verify { editor.putString("cached_subscription_owner", "uid-a") }
+        verify { editor.putString("cached_subscription_status_v2", "PRO") }
+        verify { editor.remove("cached_subscription_status") }
         verify { editor.apply() }
     }
 }

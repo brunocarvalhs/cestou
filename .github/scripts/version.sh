@@ -105,10 +105,12 @@ sed -i.bak "s/versionName = \"$current_version\"/versionName = \"$new_version\"/
 sed -i.bak "s/versionCode = $current_version_code/versionCode = $new_version_code/" "$GRADLE_FILE"
 rm -f "${GRADLE_FILE}.bak"
 
-# O módulo wear tem applicationId próprio e sobe como AAB separado no Play:
-# o versionCode dele precisa acompanhar o do app, senão o upload é rejeitado
-# com "Version code N has already been used".
-sed -i.bak "s/versionCode = [0-9]*/versionCode = $new_version_code/" "$WEAR_GRADLE_FILE"
+# O módulo wear compartilha o applicationId com o app, mas tem contador de
+# versionCode próprio: incrementa a partir do seu valor atual, independente do
+# app. Assim o upload dele nunca reaproveita um código já usado no Play.
+wear_current_version_code=$(grep "versionCode = " "$WEAR_GRADLE_FILE" | sed 's/.*versionCode = \([0-9]*\).*/\1/')
+wear_new_version_code=$((wear_current_version_code + 1))
+sed -i.bak "s/versionCode = $wear_current_version_code/versionCode = $wear_new_version_code/" "$WEAR_GRADLE_FILE"
 rm -f "${WEAR_GRADLE_FILE}.bak"
 
 # 6️⃣ Atualiza o CHANGELOG.md

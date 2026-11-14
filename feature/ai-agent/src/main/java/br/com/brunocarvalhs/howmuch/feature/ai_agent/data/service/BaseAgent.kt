@@ -4,6 +4,7 @@ import br.com.brunocarvalhs.howmuch.core.ai.contract.Agent
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentAction
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AiSession
 import br.com.brunocarvalhs.howmuch.core.ai.model.ApprovalRequest
+import br.com.brunocarvalhs.howmuch.core.ai.model.requiresApproval
 import br.com.brunocarvalhs.howmuch.core.ai.registry.AgentRegistry
 import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
 import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
@@ -62,7 +63,7 @@ internal abstract class BaseAgent(
                 mapOf(AnalyticsParams.ACTION_ID to action.id)
             )
             "Essa ação é exclusiva do plano Pro."
-        } else if (action != null && action.requiresConfirmation && !isApprovedByUser(action, arguments)) {
+        } else if (action != null && requiresApproval(action, meta) && !isApprovedByUser(action, arguments)) {
             DECLINED_MESSAGE
         } else if (action != null) {
             try {

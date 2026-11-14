@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
 import br.com.brunocarvalhs.howmuch.core.domain.repository.AiTrialRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SubscriptionRepository
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
+import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,8 +26,13 @@ import javax.inject.Inject
 @HiltViewModel
 internal class ChatAiGateViewModel @Inject constructor(
     subscriptionRepository: SubscriptionRepository,
-    aiTrialRepository: AiTrialRepository
+    aiTrialRepository: AiTrialRepository,
+    featureFlagService: FeatureFlagService
 ) : ViewModel() {
+
+    /** Kill-switch dos chips e das ações de adicionar itens (sdd-040). Lido uma vez ao abrir o chat. */
+    val isProactiveEnabled: Boolean =
+        featureFlagService.isEnabled(FeatureFlagKeys.PROACTIVE_AI_ENABLED, default = true)
 
     val isSendEnabled: StateFlow<Boolean> = combine(
         subscriptionRepository.observeStatus(),

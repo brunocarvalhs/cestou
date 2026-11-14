@@ -3,7 +3,12 @@ package br.com.brunocarvalhs.howmuch.core.billing
 import android.app.Activity
 import android.content.Context
 import android.text.TextUtils
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
+import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
+import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
+import com.android.billingclient.api.AccountIdentifiers
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
@@ -27,27 +32,38 @@ import io.mockk.mockkStatic
 import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
 /**
  * The repository builds its own `BillingClient` and runs on `Dispatchers.IO`, so the tests mock
  * the static builder and billing-ktx extensions and wait on the status flow with a real timeout.
+ * The signed-in account is driven through [accountState], which backs both `authState` and
+ * `currentUser` like the real `AuthService` does.
  */
 @Suppress("TooManyFunctions")
 class PlayBillingSubscriptionRepositoryTest {
 
     private companion object {
         const val AWAIT_TIMEOUT_MS = 5_000L
+        const val ACCOUNT = "uid-a"
+        const val OTHER_ACCOUNT = "uid-b"
     }
 
     private val client = mockk<BillingClient>(relaxed = true)
+    private val analytics = mockk<AnalyticsTracker>(relaxed = true)
+    private val accountState = MutableStateFlow<AuthenticatedUser?>(AuthenticatedUser(id = ACCOUNT))
+    private val authService = mockk<AuthService> {
+        every { authState } returns accountState
+        every { currentUser } answers { accountState.value }
+    }
     private lateinit var purchasesListener: PurchasesUpdatedListener
     private var ready = true
     private var purchasesResult = PurchasesResult(ok(), emptyList())
@@ -84,36 +100,92 @@ class PlayBillingSubscriptionRepositoryTest {
     private fun ok(code: Int = BillingClient.BillingResponseCode.OK) =
         BillingResult.newBuilder().setResponseCode(code).setDebugMessage("dbg").build()
 
-    private fun purchase(state: Int, acked: Boolean = false, token: String = "tok") =
-        mockk<Purchase> {
-            every { purchaseState } returns state
-            every { isAcknowledged } returns acked
-            every { purchaseToken } returns token
-        }
-
-    private fun repo() = PlayBillingSubscriptionRepository(mockk<Context>(relaxed = true))
-
-    private fun details(price: String = "R$ 9,90", offerToken: String? = "offer"): ProductDetails {
-        val phase = mockk<ProductDetails.PricingPhase> { every { formattedPrice } returns price }
-        val offer = mockk<ProductDetails.SubscriptionOfferDetails> {
-            every { this@mockk.offerToken } returns offerToken.orEmpty()
-            every { pricingPhases } returns mockk {
-                every { pricingPhaseList } returns listOf(phase)
-            }
-        }
-        return mockk(relaxed = true) {
-            every { subscriptionOfferDetails } returns if (offerToken == null) null else listOf(offer)
+    /** A purchase bought while [boundTo] was signed in; `null` models a legacy, unbound purchase. */
+    private fun purchase(
+        state: Int,
+        acked: Boolean = false,
+        token: String = "tok",
+        boundTo: String? = ACCOUNT
+    ) = mockk<Purchase> {
+        every { purchaseState } returns state
+        every { isAcknowledged } returns acked
+        every { purchaseToken } returns token
+        every { accountIdentifiers } returns boundTo?.let { id ->
+            mockk<AccountIdentifiers> { every { obfuscatedAccountId } returns id }
         }
     }
+
+    private fun repo() = PlayBillingSubscriptionRepository(mockk<Context>(relaxed = true), authService, analytics)
+
+    /** An offer of [planId]; [phases] are the formatted prices of its pricing phases, the last being recurring. */
+    private fun offer(
+        planId: String = BillingConstants.BASE_PLAN_MONTHLY,
+        token: String = "token-$planId",
+        phases: List<String> = listOf("R$ 9,90"),
+        offerId: String? = null
+    ): ProductDetails.SubscriptionOfferDetails {
+        val phaseMocks = phases.map { price ->
+            mockk<ProductDetails.PricingPhase> {
+                every { formattedPrice } returns price
+                every { billingPeriod } returns "P1M"
+            }
+        }
+        return mockk {
+            every { basePlanId } returns planId
+            every { this@mockk.offerId } returns offerId
+            every { offerToken } returns token
+            every { pricingPhases } returns mockk { every { pricingPhaseList } returns phaseMocks }
+        }
+    }
+
+    private fun details(vararg offers: ProductDetails.SubscriptionOfferDetails): ProductDetails =
+        mockk(relaxed = true) {
+            every { subscriptionOfferDetails } returns offers.toList()
+        }
 
     private fun awaitStatus(r: PlayBillingSubscriptionRepository, expected: SubscriptionStatus) =
         runBlocking { withTimeout(AWAIT_TIMEOUT_MS) { r.observeStatus().first { it == expected } } }
 
     @Test
-    fun `init refreshes and a purchased subscription becomes Pro`() {
+    fun `a purchase bound to the signed-in account becomes Pro`() {
         purchasesResult = PurchasesResult(ok(), listOf(purchase(Purchase.PurchaseState.PURCHASED, acked = true)))
 
         awaitStatus(repo(), SubscriptionStatus.PRO)
+    }
+
+    @Test
+    fun `a purchase bound to another account keeps the signed-in account Free`() {
+        purchasesResult = PurchasesResult(
+            ok(),
+            listOf(purchase(Purchase.PurchaseState.PURCHASED, acked = true, boundTo = OTHER_ACCOUNT))
+        )
+        val r = repo()
+        runBlocking { r.refresh() }
+
+        assertEquals(SubscriptionStatus.FREE, runBlocking { r.observeStatus().first() })
+    }
+
+    @Test
+    fun `a legacy purchase with no binding grants Pro to the signed-in account`() {
+        purchasesResult = PurchasesResult(
+            ok(),
+            listOf(purchase(Purchase.PurchaseState.PURCHASED, acked = true, boundTo = null))
+        )
+        val r = repo()
+        runBlocking { r.refresh() }
+
+        assertEquals(SubscriptionStatus.PRO, runBlocking { r.observeStatus().first() })
+    }
+
+    @Test
+    fun `a purchase bound to another account is reported as an account mismatch`() {
+        purchasesResult = PurchasesResult(
+            ok(),
+            listOf(purchase(Purchase.PurchaseState.PURCHASED, acked = true, boundTo = OTHER_ACCOUNT))
+        )
+        runBlocking { repo().refresh() }
+
+        verify(atLeast = 1) { analytics.trackEvent(AnalyticsEvents.ENTITLEMENT_ACCOUNT_MISMATCH, any()) }
     }
 
     @Test
@@ -127,10 +199,9 @@ class PlayBillingSubscriptionRepositoryTest {
     @Test
     fun `refresh reconnects when the client is not ready`() {
         ready = false
-        val r = repo()
-        runBlocking { r.refresh() }
+        runBlocking { repo().refresh() }
 
-        verify(atLeast = 2) { client.startConnection(any()) }
+        verify(atLeast = 1) { client.startConnection(any()) }
     }
 
     @Test
@@ -140,6 +211,18 @@ class PlayBillingSubscriptionRepositoryTest {
         runBlocking { r.refresh() }
 
         coVerify { client.acknowledgePurchase(match { it.purchaseToken == "t1" }) }
+    }
+
+    @Test
+    fun `unacknowledged purchase bound to another account is still acknowledged`() {
+        // Skipping this would let Google auto-refund a purchase owned by the Play account on this device.
+        purchasesResult = PurchasesResult(
+            ok(),
+            listOf(purchase(Purchase.PurchaseState.PURCHASED, token = "t9", boundTo = OTHER_ACCOUNT))
+        )
+        runBlocking { repo().refresh() }
+
+        coVerify { client.acknowledgePurchase(match { it.purchaseToken == "t9" }) }
     }
 
     @Test
@@ -191,19 +274,95 @@ class PlayBillingSubscriptionRepositoryTest {
     }
 
     @Test
-    fun `queryFormattedPrice returns the first offer price`() {
-        productsResult = ProductDetailsResult(ok(), listOf(details("R$ 9,90")))
+    fun `signing out drops Pro`() {
+        purchasesResult = PurchasesResult(ok(), listOf(purchase(Purchase.PurchaseState.PURCHASED, acked = true)))
+        val r = repo()
+        awaitStatus(r, SubscriptionStatus.PRO)
 
-        assertEquals("R$ 9,90", runBlocking { repo().queryFormattedPrice() })
+        accountState.value = null
+
+        awaitStatus(r, SubscriptionStatus.FREE)
     }
 
     @Test
-    fun `queryFormattedPrice is null when product or offer is missing`() {
+    fun `switching to another account drops the previous account's Pro`() {
+        purchasesResult = PurchasesResult(ok(), listOf(purchase(Purchase.PurchaseState.PURCHASED, acked = true)))
         val r = repo()
-        assertNull(runBlocking { r.queryFormattedPrice() })
+        awaitStatus(r, SubscriptionStatus.PRO)
 
-        productsResult = ProductDetailsResult(ok(), listOf(details(offerToken = null)))
-        assertNull(runBlocking { r.queryFormattedPrice() })
+        accountState.value = AuthenticatedUser(id = OTHER_ACCOUNT)
+        runBlocking { r.refresh() }
+
+        assertEquals(SubscriptionStatus.FREE, runBlocking { r.observeStatus().first() })
+    }
+
+    @Test
+    fun `queryPlans returns the known base plans in order from a single product query`() {
+        productsResult = ProductDetailsResult(
+            ok(),
+            listOf(
+                details(
+                    offer(BillingConstants.BASE_PLAN_ANNUAL, phases = listOf("R$ 99,90")),
+                    offer(BillingConstants.BASE_PLAN_MONTHLY, phases = listOf("R$ 9,90")),
+                    offer(BillingConstants.BASE_PLAN_SEMIANNUAL, phases = listOf("R$ 49,90"))
+                )
+            )
+        )
+
+        val plans = runBlocking { repo().queryPlans() }
+
+        assertEquals(
+            listOf(
+                BillingConstants.BASE_PLAN_MONTHLY,
+                BillingConstants.BASE_PLAN_SEMIANNUAL,
+                BillingConstants.BASE_PLAN_ANNUAL
+            ),
+            plans.map { it.basePlanId }
+        )
+        assertEquals(listOf("R$ 9,90", "R$ 49,90", "R$ 99,90"), plans.map { it.formattedPrice })
+        coVerify(exactly = 1) { client.queryProductDetails(any<QueryProductDetailsParams>()) }
+    }
+
+    @Test
+    fun `queryPlans prices each plan by its recurring phase, never its trial`() {
+        productsResult = ProductDetailsResult(
+            ok(),
+            listOf(details(offer(BillingConstants.BASE_PLAN_ANNUAL, phases = listOf("R$ 0,00", "R$ 99,90"))))
+        )
+
+        val plan = runBlocking { repo().queryPlans() }.single()
+
+        assertEquals("R$ 99,90", plan.formattedPrice)
+    }
+
+    @Test
+    fun `queryPlans ignores unknown base plans and promotional offers`() {
+        productsResult = ProductDetailsResult(
+            ok(),
+            listOf(
+                details(
+                    offer("legacy-plan"),
+                    offer(BillingConstants.BASE_PLAN_MONTHLY, offerId = "promo")
+                )
+            )
+        )
+
+        assertTrue(runBlocking { repo().queryPlans() }.isEmpty())
+    }
+
+    @Test
+    fun `queryPlans is empty when the product is missing`() {
+        assertTrue(runBlocking { repo().queryPlans() }.isEmpty())
+    }
+
+    @Test
+    fun `purchase returns ITEM_UNAVAILABLE when no account is signed in`() {
+        accountState.value = null
+
+        val result = runBlocking { repo().purchase(mockk<Activity>()) }
+
+        assertEquals(BillingClient.BillingResponseCode.ITEM_UNAVAILABLE, result.responseCode)
+        verify(exactly = 0) { client.launchBillingFlow(any(), any<BillingFlowParams>()) }
     }
 
     @Test
@@ -215,7 +374,7 @@ class PlayBillingSubscriptionRepositoryTest {
 
     @Test
     fun `purchase returns ITEM_UNAVAILABLE when the product has no offer`() {
-        productsResult = ProductDetailsResult(ok(), listOf(details(offerToken = null)))
+        productsResult = ProductDetailsResult(ok(), listOf(details()))
 
         val result = runBlocking { repo().purchase(mockk<Activity>()) }
 
@@ -223,18 +382,60 @@ class PlayBillingSubscriptionRepositoryTest {
     }
 
     @Test
-    fun `purchase launches the billing flow and returns its result`() {
+    fun `purchase launches the billing flow bound to the signed-in account and returns its result`() {
         // Billing's param builders call TextUtils.isEmpty, which is a stub in plain JVM tests.
         mockkStatic(TextUtils::class)
         every { TextUtils.isEmpty(any()) } answers { firstArg<CharSequence?>().isNullOrEmpty() }
-        productsResult = ProductDetailsResult(ok(), listOf(details()))
+        productsResult = ProductDetailsResult(ok(), listOf(details(offer())))
         val activity = mockk<Activity>()
         val flowResult = ok()
-        every { client.launchBillingFlow(activity, any<BillingFlowParams>()) } returns flowResult
+        // This Billing Library version exposes no getter for the obfuscated id, so the binding is
+        // asserted on the builder call instead.
+        val flowBuilder = mockk<BillingFlowParams.Builder>()
+        val flowParams = mockk<BillingFlowParams>()
+        mockkStatic(BillingFlowParams::class)
+        every { BillingFlowParams.newBuilder() } returns flowBuilder
+        every { flowBuilder.setProductDetailsParamsList(any()) } returns flowBuilder
+        every { flowBuilder.setObfuscatedAccountId(ACCOUNT) } returns flowBuilder
+        every { flowBuilder.build() } returns flowParams
+        every { client.launchBillingFlow(activity, flowParams) } returns flowResult
 
         val result = runBlocking { repo().purchase(activity) }
 
         assertEquals(flowResult, result)
+        verify { flowBuilder.setObfuscatedAccountId(ACCOUNT) }
+    }
+
+    @Test
+    fun `purchase with a base plan buys the offer token of that base plan`() {
+        productsResult = ProductDetailsResult(
+            ok(),
+            listOf(
+                details(
+                    offer(BillingConstants.BASE_PLAN_MONTHLY, token = "token-monthly"),
+                    offer(BillingConstants.BASE_PLAN_ANNUAL, token = "token-annual")
+                )
+            )
+        )
+        val activity = mockk<Activity>()
+        val productParamsBuilder = mockk<BillingFlowParams.ProductDetailsParams.Builder>()
+        mockkStatic(BillingFlowParams.ProductDetailsParams::class)
+        every { BillingFlowParams.ProductDetailsParams.newBuilder() } returns productParamsBuilder
+        every { productParamsBuilder.setProductDetails(any()) } returns productParamsBuilder
+        every { productParamsBuilder.setOfferToken(any()) } returns productParamsBuilder
+        every { productParamsBuilder.build() } returns mockk()
+        val flowBuilder = mockk<BillingFlowParams.Builder>()
+        mockkStatic(BillingFlowParams::class)
+        every { BillingFlowParams.newBuilder() } returns flowBuilder
+        every { flowBuilder.setProductDetailsParamsList(any()) } returns flowBuilder
+        every { flowBuilder.setObfuscatedAccountId(any()) } returns flowBuilder
+        every { flowBuilder.build() } returns mockk()
+        every { client.launchBillingFlow(any(), any<BillingFlowParams>()) } returns ok()
+
+        runBlocking { repo().purchase(activity, basePlanId = BillingConstants.BASE_PLAN_ANNUAL) }
+
+        verify { productParamsBuilder.setOfferToken("token-annual") }
+        verify(exactly = 0) { productParamsBuilder.setOfferToken("token-monthly") }
     }
 
     @Test
@@ -289,7 +490,7 @@ class PlayBillingSubscriptionRepositoryTest {
     }
 
     @Test
-    fun `queryFormattedPrice returns null when connection cannot be established`() {
+    fun `queryPlans is empty when connection cannot be established`() {
         ready = false
         every { client.startConnection(any()) } answers {
             firstArg<BillingClientStateListener>().onBillingSetupFinished(
@@ -298,8 +499,7 @@ class PlayBillingSubscriptionRepositoryTest {
         }
         val r = repo()
 
-        val price = runBlocking { r.queryFormattedPrice() }
-        assertNull(price)
+        assertTrue(runBlocking { r.queryPlans() }.isEmpty())
     }
 
     @Test

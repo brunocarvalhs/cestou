@@ -48,6 +48,8 @@ import kotlin.time.TimeSource
 
 private const val MIN_RESPONSES_FOR_CSAT = 2
 private const val PROVIDER_NONE = "none"
+private const val SOURCE_CHIP = "chip"
+private const val SOURCE_ITEM = "item"
 
 @HiltViewModel
 class AiChatViewModel @Inject constructor(
@@ -130,6 +132,18 @@ class AiChatViewModel @Inject constructor(
         /** A decisão é reportada pelo agente (`ai_tool_confirmation_resolved`), que também vê tempo esgotado. */
         onApprove = { aiSession.resolveApproval(ApprovalDecision.APPROVED) },
         onReject = { aiSession.resolveApproval(ApprovalDecision.REJECTED) },
+        onSuggestionClick = { text ->
+            telemetry.suggestionClicked(SOURCE_CHIP)
+            sendMessage(text, fromInput = false)
+        },
+        /** Pedir à IA reaproveita as ferramentas de lista dela, sem o chat depender de `feature:shopping`. */
+        onAddItems = { items ->
+            if (items.isNotEmpty()) {
+                if (items.size == 1) telemetry.suggestionClicked(SOURCE_ITEM) else telemetry.batchItemsAdded(items.size)
+                val prompt = context.getString(R.string.ai_chat_add_items_prompt, items.joinToString(", "))
+                sendMessage(prompt, fromInput = false)
+            }
+        },
         /** Fechar o chat é o momento do CSAT; a pesquisa só abre num destino estável. */
         onClose = {
             if (assistantResponses >= MIN_RESPONSES_FOR_CSAT) {
@@ -217,14 +231,18 @@ class AiChatViewModel @Inject constructor(
         loadSession(id)
     }
 
-    private fun sendMessage() {
-        val text = _uiState.value.input
+    /**
+     * [fromInput] é falso para texto que não veio do campo (chips e ações de itens): o rascunho
+     * digitado continua lá e a origem por voz não é consumida.
+     */
+    private fun sendMessage(text: String = _uiState.value.input, fromInput: Boolean = true) {
         // Guards against a second concurrent send while the assistant is still answering the
         // first one — the send/mic buttons already disable on isLoading, this is the ViewModel-
         // side backstop (sdd-017, B-06).
         if (text.isBlank() || _uiState.value.isLoading) return
 
-        telemetry.messageSent(text.length, voice.consumeInputFromVoice(), !_uiState.value.shoppingId.isNullOrBlank())
+        val fromVoice = fromInput && voice.consumeInputFromVoice()
+        telemetry.messageSent(text.length, fromVoice, !_uiState.value.shoppingId.isNullOrBlank())
         val sentAt = TimeSource.Monotonic.markNow()
         aiSession.fallbackUsedThisTurn = false
 
@@ -232,7 +250,7 @@ class AiChatViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 messages = it.messages + userMessage,
-                input = "",
+                input = if (fromInput) "" else it.input,
                 isLoading = true,
             )
         }

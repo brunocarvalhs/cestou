@@ -3,7 +3,8 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.wear.viewmode
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
+import br.com.brunocarvalhs.howmuch.core.analytics.contract.AnalyticsTracker
+import br.com.brunocarvalhs.howmuch.core.analytics.model.AnalyticsEvents
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.ProductActivity
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
@@ -12,7 +13,6 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.usecase.ProductsUseCase
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.core.navigation.wear.ShoppingDetail
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.local.WearListStore
 import br.com.brunocarvalhs.howmuch.feature.shopping.data.local.WearListSummary
@@ -31,6 +31,9 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 
+/** Nome do argumento da rota de detalhe do relógio; o grafo e este ViewModel usam a mesma chave. */
+internal const val SHOPPING_DETAIL_ARG_ID = "shoppingId"
+
 /**
  * The watch's list screen: live list + items, tap to (un)mark, add by voice or keyboard.
  * Every change is also saved as the "last list" summary that the tile and the next launch use.
@@ -41,10 +44,13 @@ internal class ShoppingDetailViewModel @Inject constructor(
     private val shoppingRepository: ShoppingRepository,
     private val productsUseCase: ProductsUseCase,
     private val authService: AuthService,
-    private val wearListStore: WearListStore
+    private val wearListStore: WearListStore,
+    private val analytics: AnalyticsTracker
 ) : ViewModel() {
 
-    private val shoppingId = savedStateHandle.toRoute<ShoppingDetail>().shoppingId
+    private val shoppingId: String = checkNotNull(savedStateHandle.get<String>(SHOPPING_DETAIL_ARG_ID)) {
+        "ShoppingDetailViewModel needs the $SHOPPING_DETAIL_ARG_ID route argument"
+    }
     private var _navigator: Navigator? = null
 
     private val _uiState = MutableStateFlow(ShoppingDetailUiState(isLoading = true))
@@ -53,10 +59,12 @@ internal class ShoppingDetailViewModel @Inject constructor(
     val intent = ShoppingDetailIntent(
         onBack = { _navigator?.goBack() },
         onToggle = ::toggle,
-        onAddItem = ::addItem
+        onAddItem = ::addItem,
+        onSaveDetails = ::saveDetails
     )
 
     init {
+        analytics.trackEvent(AnalyticsEvents.WEAR_LIST_OPENED)
         observeList()
     }
 
@@ -95,6 +103,15 @@ internal class ShoppingDetailViewModel @Inject constructor(
             if (it.isPurchased && userId != null) it.withActivity(ProductActivity.Action.PURCHASED, userId) else it
         }
         // ponytail: no price prompt on the watch; an unpriced item is just marked and adds 0 to the total.
+        analytics.trackEvent(AnalyticsEvents.WEAR_PRODUCT_PURCHASED_TOGGLED, mapOf("purchased" to updated.isPurchased))
+        viewModelScope.launch { productsUseCase.update(updated, shoppingId) }
+    }
+
+    /** Grava o valor e a quantidade digitados no relógio, registrando a edição no histórico do produto. */
+    private fun saveDetails(product: Product) {
+        val userId = authService.currentUser?.id
+        val updated = userId?.let { product.withActivity(ProductActivity.Action.EDITED, it) } ?: product
+        analytics.trackEvent(AnalyticsEvents.WEAR_PRODUCT_VALUE_SAVED)
         viewModelScope.launch { productsUseCase.update(updated, shoppingId) }
     }
 
@@ -104,6 +121,7 @@ internal class ShoppingDetailViewModel @Inject constructor(
         val product = Product(id = UUID.randomUUID().toString(), name = name, quantity = 1.0).let { new ->
             authService.currentUser?.id?.let { new.withActivity(ProductActivity.Action.ADDED, it) } ?: new
         }
+        analytics.trackEvent(AnalyticsEvents.WEAR_ITEM_ADDED)
         viewModelScope.launch { productsUseCase.save(product, shoppingId) }
     }
 

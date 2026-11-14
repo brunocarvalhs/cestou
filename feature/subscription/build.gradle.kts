@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
     implementation(project(":core:billing"))
+    implementation(project(":core:remote-config"))
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material.icons.core)

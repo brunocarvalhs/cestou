@@ -220,9 +220,9 @@ class ArchitectureTest {
 
         val CORE_LAYERS = setOf(
             "annotation", "base", "budget", "cloud", "components", "contract", "di", "dragdrop", "entity",
-            "exception", "extensions", "initializer", "mobile", "model", "network", "registry",
-            "repository", "security", "service", "services", "usecase", "util", "utils", "wear",
-            "wearable",
+            "exception", "extensions", "functions", "initializer", "mobile", "model", "modifiers", "network",
+            "prompt", "registry", "repository", "retry", "security", "service", "services", "usecase",
+            "util", "utils", "wear", "wearable",
         )
 
         val PLATFORM_PREFIXES = listOf("android.", "androidx.", "com.google.firebase.", "com.firebase.")
@@ -259,7 +259,6 @@ class ArchitectureTest {
             "DataSettingsIntent.onReauthConfirmed",
             "DataSettingsIntent.onReauthDismissed",
             "HistoryIntent.onRetry",
-            "LinkWearIntent.onCodeChange",
             "ManageSubscriptionIntent.onBack",
             "NotificationSettingsIntent.onBack",
             "NotificationsIntent.onBack",
@@ -278,9 +277,7 @@ class ArchitectureTest {
             "ProductPhotoIntent.onImageCaptured",
             "ProfileIntent.onManageSubscription",
             "SettingsIntent.onBack",
-            "ShoppingDetailIntent.onAddItem",
             "ShoppingDetailIntent.onBack",
-            "ShoppingDetailIntent.onToggle",
             "ShoppingListIntent.onFetchAll",
             "ShoppingListIntent.onQueryChange",
             "ShoppingListIntent.onShowCreateSheet",

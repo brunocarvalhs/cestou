@@ -53,6 +53,15 @@ object AnalyticsEvents {
 
     const val PAYWALL_SUBSCRIBE_CLICKED = "paywall_subscribe_clicked"
     const val PAYWALL_PURCHASE_FAILED = "paywall_purchase_failed"
+
+    /** Usuário trocou o plano selecionado no paywall. Leva `plan_id`. */
+    const val PAYWALL_PLAN_SELECTED = "paywall_plan_selected"
+
+    /** Force update exigido: versão instalada abaixo de `app_min_version_code`. Leva os dois códigos. */
+    const val FORCE_UPDATE_REQUIRED = "force_update_required"
+
+    /** Force update sem atualização disponível no Play: o app ficou bloqueado com link para a Play Store. */
+    const val FORCE_UPDATE_BLOCKED = "force_update_blocked"
     const val MANAGE_SUBSCRIPTION_PLAY_STORE_OPENED = "manage_subscription_play_store_opened"
 
     // History and spending insights never carry amounts, establishments or category names.
@@ -78,6 +87,27 @@ object AnalyticsEvents {
     const val APP_FOREGROUND = "app_foreground"
     const val APP_BACKGROUND = "app_background"
     const val DEEP_LINK_OPENED = "deep_link_opened"
+
+    /** Pareamento do Wear OS (sdd-055). Nunca enviar sessão, chave, uid ou token. */
+    const val WEAR_PAIR_START = "wear_pair_start"
+    const val WEAR_PAIR_CONFIRM = "wear_pair_confirm"
+    const val WEAR_PAIR_SUCCESS = "wear_pair_success"
+    const val WEAR_PAIR_ERROR = "wear_pair_error"
+
+    /** Funcionalidades secundárias do Wear OS. Nunca enviar texto de prompt nem de notificação. */
+    const val WEAR_MENU_OPEN = "wear_menu_open"
+    const val WEAR_NOTIFICATIONS_OPEN = "wear_notifications_open"
+    const val WEAR_AI_PROMPT_SENT = "wear_ai_prompt_sent"
+    const val WEAR_AI_ACTION_CONFIRMED = "wear_ai_action_confirmed"
+
+    /** Home e detalhe da lista no relógio. Parâmetros só booleanos: nunca nome, preço ou id. */
+    const val WEAR_LIST_OPENED = "wear_list_opened"
+    const val WEAR_HOME_SHOW_ALL_TOGGLED = "wear_home_show_all_toggled"
+    const val WEAR_HOME_CREATE_ON_PHONE_CLICKED = "wear_home_create_on_phone_clicked"
+    const val WEAR_PRO_OPEN_PHONE_CLICKED = "wear_pro_open_phone_clicked"
+    const val WEAR_PRODUCT_PURCHASED_TOGGLED = "wear_product_purchased_toggled"
+    const val WEAR_ITEM_ADDED = "wear_item_added"
+    const val WEAR_PRODUCT_VALUE_SAVED = "wear_product_value_saved"
 
     /** Retenção: em quantos dias o cliente volta. */
     const val RETURNED_AFTER_DAYS = "returned_after_days"
@@ -122,6 +152,9 @@ object AnalyticsEvents {
     const val PLAN_CHANGED = "plan_changed"
     const val SUBSCRIPTION_STARTED = "subscription_started"
 
+    /** Compra no Play sem vínculo com a conta Cestou logada (sdd-058). Sem uid nem token. */
+    const val ENTITLEMENT_ACCOUNT_MISMATCH = "entitlement_account_mismatch"
+
     /** Configurações e privacidade. */
     const val SETTINGS_THEME_CHANGED = "settings_theme_changed"
     const val SETTINGS_AI_CHANGED = "settings_ai_changed"
@@ -147,6 +180,10 @@ object AnalyticsEvents {
     const val AI_SESSION_SELECTED = "ai_session_selected"
     const val AI_TRIAL_MESSAGE_USED = "ai_trial_message_used"
 
+    /** Chat proativo (sdd-040): toque num chip ou no "+" de um item, e adição em lote. Só contagens. */
+    const val AI_SUGGESTION_CLICKED = "ai_suggestion_clicked"
+    const val AI_BATCH_ITEMS_ADDED = "ai_batch_items_added"
+
     /** Satisfação (sdd-034): só nota e enums, nunca texto digitado nem conteúdo de mensagem da IA. */
     const val FEEDBACK_PROMPT_SHOWN = "feedback_prompt_shown"
     const val FEEDBACK_PROMPT_DISMISSED = "feedback_prompt_dismissed"
@@ -163,6 +200,9 @@ object AnalyticsEvents {
 object AnalyticsParams {
     const val SHOPPING_ID = "shopping_id"
     const val PRODUCT_ID = "product_id"
+    const val PLAN_ID = "plan_id"
+    const val MIN_VERSION_CODE = "min_version_code"
+    const val INSTALLED_VERSION_CODE = "installed_version_code"
     const val SEARCH_MODE = "search_mode"
     const val QUERY_LENGTH = "query_length"
     const val RESULT_COUNT = "result_count"

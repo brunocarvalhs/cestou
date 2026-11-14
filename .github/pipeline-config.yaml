@@ -29,7 +29,6 @@ paths:
 build:
   java-distribution: "temurin"
   java-version: "17"
-  gradle-version: "8.3.1"
   # Heap maior: com 3 GB o KSP2 perdia a resolução de tipos de forma intermitente (Dagger/MissingBinding e
   # "could not be resolved") nas builds limpas do CI, que passam de 800 tarefas.
   gradle_opts: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4096m -Dkotlin.daemon.jvm.options=-Xmx2048m"
@@ -107,24 +106,23 @@ build:
         - name: "debug"
           description: "Development / Internal Testing"
           gradle_task: "assembleDebug"
-          enabled: false
+          enabled: true
           path: "wear/build/outputs/apk/debug/*.apk"
           artifact_name: "HowMuch-wear-debug"
           deploy:
             firebase:
               label: "WEAR DEBUG"
-              app_id: "1:801865394084:android:3d8cd6308873dd4789c331"
         - name: "release"
           description: "Production Ready APK"
           gradle_task: "assembleRelease"
-          # Desabilitado: o AAB do wear não é publicado no Play por enquanto.
-          enabled: false
+          # Gera o AAB do wear em release.yml; o deploy sobe cada target em um job próprio
+          # (um AAB por upload), então a falha de um não afeta o outro.
+          enabled: true
           path: "wear/build/outputs/apk/release/*.apk"
           artifact_name: "HowMuch-wear-release"
           deploy:
             firebase:
               label: "WEAR RELEASE"
-              app_id: "1:801865394084:android:3d8cd6308873dd4789c331"
 # Checks run by every pipeline (PR validation, develop build, master release).
 # Adding, removing, renaming or disabling a check is a pure config change here -
 # no workflow file edits needed. `pr_comment` is optional; when set, tests.yml
@@ -179,7 +177,7 @@ coverage:
     report_path: "build/reports/kover/html/index.html"
     pr_comment:
       success: "✅ Cobertura de testes acima de 85%! Bom trabalho."
-      failure: "❌ A cobertura de testes ficou abaixo do mínimo de 85%, por favor complemente os testes."
+      failure: "❌ O job de cobertura falhou. Pode ser cobertura abaixo do mínimo de 85% ou um erro de build antes da verificação; confira o log do job antes de complementar os testes."
     step_names:
       run: "\U0001F4CA Run Coverage Verification"
       upload_report: "\U0001F4E4 Upload Coverage Report"
@@ -227,7 +225,7 @@ size_check:
   variant: "debug"
   gradle_task: "assembleDebug"
   max_increase_percent: 10
-  baseline_bytes: 189308173
+  baseline_bytes: 191277420
   pr_comment:
     success: "✅ Tamanho do APK dentro do limite."
     failure: "❌ O APK cresceu além do limite configurado (size_check.max_increase_percent) - verifique se esse aumento é esperado."

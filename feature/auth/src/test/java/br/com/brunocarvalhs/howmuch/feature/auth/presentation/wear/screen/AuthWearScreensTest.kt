@@ -1,12 +1,21 @@
 package br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.screen
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertContentDescriptionEquals
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.test.core.app.ApplicationProvider
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import br.com.brunocarvalhs.howmuch.core.common.wearable.PairingFailure
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
-import br.com.brunocarvalhs.howmuch.feature.auth.R
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingWear
+import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.state.PairingStage
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.state.PairingUiState
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.viewmodel.PairingViewModel
 import io.mockk.every
@@ -18,7 +27,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 
-// Testes de layout via Robolectric (JVM) das telas Wear de pareamento.
+// Layout tests (Robolectric, JVM) for the watch pairing screens. Selectors are testTags, not text (AGENTS §5).
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [34])
 class AuthWearScreensTest {
@@ -26,46 +35,132 @@ class AuthWearScreensTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    private fun string(id: Int) = ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
-
     private fun viewModel(state: PairingUiState) = mockk<PairingViewModel>(relaxed = true) {
         every { uiState } returns MutableStateFlow(state)
     }
 
     @Test
-    fun `pairing screen shows the code`() {
-        val navigator = mockk<Navigator>(relaxed = true)
+    fun `pairing screen shows the code the phone derived`() {
         composeTestRule.setContent {
-            PairingCodeWearScreen(viewModel = viewModel(PairingUiState(code = "123456")), navigator = navigator)
+            PairingWearScreen(
+                viewModel = viewModel(PairingUiState(stage = PairingStage.CODE, code = "BDFG HKLM")),
+                navigator = mockk(relaxed = true)
+            )
         }
-        composeTestRule.onNodeWithText("123456", substring = true).assertExists()
+
+        composeTestRule.onNodeWithTag(TAG_CODE).assertContentDescriptionEquals("BDFG HKLM")
     }
 
     @Test
-    fun `pairing screen renders while the code is loading`() {
+    fun `confirm button is shown while the code waits for the watch user`() {
         composeTestRule.setContent {
-            PairingCodeWearScreen(viewModel = viewModel(PairingUiState()), navigator = mockk(relaxed = true))
+            PairingWearScreen(
+                viewModel = viewModel(PairingUiState(stage = PairingStage.CODE, code = "BDFG HKLM")),
+                navigator = mockk(relaxed = true)
+            )
         }
-        composeTestRule.onNodeWithText(string(R.string.pairing_code_label)).assertExists()
+
+        composeTestRule.onNodeWithTag(TAG_CONFIRM).assertIsDisplayed().performClick()
+    }
+
+    @Test
+    fun `error state shows the failure and retry starts a new session`() {
+        val vm = viewModel(PairingUiState(stage = PairingStage.ERROR, failure = PairingFailure.TIMEOUT))
+        composeTestRule.setContent {
+            PairingWearScreen(viewModel = vm, navigator = mockk(relaxed = true))
+        }
+
+        composeTestRule.onNodeWithTag(TAG_ERROR).assertIsDisplayed()
+        composeTestRule.onNodeWithTag(TAG_RETRY).performClick()
+
+        verify(atLeast = 2) { vm.start() }
+    }
+
+    @Test
+    fun `connecting and syncing show the progress screen`() {
+        val vm = viewModel(PairingUiState(stage = PairingStage.CONNECTING))
+        composeTestRule.setContent {
+            PairingWearScreen(viewModel = vm, navigator = mockk(relaxed = true))
+        }
+        composeTestRule.onNodeWithTag(TAG_ROOT).assertIsDisplayed()
+    }
+
+    @Test
+    fun `the error actions scroll into view on a small watch`() {
+        composeTestRule.setContent {
+            SmallWatch {
+                PairingWearScreen(
+                    viewModel = viewModel(PairingUiState(stage = PairingStage.ERROR, failure = PairingFailure.TIMEOUT)),
+                    navigator = mockk(relaxed = true)
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag(TAG_EXIT).performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun `the link phone action scrolls into view on a small watch`() {
+        composeTestRule.setContent {
+            SmallWatch {
+                LinkPhoneWearScreen(navigator = mockk(relaxed = true))
+            }
+        }
+
+        composeTestRule.onNodeWithTag(TAG_LINK_PHONE).performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun `an error without a known failure falls back to the timeout message`() {
+        composeTestRule.setContent {
+            PairingWearScreen(
+                viewModel = viewModel(PairingUiState(stage = PairingStage.ERROR, failure = null)),
+                navigator = mockk(relaxed = true)
+            )
+        }
+        composeTestRule.onNodeWithTag(TAG_ERROR).assertIsDisplayed()
     }
 
     @Test
     fun `pairing screen navigates away once linked`() {
         val navigator = mockk<Navigator>(relaxed = true)
         composeTestRule.setContent {
-            PairingCodeWearScreen(viewModel = viewModel(PairingUiState(isLinked = true)), navigator = navigator)
+            PairingWearScreen(
+                viewModel = viewModel(PairingUiState(stage = PairingStage.SYNCING, isLinked = true)),
+                navigator = navigator
+            )
         }
         composeTestRule.waitForIdle()
+
         verify { navigator.navigate(any(), any()) }
     }
 
     @Test
-    fun `link phone screen navigates to the pairing code`() {
+    fun `link phone screen navigates to the watch pairing`() {
         val navigator = mockk<Navigator>(relaxed = true)
         composeTestRule.setContent {
-            LinkPhoneWearScreen(viewModel = viewModel(PairingUiState()), navigator = navigator)
+            LinkPhoneWearScreen(navigator = navigator)
         }
-        composeTestRule.onNodeWithText(string(R.string.wear_link_phone)).performClick()
-        verify { navigator.navigate(any(), any()) }
+        composeTestRule.onNodeWithTag(TAG_LINK_PHONE).performClick()
+
+        verify { navigator.navigate(PairingWear::class.java.name, any()) }
+    }
+
+    /** A small round watch: content taller than this must scroll. */
+    @Composable
+    private fun SmallWatch(content: @Composable () -> Unit) {
+        Box(modifier = Modifier.size(SMALL_WATCH_DP)) { content() }
+    }
+
+    private companion object {
+        val SMALL_WATCH_DP = 180.dp
+
+        const val TAG_ROOT = "wear_pair_root"
+        const val TAG_CODE = "wear_pair_code"
+        const val TAG_CONFIRM = "wear_pair_confirm"
+        const val TAG_ERROR = "wear_pair_error"
+        const val TAG_RETRY = "wear_pair_retry"
+        const val TAG_EXIT = "wear_pair_exit"
+        const val TAG_LINK_PHONE = "wear_link_phone"
     }
 }

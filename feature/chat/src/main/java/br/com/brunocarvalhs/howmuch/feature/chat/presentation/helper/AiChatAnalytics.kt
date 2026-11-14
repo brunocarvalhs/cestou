@@ -94,6 +94,15 @@ internal class AiChatAnalytics(
         )
     }
 
+    /** [source] é `chip` ou `item`; nunca o texto sugerido. */
+    fun suggestionClicked(source: String) {
+        analyticsTracker.trackEvent(AnalyticsEvents.AI_SUGGESTION_CLICKED, mapOf(AnalyticsParams.SOURCE to source))
+    }
+
+    fun batchItemsAdded(count: Int) {
+        analyticsTracker.trackEvent(AnalyticsEvents.AI_BATCH_ITEMS_ADDED, mapOf(AnalyticsParams.ITEMS_COUNT to count))
+    }
+
     fun trialMessageUsed() = analyticsTracker.trackEvent(AnalyticsEvents.AI_TRIAL_MESSAGE_USED)
 
     fun responseFailed(error: Exception) {

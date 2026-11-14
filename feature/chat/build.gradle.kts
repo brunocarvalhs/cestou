@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":core:data"))
     implementation(project(":core:ai"))
+    implementation(project(":core:remote-config"))
 
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.foundation.layout)

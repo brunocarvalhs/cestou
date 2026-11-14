@@ -7,7 +7,13 @@
     <string name="paywall_benefit_share">Comparte listas con quien quieras</string>
     <string name="paywall_benefit_qr_code">Invita por código QR</string>
     <string name="paywall_benefit_wear">Usa Cestou en tu reloj Wear OS</string>
-    <string name="paywall_subscribe_button">Suscribirse por %1$s/mes</string>
+    <string name="paywall_subscribe_button">Suscribirse por %1$s</string>
+    <string name="paywall_plan_monthly_name">Mensual</string>
+    <string name="paywall_plan_monthly_price">%1$s / mes</string>
+    <string name="paywall_plan_semiannual_name">Semestral</string>
+    <string name="paywall_plan_semiannual_price">%1$s / 6 meses</string>
+    <string name="paywall_plan_annual_name">Anual</string>
+    <string name="paywall_plan_annual_price">%1$s / año</string>
     <string name="paywall_subscribe_button_no_price">Suscribirse</string>
     <string name="paywall_already_pro">Ya eres suscriptor Pro.</string>
     <string name="paywall_error_prefix">Error en la compra: %1$s</string>

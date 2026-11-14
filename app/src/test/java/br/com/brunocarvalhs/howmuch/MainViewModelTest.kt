@@ -22,7 +22,10 @@ import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
+import br.com.brunocarvalhs.howmuch.deeplink.DeepLinkParserImpl
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
+import br.com.brunocarvalhs.howmuch.session.SessionSyncImpl
+import br.com.brunocarvalhs.howmuch.wear.WearSubscriptionSync
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -52,6 +55,7 @@ class MainViewModelTest {
     private val authService = mockk<AuthService>()
     private val analyticsTracker = mockk<AnalyticsTracker>(relaxed = true)
     private val wearableSyncService = mockk<WearableSyncService>(relaxed = true)
+    private val wearSubscriptionSync = mockk<WearSubscriptionSync>(relaxed = true)
     private val userRepository = mockk<UserRepository> {
         coEvery { saveProfile(any()) } returns Result.success(Unit)
     }
@@ -88,14 +92,14 @@ class MainViewModelTest {
             savedStateHandle,
             settingsRepository,
             authService,
-            userRepository,
             analyticsTracker,
             wearableSyncService,
-            aiSession,
             userPropertiesSync,
             appUsageTracker,
             feedbackPromptRequester,
-            chatTurnTracker
+            wearSubscriptionSync,
+            SessionSyncImpl(authService, userRepository, wearableSyncService, chatTurnTracker, aiSession),
+            DeepLinkParserImpl(analyticsTracker)
         )
     }
 
@@ -259,7 +263,7 @@ class MainViewModelTest {
     // region deep link join token (sdd-004-navigator-deeplink)
 
     private fun inviteIntent(token: String?, path: List<String> = listOf("join", token.orEmpty())): Intent {
-        val uri = mockk<Uri> {
+        val uri = mockk<Uri>(relaxed = true) {
             every { host } returns InviteLink.HOST
             every { pathSegments } returns path
             every { getQueryParameter("token") } returns null
@@ -270,8 +274,20 @@ class MainViewModelTest {
         }
     }
 
+    private fun subscriptionIntent(): Intent {
+        val uri = mockk<Uri>(relaxed = true) {
+            every { scheme } returns "cestou"
+            every { host } returns "subscription"
+            every { pathSegments } returns emptyList()
+        }
+        return mockk {
+            every { action } returns Intent.ACTION_VIEW
+            every { data } returns uri
+        }
+    }
+
     private fun chatIntent(sessionId: String?): Intent {
-        val uri = mockk<Uri> {
+        val uri = mockk<Uri>(relaxed = true) {
             every { scheme } returns "cestou"
             every { host } returns "chat"
             every { pathSegments } returns listOfNotNull(sessionId)
@@ -311,6 +327,25 @@ class MainViewModelTest {
     }
 
     @Test
+    fun `onDeepLink marks the paywall as requested from a watch subscription link`() {
+        val vm = viewModel()
+
+        vm.onDeepLink(subscriptionIntent())
+
+        assertTrue(vm.pendingPaywall.requested.value)
+    }
+
+    @Test
+    fun `the paywall request is consumed once`() {
+        val vm = viewModel()
+        vm.onDeepLink(subscriptionIntent())
+
+        vm.pendingPaywall.consume()
+
+        assertFalse(vm.pendingPaywall.requested.value)
+    }
+
+    @Test
     fun `onDeepLink stores the token from a matching invite link`() {
         val vm = viewModel()
 
@@ -335,7 +370,7 @@ class MainViewModelTest {
     @Test
     fun `onDeepLink ignores a VIEW intent for an unrelated link`() {
         val vm = viewModel()
-        val uri = mockk<Uri> {
+        val uri = mockk<Uri>(relaxed = true) {
             every { host } returns "example.com"
             every { pathSegments } returns listOf("other")
         }
