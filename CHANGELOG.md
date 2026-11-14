@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.7.1] - 2026-11-14
+
+* Merge pull request #306 from brunocarvalhs/hotfix/wear-version-code-master
+* fix(wear): versionCode do wear em faixa própria na master
+
+
 ## [2.7.0] - 2026-11-13
 
 ### Novidades
