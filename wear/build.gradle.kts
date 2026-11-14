@@ -44,7 +44,7 @@ android {
         applicationId = "br.com.brunocarvalhs.howmuch"
         minSdk = 30
         targetSdk = 37
-        versionCode = 17
+        versionCode = 18
         versionName = "1.0"
     }
 
