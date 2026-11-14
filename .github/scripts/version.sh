@@ -118,13 +118,10 @@ sed -i.bak "s/versionName = \"$current_version\"/versionName = \"$new_version\"/
 sed -i.bak "s/versionCode = $current_version_code/versionCode = $new_version_code/" "$GRADLE_FILE"
 rm -f "${GRADLE_FILE}.bak"
 
-# O módulo wear compartilha o applicationId com o app, mas tem contador de
-# versionCode próprio: incrementa a partir do seu valor atual, independente do
-# app. Assim o upload dele nunca reaproveita um código já usado no Play.
-wear_current_version_code=$(grep "versionCode = " "$WEAR_GRADLE_FILE" | sed 's/.*versionCode = \([0-9]*\).*/\1/')
-wear_new_version_code=$((wear_current_version_code + 1))
-sed -i.bak "s/versionCode = $wear_current_version_code/versionCode = $wear_new_version_code/" "$WEAR_GRADLE_FILE"
-rm -f "${WEAR_GRADLE_FILE}.bak"
+# O wear não tem contador próprio: o versionCode dele é derivado do celular
+# (100000 + versionCode do app, em wear/build.gradle.kts). Já foi bumpado no
+# passo acima, então não mexemos no arquivo do wear aqui. Incrementar o número
+# literal quebraria a fórmula e reaproveitaria códigos já usados no Play.
 
 # 6️⃣ Atualiza o CHANGELOG.md
 today=$(date +%Y-%m-%d)
