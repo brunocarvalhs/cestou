@@ -279,6 +279,8 @@ jobs:
         run: curl -sL https://firebase.tools | bash
 
       - name: ${{ needs.prepare.outputs.step_deploy_distribute }}
+        env:
+          FIREBASE_APP_ID_WEAR: ${{ secrets.FIREBASE_APP_ID_WEAR }}
         run: |
           RAW_NOTES=$(yq '.release.firebase.release_notes // "release automatica"' .github/pipeline-config.yaml)
 
@@ -289,8 +291,19 @@ jobs:
           while IFS= read -r VARIANT; do
             LABEL=$(echo "$VARIANT" | jq -r '.deploy.firebase.label')
             APP_ID=$(echo "$VARIANT" | jq -r '.deploy.firebase.app_id // empty')
+            APP_ID_SECRET=$(echo "$VARIANT" | jq -r '.deploy.firebase.app_id_secret // empty')
 
-            if [ -z "$APP_ID" ]; then
+            # Target com app próprio no Firebase: lê o secret indicado pela config.
+            # Se o secret não existir, pula em vez de cair no app do celular.
+            if [ -z "$APP_ID" ] && [ -n "$APP_ID_SECRET" ]; then
+              APP_ID="${!APP_ID_SECRET:-}"
+              if [ -z "$APP_ID" ]; then
+                echo "::warning::Secret $APP_ID_SECRET não definido - $LABEL não será distribuído."
+                continue
+              fi
+            fi
+
+            if [ -z "$APP_ID" ] && [ -z "$APP_ID_SECRET" ]; then
               # Fallback to secret if not defined in the target/variant
               APP_ID="${{ secrets.FIREBASE_APP_ID }}"
             fi

@@ -30,6 +30,7 @@ The following secrets must be configured in your GitHub repository (`Settings > 
 | `KEY_PASSWORD` | Password for the specific signing key. |
 | `FIREBASE_AUTH_TOKEN` | Token generated via `firebase login:ci`. |
 | `FIREBASE_APP_ID` | The App ID from Firebase Console (can be overridden in config). |
+| `FIREBASE_APP_ID_WEAR` | App ID do app Wear no Firebase Console. Usado pelo target `wear` (via `deploy.firebase.app_id_secret`). Se não existir, o wear não é distribuído. Precisa ser de um app Android com o **mesmo package** do APK (`br.com.brunocarvalhs.howmuch`). |
 | `DEPLOY_SERVICE_ACCOUNT_JSON` | Google Play Service Account JSON in Base64. |
 | `DOTENV` | Content of the `.env` file for API keys and environment variables. |
 

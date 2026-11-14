@@ -112,6 +112,10 @@ build:
           deploy:
             firebase:
               label: "WEAR DEBUG"
+              # Mesmo applicationId do celular, mas app próprio no Firebase: o
+              # app_id vem do secret FIREBASE_APP_ID_WEAR. Sem o secret, o wear
+              # não é distribuído (não cai no app do celular).
+              app_id_secret: "FIREBASE_APP_ID_WEAR"
         - name: "release"
           description: "Production Ready APK"
           gradle_task: "assembleRelease"
@@ -123,6 +127,7 @@ build:
           deploy:
             firebase:
               label: "WEAR RELEASE"
+              app_id_secret: "FIREBASE_APP_ID_WEAR"
 # Checks run by every pipeline (PR validation, develop build, master release).
 # Adding, removing, renaming or disabling a check is a pure config change here -
 # no workflow file edits needed. `pr_comment` is optional; when set, tests.yml
