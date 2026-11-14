@@ -1,12 +1,16 @@
 name: Release - Prepare Release PR
 
-# Git Flow "promote to master" step: opens a PR straight from develop into
-# master - no intermediate release branch. The version is NOT bumped here:
-# release.yml bumps versionName + versionCode together on the merge into
-# master. version.sh only runs here as a dry run, to put the upcoming version
-# in the PR title (and to skip opening a PR with nothing releasable).
+# Git Flow "promote to master": keeps an open PR develop → master whenever
+# develop has commits that master does not. Runs on every push to develop and
+# on demand. The version is NOT bumped here: release.yml bumps versionName +
+# versionCode on the merge into master. This workflow only reads the current
+# versionName (app/build.gradle.kts) to name the PR.
+#
+# Merge the PR as a MERGE COMMIT (squash is blocked on master by ruleset).
 
 on:
+  push:
+    branches: [ develop ]
   workflow_dispatch:
 
 concurrency:
@@ -14,59 +18,67 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: write
 
 jobs:
   prepare:
-    name: Bump & Open Release PR
+    name: Open Release PR
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: 📥 Checkout develop
         uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
 
       - name: Load Config
         id: config
         run: |
           echo "main_branch=$(yq '.git.branches.main' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "dev_branch=$(yq '.git.branches.develop' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "step_preview_version=$(yq '.release.step_names.preview_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "step_open_pr=$(yq '.release.step_names.open_pr' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "step_noop=$(yq '.release.step_names.noop' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "gradle_file=$(yq '.paths.gradle_file' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
-      - name: ${{ steps.config.outputs.step_preview_version }}
-        id: bump
-        run: |
-          chmod +x .github/scripts/version.sh
-          new_version=$(.github/scripts/version.sh)
-          git checkout -- .
-          echo "new_version=$new_version" >> $GITHUB_OUTPUT
-
-      - name: ${{ steps.config.outputs.step_open_pr }}
-        if: steps.bump.outputs.new_version != ''
+      - name: Check develop ahead of master
+        id: ahead
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         run: |
-          MAIN_BRANCH="${{ steps.config.outputs.main_branch }}"
-          DEV_BRANCH="${{ steps.config.outputs.dev_branch }}"
-          NEW_VERSION="${{ steps.bump.outputs.new_version }}"
+          MAIN="${{ steps.config.outputs.main_branch }}"
+          DEV="${{ steps.config.outputs.dev_branch }}"
+          AHEAD=$(gh api "repos/${{ github.repository }}/compare/$MAIN...$DEV" --jq .ahead_by)
+          echo "ahead_by=$AHEAD" >> $GITHUB_OUTPUT
+          if [ "$AHEAD" -eq 0 ]; then
+            echo "::notice::$DEV não tem commits à frente de $MAIN - nada para promover."
+          fi
 
-          EXISTING=$(gh pr list --head "$DEV_BRANCH" --base "$MAIN_BRANCH" --json number --jq 'length')
+      - name: Read versionName
+        id: version
+        if: steps.ahead.outputs.ahead_by != '0'
+        run: |
+          VERSION=$(grep -m1 'versionName = ' "${{ steps.config.outputs.gradle_file }}" | sed 's/.*versionName = "\(.*\)".*/\1/')
+          if [ -z "$VERSION" ]; then
+            echo "::error::versionName não encontrado em ${{ steps.config.outputs.gradle_file }}"
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Open PR (if none open)
+        if: steps.ahead.outputs.ahead_by != '0'
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        run: |
+          MAIN="${{ steps.config.outputs.main_branch }}"
+          DEV="${{ steps.config.outputs.dev_branch }}"
+          VERSION="${{ steps.version.outputs.version }}"
+
+          EXISTING=$(gh pr list --head "$DEV" --base "$MAIN" --json number --jq 'length')
           if [ "$EXISTING" -gt 0 ]; then
-            echo "::notice::Já existe um PR aberto de $DEV_BRANCH → $MAIN_BRANCH, reaproveitando."
+            echo "::notice::Já existe um PR aberto de $DEV → $MAIN, reaproveitando."
             exit 0
           fi
 
           gh pr create \
-            --title "Release $NEW_VERSION" \
-            --body "Promove \`$DEV_BRANCH\` para \`$MAIN_BRANCH\`. Versão prevista: **$NEW_VERSION** (versionName + versionCode são incrementados juntos pelo \`release.yml\` no merge). Merge dispara \`release.yml\`: bump de versão, build, GitHub Release, gate manual, Google Play (rollout 10%) - \`sync-develop\` então mergeia \`$MAIN_BRANCH\` de volta em \`$DEV_BRANCH\`." \
-            --base "$MAIN_BRANCH" \
-            --head "$DEV_BRANCH" \
+            --title "Release $VERSION" \
+            --body "Promove \`$DEV\` para \`$MAIN\`. Versão: **$VERSION**. Fazer o merge como **merge commit** (squash bloqueado na \`$MAIN\`). O merge dispara \`release.yml\`." \
+            --base "$MAIN" \
+            --head "$DEV" \
             --label "release"
-
-      - name: ${{ steps.config.outputs.step_noop }}
-        if: steps.bump.outputs.new_version == ''
-        run: echo "::notice::Nenhum commit feat/fix/breaking desde a última release - nada para preparar."
