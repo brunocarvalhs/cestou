@@ -16,6 +16,14 @@ val canSignRelease = releaseKeystore.exists() &&
     !System.getenv("KEYSTORE_ALIAS").isNullOrBlank() &&
     !System.getenv("KEY_PASSWORD").isNullOrBlank()
 
+// Wear and phone share one applicationId, so Play needs their versionCodes to be
+// unique across both. The phone's versionCode is bumped by version.sh; wear takes
+// it and lives in its own range (100000 + phone). Phone codes stay far below
+// 100000, so the two can't collide.
+val phoneVersionCode = Regex("""versionCode\s*=\s*(\d+)""")
+    .find(rootProject.file("app/build.gradle.kts").readText())!!
+    .groupValues[1].toInt()
+
 android {
     namespace = "br.com.brunocarvalhs.howmuch.wear"
     compileSdk {
@@ -44,7 +52,7 @@ android {
         applicationId = "br.com.brunocarvalhs.howmuch"
         minSdk = 30
         targetSdk = 37
-        versionCode = 18
+        versionCode = 100_000 + phoneVersionCode
         versionName = "1.0"
     }
 
