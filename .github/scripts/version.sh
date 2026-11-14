@@ -19,9 +19,25 @@ GRADLE_FILE=$(get_config '.paths.gradle_file')
 CHANGELOG_FILE=$(get_config '.paths.changelog')
 WEAR_GRADLE_FILE="wear/build.gradle.kts"
 
-# 1️⃣ Pega a última tag (se houver)
+# 1️⃣ Versão atual (build.gradle.kts) e última tag = última release publicada
+current_version=$(grep "versionName = " "$GRADLE_FILE" | sed 's/.*versionName = "\(.*\)"/\1/')
 latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 
+# Retorna 0 se a versão $1 é maior que $2 (X.Y.Z)
+is_newer() {
+  [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n1)" = "$1" ]
+}
+
+# 2️⃣ Se a branch já traz versionName acima da última tag (ex.: a develop já
+# preparou 2.7.0 e o CHANGELOG), não há bump novo: sai sem imprimir nada, para o
+# workflow não criar commit vazio. A release usa o versionName atual.
+if [ -n "$latest_tag" ] && is_newer "$current_version" "$latest_tag"; then
+  >&2 echo "versionName $current_version já está acima da última tag $latest_tag - sem bump, usando a versão preparada."
+  exit 0
+fi
+
+# 3️⃣ Commits desde a última tag. Não filtra pelo CHANGELOG: ele é gerado pelo
+# próprio script e não diz o que já foi lançado (o que causava "nenhum bump").
 if [ -z "$latest_tag" ]; then
   >&2 echo "Nenhuma tag anterior encontrada. Lendo todos os commits."
   commit_subjects_raw=$(git log --pretty=format:"%s")
@@ -30,19 +46,16 @@ else
   commit_subjects_raw=$(git log "${latest_tag}"..HEAD --pretty=format:"%s")
 fi
 
-# 2️⃣ Filtra commits que já estão no CHANGELOG
 commit_subjects_array=()
 while IFS= read -r subject; do
-  if [ -n "$subject" ] && ! grep -qF "$subject" "$CHANGELOG_FILE" 2>/dev/null; then
+  if [ -n "$subject" ]; then
     commit_subjects_array+=("$subject")
   fi
 done <<< "$commit_subjects_raw"
 
-commit_subjects=$(printf "%s\n" "${commit_subjects_array[@]}" | sed '/^[[:space:]]*$/d')
-
-if [ -z "$commit_subjects" ]; then
-    >&2 echo "Nenhum commit novo para adicionar ao changelog. Saindo."
-    exit 0
+if [ "${#commit_subjects_array[@]}" -eq 0 ]; then
+  >&2 echo "Nenhum commit novo desde a última tag. Saindo."
+  exit 0
 fi
 
 # 2.5️⃣ Tipos que, sozinhos, não justificam uma versão nova (preset Angular /
