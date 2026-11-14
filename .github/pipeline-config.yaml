@@ -275,7 +275,8 @@ release:
     noop: "\U0001F4A4 No releasable changes"
   firebase:
     enabled: true
-    groups: "testers"
+    # Firebase App Distribution group alias (the "Alpha" group in the console).
+    groups: "alpha"
     notifications: false
     step_names:
       download_apks: "\U0001F4E5 Download APKs"
