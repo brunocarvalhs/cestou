@@ -276,7 +276,7 @@ release:
   firebase:
     enabled: true
     # Firebase App Distribution group alias (the "Alpha" group in the console).
-    groups: "alpha"
+    groups: "testers"
     notifications: false
     step_names:
       download_apks: "\U0001F4E5 Download APKs"
