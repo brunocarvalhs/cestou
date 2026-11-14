@@ -162,15 +162,16 @@ jobs:
         env:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
-  # versionName + versionCode (and CHANGELOG.md) are bumped here, together,
-  # on every merge into master - never earlier on develop - so each master
-  # build ships a versionCode the Play Store hasn't seen yet. Pushed straight
-  # to master with the admin PAT (enforce_admins is off), with [skip ci] so
-  # the bump commit doesn't re-trigger this workflow; sync-develop then
-  # carries it back into develop.
-  # Every PR merge bumps at least a patch: its "Merge pull request #N"
-  # subject is unique and isn't a non-bumping type (so a rollback PR always
-  # ships a new versionCode too). `ship` is false only when the version in
+  # versionName + versionCode (and CHANGELOG.md) are bumped by version.sh in
+  # release-pr.yml, on the release/<version> branch cut from develop - so the
+  # release PR already carries the bump when it lands in master.
+  # Merges of a release/* branch therefore skip the bump here. Any other merge
+  # into master (a hotfix, for example) still bumps and is pushed straight to
+  # master with the admin PAT (enforce_admins is off), with [skip ci] so the
+  # bump commit doesn't re-trigger this workflow; sync-develop then carries it
+  # back into develop.
+  # Non-release merges bump at least a patch: their "Merge pull request #N"
+  # subject is unique and isn't a non-bumping type. `ship` is false only when the version in
   # the file already has a tag - a re-run after the release was cut - so
   # build and deploy are skipped instead of re-uploading a used versionCode.
   # A re-run after the bump was pushed but before the tag existed ships it.
@@ -202,8 +203,16 @@ jobs:
         id: bump
         if: needs.prepare.outputs.versioning_enabled == 'true'
         run: |
-          chmod +x .github/scripts/version.sh
-          echo "new_version=$(.github/scripts/version.sh)" >> $GITHUB_OUTPUT
+          # A release/* merge already carries its bump (release-pr.yml committed
+          # it on the release branch), so bumping again would skip a versionCode.
+          # Merge commits only: a squash merge loses the branch name in its subject.
+          if git log -1 --format=%s | grep -qE '^Merge pull request #[0-9]+ from [^ ]+/release/'; then
+            echo "::notice::Merge de release/* - versão já preparada na branch de release, sem novo bump."
+            echo "new_version=" >> $GITHUB_OUTPUT
+          else
+            chmod +x .github/scripts/version.sh
+            echo "new_version=$(.github/scripts/version.sh)" >> $GITHUB_OUTPUT
+          fi
 
       - name: ${{ needs.prepare.outputs.step_commit_push_master }}
         if: steps.bump.outputs.new_version != ''

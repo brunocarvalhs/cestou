@@ -249,18 +249,19 @@ release:
   enabled: true
   command_aab: "./gradlew bundleRelease"
   # versionName/versionCode and CHANGELOG.md are bumped together by
-  # .github/scripts/version.sh in release.yml's `version` job, on every merge
-  # into master, and pushed to master as a [skip ci] commit (admin PAT) -
-  # so every master build gets a fresh versionCode. release-pr.yml only
-  # dry-runs it for the PR title. This flag toggles that bump plus the tagged
-  # GitHub Release. Disable to build/deploy a master push as-is, e.g.
-  # re-running a failed Play Store deploy for a version already released.
+  # .github/scripts/version.sh in release-pr.yml, on a release/<version> branch
+  # cut from develop - so each release PR lands in master already bumped and
+  # every master build gets a fresh versionCode. release.yml's `version` job
+  # skips its bump for release/* merges, and bumps (with the admin PAT and a
+  # [skip ci] commit) only for other merges into master, e.g. hotfixes. This
+  # flag toggles the bump plus the tagged GitHub Release. Disable to build/deploy
+  # a master push as-is, e.g. re-running a failed Play Store deploy for a
+  # version already released.
   versioning:
     enabled: true
   # Step names for release.yml's `build`/`release` jobs, plus release-pr.yml
-  # (which has no section of its own - it's the "prepare a release" half of
-  # this same release process, just running pre-merge on develop instead of
-  # post-merge on master).
+  # (the automatic "prepare a release" half of this process: it runs on each
+  # push to develop and opens release/<version> -> master).
   step_names:
     build_aab: "\U0001F3D7️ Build AAB"
     upload_aab: "\U0001F4E4 Upload AAB Artifact"
@@ -270,11 +271,11 @@ release:
     bump_version: "\U0001F522 Bump version and changelog"
     commit_push_master: "\U0001F4E4 Commit and push version bump to master"
     # release-pr.yml
-    preview_version: "\U0001F522 Preview next version"
-    open_pr: "\U0001F500 Open PR develop → master"
+    create_release_branch: "\U0001F33F Cut release branch and open PR → master"
     noop: "\U0001F4A4 No releasable changes"
   firebase:
     enabled: true
+    # Firebase App Distribution group alias (the "Alpha" group in the console).
     groups: "testers"
     notifications: false
     step_names:
