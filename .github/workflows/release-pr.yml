@@ -1,12 +1,22 @@
-name: Release - Prepare Release PR
+name: Release - Prepare Release Branch
 
-# Git Flow "promote to master" step: opens a PR straight from develop into
-# master - no intermediate release branch. The version is NOT bumped here:
-# release.yml bumps versionName + versionCode together on the merge into
-# master. version.sh only runs here as a dry run, to put the upcoming version
-# in the PR title (and to skip opening a PR with nothing releasable).
+# Git Flow "release" step, automatic. On every push to develop, version.sh
+# picks the next version from the commits since the last tag. If there is
+# something releasable and no release PR is open yet, it cuts
+# release/<version> from develop, commits the bump (versionName + versionCode
+# + CHANGELOG.md) on that branch and opens release/<version> -> master.
+#
+# Merging that PR is what ships: release.yml builds, tags and deploys master,
+# then sync-develop carries master back into develop. release.yml does not bump
+# again for merges coming from a release/* branch - the version is already in
+# the branch.
+#
+# The release commit has no [skip ci] on purpose: the release PR must run the
+# gates (tests, lint, coverage) before it can be merged.
 
 on:
+  push:
+    branches: [develop]
   workflow_dispatch:
 
 concurrency:
@@ -20,6 +30,7 @@ permissions:
 jobs:
   prepare:
     name: Bump & Open Release PR
+    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -27,44 +38,64 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          token: ${{ secrets.TOKEN }}
 
       - name: Load Config
         id: config
         run: |
           echo "main_branch=$(yq '.git.branches.main' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "dev_branch=$(yq '.git.branches.develop' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "step_preview_version=$(yq '.release.step_names.preview_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "step_open_pr=$(yq '.release.step_names.open_pr' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "bot_name=$(yq '.git.bot_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "bot_email=$(yq '.git.bot_email' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "gradle_file=$(yq '.paths.gradle_file' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "changelog=$(yq '.paths.changelog' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_bump_version=$(yq '.release.step_names.bump_version' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "step_create_branch=$(yq '.release.step_names.create_release_branch' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_noop=$(yq '.release.step_names.noop' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
 
-      - name: ${{ steps.config.outputs.step_preview_version }}
+      - name: ${{ steps.config.outputs.step_bump_version }}
         id: bump
         run: |
           chmod +x .github/scripts/version.sh
-          new_version=$(.github/scripts/version.sh)
-          git checkout -- .
-          echo "new_version=$new_version" >> $GITHUB_OUTPUT
+          echo "new_version=$(.github/scripts/version.sh)" >> "$GITHUB_OUTPUT"
 
-      - name: ${{ steps.config.outputs.step_open_pr }}
+      - name: ${{ steps.config.outputs.step_create_branch }}
         if: steps.bump.outputs.new_version != ''
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          MAIN_BRANCH: ${{ steps.config.outputs.main_branch }}
+          BOT_NAME: ${{ steps.config.outputs.bot_name }}
+          BOT_EMAIL: ${{ steps.config.outputs.bot_email }}
+          GRADLE_FILE: ${{ steps.config.outputs.gradle_file }}
+          CHANGELOG: ${{ steps.config.outputs.changelog }}
+          NEW_VERSION: ${{ steps.bump.outputs.new_version }}
         run: |
-          MAIN_BRANCH="${{ steps.config.outputs.main_branch }}"
-          DEV_BRANCH="${{ steps.config.outputs.dev_branch }}"
-          NEW_VERSION="${{ steps.bump.outputs.new_version }}"
+          RELEASE_BRANCH="release/$NEW_VERSION"
 
-          EXISTING=$(gh pr list --head "$DEV_BRANCH" --base "$MAIN_BRANCH" --json number --jq 'length')
-          if [ "$EXISTING" -gt 0 ]; then
-            echo "::notice::Já existe um PR aberto de $DEV_BRANCH → $MAIN_BRANCH, reaproveitando."
+          # One release PR at a time: a new one would duplicate the open one.
+          OPEN=$(gh pr list --base "$MAIN_BRANCH" --state open --json headRefName \
+            --jq '[.[] | select(.headRefName | startswith("release/"))] | length')
+          if [ "$OPEN" -gt 0 ]; then
+            echo "::notice::Já existe um PR de release aberto para $MAIN_BRANCH - nada novo a preparar."
             exit 0
           fi
 
+          if git ls-remote --exit-code --heads origin "$RELEASE_BRANCH" >/dev/null 2>&1; then
+            echo "::notice::$RELEASE_BRANCH já existe no remoto - nada novo a preparar."
+            exit 0
+          fi
+
+          git config user.name "$BOT_NAME"
+          git config user.email "$BOT_EMAIL"
+          git checkout -b "$RELEASE_BRANCH"
+          git add "$GRADLE_FILE" wear/build.gradle.kts "$CHANGELOG"
+          git commit -m "chore(release): prepare $NEW_VERSION"
+          git push origin "$RELEASE_BRANCH"
+
           gh pr create \
             --title "Release $NEW_VERSION" \
-            --body "Promove \`$DEV_BRANCH\` para \`$MAIN_BRANCH\`. Versão prevista: **$NEW_VERSION** (versionName + versionCode são incrementados juntos pelo \`release.yml\` no merge). Merge dispara \`release.yml\`: bump de versão, build, GitHub Release, gate manual, Google Play (rollout 10%) - \`sync-develop\` então mergeia \`$MAIN_BRANCH\` de volta em \`$DEV_BRANCH\`." \
+            --body "Promove \`$RELEASE_BRANCH\` para \`$MAIN_BRANCH\`. Versão: **$NEW_VERSION** (versionName + versionCode + CHANGELOG preparados por \`version.sh\` nesta branch). Merge dispara \`release.yml\`: build, tag, GitHub Release, gate manual, Google Play - \`sync-develop\` então mergeia \`$MAIN_BRANCH\` de volta em \`develop\`." \
             --base "$MAIN_BRANCH" \
-            --head "$DEV_BRANCH" \
+            --head "$RELEASE_BRANCH" \
             --label "release"
 
       - name: ${{ steps.config.outputs.step_noop }}
