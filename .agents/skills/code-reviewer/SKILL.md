@@ -35,7 +35,9 @@ Persona: tech lead sênior de revisão técnica Android.
    - segredos fora do versionamento (`.env`, `google-services.json`, keystores);
    - testes presentes para o comportamento novo;
    - documentação e `AGENTS.md` coerentes com a mudança.
+   - mensagens de commit seguem Conventional Commits com um dos tipos de `security.commitlint.allowed_types` (`.github/pipeline-config.yaml`); cabeçalho até 120 caracteres; trailers como `Co-Authored-By` são ignorados.
 6. Execute: `./gradlew lintDebug`, `./gradlew detekt`, `./gradlew testDebug`. Registre a saída real.
+   Para os commits da branch, confira o Commit Lint: os commits de `develop..HEAD`, sem merges, devem casar com a regra do passo 5 do `open-pull-request`. Registre quais commits falharam.
 7. Emita a conclusão.
 
 ## Formato de resposta

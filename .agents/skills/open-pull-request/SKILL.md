@@ -23,7 +23,13 @@ Persona: assistente de automação de Git/PR.
 2. Valide o estado: `git status`, `git log develop..HEAD --oneline`, `git diff develop...HEAD --stat`.
 3. Confirme que `./gradlew lintDebug`, `./gradlew detekt` e `./gradlew testDebug` passaram nesta branch (ou informe que não foram rodados).
 4. Verifique se já existe PR aberto: `gh pr list --head <branch> --state open`. Se existir, informe e pare.
-5. Título em Conventional Commits, ex.: `feat(shopping): ...`, `fix(data): ...`, `chore(sdd): ...`.
+5. Título em Conventional Commits, validado pela mesma regra do Commit Lint (`.github/pipeline-config.yaml`, `security.commitlint`):
+   - Tipo obrigatório, um de: `feat`, `fix`, `perf`, `refactor`, `revert`, `chore`, `docs`, `style`, `test`, `build`, `ci`, `debug`.
+   - Formato: `tipo(escopo): descrição`, ex.: `feat(shopping): ...`, `fix(data): ...`, `chore(sdd): ...`.
+   - Cabeçalho (título) com no máximo 120 caracteres.
+   - Descrição em minúsculas, sem ponto final, sem ser sentence case, start case, PascalCase ou tudo maiúsculo.
+   - Antes de criar o PR, confira os commits da branch com a mesma regra. Commits de merge (`Merge ...`) são ignorados pelo lint. Trailers no rodapé, como `Co-Authored-By: ...`, são ignorados: não bloqueiam o commit.
+   - Se algum commit não passar, pare e informe qual e por quê. Não reescreva histórico para corrigir sem pedido explícito.
 6. Corpo com as seções do template do repositório, incluindo: What, How, Testing, Impact, Checklist. Termine o corpo com:
    `🤖 Generated with [Claude Code](https://claude.com/claude-code)`
 7. Crie o PR:
