@@ -1,6 +1,21 @@
 # Changelog
 
+## [2.7.1] - 2026-11-14
+
+* Merge pull request #306 from brunocarvalhs/hotfix/wear-version-code-master
+* fix(wear): versionCode do wear em faixa própria na master
+
+
 ## [2.7.0] - 2026-11-13
+
+### Novidades
+
+* Planos múltiplos e atualização obrigatória via Play In-App Updates (#282)
+* Relógio: pareamento, nova home, IA no relógio, notificações e gate PRO (#280)
+* AppFunctions e retry para a integração com Gemini (#275)
+* Sugestões proativas da IA e extração de fotos refinada (#272)
+
+### Commits
 
 * feat(wear): detalhe da lista em visões, entrada de valor e loading do PRO (#284)
 * chore(release): prepare dev version 2.6.1 [skip ci]
