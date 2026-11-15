@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.7.2] - 2026-11-15
+
+* Merge pull request #309 from brunocarvalhs/develop
+* ci(build): diagnostica o lint do Hilt/Analytics no build de push
+* docs(skills): aplica a regra do Commit Lint nas skills de PR e revisão (#300)
+* fix(ci): envia o AAB do wear para faixa própria no Play (#308)
+* fix(ci): wear vai para produção com rollout gradual
+* fix(ci): envia o AAB do wear para faixa própria no Play
+* Merge pull request #304 from brunocarvalhs/fix/wear-version-code
+* Merge branch 'develop' of https://github.com/brunocarvalhs/cestou into fix/wear-version-code
+* Merge pull request #305 from brunocarvalhs/fix/version-sh-wear-code
+* fix(ci): version.sh não incrementa o versionCode do wear
+* fix(wear): versionCode do wear em faixa própria (100000 + celular)
+* Merge pull request #302 from brunocarvalhs/fix/commitlint-footer
+* ci(lint): desliga footer-max-line-length no Commit Lint
+* docs(skills): aplica a regra do Commit Lint nas skills de PR e revisão
+
+
 ## [2.7.1] - 2026-11-14
 
 * Merge pull request #306 from brunocarvalhs/hotfix/wear-version-code-master
