@@ -101,6 +101,13 @@ build:
     - name: "wear"
       module: ":wear"
       description: "Wear OS companion app"
+      # Wear e celular são o mesmo app no Play Console (mesmo applicationId), mas
+      # o AAB do wear exige android.hardware.type.watch e não pode cair na faixa do
+      # celular. Target sem `google_play` usa release.google_play. O user_fraction
+      # global (release.google_play) vale para este target também.
+      google_play:
+        track: "production"
+        status: "inProgress"
       google_services_required: true
       variants:
         - name: "debug"
