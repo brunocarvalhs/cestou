@@ -127,6 +127,22 @@ jobs:
         env:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
 
+      # DIAGNOSTIC (temporary): why Lint fails on push to develop but not on PRs.
+      # Prints only names and sizes, never secret values.
+      - name: 🩺 Diagnose Hilt/Analytics (Lint)
+        if: always() && contains(matrix.check.display_name, 'Lint')
+        run: |
+          echo "== java/gradle =="; java -version 2>&1 | head -1
+          echo "== google-services.json present per module =="
+          ls -la app/google-services.json wear/google-services.json 2>&1
+          echo "== AnalyticsModule artifacts =="
+          find core/analytics/build -iname '*AnalyticsModule*' 2>/dev/null | head -20
+          echo "== hilt aggregated deps mentioning analytics =="
+          find . -path ./build -prune -o -name '*.txt' -print 2>/dev/null | xargs grep -l "AnalyticsModule" 2>/dev/null | head -10
+          echo "== hilt component sources mentioning AnalyticsTracker =="
+          grep -c "AnalyticsTracker" app/build/generated/hilt/component_sources/debug/br/com/brunocarvalhs/howmuch/CestouApplication_HiltComponents.java 2>/dev/null || echo "no generated component file"
+          echo "== gradle caches dir size =="; du -sh ~/.gradle/caches 2>/dev/null || true
+
   checks_stage_2:
     needs: [prepare, checks_stage_1]
     if: |
@@ -158,6 +174,16 @@ jobs:
           ${{ matrix.check.command }}
         env:
           GRADLE_OPTS: ${{ needs.prepare.outputs.gradle_opts }}
+
+      # DIAGNOSTIC (temporary): see checks_stage_1.
+      - name: 🩺 Diagnose Hilt/Analytics (Lint)
+        if: always() && contains(matrix.check.display_name, 'Lint')
+        run: |
+          echo "== java/gradle =="; java -version 2>&1 | head -1
+          echo "== AnalyticsModule artifacts =="
+          find core/analytics/build -iname '*AnalyticsModule*' 2>/dev/null | head -20
+          echo "== hilt component sources mentioning AnalyticsTracker =="
+          grep -c "AnalyticsTracker" app/build/generated/hilt/component_sources/debug/br/com/brunocarvalhs/howmuch/CestouApplication_HiltComponents.java 2>/dev/null || echo "no generated component file"
 
   version:
     needs: [prepare, checks_stage_1, checks_stage_2]

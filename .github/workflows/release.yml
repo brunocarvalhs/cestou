@@ -36,6 +36,7 @@ jobs:
       play_user_fraction: ${{ steps.config.outputs.play_user_fraction }}
       play_changes_not_sent_for_review: ${{ steps.config.outputs.play_changes_not_sent_for_review }}
       play_environment_name: ${{ steps.config.outputs.play_environment_name }}
+      target_play: ${{ steps.config.outputs.target_play }}
       versioning_enabled: ${{ steps.config.outputs.versioning_enabled }}
       step_checkout: ${{ steps.config.outputs.step_checkout }}
       step_setup_env: ${{ steps.config.outputs.step_setup_env }}
@@ -86,7 +87,9 @@ jobs:
           echo "play_status=$(yq '.release.google_play.status' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "play_user_fraction=$(yq '.release.google_play.user_fraction // ""' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "play_changes_not_sent_for_review=$(yq '.release.google_play.changes_not_sent_for_review // false' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
-          echo "play_environment_name=$(yq '.release.google_play.environment_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT          echo "step_checkout=$(yq '.build.step_names.checkout' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "play_environment_name=$(yq '.release.google_play.environment_name' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
+          echo "target_play=$(yq -o=json '[.build.targets[] | select(.google_play) | {"key": .name, "value": .google_play}] | from_entries' .github/pipeline-config.yaml | tr -d '\n')" >> $GITHUB_OUTPUT
+          echo "step_checkout=$(yq '.build.step_names.checkout' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_setup_env=$(yq '.build.step_names.setup_environment' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_run_check=$(yq '.build.step_names.run_check' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
           echo "step_load_config=$(yq '.git.step_names.load_config' .github/pipeline-config.yaml)" >> $GITHUB_OUTPUT
@@ -403,7 +406,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.DEPLOY_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ needs.prepare.outputs.package_name }}
           releaseFiles: output/**/*.aab
-          track: ${{ needs.prepare.outputs.play_track }}
-          status: ${{ needs.prepare.outputs.play_status }}
+          track: ${{ fromJson(needs.prepare.outputs.target_play)[matrix.target_name].track || needs.prepare.outputs.play_track }}
+          status: ${{ fromJson(needs.prepare.outputs.target_play)[matrix.target_name].status || needs.prepare.outputs.play_status }}
           userFraction: ${{ needs.prepare.outputs.play_user_fraction }}
           changesNotSentForReview: ${{ needs.prepare.outputs.play_changes_not_sent_for_review }}

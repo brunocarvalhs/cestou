@@ -502,6 +502,12 @@ jobs:
               // disabled so dependency-bump PRs aren't blocked by their own
               // changelog links.
               'body-max-line-length': [0, 'always'],
+              // Squash merges concatenate every PR commit's body, so a footer
+              // block can hold several Co-authored-by trailers and separators
+              // that are longer than 100 chars once joined. Those trailers are
+              // metadata, not message text - the line-length check reads them
+              // as a violation, so it's disabled for footers.
+              'footer-max-line-length': [0, 'always'],
               // Default is 100; a descriptive type(scope): subject header
               // occasionally runs a little over that without being unreasonable
               // - 120 gives headroom without disabling the check outright.
