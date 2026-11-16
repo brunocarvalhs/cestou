@@ -19,10 +19,10 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.SurveyKind
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
-import br.com.brunocarvalhs.howmuch.core.domain.services.ReminderScheduler
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
+import br.com.brunocarvalhs.howmuch.core.domain.services.ReminderScheduler
 import br.com.brunocarvalhs.howmuch.deeplink.DeepLinkParserImpl
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.service.ChatTurnTracker
 import br.com.brunocarvalhs.howmuch.session.SessionSyncImpl
