@@ -2,10 +2,13 @@ package br.com.brunocarvalhs.howmuch.feature.settings.presentation.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Info
@@ -16,6 +19,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,7 +52,7 @@ fun SettingsSectionsList(
     intent: SettingsIntent,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         sections.forEach { section ->
             key(section.id) {
                 SettingsAccordionSection(
@@ -69,27 +73,33 @@ private fun SettingsAccordionSection(
     onToggleSection: (String) -> Unit,
     onItemClick: (SettingItem) -> Unit
 ) {
-    Column {
-        SettingsSectionHeader(
-            title = section.title.asString(),
-            icon = section.icon,
-            expanded = expanded,
-            onClick = { onToggleSection(section.id) },
-            modifier = Modifier.testTag("settings_section_header_${section.id}")
-        )
-        HorizontalDivider()
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+    ) {
+        Column {
+            SettingsSectionHeader(
+                title = section.title.asString(),
+                icon = section.icon,
+                expanded = expanded,
+                onClick = { onToggleSection(section.id) },
+                modifier = Modifier.testTag("settings_section_header_${section.id}")
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
 
-        AnimatedVisibility(visible = expanded) {
-            Column(modifier = Modifier.testTag("settings_section_content_${section.id}")) {
-                section.items.forEachIndexed { index, item ->
-                    SettingsItem(
-                        title = item.title.asString(),
-                        subtitle = item.subtitle?.asString(),
-                        icon = item.icon,
-                        onClick = { onItemClick(item) },
-                        modifier = Modifier.testTag("settings_item_${section.id}_$index")
-                    )
-                    HorizontalDivider()
+            AnimatedVisibility(visible = expanded) {
+                Column(modifier = Modifier.testTag("settings_section_content_${section.id}")) {
+                    section.items.forEachIndexed { index, item ->
+                        SettingsItem(
+                            title = item.title.asString(),
+                            subtitle = item.subtitle?.asString(),
+                            icon = item.icon,
+                            onClick = { onItemClick(item) },
+                            modifier = Modifier.testTag("settings_item_${section.id}_$index")
+                        )
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+                    }
                 }
             }
         }

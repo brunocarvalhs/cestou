@@ -13,10 +13,12 @@ import br.com.brunocarvalhs.howmuch.core.theme.CestouOrange
 import br.com.brunocarvalhs.howmuch.core.theme.CestouSoftGreen
 import br.com.brunocarvalhs.howmuch.core.theme.CestouSoftOrange
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTextTertiary
+import br.com.brunocarvalhs.howmuch.core.theme.SubtotalCoralDeep
+import br.com.brunocarvalhs.howmuch.core.theme.SubtotalDarkSurfaceVariant
 import br.com.brunocarvalhs.howmuch.core.theme.SurfaceDark
 import br.com.brunocarvalhs.howmuch.core.theme.Error as CestouError
 
-private val CardSurfaceDark = Color(0xFF1F2937)
+private val CardSurfaceDark = SubtotalDarkSurfaceVariant
 
 private val WearDarkColorScheme = ColorScheme(
     primary = CestouBrightGreen,
@@ -25,7 +27,7 @@ private val WearDarkColorScheme = ColorScheme(
     onPrimaryContainer = CestouSoftGreen,
     secondary = CestouOrange,
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFF7C2D12),
+    secondaryContainer = SubtotalCoralDeep,
     onSecondaryContainer = CestouSoftOrange,
     tertiary = CestouDeepGreen,
     onTertiary = Color.White,

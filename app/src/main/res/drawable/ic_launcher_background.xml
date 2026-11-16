@@ -1,26 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Subtotal brand blue (SubtotalBlue #2F55D4) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
-    xmlns:tools="http://schemas.android.com/tools"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="500"
-    android:viewportHeight="500"
-    tools:ignore="VectorRaster">
-
+    android:viewportWidth="108"
+    android:viewportHeight="108">
     <path
-        android:pathData="M0,0 H500 V500 H0 Z"
-        android:fillType="nonZero">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:type="linear"
-                android:startX="0"
-                android:startY="0"
-                android:endX="500"
-                android:endY="500">
-                <item android:offset="0" android:color="#FFDA5135"/>
-                <item android:offset="1" android:color="#FFF8A457"/>
-            </gradient>
-        </aapt:attr>
-    </path>
+        android:fillColor="#FF2F55D4"
+        android:pathData="M0,0h108v108h-108z" />
 </vector>

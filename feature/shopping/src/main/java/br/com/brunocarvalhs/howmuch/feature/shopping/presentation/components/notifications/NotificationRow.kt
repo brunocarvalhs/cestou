@@ -1,6 +1,7 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.notifications
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Notifications
@@ -49,7 +51,16 @@ internal fun NotificationRow(
     modifier: Modifier = Modifier
 ) {
     CestouCard(
-        modifier = modifier.fillMaxWidth().testTag(notificationItemTag(item.id)),
+        modifier = modifier
+            .fillMaxWidth()
+            .then(
+                if (item.isRead) {
+                    Modifier
+                } else {
+                    Modifier.border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(20.dp))
+                }
+            )
+            .testTag(notificationItemTag(item.id)),
         onClick = { onClick(item.id) }
     ) {
         Row(
@@ -98,7 +109,7 @@ private fun TypeIcon(type: NotificationType) {
     Box(
         modifier = Modifier
             .size(AVATAR_SIZE)
-            .clip(CircleShape)
+            .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.primaryContainer),
         contentAlignment = Alignment.Center
     ) {

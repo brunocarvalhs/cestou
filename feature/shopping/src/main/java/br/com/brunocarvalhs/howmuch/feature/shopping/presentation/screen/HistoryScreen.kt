@@ -46,8 +46,8 @@ internal fun HistoryScreen(
                 title = {
                     Text(
                         text = stringResource(R.string.history_title),
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 },
                 actions = {
