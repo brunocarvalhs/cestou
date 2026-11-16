@@ -336,8 +336,11 @@ class MainActivity : AppCompatActivity() {
              */
             val notificationPermissionLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.RequestPermission()
-            ) { }
+            ) { viewModel.syncReminders() }
             LaunchedEffect(isAuthenticated, requiresName) {
+                // The reminder is on by default but only scheduled on a settings write; schedule it
+                // here so new users get it without opening the settings (sdd-061).
+                if (isAuthenticated && !requiresName) viewModel.syncReminders()
                 val requester = NotificationPermissionRequester(applicationContext)
                 if (isAuthenticated && !requiresName && requester.shouldAsk()) {
                     requester.markAsked()

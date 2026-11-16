@@ -14,7 +14,7 @@ data class AppSettings(
     val creativityLevel: Float = 0.7f,
     val defaultListId: String? = null,
     val sortingMode: String = "CATEGORY",
-    val remindersEnabled: Boolean = false,
+    val remindersEnabled: Boolean = true,
     val language: String = "pt-BR",
     val currency: String = "BRL",
     val analyticsEnabled: Boolean = true

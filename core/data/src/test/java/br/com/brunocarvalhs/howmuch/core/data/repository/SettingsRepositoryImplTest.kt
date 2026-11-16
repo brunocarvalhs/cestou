@@ -41,7 +41,7 @@ class SettingsRepositoryImplTest {
             assertEquals(ThemeMode.SYSTEM, settings.themeMode)
             assertEquals(AiProvider.OPENROUTER, settings.aiProvider)
             assertEquals("CATEGORY", settings.sortingMode)
-            assertFalse(settings.remindersEnabled)
+            assertTrue(settings.remindersEnabled)
             assertEquals("pt-BR", settings.language)
             assertEquals("BRL", settings.currency)
             awaitComplete()

@@ -112,6 +112,9 @@ object AnalyticsEvents {
     /** Retenção: em quantos dias o cliente volta. */
     const val RETURNED_AFTER_DAYS = "returned_after_days"
 
+    /** Retenção: lembrete de compra mostrado ao cliente (sdd-061). */
+    const val REMINDER_SHOWN = "reminder_shown"
+
     /** Ativação: quanto tempo leva até o primeiro valor. */
     const val FIRST_LIST_CREATED = "first_list_created"
     const val FIRST_PRODUCT_ADDED = "first_product_added"
@@ -218,6 +221,7 @@ object AnalyticsParams {
     const val AMOUNT = "amount"
     const val ITEMS_COUNT = "items_count"
     const val UNREAD_COUNT = "unread_count"
+    const val PENDING_COUNT = "pending_count"
     const val NOTIFICATION_TYPE = "notification_type"
     const val SOURCE = "source"
     const val SECTION_ID = "section_id"
