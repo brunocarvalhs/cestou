@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -49,6 +48,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.util.PersonNameError
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouHeaderButton
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouTextField
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouTopBar
 import br.com.brunocarvalhs.howmuch.feature.auth.R
@@ -71,10 +71,14 @@ internal fun AuthFormScaffold(
                 title = {},
                 navigationIcon = {
                     if (onBack != null) {
-                        IconButton(onClick = onBack) {
+                        CestouHeaderButton(
+                            onClick = onBack,
+                            contentDescription = stringResource(R.string.auth_navigate_back)
+                        ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.auth_navigate_back)
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     }

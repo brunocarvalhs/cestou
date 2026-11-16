@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,10 +29,11 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.R
 internal fun MonthlyGoalCard(progress: BudgetProgress, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier.fillMaxWidth().testTag("home_monthly_goal_card"),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = stringResource(R.string.shopping_monthly_goal_title),
                 style = MaterialTheme.typography.titleSmall,

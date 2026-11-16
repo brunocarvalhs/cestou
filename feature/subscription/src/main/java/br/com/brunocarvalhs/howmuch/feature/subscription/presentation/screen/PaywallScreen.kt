@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -31,8 +30,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.billing.BillingConstants
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
+import br.com.brunocarvalhs.howmuch.core.theme.SubtotalCoral
+import br.com.brunocarvalhs.howmuch.core.theme.SubtotalCoralSoft
+import br.com.brunocarvalhs.howmuch.core.theme.SubtotalNight
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouHeaderButton
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouTopBar
 import br.com.brunocarvalhs.howmuch.feature.subscription.R
 import br.com.brunocarvalhs.howmuch.feature.subscription.presentation.components.SubscriptionBenefitsCard
@@ -52,10 +55,15 @@ fun PaywallScreen(
             CestouTopBar(
                 title = { Text(stringResource(R.string.paywall_title)) },
                 navigationIcon = {
-                    IconButton(onClick = intent.onBack, modifier = Modifier.testTag("paywall_back")) {
+                    CestouHeaderButton(
+                        onClick = intent.onBack,
+                        contentDescription = stringResource(R.string.paywall_back_content_description),
+                        testTag = "paywall_back"
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.paywall_back_content_description)
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }
@@ -131,7 +139,9 @@ fun PaywallScreen(
                         ?: stringResource(R.string.paywall_subscribe_button_no_price),
                     onClick = { activity?.let(intent.onSubscribeClick) },
                     modifier = Modifier.testTag("paywall_subscribe_button"),
-                    enabled = !state.isPurchasing && activity != null
+                    enabled = !state.isPurchasing && activity != null,
+                    containerColor = SubtotalCoral,
+                    contentColor = SubtotalNight
                 )
             }
         }
@@ -152,7 +162,7 @@ private fun PlanOptionCard(
             .testTag("paywall_plan_${plan.basePlanId}"),
         onClick = onSelect,
         containerColor = if (selected) {
-            MaterialTheme.colorScheme.primaryContainer
+            SubtotalCoralSoft
         } else {
             MaterialTheme.colorScheme.surface
         }

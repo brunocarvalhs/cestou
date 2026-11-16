@@ -231,4 +231,5 @@
         <item quantity="other">%d people</item>
     </plurals>
     <string name="shopping_monthly_goal_title">Monthly goal</string>
+    <string name="shopping_home_title">Your lists</string>
 </resources>

@@ -16,9 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -41,7 +39,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -50,6 +47,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouHeaderButton
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
@@ -104,19 +102,20 @@ internal fun ShoppingScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = stringResource(br.com.brunocarvalhs.howmuch.core.ui.R.string.app_name),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold,
+                            text = stringResource(R.string.shopping_home_title),
+                            style = MaterialTheme.typography.headlineMedium,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                     },
                     actions = {
-                        IconButton(onClick = intent.onShowJoinDialog, modifier = Modifier.testTag("home_join_button")) {
+                        CestouHeaderButton(
+                            onClick = intent.onShowJoinDialog,
+                            contentDescription = stringResource(R.string.shopping_management_button_join),
+                            testTag = "home_join_button"
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.QrCodeScanner,
-                                contentDescription = stringResource(
-                                    R.string.shopping_management_button_join
-                                ),
+                                contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
@@ -124,21 +123,25 @@ internal fun ShoppingScreen(
                             unreadCount = uiState.unreadNotifications,
                             onClick = intent.onNotificationsClick
                         )
+                        CestouHeaderButton(
+                            onClick = intent.onCreate,
+                            contentDescription = stringResource(
+                                R.string.shopping_management_content_description_create_list
+                            ),
+                            testTag = "home_create_fab",
+                            filled = true
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.background
                     )
                 )
-            },
-            floatingActionButton = {
-                FloatingActionButton(onClick = intent.onCreate, modifier = Modifier.testTag("home_create_fab")) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(
-                            R.string.shopping_management_content_description_create_list
-                        )
-                    )
-                }
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
             containerColor = MaterialTheme.colorScheme.background,

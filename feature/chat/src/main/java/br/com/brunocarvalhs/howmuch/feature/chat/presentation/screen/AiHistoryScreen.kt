@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouHeaderButton
 import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.domain.model.ChatSession
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.intent.AiHistoryIntent
@@ -61,10 +62,15 @@ fun AiHistoryScreen(
             TopAppBar(
                 title = { Text(text = stringResource(R.string.ai_chat_history_title)) },
                 navigationIcon = {
-                    IconButton(onClick = intent.onBack, modifier = Modifier.testTag("ai_history_back")) {
+                    CestouHeaderButton(
+                        onClick = intent.onBack,
+                        contentDescription = stringResource(R.string.ai_chat_close_content_description),
+                        testTag = "ai_history_back"
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.ai_chat_close_content_description),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },

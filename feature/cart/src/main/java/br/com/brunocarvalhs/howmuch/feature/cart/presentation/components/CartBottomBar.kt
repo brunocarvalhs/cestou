@@ -14,18 +14,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import br.com.brunocarvalhs.howmuch.core.theme.SubtotalNight
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.CurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
 import br.com.brunocarvalhs.howmuch.feature.cart.R
@@ -40,17 +43,22 @@ internal fun CartBottomBar(
 ) {
     Column(
         modifier = modifier
-            .background(TopAppBarDefaults.topAppBarColors().containerColor)
+            .background(MaterialTheme.colorScheme.surface)
             .navigationBarsPadding()
-            .padding(16.dp)
     ) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
         Row(
+            modifier = Modifier.padding(16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            FilledTonalButton(
+            Button(
                 onClick = onFinished,
-                modifier = Modifier.height(56.dp).weight(PRIMARY_BUTTON_WEIGHT).testTag("cart_finish_button"),
-                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.height(52.dp).weight(PRIMARY_BUTTON_WEIGHT).testTag("cart_finish_button"),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = SubtotalNight,
+                    contentColor = Color.White
+                ),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -69,8 +77,8 @@ internal fun CartBottomBar(
 
             Button(
                 onClick = onAdd,
-                modifier = Modifier.height(56.dp).weight(1f).testTag("cart_add_product_button"),
-                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.height(52.dp).weight(1f).testTag("cart_add_product_button"),
+                shape = RoundedCornerShape(14.dp),
             ) {
                 Icon(Icons.Default.Add, null)
             }

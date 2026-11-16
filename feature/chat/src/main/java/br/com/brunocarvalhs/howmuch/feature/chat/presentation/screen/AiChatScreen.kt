@@ -36,7 +36,6 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -67,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import br.com.brunocarvalhs.howmuch.core.domain.model.ChatMessage
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouHeaderButton
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
 import br.com.brunocarvalhs.howmuch.feature.chat.R
 import br.com.brunocarvalhs.howmuch.feature.chat.presentation.component.AiChatUpgradeBanner
@@ -184,30 +184,39 @@ fun AiChatScreen(
                         ),
                         title = {},
                         navigationIcon = {
-                            IconButton(
+                            CestouHeaderButton(
                                 onClick = intent.onToggleHistory,
-                                modifier = Modifier.testTag("ai_chat_history_button")
+                                contentDescription = stringResource(R.string.ai_chat_history_content_description),
+                                testTag = "ai_chat_history_button"
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.History,
-                                    contentDescription = stringResource(R.string.ai_chat_history_content_description),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onBackground
                                 )
                             }
                         },
                         actions = {
-                            IconButton(
+                            CestouHeaderButton(
                                 onClick = intent.onSettings,
-                                modifier = Modifier.testTag("ai_chat_settings_button")
+                                contentDescription = stringResource(R.string.ai_chat_settings_content_description),
+                                testTag = "ai_chat_settings_button"
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Settings,
-                                    contentDescription = stringResource(R.string.ai_chat_settings_content_description),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onBackground
                                 )
                             }
-                            IconButton(onClick = intent.onBack, modifier = Modifier.testTag("ai_chat_close_button")) {
+                            CestouHeaderButton(
+                                onClick = intent.onBack,
+                                contentDescription = stringResource(R.string.ai_chat_close_content_description),
+                                testTag = "ai_chat_close_button"
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
-                                    contentDescription = stringResource(R.string.ai_chat_close_content_description),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onBackground
                                 )
                             }
                         },

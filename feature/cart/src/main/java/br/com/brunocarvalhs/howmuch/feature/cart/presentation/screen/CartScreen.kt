@@ -21,7 +21,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -54,6 +54,7 @@ import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCategoryHeader
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouEmptyState
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouHeaderButton
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouLockedBanner
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.CurrencyFormatter
@@ -177,30 +178,34 @@ internal fun CartScreen(
                         )
                     },
                     actions = {
-                        IconButton(
+                        CestouHeaderButton(
                             onClick = {
                                 intent.onShareShopping()
                             },
-                            modifier = Modifier.testTag("cart_share_button")
+                            contentDescription = stringResource(
+                                br.com.brunocarvalhs.howmuch.core.ui.R.string.action_share
+                            ),
+                            testTag = "cart_share_button"
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Share,
-                                contentDescription = stringResource(
-                                    br.com.brunocarvalhs.howmuch.core.ui.R.string.action_share
-                                )
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
-                        IconButton(
+                        CestouHeaderButton(
                             onClick = {
                                 isUiVisible = true
                             },
-                            modifier = Modifier.testTag("cart_more_button")
+                            contentDescription = stringResource(
+                                br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_more_options
+                            ),
+                            testTag = "cart_more_button"
                         ) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(
-                                    br.com.brunocarvalhs.howmuch.core.ui.R.string.content_description_more_options
-                                )
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
                         DropdownMenu(

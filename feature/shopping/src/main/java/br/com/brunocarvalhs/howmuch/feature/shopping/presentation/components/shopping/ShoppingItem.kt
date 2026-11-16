@@ -2,6 +2,7 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.sh
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -74,14 +75,18 @@ internal fun ShoppingItem(
     var showMenu by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
+        val cardShape = RoundedCornerShape(20.dp)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .clip(cardShape)
+                .background(MaterialTheme.colorScheme.surface, cardShape)
+                .border(1.dp, MaterialTheme.colorScheme.outline, cardShape)
                 .combinedClickable(
                     onClick = onClick,
                     onLongClick = { showMenu = true }
                 )
-                .padding(vertical = 12.dp, horizontal = 16.dp),
+                .padding(vertical = 14.dp, horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconProduct(

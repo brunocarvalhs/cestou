@@ -3,39 +3,62 @@ package br.com.brunocarvalhs.howmuch.core.theme
 import androidx.compose.ui.graphics.Color
 
 /**
- * Cestou Brand Colors
- * Following a modern, green-centric palette.
+ * Subtotal brand palette (nova identidade).
+ * Named by role so the source of truth reads correctly.
  */
-val CestouDarkGreen = Color(0xFF1B3D2F)
-val CestouBrightGreen = Color(0xFF16A34A)
-val CestouSoftGreen = Color(0xFFF0FDF4)
-val CestouDeepGreen = Color(0xFF064E3B)
-
-val CestouOrange = Color(0xFFF97316)
-val CestouSoftOrange = Color(0xFFFFF7ED)
+val SubtotalBlue = Color(0xFF2F55D4)
+val SubtotalNavy = Color(0xFF1E3FA8)
+val SubtotalNight = Color(0xFF0B1A3F)
+val SubtotalCoral = Color(0xFFFF7A59)
+val SubtotalCoralDeep = Color(0xFFB4421F)
+val SubtotalCoralSoft = Color(0xFFFFF1EB)
+val SubtotalMist = Color(0xFFEEF3FF)
+val SubtotalSlate = Color(0xFF5B6478)
+val SubtotalInk = Color(0xFF1B2A4A)
+val SubtotalMuted = Color(0xFF9AA4B8)
+val SubtotalFog = Color(0xFFF7F9FD)
+val SubtotalLine = Color(0xFFDDE3F0)
 
 /**
- * Neutral Colors
+ * Dark mode surfaces, derived from [SubtotalNight].
  */
-val CestouTextPrimary = Color(0xFF111827)
-val CestouTextSecondary = Color(0xFF4B5563)
-val CestouTextTertiary = Color(0xFF9CA3AF)
+val SubtotalDarkBackground = Color(0xFF0A1226)
+val SubtotalDarkSurface = Color(0xFF131D36)
+val SubtotalDarkSurfaceVariant = Color(0xFF1C2846)
+val SubtotalDarkLine = Color(0xFF2A3858)
+val SubtotalDarkBlue = Color(0xFF8FA8FF)
+
+/**
+ * Cestou names kept as aliases so existing call sites keep compiling.
+ * Each alias now points at its role in the Subtotal palette.
+ */
+val CestouDarkGreen = SubtotalNight
+val CestouBrightGreen = SubtotalBlue
+val CestouSoftGreen = SubtotalMist
+val CestouDeepGreen = SubtotalNavy
+
+val CestouOrange = SubtotalCoral
+val CestouSoftOrange = SubtotalCoralSoft
+
+val CestouTextPrimary = SubtotalInk
+val CestouTextSecondary = SubtotalSlate
+val CestouTextTertiary = SubtotalMuted
 
 val SurfaceLight = Color(0xFFFFFFFF)
-val BackgroundLight = Color(0xFFF9FAFB)
-val BorderLight = Color(0xFFE5E7EB)
+val BackgroundLight = SubtotalFog
+val BorderLight = SubtotalLine
 
-val SurfaceDark = Color(0xFF111827)
-val BackgroundDark = Color(0xFF030712)
-val BorderDark = Color(0xFF374151)
+val SurfaceDark = SubtotalDarkSurface
+val BackgroundDark = SubtotalDarkBackground
+val BorderDark = SubtotalDarkLine
 
 /**
  * Semantic Colors
  */
 val Success = Color(0xFF22C55E)
-val Error = Color(0xFFEF4444)
+val Error = SubtotalCoralDeep
 val Warning = Color(0xFFF59E0B)
-val Info = Color(0xFF3B82F6)
+val Info = SubtotalBlue
 
 // Legacy compatibility (to be removed after full migration)
 val CestouGreenPrimary = CestouBrightGreen
@@ -45,4 +68,4 @@ val CestouOrangeSecondary = CestouSoftOrange
 val CestouGreenDarkPrimary = CestouBrightGreen
 val CestouGreenDarkSecondary = CestouDeepGreen
 val CestouOrangeDarkPrimary = CestouOrange
-val CestouOrangeDarkSecondary = Color(0xFF7C2D12)
+val CestouOrangeDarkSecondary = SubtotalCoralDeep
