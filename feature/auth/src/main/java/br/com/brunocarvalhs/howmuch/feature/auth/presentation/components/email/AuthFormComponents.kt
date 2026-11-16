@@ -48,7 +48,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.util.PersonNameError
-import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButtonPrimary
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouTextField
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouTopBar
 import br.com.brunocarvalhs.howmuch.feature.auth.R
@@ -120,7 +120,7 @@ internal fun AuthSubmitButton(
     onClick: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        CestouButton(
+        CestouButtonPrimary(
             text = text,
             onClick = onClick,
             enabled = enabled && !isLoading,

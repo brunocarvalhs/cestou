@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButtonPrimary
 import br.com.brunocarvalhs.howmuch.feature.auth.R
 import com.firebase.ui.auth.configuration.auth_provider.AuthProvider
 import com.firebase.ui.auth.ui.screens.reauth.ReauthContentState
@@ -46,7 +46,7 @@ internal fun CustomReauthContent(state: ReauthContentState) {
         Spacer(modifier = Modifier.height(32.dp))
 
         state.providers.forEach { provider ->
-            CestouButton(
+            CestouButtonPrimary(
                 text = providerLabel(provider),
                 onClick = { state.onProviderSelected(provider) },
                 enabled = !state.isLoading

@@ -35,7 +35,7 @@ import br.com.brunocarvalhs.howmuch.core.common.wearable.PairingFailure
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.WearPairing
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
-import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButtonPrimary
 import br.com.brunocarvalhs.howmuch.feature.auth.R
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.PhonePairingCode
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.messageRes
@@ -160,14 +160,14 @@ private fun CodeStep(state: PhoneWearPairingUiState, onConfirm: () -> Unit, onCa
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = stringResource(R.string.phone_pair_waiting_watch), textAlign = TextAlign.Center)
         } else {
-            CestouButton(
+            CestouButtonPrimary(
                 text = stringResource(R.string.phone_pair_confirm),
                 onClick = onConfirm,
                 modifier = Modifier.fillMaxWidth().testTag(TAG_CONFIRM)
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        CestouButton(
+        CestouButtonPrimary(
             text = stringResource(R.string.phone_pair_cancel),
             onClick = onCancel,
             modifier = Modifier.fillMaxWidth().testTag(TAG_CANCEL)
@@ -193,7 +193,7 @@ private fun ResultStep(
             modifier = if (titleTag != null) Modifier.testTag(titleTag) else Modifier
         )
         Spacer(modifier = Modifier.height(24.dp))
-        CestouButton(
+        CestouButtonPrimary(
             text = stringResource(R.string.phone_pair_close),
             onClick = onClose,
             modifier = Modifier.fillMaxWidth().testTag(closeTag)

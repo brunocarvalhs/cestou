@@ -36,7 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
-import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButtonPrimary
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.formatQuantity
 import br.com.brunocarvalhs.howmuch.feature.products.R
@@ -92,7 +92,7 @@ internal fun ProductAnalysisConfirmation(
         }
 
         Column(modifier = Modifier.padding(20.dp)) {
-            CestouButton(
+            CestouButtonPrimary(
                 text = stringResource(R.string.product_photo_confirm_add_all, products.size),
                 onClick = onConfirmAll,
                 modifier = Modifier.testTag("photo_confirm_all"),
@@ -100,7 +100,7 @@ internal fun ProductAnalysisConfirmation(
                 trailingIcon = Icons.Default.ShoppingCart
             )
             Spacer(Modifier.height(8.dp))
-            CestouButton(
+            CestouButtonPrimary(
                 text = stringResource(R.string.product_action_retake),
                 onClick = onRetake,
                 modifier = Modifier.testTag("photo_retake"),

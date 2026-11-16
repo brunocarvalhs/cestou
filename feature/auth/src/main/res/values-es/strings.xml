@@ -3,11 +3,15 @@
     <!-- Brand name is not translated on purpose. -->
     <string name="welcome_brand_name" translatable="false">Cestou</string>
     <string name="welcome_logo_content_description">Logotipo de Cestou</string>
-    <string name="welcome_title">Bienvenido(a) a Cestou</string>
-    <string name="welcome_description">La forma más inteligente de organizar tus compras y ahorrar de verdad.</string>
+    <string name="welcome_title">Tus compras,\nbajo control</string>
+    <string name="welcome_description">Planifica la lista y sigue el límite del mes antes de salir de casa.</string>
+    <string name="welcome_title_page_2">Organiza listas\nfácilmente</string>
+    <string name="welcome_description_page_2">Crea y comparte listas de compras con tu familia en tiempo real.</string>
+    <string name="welcome_title_page_3">Ahorra en\ncada compra</string>
+    <string name="welcome_description_page_3">Sigue precios, compara mercados y nunca superes tu presupuesto.</string>
     <string name="welcome_footer">Versión %1$s • Hecho con ❤️ en Brasil</string>
     <string name="welcome_select_language">Seleccionar idioma</string>
-    <string name="welcome_agree_and_continue">Aceptar y continuar</string>
+    <string name="welcome_agree_and_continue">Acceder</string>
     <string name="auth_continue_with_google">Continuar con Google</string>
     <string name="auth_terms_prefix">Al continuar, aceptas nuestros </string>
     <string name="auth_terms_of_use">Términos de Uso</string>

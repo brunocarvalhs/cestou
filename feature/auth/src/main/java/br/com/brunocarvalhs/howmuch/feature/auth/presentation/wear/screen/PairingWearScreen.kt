@@ -31,7 +31,7 @@ import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
 import br.com.brunocarvalhs.howmuch.core.common.wearable.PairingFailure
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
-import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButtonPrimary
 import br.com.brunocarvalhs.howmuch.feature.auth.R
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.WearPairingCode
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.WearScrollableScreen
@@ -143,7 +143,7 @@ private fun CodeStep(code: String, onConfirm: () -> Unit) {
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(8.dp))
-        CestouButton(
+        CestouButtonPrimary(
             text = stringResource(R.string.wear_pair_confirm),
             onClick = onConfirm,
             modifier = Modifier.testTag(TAG_CONFIRM)
@@ -170,13 +170,13 @@ private fun ErrorStep(failure: PairingFailure, onRetry: () -> Unit, onExit: () -
             modifier = Modifier.fillMaxWidth().testTag(TAG_ERROR)
         )
         Spacer(modifier = Modifier.height(8.dp))
-        CestouButton(
+        CestouButtonPrimary(
             text = stringResource(R.string.wear_pair_retry),
             onClick = onRetry,
             modifier = Modifier.testTag(TAG_RETRY)
         )
         Spacer(modifier = Modifier.height(4.dp))
-        CestouButton(
+        CestouButtonPrimary(
             text = stringResource(R.string.wear_pair_exit),
             onClick = onExit,
             modifier = Modifier.testTag(TAG_EXIT)

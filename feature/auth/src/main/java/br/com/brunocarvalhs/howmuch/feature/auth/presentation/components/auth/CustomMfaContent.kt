@@ -13,7 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButtonPrimary
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouTextField
 import br.com.brunocarvalhs.howmuch.feature.auth.R
 import com.firebase.ui.auth.configuration.MfaFactor
@@ -50,13 +50,13 @@ internal fun CustomMfaEnrollmentContent(state: MfaEnrollmentContentState) {
                     label = stringResource(R.string.mfa_phone_label)
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                CestouButton(text = stringResource(R.string.mfa_send_sms), onClick = state.onSendSmsCodeClick)
+                CestouButtonPrimary(text = stringResource(R.string.mfa_send_sms), onClick = state.onSendSmsCodeClick)
             }
             MfaEnrollmentStep.ConfigureTotp -> {
                 Text(text = stringResource(R.string.mfa_totp_instructions))
                 Text(text = stringResource(R.string.mfa_totp_secret, state.totpSecret?.sharedSecretKey.orEmpty()))
                 Spacer(modifier = Modifier.height(24.dp))
-                CestouButton(text = stringResource(R.string.mfa_scanned), onClick = state.onContinueToVerifyClick)
+                CestouButtonPrimary(text = stringResource(R.string.mfa_scanned), onClick = state.onContinueToVerifyClick)
             }
             MfaEnrollmentStep.VerifyFactor -> {
                 CestouTextField(
@@ -65,7 +65,7 @@ internal fun CustomMfaEnrollmentContent(state: MfaEnrollmentContentState) {
                     label = stringResource(R.string.mfa_verification_code_label)
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                CestouButton(text = stringResource(CoreR.string.action_confirm), onClick = state.onVerifyClick)
+                CestouButtonPrimary(text = stringResource(CoreR.string.action_confirm), onClick = state.onVerifyClick)
             }
         }
 
@@ -115,7 +115,7 @@ internal fun CustomMfaChallengeContent(state: MfaChallengeContentState) {
         if (state.isLoading) {
             CircularProgressIndicator()
         } else {
-            CestouButton(
+            CestouButtonPrimary(
                 text = stringResource(R.string.mfa_verify),
                 onClick = state.onVerifyClick,
                 enabled = state.isValid

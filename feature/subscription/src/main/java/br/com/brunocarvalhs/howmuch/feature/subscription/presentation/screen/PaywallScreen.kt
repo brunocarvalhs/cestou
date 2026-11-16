@@ -31,7 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.billing.BillingConstants
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
-import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButtonPrimary
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouTopBar
 import br.com.brunocarvalhs.howmuch.feature.subscription.R
@@ -125,7 +125,7 @@ fun PaywallScreen(
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                 }
-                CestouButton(
+                CestouButtonPrimary(
                     text = state.selectedPlan
                         ?.let { stringResource(R.string.paywall_subscribe_button, it.formattedPrice) }
                         ?: stringResource(R.string.paywall_subscribe_button_no_price),

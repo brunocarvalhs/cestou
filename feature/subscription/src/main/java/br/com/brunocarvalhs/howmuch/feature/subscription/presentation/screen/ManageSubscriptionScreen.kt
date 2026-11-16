@@ -25,7 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButtonPrimary
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouTopBar
 import br.com.brunocarvalhs.howmuch.feature.subscription.R
 import br.com.brunocarvalhs.howmuch.feature.subscription.presentation.components.SubscriptionBenefitsCard
@@ -94,7 +94,7 @@ fun ManageSubscriptionScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            CestouButton(
+            CestouButtonPrimary(
                 text = stringResource(R.string.manage_subscription_play_store_button),
                 onClick = intent.onManageOnPlayStore,
                 modifier = Modifier.testTag("manage_subscription_manage_button"),

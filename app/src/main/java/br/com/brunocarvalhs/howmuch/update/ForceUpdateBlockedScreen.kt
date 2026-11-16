@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.R
-import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButtonPrimary
 
 /**
  * Tela de bloqueio do force update (sdd-059). Aparece quando a versão está abaixo do mínimo e o
@@ -44,7 +44,7 @@ internal fun ForceUpdateBlockedScreen() {
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 12.dp, bottom = 24.dp)
             )
-            CestouButton(
+            CestouButtonPrimary(
                 text = stringResource(R.string.force_update_blocked_button),
                 onClick = {
                     val packageName = context.packageName

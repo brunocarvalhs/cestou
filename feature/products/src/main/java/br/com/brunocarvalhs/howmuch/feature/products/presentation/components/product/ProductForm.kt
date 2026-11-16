@@ -35,7 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButtonPrimary
 import br.com.brunocarvalhs.howmuch.core.ui.entity.ProductCategory
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyVisualTransformation
@@ -182,7 +182,7 @@ internal fun ProductForm(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        CestouButton(
+        CestouButtonPrimary(
             text = stringResource(R.string.product_form_save),
             onClick = intent.onSave,
             modifier = Modifier.testTag("product_form_save"),
@@ -207,7 +207,7 @@ internal fun ProductForm(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        CestouButton(
+        CestouButtonPrimary(
             text = stringResource(R.string.product_form_camera_button),
             onClick = onNavigateToPhoto,
             modifier = Modifier.testTag("product_form_camera_button"),

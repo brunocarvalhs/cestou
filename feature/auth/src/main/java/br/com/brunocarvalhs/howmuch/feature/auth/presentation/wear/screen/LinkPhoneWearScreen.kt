@@ -26,7 +26,7 @@ import androidx.wear.compose.material3.Text
 import androidx.wear.compose.ui.tooling.preview.WearPreviewDevices
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.PairingWear
-import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButtonPrimary
 import br.com.brunocarvalhs.howmuch.feature.auth.R
 import br.com.brunocarvalhs.howmuch.feature.auth.presentation.wear.WearScrollableScreen
 
@@ -79,7 +79,7 @@ private fun LinkPhoneWearContent(
         Step(number = 2, text = stringResource(R.string.wear_link_phone_step_2))
         Step(number = 3, text = stringResource(R.string.wear_link_phone_step_3))
         Spacer(modifier = Modifier.height(10.dp))
-        CestouButton(
+        CestouButtonPrimary(
             text = stringResource(R.string.wear_link_phone),
             onClick = onLinkClick,
             modifier = Modifier.fillMaxWidth().testTag(TAG_LINK_PHONE)
