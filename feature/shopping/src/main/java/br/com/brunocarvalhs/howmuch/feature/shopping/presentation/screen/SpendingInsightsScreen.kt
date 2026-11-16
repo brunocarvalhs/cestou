@@ -60,8 +60,8 @@ internal fun SpendingInsightsScreen(
                 title = {
                     Text(
                         text = stringResource(R.string.insights_title),
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 },
                 navigationIcon = {
@@ -119,8 +119,7 @@ private fun InsightsContent(state: SpendingInsightsUiState, intent: SpendingInsi
                     SectionTitle(stringResource(R.string.insights_total_per_month))
                     Text(
                         text = state.selectedTotal.formatPrice(LocalCurrency.current),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     MonthlySpendingChart(
                         months = state.months,
