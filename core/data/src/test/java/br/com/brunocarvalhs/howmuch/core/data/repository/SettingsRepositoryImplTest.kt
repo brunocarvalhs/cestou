@@ -249,15 +249,6 @@ class SettingsRepositoryImplTest {
     }
 
     @Test
-    fun `syncReminders schedules the default-on reminder when nothing is stored`() = runTest {
-        every { dataStore.data } returns flowOf(emptyPreferences())
-
-        repository.syncReminders()
-
-        verify { reminderScheduler.sync(match { it.remindersEnabled && it.notificationsEnabled }) }
-    }
-
-    @Test
     fun `updateShoppingPreferences stores default list and sorting mode`() = runTest {
         val fake = mockEdit()
 

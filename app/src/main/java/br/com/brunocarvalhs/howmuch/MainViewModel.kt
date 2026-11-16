@@ -18,6 +18,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
+import br.com.brunocarvalhs.howmuch.core.domain.services.ReminderScheduler
 import br.com.brunocarvalhs.howmuch.deeplink.DeepLinkAction
 import br.com.brunocarvalhs.howmuch.deeplink.DeepLinkParser
 import br.com.brunocarvalhs.howmuch.deeplink.PendingNewShopping
@@ -28,6 +29,7 @@ import br.com.brunocarvalhs.howmuch.wear.WearSubscriptionSync
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -48,7 +50,8 @@ internal class MainViewModel @Inject constructor(
     private val feedbackPromptRequester: FeedbackPromptRequester,
     wearSubscriptionSync: WearSubscriptionSync,
     sessionSync: SessionSync,
-    private val deepLinkParser: DeepLinkParser
+    private val deepLinkParser: DeepLinkParser,
+    private val reminderScheduler: ReminderScheduler
 ) : ViewModel() {
 
     init {
@@ -129,7 +132,7 @@ internal class MainViewModel @Inject constructor(
 
     /** Schedules the default-on shopping reminder (sdd-061); safe to call on every start. */
     fun syncReminders() {
-        viewModelScope.launch { settingsRepository.syncReminders() }
+        viewModelScope.launch { reminderScheduler.sync(settingsRepository.getSettings().first()) }
     }
 
     val pendingFeedback: StateFlow<FeedbackPrompt?> = feedbackPromptRequester.pending

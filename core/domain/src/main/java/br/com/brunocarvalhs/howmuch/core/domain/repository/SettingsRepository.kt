@@ -8,13 +8,6 @@ import kotlinx.coroutines.flow.Flow
 interface SettingsRepository {
     fun getSettings(): Flow<AppSettings>
     suspend fun updateTheme(themeMode: ThemeMode)
-
-    /**
-     * Re-schedules the shopping reminder from the stored settings. Settings writes already do this;
-     * call it at startup too, since a default-on reminder is never written (sdd-061).
-     */
-    suspend fun syncReminders()
-
     suspend fun updateNotificationSettings(enabled: Boolean, reminderTime: String)
     suspend fun updateAiSettings(
         tier: AiConfigTier,

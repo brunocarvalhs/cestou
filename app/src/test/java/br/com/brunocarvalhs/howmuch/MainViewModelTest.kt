@@ -19,6 +19,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.SurveyKind
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.domain.model.UserProfile
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
+import br.com.brunocarvalhs.howmuch.core.domain.services.ReminderScheduler
 import br.com.brunocarvalhs.howmuch.core.domain.repository.UserRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.domain.services.FeedbackPromptRequester
@@ -99,11 +100,13 @@ class MainViewModelTest {
             feedbackPromptRequester,
             wearSubscriptionSync,
             SessionSyncImpl(authService, userRepository, wearableSyncService, chatTurnTracker, aiSession),
-            DeepLinkParserImpl(analyticsTracker)
+            DeepLinkParserImpl(analyticsTracker),
+            reminderScheduler
         )
     }
 
     private val authState = MutableStateFlow<AuthenticatedUser?>(null)
+    private val reminderScheduler = mockk<ReminderScheduler>(relaxed = true)
 
     @Test
     fun `signing out on the phone signs the watch out too`() {
@@ -112,6 +115,15 @@ class MainViewModelTest {
         authState.value = null
 
         coVerify(exactly = 1) { wearableSyncService.notifySignOut() }
+    }
+
+    @Test
+    fun `syncReminders schedules the reminder from the stored settings`() {
+        val settings = AppSettings(remindersEnabled = true, reminderTime = "19:30")
+
+        viewModel(settings = settings).syncReminders()
+
+        verify(exactly = 1) { reminderScheduler.sync(settings) }
     }
 
     @Test

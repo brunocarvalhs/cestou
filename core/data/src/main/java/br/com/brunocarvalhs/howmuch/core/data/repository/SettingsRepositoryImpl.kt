@@ -135,10 +135,6 @@ internal class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun syncReminders() {
-        reminderScheduler.sync(getSettings().first())
-    }
-
     override suspend fun updateNotificationSettings(enabled: Boolean, reminderTime: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.NOTIFICATIONS_ENABLED] = enabled
