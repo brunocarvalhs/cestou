@@ -28,9 +28,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 
@@ -56,8 +58,7 @@ internal fun JoinListContent(
     ) {
         Text(
             text = stringResource(R.string.shopping_management_join_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.headlineMedium
         )
 
         Text(
@@ -75,6 +76,11 @@ internal fun JoinListContent(
             },
             label = { Text(stringResource(R.string.shopping_management_label_token)) },
             modifier = Modifier.fillMaxWidth().testTag("join_list_code_field"),
+            textStyle = MaterialTheme.typography.headlineMedium.copy(
+                fontSize = 26.sp,
+                letterSpacing = 0.2.em,
+                textAlign = TextAlign.Center
+            ),
             placeholder = { Text(stringResource(R.string.shopping_management_placeholder_token)) },
             singleLine = true,
             isError = error != null,
@@ -94,7 +100,7 @@ internal fun JoinListContent(
             enabled = token.isNotBlank() && !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .height(52.dp)
                 .testTag("join_list_confirm"),
             shape = MaterialTheme.shapes.medium
         ) {

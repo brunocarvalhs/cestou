@@ -30,8 +30,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.billing.BillingConstants
 import br.com.brunocarvalhs.howmuch.core.domain.model.SubscriptionStatus
+import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.SubtotalCoral
-import br.com.brunocarvalhs.howmuch.core.theme.SubtotalCoralSoft
 import br.com.brunocarvalhs.howmuch.core.theme.SubtotalNight
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouCard
@@ -46,6 +46,19 @@ import br.com.brunocarvalhs.howmuch.feature.subscription.presentation.state.Plan
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaywallScreen(
+    state: PaywallUiState,
+    intent: PaywallIntent,
+    activity: Activity?
+) {
+    // Paywall em tema escuro (nova identidade): fundo azul-noite com CTA coral.
+    CestouTheme(darkTheme = true) {
+        PaywallScreenContent(state = state, intent = intent, activity = activity)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PaywallScreenContent(
     state: PaywallUiState,
     intent: PaywallIntent,
     activity: Activity?
@@ -162,7 +175,7 @@ private fun PlanOptionCard(
             .testTag("paywall_plan_${plan.basePlanId}"),
         onClick = onSelect,
         containerColor = if (selected) {
-            SubtotalCoralSoft
+            MaterialTheme.colorScheme.secondaryContainer
         } else {
             MaterialTheme.colorScheme.surface
         }

@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.domain.model.Product
@@ -62,8 +61,7 @@ internal fun ProductAnalysisConfirmation(
         Column(modifier = Modifier.padding(20.dp, 20.dp, 20.dp, 8.dp)) {
             Text(
                 text = stringResource(R.string.product_photo_confirm_title),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.headlineMedium
             )
             Spacer(Modifier.height(4.dp))
             Text(

@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.feature.chat.presentation.component
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -51,12 +52,12 @@ internal fun ChatBubble(
     val bubbleColor = if (isUser) {
         MaterialTheme.colorScheme.primary
     } else {
-        MaterialTheme.colorScheme.surfaceVariant
+        MaterialTheme.colorScheme.surface
     }
     val textColor = if (isUser) {
         MaterialTheme.colorScheme.onPrimary
     } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
+        MaterialTheme.colorScheme.onSurface
     }
     val shape = RoundedCornerShape(
         topStart = BUBBLE_CORNER_RADIUS_DP.dp,
@@ -71,6 +72,7 @@ internal fun ChatBubble(
     ) {
         Surface(
             color = bubbleColor,
+            border = if (isUser) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             shape = shape,
             modifier = Modifier.widthIn(max = BUBBLE_MAX_WIDTH_DP.dp),
         ) {

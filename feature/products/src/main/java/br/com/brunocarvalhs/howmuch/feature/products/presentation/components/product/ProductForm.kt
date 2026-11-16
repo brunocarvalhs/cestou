@@ -31,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -91,8 +90,7 @@ internal fun ProductForm(
                 ?.takeIf { it.isNotBlank() }
                 ?.let { stringResource(R.string.product_header_add_to, it) }
                 ?: stringResource(R.string.product_form_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.headlineMedium
         )
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -103,7 +101,7 @@ internal fun ProductForm(
             modifier = Modifier.fillMaxWidth().testTag("product_form_name_field"),
             singleLine = true,
             enabled = !uiState.isSaving,
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(14.dp)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -132,7 +130,7 @@ internal fun ProductForm(
                 trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !uiState.isSaving,
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(14.dp)
             )
             // OutlinedTextField has no onClick of its own; a transparent overlay is the
             // standard way to make a read-only field open a picker instead of the keyboard.
@@ -163,7 +161,7 @@ internal fun ProductForm(
                 singleLine = true,
                 enabled = !uiState.isSaving,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(14.dp)
             )
 
             OutlinedTextField(
@@ -176,7 +174,7 @@ internal fun ProductForm(
                 enabled = !uiState.isSaving,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 visualTransformation = visualTransformation,
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(14.dp)
             )
         }
 

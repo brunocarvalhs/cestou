@@ -1,5 +1,6 @@
 package br.com.brunocarvalhs.howmuch.core.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,8 +27,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import br.com.brunocarvalhs.howmuch.core.ui.R
 
-private const val SURFACE_ALPHA = 0.5f
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShareOptionsBottomSheet(
@@ -49,15 +48,15 @@ fun ShareOptionsBottomSheet(
         ) {
             Text(
                 text = stringResource(R.string.shopping_list_share_options_title),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
             Surface(
                 onClick = onInviteMember,
                 shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = SURFACE_ALPHA),
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 modifier = Modifier.fillMaxWidth().testTag("share_options_invite")
             ) {
                 Row(
@@ -91,7 +90,8 @@ fun ShareOptionsBottomSheet(
             Surface(
                 onClick = onShareAsText,
                 shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = SURFACE_ALPHA),
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 modifier = Modifier.fillMaxWidth().testTag("share_options_text")
             ) {
                 Row(
