@@ -14,6 +14,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.budget.MonthlySpendingCalculator
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.User
 import br.com.brunocarvalhs.howmuch.core.domain.repository.MonthlyGoalRepository
+import br.com.brunocarvalhs.howmuch.core.domain.repository.ProductReader
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
@@ -42,6 +43,7 @@ import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.Shoppin
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingFilter
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingListUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -69,13 +71,16 @@ internal class ShoppingListViewModel @Inject constructor(
     private val firstTimeEventTracker: FirstTimeEventTracker,
     private val monthlyGoalRepository: MonthlyGoalRepository,
     private val monthlySpendingCalculator: MonthlySpendingCalculator,
-    private val featureFlags: FeatureFlagService
+    private val featureFlags: FeatureFlagService,
+    private val productReader: ProductReader
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ShoppingListUiState())
     val uiState: StateFlow<ShoppingListUiState> = _uiState.asStateFlow()
 
     private var closeConfirmation = false
+    private var observedFeaturedId: String? = null
+    private var featuredItemsJob: Job? = null
 
     /** Muda a cada volta à Home para o gasto do mês ser recalculado se o mês virou com o app aberto. */
     private val monthTick = MutableStateFlow(0)
@@ -206,6 +211,7 @@ internal class ShoppingListViewModel @Inject constructor(
         viewModelScope.launch {
             repository.observeAll().collect { list ->
                 _uiState.update { it.copy(list = StableList(list), isLoading = false) }
+                observeFeaturedItems(list)
                 applyFilters()
             }
         }
@@ -318,6 +324,27 @@ internal class ShoppingListViewModel @Inject constructor(
             .collect { progress -> _uiState.update { it.copy(monthlyGoalProgress = progress) } }
     }
 
+    /**
+     * Itens da lista em destaque (primeira em andamento), usados pela seção "Itens da vez" da Home.
+     * Só reinicia a observação quando o destaque muda; senão a lista de itens segue viva e atualiza
+     * sozinha, sem I/O duplicado a cada recarga da Home.
+     */
+    private fun observeFeaturedItems(list: List<Shopping>) {
+        val featuredId = list.firstOrNull { it.status == Shopping.Status.IN_PROGRESS }?.id
+        if (featuredId == observedFeaturedId) return
+        observedFeaturedId = featuredId
+        featuredItemsJob?.cancel()
+        if (featuredId == null) {
+            _uiState.update { it.copy(featuredItems = StableList()) }
+            return
+        }
+        featuredItemsJob = viewModelScope.launch {
+            productReader.getAllProducts(featuredId).collect { products ->
+                _uiState.update { it.copy(featuredItems = StableList(products)) }
+            }
+        }
+    }
+
     private fun fetchAll() {
         monthTick.update { it + 1 }
         _uiState.update { it.copy(isLoading = true) }
@@ -325,6 +352,7 @@ internal class ShoppingListViewModel @Inject constructor(
             shoppingGetAllUseCase.invoke()
                 .onSuccess { list ->
                     _uiState.update { it.copy(list = StableList(list), isLoading = false) }
+                    observeFeaturedItems(list)
                     applyFilters()
                 }.onFailure {
                     _uiState.update { it.copy(isLoading = false) }

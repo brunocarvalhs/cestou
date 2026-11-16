@@ -4,19 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,13 +28,16 @@ import br.com.brunocarvalhs.howmuch.core.ui.extensions.CurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
 import br.com.brunocarvalhs.howmuch.feature.cart.R
 
+/**
+ * Barra inferior da lista aberta (nova identidade): um único botão de largura total com o
+ * total à direita, no padrão do canvas. Adicionar itens fica no campo no topo da lista.
+ */
 @Composable
 internal fun CartBottomBar(
-    modifier: Modifier = Modifier,
     currencyFormatter: CurrencyFormatter,
     totalAmount: Double,
     onFinished: () -> Unit,
-    onAdd: () -> Unit
+    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
@@ -47,40 +45,29 @@ internal fun CartBottomBar(
             .navigationBarsPadding()
     ) {
         HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-        Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+        Button(
+            onClick = onFinished,
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+                .height(52.dp)
+                .testTag("cart_finish_button"),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = SubtotalNight,
+                contentColor = Color.White
+            ),
         ) {
-            Button(
-                onClick = onFinished,
-                modifier = Modifier.height(52.dp).weight(PRIMARY_BUTTON_WEIGHT).testTag("cart_finish_button"),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = SubtotalNight,
-                    contentColor = Color.White
-                ),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(stringResource(R.string.cart_checkout), fontWeight = FontWeight.Bold)
-                    Text(
-                        text = currencyFormatter.format(totalAmount),
-                        fontWeight = FontWeight.Black
-                    )
-                }
-            }
-
-            Spacer(Modifier.width(16.dp))
-
-            Button(
-                onClick = onAdd,
-                modifier = Modifier.height(52.dp).weight(1f).testTag("cart_add_product_button"),
-                shape = RoundedCornerShape(14.dp),
-            ) {
-                Icon(Icons.Default.Add, null)
+                Text(stringResource(R.string.cart_checkout), fontWeight = FontWeight.Bold)
+                Text(
+                    text = currencyFormatter.format(totalAmount),
+                    fontWeight = FontWeight.Black
+                )
             }
         }
     }
@@ -92,9 +79,6 @@ private fun CartBottomBarPreview() {
     CartBottomBar(
         currencyFormatter = rememberCurrencyFormatter(),
         totalAmount = 0.0,
-        onFinished = {},
-        onAdd = {}
+        onFinished = {}
     )
 }
-
-private const val PRIMARY_BUTTON_WEIGHT = 3f

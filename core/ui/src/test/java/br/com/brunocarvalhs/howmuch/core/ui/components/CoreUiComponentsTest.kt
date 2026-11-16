@@ -17,7 +17,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.R
 import br.com.brunocarvalhs.howmuch.core.ui.components.scanner.QRCodeOverlay
@@ -46,8 +46,7 @@ class CoreUiComponentsTest {
             CestouTheme {
                 CestouBottomNavigation(
                     currentRoute = null,
-                    onNavigate = { navigated = it },
-                    photoUrl = "https://x/p.png"
+                    onNavigate = { navigated = it }
                 )
             }
         }
@@ -57,17 +56,18 @@ class CoreUiComponentsTest {
     }
 
     @Test
-    fun `bottom navigation has Lists, History and Profile and selects History`() {
+    fun `bottom navigation has Lists, Spending, Alerts and Profile and selects Spending`() {
         var navigated: Any? = null
         composeTestRule.setContent {
             CestouTheme {
-                CestouBottomNavigation(currentRoute = History, onNavigate = { navigated = it })
+                CestouBottomNavigation(currentRoute = SpendingInsights, onNavigate = { navigated = it })
             }
         }
         composeTestRule.onNodeWithTag("bottom_nav_ShoppingList").assertExists()
+        composeTestRule.onNodeWithTag("bottom_nav_Notifications").assertExists()
         composeTestRule.onNodeWithTag("bottom_nav_Profile").assertExists()
-        composeTestRule.onNodeWithTag("bottom_nav_History").assertIsSelected().performClick()
-        assertEquals(History, navigated)
+        composeTestRule.onNodeWithTag("bottom_nav_SpendingInsights").assertIsSelected().performClick()
+        assertEquals(SpendingInsights, navigated)
     }
 
     @Test
@@ -82,11 +82,13 @@ class CoreUiComponentsTest {
     fun `bottom navigation includes default items`() {
         val items = listOf(
             BottomNavItem.Lists,
-            BottomNavItem.HistoryItem,
+            BottomNavItem.SpendingItem,
+            BottomNavItem.NotificationsItem,
             BottomNavItem.ProfileItem
         )
-        assertEquals(3, items.size)
-        assertEquals(R.string.nav_history, BottomNavItem.HistoryItem.titleRes)
+        assertEquals(4, items.size)
+        assertEquals(R.string.nav_spending, BottomNavItem.SpendingItem.titleRes)
+        assertEquals(R.string.nav_notifications, BottomNavItem.NotificationsItem.titleRes)
         assertEquals(R.string.nav_lists, BottomNavItem.Lists.titleRes)
     }
 

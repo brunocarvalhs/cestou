@@ -22,11 +22,12 @@ val SubtotalLine = Color(0xFFDDE3F0)
 /**
  * Dark mode surfaces, derived from [SubtotalNight].
  */
-val SubtotalDarkBackground = Color(0xFF0A1226)
-val SubtotalDarkSurface = Color(0xFF131D36)
+val SubtotalDarkBackground = Color(0xFF0B1226)
+val SubtotalDarkSurface = Color(0xFF15203D)
 val SubtotalDarkSurfaceVariant = Color(0xFF1C2846)
-val SubtotalDarkLine = Color(0xFF2A3858)
-val SubtotalDarkBlue = Color(0xFF8FA8FF)
+val SubtotalDarkLine = Color(0xFF2A3A63)
+val SubtotalDarkBlue = Color(0xFF8FA9FF)
+val SubtotalDarkMuted = Color(0xFFA9B8E6)
 
 /**
  * Cestou names kept as aliases so existing call sites keep compiling.

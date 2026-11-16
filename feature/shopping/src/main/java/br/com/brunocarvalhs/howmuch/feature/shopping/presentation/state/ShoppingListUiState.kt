@@ -3,6 +3,7 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state
 import androidx.compose.runtime.Stable
 import br.com.brunocarvalhs.howmuch.core.ai.contract.AgentContext
 import br.com.brunocarvalhs.howmuch.core.domain.budget.BudgetProgress
+import br.com.brunocarvalhs.howmuch.core.domain.model.Product
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.core.ui.utils.UiText
@@ -21,6 +22,8 @@ internal data class ShoppingListUiState(
     val unreadNotifications: Int = 0,
     /** Progresso da meta mensal; `null` sem meta, sem sessão ou com os avisos desligados pela flag. */
     val monthlyGoalProgress: BudgetProgress? = null,
+    /** Itens da lista em destaque, para a seção "Itens da vez" da Home. Vazio sem lista em andamento. */
+    val featuredItems: StableList<Product> = StableList(),
     val error: UiText? = null
 ) : AgentContext {
     override fun toMetadata(): Map<String, Any?> =

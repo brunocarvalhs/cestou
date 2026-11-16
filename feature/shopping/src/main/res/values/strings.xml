@@ -231,5 +231,17 @@
         <item quantity="other">%d people</item>
     </plurals>
     <string name="shopping_monthly_goal_title">Monthly goal</string>
+    <plurals name="shopping_featured_people">
+        <item quantity="one">%d person</item>
+        <item quantity="other">%d people</item>
+    </plurals>
+    <string name="shopping_featured_budget_of">of %1$s budget</string>
+    <string name="shopping_featured_remaining">%1$s left</string>
+    <string name="shopping_featured_over">%1$s over</string>
+    <string name="shopping_featured_near_limit">Near the limit</string>
+    <string name="shopping_featured_exceeded">Over the limit</string>
     <string name="shopping_home_title">Your lists</string>
+    <string name="shopping_featured_items_title">Items up next</string>
+    <string name="shopping_featured_items_checked">%1$d of %2$d checked</string>
+    <string name="shopping_featured_continue">Continue shopping</string>
 </resources>

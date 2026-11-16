@@ -6,7 +6,7 @@ tags:
 - runFlow: ../subflows/ensure_logged_in.yaml
 
 - tapOn:
-    id: bottom_nav_History
+    id: bottom_nav_SpendingInsights
 - assertVisible:
     id: history_screen
 - waitForAnimationToEnd:

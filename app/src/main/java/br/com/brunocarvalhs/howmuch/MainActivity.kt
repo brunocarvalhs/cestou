@@ -49,6 +49,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.SurveyKind
 import br.com.brunocarvalhs.howmuch.core.domain.model.ThemeMode
 import br.com.brunocarvalhs.howmuch.core.navigation.FeatureNavGraph
 import br.com.brunocarvalhs.howmuch.core.navigation.Navigator
+import br.com.brunocarvalhs.howmuch.core.navigation.RouteProtocol
 import br.com.brunocarvalhs.howmuch.core.navigation.ShoppingList
 import br.com.brunocarvalhs.howmuch.core.navigation.TransitionExtensions
 import br.com.brunocarvalhs.howmuch.core.navigation.isProtectedRoute
@@ -57,6 +58,7 @@ import br.com.brunocarvalhs.howmuch.core.navigation.mobile.FeedbackSurvey
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.History
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.JoinList
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.NewShopping
+import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Notifications
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Paywall
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.Profile
 import br.com.brunocarvalhs.howmuch.core.navigation.mobile.SpendingInsights
@@ -171,7 +173,6 @@ class MainActivity : AppCompatActivity() {
     private fun CestouApp(windowSizeClass: WindowSizeClass) {
         val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
         val language by viewModel.language.collectAsStateWithLifecycle()
-        val photoUrl by viewModel.photoUrl.collectAsStateWithLifecycle()
 
         LaunchedEffect(language) {
             val appLocales = LocaleListCompat.forLanguageTags(language)
@@ -247,15 +248,32 @@ class MainActivity : AppCompatActivity() {
 
             // AiChat's shoppingId here is a throwaway placeholder: rootRoutes only matches by
             // route::class (see hasRoute/isProtectedRoute below), never by field value.
-            val rootRoutes = remember { listOf(ShoppingList, History, AiChat(shoppingId = ""), Profile, NewShopping) }
+            val rootRoutes = remember {
+                listOf(
+                    ShoppingList,
+                    SpendingInsights,
+                    Notifications,
+                    History,
+                    AiChat(shoppingId = ""),
+                    Profile,
+                    NewShopping
+                )
+            }
 
             val currentRoute = rootRoutes.find { route ->
                 currentDestination?.hierarchy?.any { it.hasRoute(route::class) } == true
             }
             // "Criar lista" (sdd-056) é uma tela de Compras: a barra continua com a aba de Compras marcada.
-            val barRoute = if (currentRoute is NewShopping) ShoppingList else currentRoute
+            // Histórico sai da barra (aberto por Gastos e Perfil): a aba de Gastos continua marcada.
+            val barRoute = when (currentRoute) {
+                is NewShopping -> ShoppingList
+                is History -> SpendingInsights
+                else -> currentRoute
+            }
 
-            val isOnProtectedRoute = currentDestination?.isProtectedRoute(rootRoutes + SpendingInsights) == true
+            // Notifications é só NavKey (sem RouteType): fica fora da checagem de login, como antes.
+            val protectableRoutes = remember(rootRoutes) { rootRoutes.filterIsInstance<RouteProtocol>() }
+            val isOnProtectedRoute = currentDestination?.isProtectedRoute(protectableRoutes) == true
 
             LaunchedEffect(isOnProtectedRoute, isAuthenticated) {
                 if (!isAuthenticated && isOnProtectedRoute) {
@@ -386,7 +404,6 @@ class MainActivity : AppCompatActivity() {
                 bottomBar = {
                     CestouBottomNavigation(
                         currentRoute = barRoute,
-                        photoUrl = photoUrl,
                         visible = currentRoute != null && currentRoute !is AiChat,
                         onNavigate = { route ->
                             screenTracker.onTabSelected(route)

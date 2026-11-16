@@ -3,6 +3,7 @@ package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.DpSize
@@ -13,6 +14,7 @@ import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.ShoppingListIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingListUiState
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -72,7 +74,7 @@ class ShoppingScreenTest {
     }
 
     @Test
-    fun `renders search bar in shopping screen`() {
+    fun `home has no search bar, as in the nova identidade canvas`() {
         composeTestRule.setContent {
             CestouTheme {
                 ShoppingScreen(
@@ -83,6 +85,6 @@ class ShoppingScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithText("Groceries").assertExists()
+        assertTrue(composeTestRule.onAllNodesWithText("Groceries").fetchSemanticsNodes().isEmpty())
     }
 }

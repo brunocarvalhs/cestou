@@ -36,7 +36,7 @@ private val DarkColorScheme = darkColorScheme(
     surface = SubtotalDarkSurface,
     onSurface = Color.White,
     surfaceVariant = SubtotalDarkSurfaceVariant,
-    onSurfaceVariant = CestouTextTertiary,
+    onSurfaceVariant = SubtotalDarkMuted,
     outline = SubtotalDarkLine
 )
 

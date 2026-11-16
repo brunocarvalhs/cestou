@@ -9,6 +9,7 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.model.User
 import br.com.brunocarvalhs.howmuch.core.domain.repository.MonthlyGoalRepository
+import br.com.brunocarvalhs.howmuch.core.domain.repository.ProductReader
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
@@ -64,6 +65,10 @@ class ShoppingListViewModelTest {
     private val monthlyGoalRepository = mockk<MonthlyGoalRepository> {
         every { observeGoal() } returns flowOf(null)
     }
+    private val productReader = mockk<ProductReader> {
+        coEvery { getAllProducts(any()) } returns flowOf(emptyList())
+    }
+
     private val featureFlags = mockk<FeatureFlagService> {
         every { isEnabled(any(), any()) } returns true
     }
@@ -111,7 +116,8 @@ class ShoppingListViewModelTest {
             mockk(relaxed = true),
             monthlyGoalRepository,
             MonthlySpendingCalculator(),
-            featureFlags
+            featureFlags,
+            productReader
         )
     }
 

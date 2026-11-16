@@ -5,6 +5,7 @@
     <string name="cart_ai_voice_input">Entrada por voz</string>
     <string name="cart_assistant_status">Online • IA ativa</string>
     <string name="cart_assistant_title">Assistente Cestou</string>
+    <string name="cart_add_item_placeholder">Adicionar item</string>
     <string name="cart_checkout">Finalizar</string>
     <string name="cart_error_finish_purchase">Não foi possível finalizar a compra. Tente novamente.</string>
     <string name="cart_item_delete_description">Excluir item</string>

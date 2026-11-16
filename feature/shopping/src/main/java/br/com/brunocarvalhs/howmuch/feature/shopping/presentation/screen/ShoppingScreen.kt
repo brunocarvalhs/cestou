@@ -1,16 +1,17 @@
 package br.com.brunocarvalhs.howmuch.feature.shopping.presentation.screen
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridScope
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -47,19 +48,21 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.theme.CestouTheme
 import br.com.brunocarvalhs.howmuch.core.theme.PreviewCestouScreens
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButton
+import br.com.brunocarvalhs.howmuch.core.ui.components.CestouButtonStyle
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouHeaderButton
 import br.com.brunocarvalhs.howmuch.core.ui.components.CestouModalBottomSheet
 import br.com.brunocarvalhs.howmuch.core.ui.dragdrop.DragAndDropContainer
+import br.com.brunocarvalhs.howmuch.core.ui.extensions.rememberCurrencyFormatter
 import br.com.brunocarvalhs.howmuch.core.ui.utils.StableList
 import br.com.brunocarvalhs.howmuch.feature.shopping.R
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.common.ShoppingEmptyState
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.form.CreateShoppingContent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.notifications.NotificationBellButton
-import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.MonthlyGoalCard
-import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingFilterChips
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.FeaturedItemsSection
+import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.FeaturedListCard
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingItem
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingItemLoading
-import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.components.shopping.ShoppingSearchBar
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.intent.ShoppingListIntent
 import br.com.brunocarvalhs.howmuch.feature.shopping.presentation.state.ShoppingListUiState
 
@@ -75,8 +78,9 @@ internal fun ShoppingScreen(
 ) {
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
-    val listState = rememberLazyGridState()
+    val listState = rememberLazyListState()
     val lifecycleOwner = LocalLifecycleOwner.current
+    val currencyFormatter = rememberCurrencyFormatter()
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
@@ -147,44 +151,55 @@ internal fun ShoppingScreen(
             containerColor = MaterialTheme.colorScheme.background,
             contentWindowInsets = WindowInsets(0, 0, 0, 0)
         ) { padding ->
+            val featured = uiState.list.firstOrNull { it.status == Shopping.Status.IN_PROGRESS }
+
             Column(
                 modifier = modifier
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                ShoppingSearchBar(
-                    query = uiState.searchQuery,
-                    onQueryChange = intent.onQueryChange,
-                    onOpenAiChat = intent.onOpenAiChat,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-
-                ShoppingFilterChips(
-                    selectedFilter = uiState.selectedFilter,
-                    onFilterSelected = intent.onFilter,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                uiState.monthlyGoalProgress?.let { progress ->
-                    MonthlyGoalCard(
-                        progress = progress,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                    )
-                }
-
                 PullToRefreshBox(
                     isRefreshing = uiState.isLoading,
                     onRefresh = { intent.onFetchAll() },
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.weight(1f).fillMaxWidth()
                 ) {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(1),
+                    LazyColumn(
                         state = listState,
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 16.dp)
+                        contentPadding = PaddingValues(bottom = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
+                        featured?.let { shopping ->
+                            item(key = "featured_card") {
+                                FeaturedListCard(
+                                    shopping = shopping,
+                                    currencyFormatter = currencyFormatter,
+                                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                                )
+                            }
+                            item(key = "featured_items") {
+                                FeaturedItemsSection(
+                                    items = uiState.featuredItems.items,
+                                    users = shopping.users,
+                                    currencyFormatter = currencyFormatter,
+                                    onOpen = { intent.onOpen(shopping.id) },
+                                    modifier = Modifier.padding(horizontal = 20.dp)
+                                )
+                            }
+                        }
                         shoppingListContent(uiState, intent)
                     }
+                }
+
+                featured?.let { shopping ->
+                    CestouButton(
+                        text = stringResource(R.string.shopping_featured_continue),
+                        onClick = { intent.onOpen(shopping.id) },
+                        style = CestouButtonStyle.Strong,
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp)
+                            .padding(top = 12.dp, bottom = 20.dp)
+                    )
                 }
             }
         }
@@ -210,7 +225,7 @@ internal fun ShoppingScreen(
     }
 }
 
-private fun LazyGridScope.shoppingListContent(
+private fun LazyListScope.shoppingListContent(
     uiState: ShoppingListUiState,
     intent: ShoppingListIntent
 ) {
@@ -227,7 +242,7 @@ private fun LazyGridScope.shoppingListContent(
     }
 }
 
-private fun LazyGridScope.shoppingListItems(
+private fun LazyListScope.shoppingListItems(
     uiState: ShoppingListUiState,
     intent: ShoppingListIntent
 ) {

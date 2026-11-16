@@ -7,12 +7,14 @@ import br.com.brunocarvalhs.howmuch.core.domain.model.AppSettings
 import br.com.brunocarvalhs.howmuch.core.domain.model.AuthenticatedUser
 import br.com.brunocarvalhs.howmuch.core.domain.model.Shopping
 import br.com.brunocarvalhs.howmuch.core.domain.repository.MonthlyGoalRepository
+import br.com.brunocarvalhs.howmuch.core.domain.repository.ProductReader
 import br.com.brunocarvalhs.howmuch.core.domain.repository.SettingsRepository
 import br.com.brunocarvalhs.howmuch.core.domain.repository.ShoppingRepository
 import br.com.brunocarvalhs.howmuch.core.domain.services.AuthService
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.contract.FeatureFlagService
 import br.com.brunocarvalhs.howmuch.core.remoteconfig.model.FeatureFlagKeys
 import br.com.brunocarvalhs.howmuch.feature.shopping.domain.usecase.ObserveUnreadNotificationsCountUseCase
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +38,10 @@ class ShoppingListViewModelMonthlyGoalTest {
     private val repository = mockk<ShoppingRepository>(relaxed = true)
     private val goal = MutableStateFlow<Double?>(null)
     private val monthlyGoalRepository = mockk<MonthlyGoalRepository> { every { observeGoal() } returns goal }
+    private val productReader = mockk<ProductReader> {
+        coEvery { getAllProducts(any()) } returns flowOf(emptyList())
+    }
+
     private val featureFlags = mockk<FeatureFlagService>()
     private val settingsRepository = mockk<SettingsRepository> {
         every { getSettings() } returns flowOf(AppSettings())
@@ -84,7 +90,8 @@ class ShoppingListViewModelMonthlyGoalTest {
         mockk(relaxed = true),
         monthlyGoalRepository,
         MonthlySpendingCalculator(),
-        featureFlags
+        featureFlags,
+        productReader
     )
 
     @Test

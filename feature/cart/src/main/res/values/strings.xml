@@ -5,6 +5,7 @@
     <string name="cart_ai_voice_input">Voice input</string>
     <string name="cart_assistant_status">Online • AI active</string>
     <string name="cart_assistant_title">Cestou Assistant</string>
+    <string name="cart_add_item_placeholder">Add item</string>
     <string name="cart_checkout">Checkout</string>
     <string name="cart_error_finish_purchase">Could not finish the purchase. Please try again.</string>
     <string name="cart_item_delete_description">Delete item</string>

@@ -231,4 +231,17 @@
     <string name="shopping_wear_detail_quantity_hint">Cantidad</string>
     <string name="shopping_wear_detail_save">Guardar</string>
     <string name="shopping_wear_detail_cancel">Cancelar</string>
+    <plurals name="shopping_featured_people">
+        <item quantity="one">%d persona</item>
+        <item quantity="other">%d personas</item>
+    </plurals>
+    <string name="shopping_featured_budget_of">de %1$s de presupuesto</string>
+    <string name="shopping_featured_remaining">Faltan %1$s</string>
+    <string name="shopping_featured_over">Superó %1$s</string>
+    <string name="shopping_featured_near_limit">Cerca del límite</string>
+    <string name="shopping_featured_exceeded">Superó el límite</string>
+    <string name="shopping_home_title">Tus listas</string>
+    <string name="shopping_featured_items_title">Artículos de ahora</string>
+    <string name="shopping_featured_items_checked">%1$d de %2$d marcados</string>
+    <string name="shopping_featured_continue">Continuar compra</string>
 </resources>

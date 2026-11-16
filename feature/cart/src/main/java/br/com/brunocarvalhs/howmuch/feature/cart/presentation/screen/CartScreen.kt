@@ -2,17 +2,27 @@ package br.com.brunocarvalhs.howmuch.feature.cart.presentation.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
@@ -39,6 +49,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
@@ -246,8 +257,7 @@ internal fun CartScreen(
                         CartBottomBar(
                             currencyFormatter = currencyFormatter,
                             totalAmount = cartSummary.totalAmount,
-                            onFinished = { intent.onToggleFinishPurchaseSheet() },
-                            onAdd = { intent.onToggleProductPicker() }
+                            onFinished = { intent.onToggleFinishPurchaseSheet() }
                         )
                     }
                 }
@@ -279,6 +289,10 @@ internal fun CartScreen(
                         item {
                             CestouLockedBanner()
                         }
+                    } else {
+                        item(key = "add_item") {
+                            CartAddItemField(onClick = { intent.onToggleProductPicker() })
+                        }
                     }
 
                     if (uiState.products.isEmpty()) {
@@ -308,7 +322,7 @@ internal fun CartScreen(
 
                         if (isCollapsed) return@forEach
 
-                        itemsIndexed(products, key = { _, product -> product.id }) { index, product ->
+                        items(products, key = { product -> product.id }) { product ->
                             // Attribution avatar only makes sense once there's more than one member
                             // to attribute to (spec IAA-01 AC6), and only once the product actually
                             // has history to show — a legacy product with none renders like a
@@ -322,7 +336,6 @@ internal fun CartScreen(
                                 onDelete = { intent.onDeleteProduct(product) },
                                 onEdit = { intent.onEditProduct(product) },
                                 onTogglePurchased = { intent.onTogglePurchased(product, it) },
-                                showDivider = index < uiState.products.size - 1,
                                 showAttribution = showAttribution,
                                 attributionProfile = if (showAttribution) {
                                     uiState.memberProfiles[product.lastActivity?.userId]
@@ -351,6 +364,37 @@ internal fun CartScreen(
                 }
             }
         }
+    }
+}
+
+/** Campo "Adicionar item" do topo da lista (canvas da nova identidade): abre o seletor de produtos. */
+@Composable
+private fun CartAddItemField(onClick: () -> Unit) {
+    val shape = RoundedCornerShape(14.dp)
+    Row(
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outline, shape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp)
+            .testTag("cart_add_product_button"),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.Add,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Text(
+            text = stringResource(R.string.cart_add_item_placeholder),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
