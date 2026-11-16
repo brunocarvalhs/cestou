@@ -79,7 +79,8 @@ private fun Preferences.toAppSettings(): AppSettings {
         creativityLevel = this[PreferencesKeys.CREATIVITY_LEVEL] ?: 0.7f,
         defaultListId = this[PreferencesKeys.DEFAULT_LIST_ID],
         sortingMode = this[PreferencesKeys.SORTING_MODE] ?: "CATEGORY",
-        remindersEnabled = this[PreferencesKeys.REMINDERS_ENABLED] ?: false,
+        // sdd-061: on unless the user turned it off, so new users get the shopping reminder.
+        remindersEnabled = this[PreferencesKeys.REMINDERS_ENABLED] ?: true,
         language = this[PreferencesKeys.LANGUAGE] ?: "pt-BR",
         currency = this[PreferencesKeys.CURRENCY] ?: "BRL",
         analyticsEnabled = this[PreferencesKeys.ANALYTICS_ENABLED] ?: true
@@ -132,6 +133,10 @@ internal class SettingsRepositoryImpl @Inject constructor(
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.THEME_MODE] = themeMode.name
         }
+    }
+
+    override suspend fun syncReminders() {
+        reminderScheduler.sync(getSettings().first())
     }
 
     override suspend fun updateNotificationSettings(enabled: Boolean, reminderTime: String) {

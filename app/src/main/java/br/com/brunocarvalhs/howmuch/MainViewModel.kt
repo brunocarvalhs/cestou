@@ -39,7 +39,7 @@ private const val KEY_PENDING_AI_CHAT = "pending_ai_chat_session"
 @HiltViewModel
 internal class MainViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    settingsRepository: SettingsRepository,
+    private val settingsRepository: SettingsRepository,
     private val authService: AuthService,
     analyticsTracker: AnalyticsTracker,
     private val wearableSyncService: WearableSyncService,
@@ -126,6 +126,11 @@ internal class MainViewModel @Inject constructor(
     }
 
     fun onBackground() = appUsageTracker.onBackground()
+
+    /** Schedules the default-on shopping reminder (sdd-061); safe to call on every start. */
+    fun syncReminders() {
+        viewModelScope.launch { settingsRepository.syncReminders() }
+    }
 
     val pendingFeedback: StateFlow<FeedbackPrompt?> = feedbackPromptRequester.pending
 

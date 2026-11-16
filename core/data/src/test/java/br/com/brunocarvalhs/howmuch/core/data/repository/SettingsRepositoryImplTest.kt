@@ -41,7 +41,7 @@ class SettingsRepositoryImplTest {
             assertEquals(ThemeMode.SYSTEM, settings.themeMode)
             assertEquals(AiProvider.OPENROUTER, settings.aiProvider)
             assertEquals("CATEGORY", settings.sortingMode)
-            assertFalse(settings.remindersEnabled)
+            assertTrue(settings.remindersEnabled)
             assertEquals("pt-BR", settings.language)
             assertEquals("BRL", settings.currency)
             awaitComplete()
@@ -246,6 +246,15 @@ class SettingsRepositoryImplTest {
 
         assertEquals("google/gemini-2.0-flash-001", fake[stringPreferencesKey("ai_model")])
         assertEquals(AiProvider.GEMINI.name, fake[stringPreferencesKey("ai_provider")])
+    }
+
+    @Test
+    fun `syncReminders schedules the default-on reminder when nothing is stored`() = runTest {
+        every { dataStore.data } returns flowOf(emptyPreferences())
+
+        repository.syncReminders()
+
+        verify { reminderScheduler.sync(match { it.remindersEnabled && it.notificationsEnabled }) }
     }
 
     @Test
