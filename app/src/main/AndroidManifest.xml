@@ -81,6 +81,16 @@
             android:exported="false"
             tools:node="remove" />
 
+        <!--
+            O FirebaseUI declara a CustomTabActivity do Facebook no próprio manifest, mas o SDK do
+            Facebook está fora do APK até o login com Facebook ser ligado (ver 6f69979). Sem a classe,
+            abrir essa activity derruba o app com ClassNotFoundException. Removemos a declaração do merge.
+            Quando o login com Facebook for ativado, remova este bloco junto com a dependência.
+        -->
+        <activity
+            android:name="com.facebook.CustomTabActivity"
+            tools:node="remove" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
